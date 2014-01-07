@@ -17,11 +17,10 @@ function usage() {
 #
 #
 function run() {
-    local tst=$1
-    local vrb=$2
-    local cmd=$3
+    local vrb=$1
+    local cmd=$2
     [ "${vrb}" = "True" ] && echo "${cmd}"
-    [ "${tst}" = "True" ] || ${cmd}
+    ${cmd}
 }
 #
 # Get options
@@ -29,6 +28,7 @@ function run() {
 test=False
 verbose=False
 group=desi
+acl=True
 while getopts g:htv argname; do
     case ${argname} in
         g) group=${OPTARG} ;;
@@ -40,12 +40,18 @@ while getopts g:htv argname; do
 done
 shift $((OPTIND-1))
 #
-# Check for find
+# Check for commands
 #
 find=/usr/bin/find
 if [ ! -x "${find}" ]; then
     echo "Could not find the 'find' command (tried ${find})!" >&2
     exit 1
+fi
+setfacl=/usr/bin/setfacl
+if [ ! -x "${setfacl}" ]; then
+    echo "Could not find the 'setfacl' command (tried ${setfacl})!" >&2
+    echo "Skipping ACL changes." >&2
+    acl=False
 fi
 #
 # Make sure directory exists
@@ -66,6 +72,20 @@ if [ -z "${USER}" ]; then
     exit 1
 fi
 [ "${verbose}" = "True" ] && echo "Fixing permissions on ${directory} ..."
-run ${test} ${verbose} "${find} ${directory} -user ${USER} -not -group ${group} -exec chgrp -h ${group} {} ;"
-run ${test} ${verbose} "${find} ${directory} -user ${USER} -type f -not -perm 660 -exec chmod -v 660 {} ;"
-run ${test} ${verbose} "${find} ${directory} -user ${USER} -type d -not -perm 2770 -exec chmod -v 2770 {} ;"
+if [ "${test}" = "True" ]; then
+    run ${verbose} "${find} ${directory} -user ${USER} -not -group ${group} -ls"
+    run ${verbose} "${find} ${directory} -user ${USER} -type f -not -perm 660 -ls"
+    run ${verbose} "${find} ${directory} -user ${USER} -type d -not -perm 2770 -ls"
+    if [ "${acl}" = "True" ]; then
+        run ${verbose} "${setfacl} --test --recursive --default -m u::rwx,g::rwx,o::--- ${directory}"
+    fi
+else
+    vflag=''
+    [ "${verbose}" = "True" ] && vflag='-v'
+    run ${verbose} "${find} ${directory} -user ${USER} -not -group ${group} -exec chgrp ${vflag} -h ${group} {} ;"
+    run ${verbose} "${find} ${directory} -user ${USER} -type f -not -perm 660 -exec chmod ${vflag} 660 {} ;"
+    run ${verbose} "${find} ${directory} -user ${USER} -type d -not -perm 2770 -exec chmod ${vflag} 2770 {} ;"
+    if [ "${acl}" = "True" ]; then
+        run ${verbose} "${setfacl} --recursive --default -m u::rwx,g::rwx,o::--- ${directory}"
+    fi
+fi
