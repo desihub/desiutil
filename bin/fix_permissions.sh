@@ -6,6 +6,9 @@ function usage() {
     local execName=$(basename $0)
     (
     echo "${execName} [-g GROUP] [-h] [-t] [-v] DIR"
+    echo ""
+    echo "Set group-friendly permissions on a directory tree."
+    echo ""
     echo "    -g = Change group ownership to GROUP (default 'desi')."
     echo "    -h = Print this message and exit."
     echo "    -t = Test mode.  Do not make any changes.  Implies -v."
@@ -77,6 +80,8 @@ if [ "${test}" = "True" ]; then
     run ${verbose} "${find} ${directory} -user ${USER} -type f -not -perm 660 -ls"
     run ${verbose} "${find} ${directory} -user ${USER} -type d -not -perm 2770 -ls"
     if [ "${acl}" = "True" ]; then
+        run ${verbose} "${find} ${directory} -user ${USER} -type f -exec ${setfacl} --test --remove-all {} ;"
+        run ${verbose} "${find} ${directory} -user ${USER} -type d -exec ${setfacl} --test --remove-all {} ;"
         run ${verbose} "${setfacl} --test --recursive --default -m u::rwx,g::rwx,o::--- ${directory}"
     fi
 else
@@ -86,6 +91,8 @@ else
     run ${verbose} "${find} ${directory} -user ${USER} -type f -not -perm 660 -exec chmod ${vflag} 660 {} ;"
     run ${verbose} "${find} ${directory} -user ${USER} -type d -not -perm 2770 -exec chmod ${vflag} 2770 {} ;"
     if [ "${acl}" = "True" ]; then
+        run ${verbose} "${find} ${directory} -user ${USER} -type f -exec ${setfacl} --remove-all {} ;"
+        run ${verbose} "${find} ${directory} -user ${USER} -type d -exec ${setfacl} --remove-all {} ;"
         run ${verbose} "${setfacl} --recursive --default -m u::rwx,g::rwx,o::--- ${directory}"
     fi
 fi
