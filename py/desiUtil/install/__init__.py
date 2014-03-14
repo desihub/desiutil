@@ -8,3 +8,4 @@ desiUtil.install
 This package contains code for installing DESI software products.
 """
 
+from dependencies import dependencies

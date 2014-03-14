@@ -20,13 +20,16 @@ def main():
     from os import environ, getenv
     from os.path import basename, isdir, join
     from argparse import ArgumentParser
-    from desiUtil import version
+    from .. import version
+    from . import dependencies
     import subprocess
     #
     # Parse arguments
     #
     executable = basename(argv[0])
     parser = ArgumentParser(description=__doc__,prog=executable)
+    parser.add_argument('-b', '--bootstrap', action='store_true', dest='bootstrap',
+        help="Run in bootstrap mode to install the desiUtil product.")
     parser.add_argument('-d', '--default', action='store_true', dest='default',
         help='Make this version the default version.')
     parser.add_argument('-F', '--force', action='store_true', dest='force',
@@ -47,8 +50,10 @@ def main():
         help='Print extra information.')
     parser.add_argument('-V', '--version', action='store_true', dest='version',
         help='Print version information.')
-    parser.add_argument('product',help='Name of product to install.')
-    parser.add_argument('product_version',help='Version of product to install.')
+    parser.add_argument('product',nargs='?',default='desiUtil',
+        help='Name of product to install.')
+    parser.add_argument('product_version',nargs='?',default=version(),
+        help='Version of product to install.')
     options = parser.parse_args()
     #
     # Print version if requested.
@@ -86,7 +91,20 @@ def main():
     out, err = proc.communicate()
     if options.verbose:
         print(out)
+    if len(err) > 0:
+        print("svn error while testing product URL:")
         print(err)
+        return 1
+    #
+    # Figure out dependencies.  Use a dependency configuration file for this.
+    # If two or more config files contain the same section & the same
+    # keyword within that section, which one takes precedence?
+    #
+    deps = dependencies(baseproduct)
+    for d in deps:
+        if options.verbose:
+            print("module('load','{0}')".format(d))
+        module('load',d)
     return 0
 #
 #
