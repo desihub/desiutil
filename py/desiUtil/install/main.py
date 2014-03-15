@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """Install DESI software.
 """
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 # The line above will help with 2to3 support.
 def main():
     """Main program.
@@ -50,9 +50,9 @@ def main():
         help='Print extra information.')
     parser.add_argument('-V', '--version', action='store_true', dest='version',
         help='Print version information.')
-    parser.add_argument('product',nargs='?',default='desiUtil',
+    parser.add_argument('product',nargs='?',default='NO PACKAGE',
         help='Name of product to install.')
-    parser.add_argument('product_version',nargs='?',default=version(),
+    parser.add_argument('product_version',nargs='?',default='NO VERSION',
         help='Version of product to install.')
     options = parser.parse_args()
     #
