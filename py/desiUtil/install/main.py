@@ -16,9 +16,9 @@ def main():
     main : int
         Exit status that will be passed to ``sys.exit()``.
     """
-    from sys import argv
-    from os import environ, getenv
-    from os.path import basename, isdir, join
+    from sys import argv, path
+    from os import environ, getenv, makedirs
+    from os.path import basename, exists, isdir, join
     from argparse import ArgumentParser
     from .. import version
     from . import dependencies
@@ -105,6 +105,66 @@ def main():
         if options.verbose:
             print("module('load','{0}')".format(d))
         module('load',d)
+    #
+    # Get the code
+    #
+    if is_trunk or is_branch:
+        get_svn = 'co'
+    else:
+        get_svn = 'export'
+    product_dir = "{0}_DIR".format(baseproduct.upper())
+    working_dir = '{0}-{1}'.format(baseproduct,baseversion)
+    command = ['svn','--username',options.username,get_svn,product_url,working_dir]
+    if options.verbose:
+        print(' '.join(command))
+    proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+    out, err = proc.communicate()
+    if options.verbose:
+        print(out)
+    if len(err) > 0:
+        print("svn error while testing product URL:")
+        print(err)
+        return 1
+    #if isdir(working_dir):
+    #    os.environ[product_dir] = './'+working_dir
+    #
+    # Prepare to configure module.
+    #
+    module_keywords = dict()
+    module_keywords['name'] = baseproduct
+    module_keywords['version'] = baseversion
+    module_keywords['needs_bin'] = '# '
+    module_keywords['needs_python'] = '# '
+    module_keywords['needs_ld_lib'] = '# '
+    scripts = [fname for fname in glob.glob(join(working_dir,'bin', '*'))
+        if not basename(fname).endswith('.rst')]
+    if len(scripts) > 0:
+        module_keywords['needs_bin'] = ''
+    if isdir(join(working_dir,'py')) or exists(join(working_dir,'setup.py')):
+        module_keywords['needs_python'] = ''
+        lib_dir = join(install_dir,'lib',module_keywords['pyversion'],'site-packages')
+        #
+        # If this is a python package, we need to manipulate the PYTHONPATH and
+        # include the install directory
+        #
+        # If os.makedirs raises an exception, we want this to halt!
+        makedirs(lib_dir)
+        environ['PYTHONPATH'] = lib_dir + ':' + os.environ['PYTHONPATH']
+        path.insert(int(path[0] == ''),lib_dir)
+    #
+    # Get the Python version
+    #
+    module_keywords['pyversion'] = "python{0:d}.{1:d}".format(*sys.version_info)
+    #
+    # Process the module file.
+    #
+    module_file = join(working_dir,'etc',baseproduct+'.module')
+    if exists(module_file):
+        with open(module_file) as m:
+            mod = m.read().format(**module_keywords)
+        new_module_file = os.path.join(working_dir,'etc',baseproduct+'_'+baseversion+'.module')
+        with open(new_module_file,'w') as m:
+            m.write(mod)
     return 0
 #
 #
