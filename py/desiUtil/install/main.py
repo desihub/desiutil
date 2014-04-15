@@ -16,14 +16,16 @@ def main():
     main : int
         Exit status that will be passed to ``sys.exit()``.
     """
-    from sys import argv, executable, path
+    import glob
+    import logging
+    import subprocess
+    from sys import argv, executable, path, version_info
     from shutil import rmtree
-    from os import environ, getenv, makedirs
-    from os.path import basename, exists, isdir, join
+    from os import chdir, environ, getcwd, getenv, makedirs
+    from os.path import abspath, basename, exists, isdir, join
     from argparse import ArgumentParser
     from .. import version
     from . import dependencies
-    import subprocess
     #
     # Parse arguments
     #
@@ -60,6 +62,15 @@ def main():
         help='Version of product to install.')
     options = parser.parse_args()
     debug = options.test or options.verbose
+    logger = logging.getLogger('desiInstall')
+    if debug:
+        logger.setLevel(logging.DEBUG)
+    else:
+        logger.setLevel(logging.INFO)
+    handler = logging.StreamHandler()
+    formatter = logging.Formatter('%(name)s Log - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
     #
     # Print version if requested.
     #
@@ -68,10 +79,30 @@ def main():
         print(vers)
         return 0
     #
+    # Sanity check options
+    #
+    if options.product == 'NO PACKAGE' or options.product_version == 'NO VERSION':
+        if options.bootstrap:
+            options.product = 'tools/desiUtil'
+            command = ['svn','--username',options.username,'ls',join(options.url,options.product,'tags')]
+            logger.debug(' '.join(command))
+            proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            out, err = proc.communicate()
+            logger.debug(out)
+            if len(err) > 0:
+                logger.error("svn error while detecting desiUtil versions:")
+                logger.error(err)
+                return 1
+            options.product_version = sorted([v.rstrip('/') for v in out.split('\n') if len(v) > 0])[-1]
+            logger.info("Selected desiUtil/{0} for installation.".format(options.product_version))
+        else:
+            logger.error("You must specify a product and a version!")
+            return 1
+    #
     # Set up Modules
     #
     if options.moduleshome is None or not isdir(options.moduleshome):
-        print("You do not appear to have Modules set up.")
+        logger.error("You do not appear to have Modules set up.")
         return 1
     initpy = join(options.moduleshome,'init','python.py')
     execfile(initpy,globals())
@@ -90,15 +121,13 @@ def main():
     # Check for existence of the URL.
     #
     command = ['svn','--username',options.username,'ls',product_url]
-    if options.verbose:
-        print(' '.join(command))
+    logger.debug(' '.join(command))
     proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
     out, err = proc.communicate()
-    if options.verbose:
-        print(out)
+    logger.debug(out)
     if len(err) > 0:
-        print("svn error while testing product URL:")
-        print(err)
+        logger.error("svn error while testing product URL:")
+        logger.error(err)
         return 1
     #
     # Figure out dependencies.  Use a dependency configuration file for this.
@@ -107,31 +136,29 @@ def main():
     #
     deps = dependencies(baseproduct)
     for d in deps:
-        if options.verbose:
-            print("module('load','{0}')".format(d))
+        logger.debug("module('load','{0}')".format(d))
         module('load',d)
     #
     # Get the code
     #
     if is_trunk or is_branch:
-        get_svn = 'co'
+        get_svn = 'checkout'
     else:
         get_svn = 'export'
     product_dir = "{0}_DIR".format(baseproduct.upper())
-    working_dir = '{0}-{1}'.format(baseproduct,baseversion)
+    working_dir = join(abspath('.'),'{0}-{1}'.format(baseproduct,baseversion))
+    if isdir(working_dir):
+        logger.info("Detected old working directory, {0}. Deleting...".format(working_dir))
+        rmtree(working_dir)
     command = ['svn','--username',options.username,get_svn,product_url,working_dir]
-    if options.verbose:
-        print(' '.join(command))
+    logger.debug(' '.join(command))
     proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
     out, err = proc.communicate()
-    if options.verbose:
-        print(out)
+    logger.debug(out)
     if len(err) > 0:
-        print("svn error while testing product URL:")
-        print(err)
+        logger.error("svn error while downloading product code:")
+        logger.error(err)
         return 1
-    #if isdir(working_dir):
-    #    os.environ[product_dir] = './'+working_dir
     #
     # Pick an install directory
     #
@@ -144,26 +171,28 @@ def main():
         if nersc is not None:
             options.root = join('/project/projectdirs/desi/software',nersc)
         else:
-            print("DESI_PRODUCT_ROOT is missing or not set.")
+            logger.error("DESI_PRODUCT_ROOT is missing or not set.")
             return 1
     install_dir = join(options.root,baseproduct,baseversion)
-    if isdir(install_dir):
+    if isdir(install_dir) and not options.test:
         if options.force:
             rmtree(install_dir)
         else:
-            print("Install directory, {0}, already exists!".format(install_dir))
+            logger.error("Install directory, {0}, already exists!".format(install_dir))
             return 1
-    try:
-        makedirs(install_dir)
-    except OSError as ose:
-        print(ose.strerror)
-        return 1
+    if not options.test:
+        try:
+            makedirs(install_dir)
+        except OSError as ose:
+            logger.error(ose.strerror)
+            return 1
     #
     # Prepare to configure module.
     #
     module_keywords = dict()
     module_keywords['name'] = baseproduct
     module_keywords['version'] = baseversion
+    module_keywords['dependencies'] = "\n".join(dependencies(baseproduct,modulefile=True))
     module_keywords['needs_bin'] = '# '
     module_keywords['needs_python'] = '# '
     module_keywords['needs_ld_lib'] = '# '
@@ -171,39 +200,41 @@ def main():
         if not basename(fname).endswith('.rst')]
     if len(scripts) > 0:
         module_keywords['needs_bin'] = ''
-    if isdir(join(working_dir,'py')) or exists(join(working_dir,'setup.py')):
-        module_keywords['needs_python'] = ''
-        lib_dir = join(install_dir,'lib',module_keywords['pyversion'],'site-packages')
-        #
-        # If this is a python package, we need to manipulate the PYTHONPATH and
-        # include the install directory
-        #
-        # If os.makedirs raises an exception, we want this to halt!
-        try:
-            makedirs(lib_dir)
-        except OSError as ose:
-            print(ose.strerror)
-            return 1
-        environ['PYTHONPATH'] = lib_dir + ':' + os.environ['PYTHONPATH']
-        path.insert(int(path[0] == ''),lib_dir)
+    if not options.test:
+        if isdir(join(working_dir,'py')) or exists(join(working_dir,'setup.py')):
+            module_keywords['needs_python'] = ''
+            lib_dir = join(install_dir,'lib',module_keywords['pyversion'],'site-packages')
+            #
+            # If this is a python package, we need to manipulate the PYTHONPATH and
+            # include the install directory
+            #
+            # If os.makedirs raises an exception, we want this to halt!
+            try:
+                makedirs(lib_dir)
+            except OSError as ose:
+                logger.error(ose.strerror)
+                return 1
+            environ['PYTHONPATH'] = lib_dir + ':' + os.environ['PYTHONPATH']
+            path.insert(int(path[0] == ''),lib_dir)
     #
     # Get the Python version
     #
-    module_keywords['pyversion'] = "python{0:d}.{1:d}".format(*sys.version_info)
+    module_keywords['pyversion'] = "python{0:d}.{1:d}".format(*version_info)
     #
     # Run the install
     #
+    original_dir = getcwd()
+    chdir(working_dir)
     command = [executable, 'setup.py', 'install', '--prefix={0}'.format(install_dir)]
-    if options.verbose:
-        print(' '.join(command))
-    proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-    out, err = proc.communicate()
-    if options.verbose:
-        print(out)
-    if len(err) > 0:
-        print("Error during installation:")
-        print(err)
-        return 1
+    logger.debug(' '.join(command))
+    if not options.test:
+        proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        out, err = proc.communicate()
+        logger.debug(out)
+        if len(err) > 0:
+            logger.error("Error during installation:")
+            logger.error(err)
+            return 1
     #
     # Process the module file.
     #
@@ -218,29 +249,34 @@ def main():
             else:
                 options.moduledir = join('/project/projectdirs/desi/software/modules',nersc)
             if not isdir(options.moduledir):
-                print("Could not find a Modules directory!")
+                logger.error("Could not find a Modules directory!")
                 return 1
-        if not isdir(join(options.moduledir,baseproduct)):
-            try:
-                makedirs(join(options.moduledir,baseproduct))
-            except OSError as ose:
-                print(ose.strerror)
-                return 1
+        if not options.test:
+            if not isdir(join(options.moduledir,baseproduct)):
+                try:
+                    makedirs(join(options.moduledir,baseproduct))
+                except OSError as ose:
+                    logger.error(ose.strerror)
+                    return 1
         install_module_file = join(options.moduledir,baseproduct,baseversion)
         with open(module_file) as m:
             mod = m.read().format(**module_keywords)
-        with open(install_module_file,'w') as m:
-            m.write(mod)
-        if options.default:
-            dot_version = '''#%Module1.0
+        if options.test:
+            logger.debug(mod)
+        else:
+            with open(install_module_file,'w') as m:
+                m.write(mod)
+            if options.default:
+                dot_version = '''#%Module1.0
 set ModulesVersion "{0}"
 '''.format(baseversion)
-            install_version_file = join(options.moduledir,baseproduct,'.version')
-            with open(install_version_file,'w') as v:
-                v.write(dot_version)
+                install_version_file = join(options.moduledir,baseproduct,'.version')
+                with open(install_version_file,'w') as v:
+                    v.write(dot_version)
     #
     # Clean up
     #
+    chdir(original_dir)
     rmtree(working_dir)
     return 0
 #
