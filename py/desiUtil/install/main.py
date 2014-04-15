@@ -147,7 +147,17 @@ def main():
             print("DESI_PRODUCT_ROOT is missing or not set.")
             return 1
     install_dir = join(options.root,baseproduct,baseversion)
-    makedirs(install_dir)
+    if isdir(install_dir):
+        if options.force:
+            rmtree(install_dir)
+        else:
+            print("Install directory, {0}, already exists!".format(install_dir))
+            return 1
+    try:
+        makedirs(install_dir)
+    except OSError as ose:
+        print(ose.strerror)
+        return 1
     #
     # Prepare to configure module.
     #
@@ -169,7 +179,11 @@ def main():
         # include the install directory
         #
         # If os.makedirs raises an exception, we want this to halt!
-        makedirs(lib_dir)
+        try:
+            makedirs(lib_dir)
+        except OSError as ose:
+            print(ose.strerror)
+            return 1
         environ['PYTHONPATH'] = lib_dir + ':' + os.environ['PYTHONPATH']
         path.insert(int(path[0] == ''),lib_dir)
     #
@@ -195,8 +209,23 @@ def main():
     #
     module_file = join(working_dir,'etc',baseproduct+'.module')
     if exists(module_file):
+        if options.moduledir == '':
+            #
+            # We didn't set a module dir, so derive it from options.root
+            #
+            if nersc is None:
+                options.moduledir = join(options.root,'modulefiles')
+            else:
+                options.moduledir = join('/project/projectdirs/desi/software/modules',nersc)
+            if not isdir(options.moduledir):
+                print("Could not find a Modules directory!")
+                return 1
         if not isdir(join(options.moduledir,baseproduct)):
-            makedirs(join(options.moduledir,baseproduct))
+            try:
+                makedirs(join(options.moduledir,baseproduct))
+            except OSError as ose:
+                print(ose.strerror)
+                return 1
         install_module_file = join(options.moduledir,baseproduct,baseversion)
         with open(module_file) as m:
             mod = m.read().format(**module_keywords)
