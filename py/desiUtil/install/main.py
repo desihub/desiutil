@@ -83,6 +83,7 @@ def main():
     #
     if options.product == 'NO PACKAGE' or options.product_version == 'NO VERSION':
         if options.bootstrap:
+            options.default = True
             options.product = 'tools/desiUtil'
             command = ['svn','--username',options.username,'ls',join(options.url,options.product,'tags')]
             logger.debug(' '.join(command))
@@ -196,19 +197,19 @@ def main():
     module_keywords['needs_bin'] = '# '
     module_keywords['needs_python'] = '# '
     module_keywords['needs_ld_lib'] = '# '
+    module_keywords['pyversion'] = "python{0:d}.{1:d}".format(*version_info)
     scripts = [fname for fname in glob.glob(join(working_dir,'bin', '*'))
         if not basename(fname).endswith('.rst')]
     if len(scripts) > 0:
         module_keywords['needs_bin'] = ''
-    if not options.test:
-        if isdir(join(working_dir,'py')) or exists(join(working_dir,'setup.py')):
-            module_keywords['needs_python'] = ''
-            lib_dir = join(install_dir,'lib',module_keywords['pyversion'],'site-packages')
-            #
-            # If this is a python package, we need to manipulate the PYTHONPATH and
-            # include the install directory
-            #
-            # If os.makedirs raises an exception, we want this to halt!
+    if isdir(join(working_dir,'py')) or exists(join(working_dir,'setup.py')):
+        module_keywords['needs_python'] = ''
+        lib_dir = join(install_dir,'lib',module_keywords['pyversion'],'site-packages')
+        #
+        # If this is a python package, we need to manipulate the PYTHONPATH and
+        # include the install directory
+        #
+        if not options.test:
             try:
                 makedirs(lib_dir)
             except OSError as ose:
@@ -216,10 +217,6 @@ def main():
                 return 1
             environ['PYTHONPATH'] = lib_dir + ':' + os.environ['PYTHONPATH']
             path.insert(int(path[0] == ''),lib_dir)
-    #
-    # Get the Python version
-    #
-    module_keywords['pyversion'] = "python{0:d}.{1:d}".format(*version_info)
     #
     # Run the install
     #
@@ -248,9 +245,14 @@ def main():
                 options.moduledir = join(options.root,'modulefiles')
             else:
                 options.moduledir = join('/project/projectdirs/desi/software/modules',nersc)
-            if not isdir(options.moduledir):
-                logger.error("Could not find a Modules directory!")
-                return 1
+            if not options.test:
+                if not isdir(options.moduledir):
+                    logger.info("Creating Modules directory {0}.".format(options.moduledir))
+                    try:
+                        makedirs(options.moduledir)
+                    except OSError as ose:
+                        logger.error(ose.strerror)
+                        return 1
         if not options.test:
             if not isdir(join(options.moduledir,baseproduct)):
                 try:

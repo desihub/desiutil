@@ -64,8 +64,12 @@ set PRODUCT_DIR $PRODUCT_ROOT/$product/$version
 setenv [string toupper $product]_DIR $PRODUCT_DIR
 #
 # The lines below set various other environment variables.  They assume the
-# template product layout.  Uncomment as necessary
+# template product layout.  These will be set or commented as needed by the
+# desiInstall script.
 #
 {needs_bin}prepend-path PATH $PRODUCT_DIR/bin
 {needs_python}prepend-path PYTHONPATH $PRODUCT_DIR/lib/{pyversion}/site-packages
 {needs_ld_lib}prepend-path LD_LIBRARY_PATH $PRODUCT_DIR/lib
+#
+# Add any non-standard Module code below this point.
+#

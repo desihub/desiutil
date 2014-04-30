@@ -34,6 +34,11 @@ shift $((OPTIND-1))
 #
 # Install
 #
+if test -z "${DESI_PRODUCT_ROOT}" -a -z "${NERSC_HOST}"; then
+    echo "You haven't set the DESI_PRODUCT_ROOT environment variable."
+    echo "I'm not going to try to guess where you want to install things."
+    exit 1
+fi
 svn --username ${u} export https://desi.lbl.gov/svn/code/tools/desiUtil/trunk desiUtil-trunk
 export DESIUTIL_DIR=$(pwd)/desiUtil-trunk
 export PATH=${DESIUTIL_DIR}/bin:${PATH}
@@ -42,4 +47,5 @@ if test -z "${PYTHONPATH}"; then
 else
     export PYTHONPATH=${DESIUTIL_DIR}/py:${PYTHONPATH}
 fi
-exec desiInstall -b -U ${u} ${test} ${verbose}
+desiInstall -b -U ${u} ${test} ${verbose}
+/bin/rm -rf desiUtil-trunk

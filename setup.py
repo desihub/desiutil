@@ -40,37 +40,18 @@ except ImportError:
         setup_keywords['long_description'] = ''
     setup_keywords['version'] = '0.0.1.dev'
 #
-# Obtain svn information.
-#
-def get_svn_devstr():
-    """Get the svn revision number.
-
-    Parameters
-    ----------
-    None
-
-    Returns
-    -------
-    get_svn_devstr : str
-        The latest svn revision number.
-    """
-    from subprocess import Popen, PIPE
-    proc = Popen(['svnversion','-n'],stdout=PIPE,stderr=PIPE)
-    out, err = proc.communicate()
-    rev = out
-    if ':' in out:
-        rev = out.split(':')[1]
-    rev = rev.replace('M','').replace('S','').replace('P','')
-    return rev
-#
 # Indicates if this version is a release version.
 #
 RELEASE = 'dev' not in setup_keywords['version']
 if not RELEASE:
-    setup_keywords['version'] += get_svn_devstr()
-#
-# Set general settings.  Change these as needed.
-#
+    #
+    # Try to obtain svn information.
+    #
+    try:
+        from desiUtil.install import get_svn_devstr
+        setup_keywords['version'] += get_svn_devstr()
+    except ImportError:
+        pass
 #
 # Set other keywords for the setup function.  These are automated, & should
 # be left alone unless you are an expert.
