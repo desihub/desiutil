@@ -13,7 +13,7 @@ This package provides low-level utilities for general use by DESI_.
 """
 
 def version():
-    """Returns the version of the desiUtil package.
+    """Returns the version of this package.
 
     Parameters
     ----------
@@ -22,14 +22,29 @@ def version():
     Returns
     -------
     version : str
-        A PEP386-compatible version string.
+        A PEP 386-compatible version string.
 
     Notes
     -----
-    The version string should be compatible with PEP386_.
+    The version string should be compatible with `PEP 386`_ and
+    `PEP 440`_.
 
-    .. _PEP386: http://www.python.org/dev/peps/pep-0386).
+    .. _`PEP 386`: http://legacy.python.org/dev/peps/pep-0386/
+    .. _`PEP 440`: http://legacy.python.org/dev/peps/pep-0440/
     """
-    return '0.1.1.dev'
-
+    from desiUtil.install import get_svn_devstr, most_recent_tag
+    headurl = "$HeadURL$"
+    if headurl.find('tags') > 0:
+        myversion = headurl[headurl.find('tags')+5:].split('/')[0]
+    elif (headurl.find('trunk') > 0) or (headurl.find('branches') > 0):
+        url = headurl[10:len(headurl)-2]
+        findstr = ('branches','trunk')[int(headurl.find('trunk') > 0)]
+        tagurl = url[0:url.find(findstr)]+'tags'
+        most_recent_tag(tagurl) + '.dev' + get_svn_devstr()
+    else:
+        myversion = '0.0.1.dev'
+    return myversion
+#
+#
+#
 __version__ = version()
