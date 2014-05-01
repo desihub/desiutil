@@ -35,6 +35,8 @@ def main():
         help="Run in bootstrap mode to install the desiUtil product.")
     parser.add_argument('-d', '--default', action='store_true', dest='default',
         help='Make this version the default version.')
+    parser.add_argument('-D', '--documentation', action='store_true', dest='documentation',
+        help='Build any Sphinx or Doxygen documentation.')
     parser.add_argument('-F', '--force', action='store_true', dest='force',
         help='Overwrite any existing installation of this product/version.')
     parser.add_argument('-m', '--module-home', action='store', dest='moduleshome',
