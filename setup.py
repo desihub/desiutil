@@ -42,8 +42,7 @@ except ImportError:
 #
 # Indicates if this version is a release version.
 #
-RELEASE = 'dev' not in setup_keywords['version']
-if not RELEASE:
+if setup_keywords['version'].endswith('dev'):
     #
     # Try to obtain svn information.
     #

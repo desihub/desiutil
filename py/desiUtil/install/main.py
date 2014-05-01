@@ -19,9 +19,10 @@ def main():
     import glob
     import logging
     import subprocess
+    import datetime
     from sys import argv, executable, path, version_info
-    from shutil import rmtree
-    from os import chdir, environ, getcwd, getenv, makedirs
+    from shutil import copyfile, copytree, rmtree
+    from os import chdir, environ, getcwd, getenv, makedirs, walk
     from os.path import abspath, basename, exists, isdir, join
     from argparse import ArgumentParser
     from .. import version
@@ -35,8 +36,12 @@ def main():
         help="Run in bootstrap mode to install the desiUtil product.")
     parser.add_argument('-d', '--default', action='store_true', dest='default',
         help='Make this version the default version.')
+    parser.add_argument('-D', '--documentation', action='store_true', dest='documentation',
+        help='Build any Sphinx or Doxygen documentation.')
     parser.add_argument('-F', '--force', action='store_true', dest='force',
         help='Overwrite any existing installation of this product/version.')
+    parser.add_argument('-k', '--keep', action='store_true', dest='keep',
+        help='Keep the exported build directory.')
     parser.add_argument('-m', '--module-home', action='store', dest='moduleshome',
         metavar='DIR',help='Set or override the value of $MODULESHOME',
         default=getenv('MODULESHOME'))
@@ -174,6 +179,8 @@ def main():
         else:
             logger.error("DESI_PRODUCT_ROOT is missing or not set.")
             return 1
+    if options.root is not None:
+        environ['DESI_PRODUCT_ROOT'] = options.root
     install_dir = join(options.root,baseproduct,baseversion)
     if isdir(install_dir) and not options.test:
         if options.force:
@@ -233,6 +240,33 @@ def main():
             logger.error(err)
             return 1
     #
+    # Copy additional files
+    #
+    if isdir('etc'):
+        md = list()
+        cf = list()
+        for root, dirs, files in walk('etc'):
+            for d in dirs:
+                md.append(join(install_dir,'etc',d))
+            for name in files:
+                if name == 'README.rst' or name.endswith('.module'):
+                    continue
+                cf.append((join(root,name),join(install_dir,root,name)))
+    if md or cf:
+        logger.debug('Creating {0}'.format(join(install_dir,'etc')))
+        makedirs(join(install_dir,'etc'))
+        if md:
+            for name in md:
+                logger.debug('Creating {0}'.format(name))
+                if not options.test:
+                    makedirs(name)
+        if cf:
+            for src,dst in cf:
+                logger.debug('Copying {0} -> {1}'.format(src,dst))
+                if not options.test:
+                    copyfile(src,dst)
+
+    #
     # Process the module file.
     #
     module_file = join(working_dir,'etc',baseproduct+'.module')
@@ -276,10 +310,58 @@ set ModulesVersion "{0}"
                 with open(install_version_file,'w') as v:
                     v.write(dot_version)
     #
+    # Build documentation
+    #
+    if options.documentation:
+        if exists(join('doc','index.rst')):
+            #
+            # Assume Sphinx documentation.
+            #
+            logger.debug("Found Sphinx documentation.")
+            logger.debug("module('load','{0}/{1}')".format(baseproduct,baseversion))
+            module('load',baseproduct+'/'+baseversion)
+            sphinx_keywords = {
+                'name':baseproduct,
+                'release':baseversion,
+                'version':'.'.join(baseversion.split('.')[0:3]),
+                'year':datetime.date.today().year}
+            for sd in ('_templates','_build','_static'):
+                if not isdir(join('doc',sd)):
+                    try:
+                        makedirs(join('doc',sd))
+                    except OSError as ose:
+                        logger.error(ose.strerror)
+                        return 1
+            if not exists(join('doc','Makefile')):
+                copyfile(join(getenv('DESIUTIL_DIR'),'etc','doc','Makefile'),
+                    join('doc','Makefile'))
+            if not exists(join('doc','conf.py')):
+                with open(join(getenv('DESIUTIL_DIR'),'etc','doc','conf.py')) as conf:
+                    newconf = conf.read().format(**sphinx_keywords)
+                with open(join('doc','conf.py'),'w') as conf2:
+                    conf2.write(newconf)
+            command = [executable, 'setup.py', 'build_sphinx']
+            logger.debug(' '.join(command))
+            if not options.test:
+                proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                out, err = proc.communicate()
+                logger.debug(out)
+                if len(err) > 0:
+                    logger.error("Error during documentation build:")
+                    logger.error(err)
+                    return 1
+            if not options.test:
+                if isdir(join('build','sphinx','html')):
+                    copytree(join('build','sphinx','html'),join(install_dir,'doc'))
+        else:
+            logger.warn("Documentation build requested, but no documentation found.")
+
+    #
     # Clean up
     #
     chdir(original_dir)
-    rmtree(working_dir)
+    if not options.keep:
+        rmtree(working_dir)
     return 0
 #
 #
