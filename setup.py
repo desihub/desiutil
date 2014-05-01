@@ -67,8 +67,6 @@ setup_keywords['zip_safe'] = False
 setup_keywords['use_2to3'] = True
 setup_keywords['packages'] = find_packages('py')
 setup_keywords['package_dir'] = {'':'py'}
-setup_keywords['data_files'] = [('etc',['etc/dependencies.cfg']),
-    ('etc/doc',['etc/doc/conf.py','etc/doc/Makefile'])]
 #
 # Run setup command.
 #

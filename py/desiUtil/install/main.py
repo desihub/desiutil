@@ -22,7 +22,7 @@ def main():
     import datetime
     from sys import argv, executable, path, version_info
     from shutil import copyfile, copytree, rmtree
-    from os import chdir, environ, getcwd, getenv, makedirs
+    from os import chdir, environ, getcwd, getenv, makedirs, walk
     from os.path import abspath, basename, exists, isdir, join
     from argparse import ArgumentParser
     from .. import version
@@ -239,6 +239,31 @@ def main():
             logger.error("Error during installation:")
             logger.error(err)
             return 1
+    #
+    # Copy additional files
+    #
+    if isdir('etc'):
+        md = list()
+        cf = list()
+        for root, dirs, files in walk('etc'):
+            for d in dirs:
+                md.append(join(install_dir,'etc',d))
+            for name in files:
+                if name == 'README.rst' or name.endswith('.module'):
+                    continue
+                cf.append((join(root,name),join(install_dir,root,name)))
+    if md or cf:
+        if md:
+            for name in md:
+                logger.debug('Creating {0}'.format(name))
+                if not options.test:
+                    makedirs(name)
+        if cf:
+            for src,dst in cf:
+                logger.debug('Copying {0} -> {1}'.format(src,dst))
+                if not options.test:
+                    copyfile(src,dst)
+
     #
     # Process the module file.
     #
