@@ -12,3 +12,4 @@ This package contains code for installing DESI software products.
 
 from .dependencies import dependencies
 from .get_svn_devstr import get_svn_devstr
+from .most_recent_tag import most_recent_tag

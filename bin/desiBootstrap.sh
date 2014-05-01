@@ -5,13 +5,14 @@
 function usage() {
     local execName=$(basename $0)
     (
-    echo "${execName} [-U USER] [-h] [-t] [-v]"
+    echo "${execName} [-h] [-p PYTHON] [-t] [-U USER] [-v]"
     echo ""
     echo "Install desiUtil on a bare system."
     echo ""
-    echo "    -U = Set the svn username to USER (default '${USER}')."
     echo "    -h = Print this message and exit."
+    echo "    -p = Use the Python executable PYTHON (e.g. /opt/local/bin/python2.7)."
     echo "    -t = Test mode.  Do not make any changes.  Implies -v."
+    echo "    -U = Set the svn username to USER (default '${USER}')."
     echo "    -v = Verbose mode. Print lots of extra information."
     ) >&2
 }
@@ -21,11 +22,13 @@ function usage() {
 test=''
 verbose=''
 u=${USER}
-while getopts U:htv argname; do
+py=''
+while getopts hp:tU:v argname; do
     case ${argname} in
-        U) u=${OPTARG} ;;
         h) usage; exit 0 ;;
+        p) py=${OPTARG} ;;
         t) test='-t' ;;
+        U) u=${OPTARG} ;;
         v) verbose='-v' ;;
         *) usage; exit 1 ;;
     esac
@@ -47,5 +50,9 @@ if test -z "${PYTHONPATH}"; then
 else
     export PYTHONPATH=${DESIUTIL_DIR}/py:${PYTHONPATH}
 fi
-desiInstall -b -U ${u} ${test} ${verbose}
+if [ -z "${py}" ]; then
+    desiInstall -b -U ${u} ${test} ${verbose}
+else
+    ${py} ${DESIUTIL_DIR}/bin/desiInstall -b -U ${u} ${test} ${verbose}
+fi
 /bin/rm -rf desiUtil-trunk
