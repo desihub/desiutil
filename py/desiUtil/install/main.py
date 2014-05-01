@@ -19,8 +19,9 @@ def main():
     import glob
     import logging
     import subprocess
+    import datetime
     from sys import argv, executable, path, version_info
-    from shutil import rmtree
+    from shutil import copyfile, copytree, rmtree
     from os import chdir, environ, getcwd, getenv, makedirs
     from os.path import abspath, basename, exists, isdir, join
     from argparse import ArgumentParser
@@ -277,6 +278,49 @@ set ModulesVersion "{0}"
                 install_version_file = join(options.moduledir,baseproduct,'.version')
                 with open(install_version_file,'w') as v:
                     v.write(dot_version)
+    #
+    # Build documentation
+    #
+    if options.documentation:
+        if exists(join('doc','index.rst')):
+            #
+            # Assume Sphinx documentation.
+            #
+            sphinx_keywords = {
+                'name':baseproduct,
+                'release':baseversion,
+                'version':'.'.join(baseversion.split('.')[0:3]),
+                'year':datetime.date.today().year}
+            for sd in ('_templates','_build','_static'):
+                if not isdir(join('doc',sd)):
+                    try:
+                        makedirs(install_dir)
+                    except OSError as ose:
+                        logger.error(ose.strerror)
+                        return 1
+            if not exists(join('doc','Makefile')):
+                copyfile(join(getenv('DESIUTIL_DIR'),'etc','doc','Makefile'),
+                    join('doc','Makefile'))
+            if not exists(join('doc','conf.py')):
+                with open(join(getenv('DESIUTIL_DIR'),'etc','doc','Makefile')) as conf:
+                    newconf = conf.read().format(**sphinx_keywords)
+                with open(join('doc','conf.py'),'w') as conf2:
+                    conf2.write(newconf)
+            command = [executable, 'setup.py', 'build_sphinx']
+            logger.debug(' '.join(command))
+            if not options.test:
+                proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                out, err = proc.communicate()
+                logger.debug(out)
+                if len(err) > 0:
+                    logger.error("Error during documentation build:")
+                    logger.error(err)
+                    return 1
+            if isdir(join('build','html')):
+                copytree(join('build','html'),join(install_dir,'doc'))
+        else:
+            logger.warn("Documentation build requested, but no documentation found.")
+
     #
     # Clean up
     #
