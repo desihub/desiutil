@@ -42,8 +42,7 @@ except ImportError:
 #
 # Indicates if this version is a release version.
 #
-RELEASE = 'dev' not in setup_keywords['version']
-if not RELEASE:
+if setup_keywords['version'].endswith('dev'):
     #
     # Try to obtain svn information.
     #
@@ -68,6 +67,8 @@ setup_keywords['zip_safe'] = False
 setup_keywords['use_2to3'] = True
 setup_keywords['packages'] = find_packages('py')
 setup_keywords['package_dir'] = {'':'py'}
+setup_keywords['data_files'] = [('etc',['etc/dependencies.cfg']),
+    ('etc/doc',['etc/doc/conf.py','etc/doc/Makefile'])]
 #
 # Run setup command.
 #
