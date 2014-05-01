@@ -253,6 +253,8 @@ def main():
                     continue
                 cf.append((join(root,name),join(install_dir,root,name)))
     if md or cf:
+        logger.debug('Creating {0}'.format(join(install_dir,'etc')))
+        makedirs(join(install_dir,'etc'))
         if md:
             for name in md:
                 logger.debug('Creating {0}'.format(name))
