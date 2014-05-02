@@ -136,15 +136,6 @@ def main():
         logger.error(err)
         return 1
     #
-    # Figure out dependencies.  Use a dependency configuration file for this.
-    # If two or more config files contain the same section & the same
-    # keyword within that section, which one takes precedence?
-    #
-    deps = dependencies(baseproduct)
-    for d in deps:
-        logger.debug("module('load','{0}')".format(d))
-        module('load',d)
-    #
     # Get the code
     #
     if is_trunk or is_branch:
@@ -194,6 +185,14 @@ def main():
         except OSError as ose:
             logger.error(ose.strerror)
             return 1
+    #
+    # Figure out dependencies by reading the unprocessed module file
+    #
+    module_file = join(working_dir,'etc',baseproduct+'.module')
+    deps = dependencies(module_file)
+    for d in deps:
+        logger.debug("module('load','{0}')".format(d))
+        module('load',d)
     #
     # Prepare to configure module.
     #
@@ -269,7 +268,6 @@ def main():
     #
     # Process the module file.
     #
-    module_file = join(working_dir,'etc',baseproduct+'.module')
     if exists(module_file):
         if options.moduledir == '':
             #
