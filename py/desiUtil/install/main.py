@@ -199,7 +199,6 @@ def main():
     module_keywords = dict()
     module_keywords['name'] = baseproduct
     module_keywords['version'] = baseversion
-    module_keywords['dependencies'] = "\n".join(dependencies(baseproduct,modulefile=True))
     module_keywords['needs_bin'] = '# '
     module_keywords['needs_python'] = '# '
     module_keywords['needs_ld_lib'] = '# '
