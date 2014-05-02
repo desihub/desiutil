@@ -136,15 +136,6 @@ def main():
         logger.error(err)
         return 1
     #
-    # Figure out dependencies.  Use a dependency configuration file for this.
-    # If two or more config files contain the same section & the same
-    # keyword within that section, which one takes precedence?
-    #
-    deps = dependencies(baseproduct)
-    for d in deps:
-        logger.debug("module('load','{0}')".format(d))
-        module('load',d)
-    #
     # Get the code
     #
     if is_trunk or is_branch:
@@ -195,14 +186,22 @@ def main():
             logger.error(ose.strerror)
             return 1
     #
+    # Figure out dependencies by reading the unprocessed module file
+    #
+    module_file = join(working_dir,'etc',baseproduct+'.module')
+    deps = dependencies(module_file)
+    for d in deps:
+        logger.debug("module('load','{0}')".format(d))
+        module('load',d)
+    #
     # Prepare to configure module.
     #
     module_keywords = dict()
     module_keywords['name'] = baseproduct
     module_keywords['version'] = baseversion
-    module_keywords['dependencies'] = "\n".join(dependencies(baseproduct,modulefile=True))
     module_keywords['needs_bin'] = '# '
     module_keywords['needs_python'] = '# '
+    module_keywords['needs_trunk_py'] = '# '
     module_keywords['needs_ld_lib'] = '# '
     module_keywords['pyversion'] = "python{0:d}.{1:d}".format(*version_info)
     scripts = [fname for fname in glob.glob(join(working_dir,'bin', '*'))
@@ -210,66 +209,27 @@ def main():
     if len(scripts) > 0:
         module_keywords['needs_bin'] = ''
     if isdir(join(working_dir,'py')) or exists(join(working_dir,'setup.py')):
-        module_keywords['needs_python'] = ''
-        lib_dir = join(install_dir,'lib',module_keywords['pyversion'],'site-packages')
-        #
-        # If this is a python package, we need to manipulate the PYTHONPATH and
-        # include the install directory
-        #
-        if not options.test:
-            try:
-                makedirs(lib_dir)
-            except OSError as ose:
-                logger.error(ose.strerror)
-                return 1
-            environ['PYTHONPATH'] = lib_dir + ':' + os.environ['PYTHONPATH']
-            path.insert(int(path[0] == ''),lib_dir)
-    #
-    # Run the install
-    #
-    original_dir = getcwd()
-    chdir(working_dir)
-    command = [executable, 'setup.py', 'install', '--prefix={0}'.format(install_dir)]
-    logger.debug(' '.join(command))
-    if not options.test:
-        proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-        out, err = proc.communicate()
-        logger.debug(out)
-        if len(err) > 0:
-            logger.error("Error during installation:")
-            logger.error(err)
-            return 1
-    #
-    # Copy additional files
-    #
-    if isdir('etc'):
-        md = list()
-        cf = list()
-        for root, dirs, files in walk('etc'):
-            for d in dirs:
-                md.append(join(install_dir,'etc',d))
-            for name in files:
-                if name == 'README.rst' or name.endswith('.module'):
-                    continue
-                cf.append((join(root,name),join(install_dir,root,name)))
-    if md or cf:
-        logger.debug('Creating {0}'.format(join(install_dir,'etc')))
-        makedirs(join(install_dir,'etc'))
-        if md:
-            for name in md:
-                logger.debug('Creating {0}'.format(name))
-                if not options.test:
-                    makedirs(name)
-        if cf:
-            for src,dst in cf:
-                logger.debug('Copying {0} -> {1}'.format(src,dst))
-                if not options.test:
-                    copyfile(src,dst)
-
+        if is_branch or is_trunk:
+            module_keywords['needs_trunk_py'] = ''
+        else:
+            module_keywords['needs_python'] = ''
+        if not (is_branch or is_trunk):
+            lib_dir = join(install_dir,'lib',module_keywords['pyversion'],'site-packages')
+            #
+            # If this is a python package, we need to manipulate the PYTHONPATH and
+            # include the install directory
+            #
+            if not options.test:
+                try:
+                    makedirs(lib_dir)
+                except OSError as ose:
+                    logger.error(ose.strerror)
+                    return 1
+                environ['PYTHONPATH'] = lib_dir + ':' + os.environ['PYTHONPATH']
+                path.insert(int(path[0] == ''),lib_dir)
     #
     # Process the module file.
     #
-    module_file = join(working_dir,'etc',baseproduct+'.module')
     if exists(module_file):
         if options.moduledir == '':
             #
@@ -310,56 +270,102 @@ set ModulesVersion "{0}"
                 with open(install_version_file,'w') as v:
                     v.write(dot_version)
     #
-    # Build documentation
+    # Run the install
     #
-    if options.documentation:
-        if exists(join('doc','index.rst')):
-            #
-            # Assume Sphinx documentation.
-            #
-            logger.debug("Found Sphinx documentation.")
-            logger.debug("module('load','{0}/{1}')".format(baseproduct,baseversion))
-            module('load',baseproduct+'/'+baseversion)
-            sphinx_keywords = {
-                'name':baseproduct,
-                'release':baseversion,
-                'version':'.'.join(baseversion.split('.')[0:3]),
-                'year':datetime.date.today().year}
-            for sd in ('_templates','_build','_static'):
-                if not isdir(join('doc',sd)):
-                    try:
-                        makedirs(join('doc',sd))
-                    except OSError as ose:
-                        logger.error(ose.strerror)
+    if is_branch or is_trunk:
+        logger.debug("copytree('{0}','{1}')".format(working_dir,install_dir))
+        copytree(working_dir,install_dir)
+        if options.documentation:
+            logger.warn('Documentation will not be built for trunk or branch installs!')
+    else:
+        original_dir = getcwd()
+        chdir(working_dir)
+        command = [executable, 'setup.py', 'install', '--prefix={0}'.format(install_dir)]
+        logger.debug(' '.join(command))
+        if not options.test:
+            proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            out, err = proc.communicate()
+            logger.debug(out)
+            if len(err) > 0:
+                logger.error("Error during installation:")
+                logger.error(err)
+                return 1
+        #
+        # Copy additional files
+        #
+        if isdir('etc'):
+            md = list()
+            cf = list()
+            for root, dirs, files in walk('etc'):
+                for d in dirs:
+                    md.append(join(install_dir,'etc',d))
+                for name in files:
+                    if name == 'README.rst' or name.endswith('.module'):
+                        continue
+                    cf.append((join(root,name),join(install_dir,root,name)))
+        if md or cf:
+            logger.debug('Creating {0}'.format(join(install_dir,'etc')))
+            makedirs(join(install_dir,'etc'))
+            if md:
+                for name in md:
+                    logger.debug('Creating {0}'.format(name))
+                    if not options.test:
+                        makedirs(name)
+            if cf:
+                for src,dst in cf:
+                    logger.debug('Copying {0} -> {1}'.format(src,dst))
+                    if not options.test:
+                        copyfile(src,dst)
+        #
+        # Build documentation
+        #
+        if options.documentation:
+            if exists(join('doc','index.rst')):
+                #
+                # Assume Sphinx documentation.
+                #
+                logger.debug("Found Sphinx documentation.")
+                logger.debug("module('load','{0}/{1}')".format(baseproduct,baseversion))
+                module('load',baseproduct+'/'+baseversion)
+                sphinx_keywords = {
+                    'name':baseproduct,
+                    'release':baseversion,
+                    'version':'.'.join(baseversion.split('.')[0:3]),
+                    'year':datetime.date.today().year}
+                for sd in ('_templates','_build','_static'):
+                    if not isdir(join('doc',sd)):
+                        try:
+                            makedirs(join('doc',sd))
+                        except OSError as ose:
+                            logger.error(ose.strerror)
+                            return 1
+                if not exists(join('doc','Makefile')):
+                    copyfile(join(getenv('DESIUTIL_DIR'),'etc','doc','Makefile'),
+                        join('doc','Makefile'))
+                if not exists(join('doc','conf.py')):
+                    with open(join(getenv('DESIUTIL_DIR'),'etc','doc','conf.py')) as conf:
+                        newconf = conf.read().format(**sphinx_keywords)
+                    with open(join('doc','conf.py'),'w') as conf2:
+                        conf2.write(newconf)
+                command = [executable, 'setup.py', 'build_sphinx']
+                logger.debug(' '.join(command))
+                if not options.test:
+                    proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                    out, err = proc.communicate()
+                    logger.debug(out)
+                    if len(err) > 0:
+                        logger.error("Error during documentation build:")
+                        logger.error(err)
                         return 1
-            if not exists(join('doc','Makefile')):
-                copyfile(join(getenv('DESIUTIL_DIR'),'etc','doc','Makefile'),
-                    join('doc','Makefile'))
-            if not exists(join('doc','conf.py')):
-                with open(join(getenv('DESIUTIL_DIR'),'etc','doc','conf.py')) as conf:
-                    newconf = conf.read().format(**sphinx_keywords)
-                with open(join('doc','conf.py'),'w') as conf2:
-                    conf2.write(newconf)
-            command = [executable, 'setup.py', 'build_sphinx']
-            logger.debug(' '.join(command))
-            if not options.test:
-                proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-                out, err = proc.communicate()
-                logger.debug(out)
-                if len(err) > 0:
-                    logger.error("Error during documentation build:")
-                    logger.error(err)
-                    return 1
-            if not options.test:
-                if isdir(join('build','sphinx','html')):
-                    copytree(join('build','sphinx','html'),join(install_dir,'doc'))
-        else:
-            logger.warn("Documentation build requested, but no documentation found.")
-
+                if not options.test:
+                    if isdir(join('build','sphinx','html')):
+                        copytree(join('build','sphinx','html'),join(install_dir,'doc'))
+            else:
+                logger.warn("Documentation build requested, but no documentation found.")
+        chdir(original_dir)
     #
     # Clean up
     #
-    chdir(original_dir)
     if not options.keep:
         rmtree(working_dir)
     return 0
