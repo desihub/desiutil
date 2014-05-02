@@ -69,6 +69,7 @@ setenv [string toupper $product]_DIR $PRODUCT_DIR
 #
 {needs_bin}prepend-path PATH $PRODUCT_DIR/bin
 {needs_python}prepend-path PYTHONPATH $PRODUCT_DIR/lib/{pyversion}/site-packages
+{needs_trunk_py}prepend-path PYTHONPATH $PRODUCT_DIR/py
 {needs_ld_lib}prepend-path LD_LIBRARY_PATH $PRODUCT_DIR/lib
 #
 # Add any non-standard Module code below this point.
