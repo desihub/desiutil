@@ -179,7 +179,11 @@ def main():
         else:
             logger.error("Install directory, {0}, already exists!".format(install_dir))
             return 1
-    if not options.test:
+    #
+    # If this is a trunk or branch install, this directory will be created
+    # by other means.
+    #
+    if not (is_branch or is_trunk or options.test):
         try:
             makedirs(install_dir)
         except OSError as ose:
