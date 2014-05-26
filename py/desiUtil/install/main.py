@@ -110,8 +110,15 @@ def main():
     if options.moduleshome is None or not isdir(options.moduleshome):
         logger.error("You do not appear to have Modules set up.")
         return 1
-    initpy = join(options.moduleshome,'init','python.py')
-    execfile(initpy,globals())
+    initpy_found = False
+    for modpy in ('python','python.py'):
+        initpy = join(options.moduleshome,'init',modpy)
+        if exists(initpy):
+            initpy_found = True
+            execfile(initpy,globals())
+    if not initpy_found:
+        logger.error("Could not find the Python file in {0}/init!".format(options.moduleshome))
+        return 1
     #
     # Determine the product and version names.
     #
