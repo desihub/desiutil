@@ -34,6 +34,8 @@ def main():
     parser = ArgumentParser(description=__doc__,prog=xct)
     parser.add_argument('-b', '--bootstrap', action='store_true', dest='bootstrap',
         help="Run in bootstrap mode to install the desiUtil product.")
+    parser.add_argument('-C', '--compile-c', action='store_true', dest='force_build_type',
+        help="Force C/C++ install mode, even if a setup.py file is detected (WARNING: this is for experts only).")
     parser.add_argument('-d', '--default', action='store_true', dest='default',
         help='Make this version the default version.')
     parser.add_argument('-D', '--documentation', action='store_true', dest='documentation',
@@ -167,7 +169,7 @@ def main():
     # Analyze the code to determine the build type
     #
     build_type = 'c'
-    if exists(join(working_dir,'setup.py')):
+    if exists(join(working_dir,'setup.py')) and not options.force_build_type:
         build_type = 'py'
     #
     # Pick an install directory
