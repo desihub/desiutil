@@ -164,6 +164,12 @@ def main():
         logger.error(err)
         return 1
     #
+    # Analyze the code to determine the build type
+    #
+    build_type = 'c'
+    if exists(join(working_dir,'setup.py')):
+        build_type = 'py'
+    #
     # Pick an install directory
     #
     nersc = None
@@ -215,11 +221,11 @@ def main():
     module_keywords['needs_trunk_py'] = '# '
     module_keywords['needs_ld_lib'] = '# '
     module_keywords['pyversion'] = "python{0:d}.{1:d}".format(*version_info)
-    scripts = [fname for fname in glob.glob(join(working_dir,'bin', '*'))
-        if not basename(fname).endswith('.rst')]
-    if len(scripts) > 0:
-        module_keywords['needs_bin'] = ''
-    if isdir(join(working_dir,'py')) or exists(join(working_dir,'setup.py')):
+    if build_type == 'py':
+        scripts = [fname for fname in glob.glob(join(working_dir,'bin', '*'))
+            if not basename(fname).endswith('.rst')]
+        if len(scripts) > 0:
+            module_keywords['needs_bin'] = ''
         if is_branch or is_trunk:
             module_keywords['needs_trunk_py'] = ''
         else:
@@ -238,6 +244,11 @@ def main():
                     return 1
                 environ['PYTHONPATH'] = lib_dir + ':' + os.environ['PYTHONPATH']
                 path.insert(int(path[0] == ''),lib_dir)
+    else:
+        if isdir(join(working_dir,'bin')):
+            module_keywords['needs_bin'] = ''
+        if isdir(join(working_dir,'lib')):
+            module_keywords['needs_ld_lib'] = ''
     #
     # Process the module file.
     #
@@ -283,24 +294,36 @@ set ModulesVersion "{0}"
     #
     # Run the install
     #
+    original_dir = getcwd()
     if is_branch or is_trunk:
         logger.debug("copytree('{0}','{1}')".format(working_dir,install_dir))
         copytree(working_dir,install_dir)
-        if options.documentation:
-            logger.warn('Documentation will not be built for trunk or branch installs!')
-    else:
-        original_dir = getcwd()
-        chdir(working_dir)
-        command = [executable, 'setup.py', 'install', '--prefix={0}'.format(install_dir)]
-        logger.debug(' '.join(command))
-        if not options.test:
+        chdir(install_dir)
+        if build_type == 'c':
+            command = ['make','-C', 'src', 'all']
+            logger.info('Running "{0}" in {1}.'.format(' '.join(command),install_dir))
             proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
             out, err = proc.communicate()
             logger.debug(out)
             if len(err) > 0:
-                logger.error("Error during installation:")
+                logger.error("Error during compile:")
                 logger.error(err)
                 return 1
+        if options.documentation:
+            logger.warn('Documentation will not be built for trunk or branch installs!')
+    else:
+        chdir(working_dir)
+        if build_type == 'py':
+            command = [executable, 'setup.py', 'install', '--prefix={0}'.format(install_dir)]
+            logger.debug(' '.join(command))
+            if not options.test:
+                proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                out, err = proc.communicate()
+                logger.debug(out)
+                if len(err) > 0:
+                    logger.error("Error during installation:")
+                    logger.error(err)
+                    return 1
         #
         # Copy additional files
         #
@@ -331,49 +354,91 @@ set ModulesVersion "{0}"
         # Build documentation
         #
         if options.documentation:
-            if exists(join('doc','index.rst')):
-                #
-                # Assume Sphinx documentation.
-                #
-                logger.debug("Found Sphinx documentation.")
-                logger.debug("module('load','{0}/{1}')".format(baseproduct,baseversion))
-                module('load',baseproduct+'/'+baseversion)
-                sphinx_keywords = {
-                    'name':baseproduct,
-                    'release':baseversion,
-                    'version':'.'.join(baseversion.split('.')[0:3]),
-                    'year':datetime.date.today().year}
-                for sd in ('_templates','_build','_static'):
-                    if not isdir(join('doc',sd)):
-                        try:
-                            makedirs(join('doc',sd))
-                        except OSError as ose:
-                            logger.error(ose.strerror)
+            if build_type == 'py':
+                if exists(join('doc','index.rst')):
+                    #
+                    # Assume Sphinx documentation.
+                    #
+                    logger.debug("Found Sphinx documentation.")
+                    logger.debug("module('load','{0}/{1}')".format(baseproduct,baseversion))
+                    module('load',baseproduct+'/'+baseversion)
+                    sphinx_keywords = {
+                        'name':baseproduct,
+                        'release':baseversion,
+                        'version':'.'.join(baseversion.split('.')[0:3]),
+                        'year':datetime.date.today().year}
+                    for sd in ('_templates','_build','_static'):
+                        if not isdir(join('doc',sd)):
+                            try:
+                                makedirs(join('doc',sd))
+                            except OSError as ose:
+                                logger.error(ose.strerror)
+                                return 1
+                    if not exists(join('doc','Makefile')):
+                        copyfile(join(getenv('DESIUTIL_DIR'),'etc','doc','sphinx','Makefile'),
+                            join('doc','Makefile'))
+                    if not exists(join('doc','conf.py')):
+                        with open(join(getenv('DESIUTIL_DIR'),'etc','doc','sphinx','conf.py')) as conf:
+                            newconf = conf.read().format(**sphinx_keywords)
+                        with open(join('doc','conf.py'),'w') as conf2:
+                            conf2.write(newconf)
+                    command = [executable, 'setup.py', 'build_sphinx']
+                    logger.debug(' '.join(command))
+                    if not options.test:
+                        proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                        out, err = proc.communicate()
+                        logger.debug(out)
+                        if len(err) > 0:
+                            logger.error("Error during documentation build:")
+                            logger.error(err)
                             return 1
-                if not exists(join('doc','Makefile')):
-                    copyfile(join(getenv('DESIUTIL_DIR'),'etc','doc','Makefile'),
-                        join('doc','Makefile'))
-                if not exists(join('doc','conf.py')):
-                    with open(join(getenv('DESIUTIL_DIR'),'etc','doc','conf.py')) as conf:
-                        newconf = conf.read().format(**sphinx_keywords)
-                    with open(join('doc','conf.py'),'w') as conf2:
-                        conf2.write(newconf)
-                command = [executable, 'setup.py', 'build_sphinx']
-                logger.debug(' '.join(command))
-                if not options.test:
-                    proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-                    out, err = proc.communicate()
-                    logger.debug(out)
-                    if len(err) > 0:
-                        logger.error("Error during documentation build:")
-                        logger.error(err)
-                        return 1
-                if not options.test:
-                    if isdir(join('build','sphinx','html')):
-                        copytree(join('build','sphinx','html'),join(install_dir,'doc'))
+                    if not options.test:
+                        if isdir(join('build','sphinx','html')):
+                            copytree(join('build','sphinx','html'),join(install_dir,'doc'))
+                else:
+                    logger.warn("Documentation build requested, but no documentation found.")
             else:
-                logger.warn("Documentation build requested, but no documentation found.")
-        chdir(original_dir)
+                #
+                # This is not a Python product, assume Doxygen documentation.
+                #
+                if isdir('doc'):
+                    doxygen_keywords = {
+                        'name':baseproduct,
+                        'version':baseversion,
+                        'description':"Documentation for {0} built by desiInstall.".format(baseproduct)}
+                    if not exists(join('doc','Makefile')):
+                        copyfile(join(getenv('DESIUTIL_DIR'),'etc','doc','doxygen','Makefile'),
+                            join('doc','Makefile'))
+                    if not exists(join('doc','Docyfile')):
+                        with open(join(getenv('DESIUTIL_DIR'),'etc','doc','doxygen','Doxyfile')) as conf:
+                            newconf = conf.read().format(**doxygen_keywords)
+                        with open(join('doc','Doxyfile'),'w') as conf2:
+                            conf2.write(newconf)
+                else:
+                    logger.warn("Documentation build requested, but no documentation found.")
+        #
+        # At this point either we have already completed a Python installation
+        # or we still need to compile the C/C++ product (we had to construct
+        # doc/Makefile first).
+        #
+        if build_type == 'c':
+            command = ['make', 'all']
+            logger.debug(' '.join(command))
+            if not options.test:
+                proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                out, err = proc.communicate()
+                logger.debug(out)
+                if len(err) > 0:
+                    logger.error("Error during compile:")
+                    logger.error(err)
+                    return 1
+                if isdir('bin'):
+                    copytree('bin',join(install_dir,'bin'))
+                if isdir('lib'):
+                    copytree('lib',join(install_dir,'lib'))
+                if isdir(join('doc','html')) and options.documentation:
+                    copytree(join('doc','html'),join(install_dir,'doc'))
+    chdir(original_dir)
     #
     # Clean up
     #
