@@ -26,7 +26,7 @@ def main():
     from os.path import abspath, basename, exists, isdir, join
     from argparse import ArgumentParser
     from .. import version
-    from . import dependencies
+    from . import dependencies, most_recent_tag
     #
     # Parse arguments
     #
@@ -92,16 +92,7 @@ def main():
         if options.bootstrap:
             options.default = True
             options.product = 'tools/desiUtil'
-            command = ['svn','--username',options.username,'ls',join(options.url,options.product,'tags')]
-            logger.debug(' '.join(command))
-            proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-            out, err = proc.communicate()
-            logger.debug(out)
-            if len(err) > 0:
-                logger.error("svn error while detecting desiUtil versions:")
-                logger.error(err)
-                return 1
-            options.product_version = sorted([v.rstrip('/') for v in out.split('\n') if len(v) > 0])[-1]
+            options.product_version = most_recent_tag(join(options.url,options.product,'tags'),username=options.username)
             logger.info("Selected desiUtil/{0} for installation.".format(options.product_version))
         else:
             logger.error("You must specify a product and a version!")
