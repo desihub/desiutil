@@ -25,7 +25,7 @@ def main():
     from os import chdir, environ, getcwd, getenv, makedirs, walk
     from os.path import abspath, basename, exists, isdir, join
     from argparse import ArgumentParser
-    from .. import version
+    from .. import __version__ as desiUtilVersion
     from . import dependencies, most_recent_tag
     #
     # Parse arguments
@@ -68,6 +68,16 @@ def main():
     parser.add_argument('product_version',nargs='?',default='NO VERSION',
         help='Version of product to install.')
     options = parser.parse_args()
+    #
+    # Print version if requested.
+    #
+    if options.version:
+        vers = version()
+        print(desiUtilVersion)
+        return 0
+    #
+    # Set up logger
+    #
     debug = options.test or options.verbose
     logger = logging.getLogger('desiInstall')
     if debug:
@@ -78,13 +88,6 @@ def main():
     formatter = logging.Formatter('%(name)s Log - %(levelname)s - %(message)s')
     handler.setFormatter(formatter)
     logger.addHandler(handler)
-    #
-    # Print version if requested.
-    #
-    if options.version:
-        vers = version()
-        print(vers)
-        return 0
     #
     # Sanity check options
     #
