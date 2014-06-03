@@ -235,7 +235,11 @@ def main():
                 except OSError as ose:
                     logger.error(ose.strerror)
                     return 1
-                environ['PYTHONPATH'] = lib_dir + ':' + os.environ['PYTHONPATH']
+                try:
+                    newpythonpath = lib_dir + ':' + environ['PYTHONPATH']
+                except KeyError:
+                    newpythonpath = lib_dir
+                environ['PYTHONPATH'] = newpythonpath
                 path.insert(int(path[0] == ''),lib_dir)
     else:
         if isdir(join(working_dir,'bin')):
@@ -418,6 +422,7 @@ set ModulesVersion "{0}"
         # doc/Makefile first).
         #
         if build_type == 'c':
+            environ[baseproduct.upper()+'_DIR'] = working_dir
             command = ['make', 'all']
             logger.debug(' '.join(command))
             if not options.test:
