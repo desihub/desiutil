@@ -290,18 +290,21 @@ set ModulesVersion "{0}"
     original_dir = getcwd()
     if is_branch or is_trunk:
         logger.debug("copytree('{0}','{1}')".format(working_dir,install_dir))
-        copytree(working_dir,install_dir)
-        chdir(install_dir)
-        if build_type == 'c':
-            command = ['make','-C', 'src', 'all']
-            logger.info('Running "{0}" in {1}.'.format(' '.join(command),install_dir))
-            proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-            out, err = proc.communicate()
-            logger.debug(out)
-            if len(err) > 0:
-                logger.error("Error during compile:")
-                logger.error(err)
-                return 1
+        if not options.test:
+            copytree(working_dir,install_dir)
+            chdir(install_dir)
+            if build_type == 'c':
+                logger.debug("module('load','{0}/{1}')".format(baseproduct,baseversion))
+                module('load',baseproduct+'/'+baseversion)
+                command = ['make','-C', 'src', 'all']
+                logger.info('Running "{0}" in {1}.'.format(' '.join(command),install_dir))
+                proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                out, err = proc.communicate()
+                logger.debug(out)
+                if len(err) > 0:
+                    logger.error("Error during compile:")
+                    logger.error(err)
+                    return 1
         if options.documentation:
             logger.warn('Documentation will not be built for trunk or branch installs!')
     else:
