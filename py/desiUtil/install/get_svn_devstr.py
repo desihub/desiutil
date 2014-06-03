@@ -13,11 +13,18 @@ def get_svn_devstr():
     -------
     get_svn_devstr : str
         The latest svn revision number.
+
+    Bugs
+    ----
+    This calls svnversion on the current working directory, which
+    is not necessarily the same as the svn working directory path.
     """
     from subprocess import Popen, PIPE
     proc = Popen(['svnversion','-n'],stdout=PIPE,stderr=PIPE)
     out, err = proc.communicate()
     rev = out
+    if rev == 'Unversioned directory':
+        return '666'
     if ':' in out:
         rev = out.split(':')[1]
     rev = rev.replace('M','').replace('S','').replace('P','')
