@@ -216,6 +216,7 @@ def main():
     module_keywords['needs_python'] = '# '
     module_keywords['needs_trunk_py'] = '# '
     module_keywords['needs_ld_lib'] = '# '
+    module_keywords['needs_idl'] = '# '
     module_keywords['pyversion'] = "python{0:d}.{1:d}".format(*version_info)
     if build_type == 'py':
         scripts = [fname for fname in glob.glob(join(working_dir,'bin', '*'))
@@ -249,6 +250,8 @@ def main():
             module_keywords['needs_bin'] = ''
         if isdir(join(working_dir,'lib')):
             module_keywords['needs_ld_lib'] = ''
+        if isdir(join(working_dir,'pro')):
+            module_keywords['needs_idl'] = ''
     #
     # Process the module file.
     #
