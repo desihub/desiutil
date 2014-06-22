@@ -17,12 +17,12 @@ def most_recent_tag(tags,username=None):
     most_recent_tag : str
         The most recent tag found in ``tags``.
     """
-    import subprocess
+    from subprocess import Popen, PIPE
     command = ['svn']
     if username is not None:
         command += ['--username', username]
     command += ['ls',tags]
-    proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+    proc = Popen(command,stdout=PIPE,stderr=PIPE)
     out, err = proc.communicate()
     try:
         mrt = sorted([v.rstrip('/') for v in out.split('\n') if len(v) > 0])[-1]

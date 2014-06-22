@@ -165,6 +165,11 @@ def main():
     build_type = 'c'
     if exists(join(working_dir,'setup.py')) and not options.force_build_type:
         build_type = 'py'
+        if exists(join(working_dir,'Makefile')):
+            build_type += 'c'
+    if build_type = 'c' and not exists(join(working_dir,'Makefile')):
+        logger.error('Could not find setup.py nor Makefile!')
+        return 1
     #
     # Pick an install directory
     #
@@ -218,7 +223,7 @@ def main():
     module_keywords['needs_ld_lib'] = '# '
     module_keywords['needs_idl'] = '# '
     module_keywords['pyversion'] = "python{0:d}.{1:d}".format(*version_info)
-    if build_type == 'py':
+    if 'py' in build_type:
         scripts = [fname for fname in glob.glob(join(working_dir,'bin', '*'))
             if not basename(fname).endswith('.rst')]
         if len(scripts) > 0:
@@ -295,6 +300,11 @@ set ModulesVersion "{0}"
                 with open(install_version_file,'w') as v:
                     v.write(dot_version)
     #
+    # Set up some convenient environment variables.
+    #
+    environ['WORKING_DIR'] = working_dir
+    environ['INSTALL_DIR'] = install_dir
+    #
     # Run the install
     #
     original_dir = getcwd()
@@ -303,7 +313,7 @@ set ModulesVersion "{0}"
         if not options.test:
             copytree(working_dir,install_dir)
             chdir(install_dir)
-            if build_type == 'c':
+            if 'c' in build_type:
                 logger.debug("module('load','{0}/{1}')".format(baseproduct,baseversion))
                 module('load',baseproduct+'/'+baseversion)
                 command = ['make','-C', 'src', 'all']
@@ -319,7 +329,7 @@ set ModulesVersion "{0}"
             logger.warn('Documentation will not be built for trunk or branch installs!')
     else:
         chdir(working_dir)
-        if build_type == 'py':
+        if 'py' in build_type:
             command = [executable, 'setup.py', 'install', '--prefix={0}'.format(install_dir)]
             logger.debug(' '.join(command))
             if not options.test:
@@ -360,7 +370,7 @@ set ModulesVersion "{0}"
         # Build documentation
         #
         if options.documentation:
-            if build_type == 'py':
+            if 'py' in build_type:
                 if exists(join('doc','index.rst')):
                     #
                     # Assume Sphinx documentation.
@@ -427,9 +437,9 @@ set ModulesVersion "{0}"
         # or we still need to compile the C/C++ product (we had to construct
         # doc/Makefile first).
         #
-        if build_type == 'c':
+        if 'c' in build_type:
             environ[baseproduct.upper()+'_DIR'] = working_dir
-            command = ['make', 'all']
+            command = ['make', 'install']
             logger.debug(' '.join(command))
             if not options.test:
                 proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
@@ -439,12 +449,12 @@ set ModulesVersion "{0}"
                     logger.error("Error during compile:")
                     logger.error(err)
                     return 1
-                if isdir('bin'):
-                    copytree('bin',join(install_dir,'bin'))
-                if isdir('lib'):
-                    copytree('lib',join(install_dir,'lib'))
-                if isdir(join('doc','html')) and options.documentation:
-                    copytree(join('doc','html'),join(install_dir,'doc'))
+                # if isdir('bin'):
+                #     copytree('bin',join(install_dir,'bin'))
+                # if isdir('lib'):
+                #     copytree('lib',join(install_dir,'lib'))
+                # if isdir(join('doc','html')) and options.documentation:
+                #     copytree(join('doc','html'),join(install_dir,'doc'))
     chdir(original_dir)
     #
     # Clean up
