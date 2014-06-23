@@ -63,6 +63,6 @@ fi
 if [[ -z "${py}" ]]; then
     desiInstall -b -U ${u} ${test} ${verbose}
 else
-    ${py} ${DESIUTIL_DIR}/bin/desiInstall -b -U ${u} ${test} ${verbose}
+    ${py} ${DESIUTIL_DIR}/bin/desiInstall -b -U ${u} -p ${py} ${test} ${verbose}
 fi
 /bin/rm -rf desiUtil-trunk

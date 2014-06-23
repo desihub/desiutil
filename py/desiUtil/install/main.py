@@ -22,7 +22,7 @@ def main():
     import datetime
     from sys import argv, executable, path, version_info
     from shutil import copyfile, copytree, rmtree
-    from os import chdir, environ, getcwd, getenv, makedirs, walk
+    from os import chdir, chmod, environ, getcwd, getenv, makedirs, stat, walk
     from os.path import abspath, basename, exists, isdir, join
     from argparse import ArgumentParser
     from .. import __version__ as desiUtilVersion
@@ -49,6 +49,8 @@ def main():
         default=getenv('MODULESHOME'))
     parser.add_argument('-M', '--module-dir', action='store', dest='moduledir',
         metavar='DIR',help="Install module files in DIR.",default='')
+    parser.add_argument('-p', '--python', action='store', dest='python',
+        metavar='PYTHON',help="Use the Python executable PYTHON (e.g. /opt/local/bin/python2.7).  This option is only relevant when installing desiUtil itself.")
     parser.add_argument('-r', '--root', action='store', dest='root',
         metavar='DIR', help='Set or override the value of $DESI_PRODUCT_ROOT',
         default=getenv('DESI_PRODUCT_ROOT'))
@@ -167,7 +169,7 @@ def main():
         build_type = 'py'
         if exists(join(working_dir,'Makefile')):
             build_type += 'c'
-    if build_type = 'c' and not exists(join(working_dir,'Makefile')):
+    if build_type == 'c' and not exists(join(working_dir,'Makefile')):
         logger.error('Could not find setup.py nor Makefile!')
         return 1
     #
@@ -203,6 +205,18 @@ def main():
         except OSError as ose:
             logger.error(ose.strerror)
             return 1
+    #
+    # Store the value of the Python executable, if set.
+    #
+    if options.product == 'tools/desiUtil' and options.python is not None:
+        desiInstall = join(working_dir,'bin','desiInstall')
+        mode = stat(desiInstall).st_mode
+        with open(desiInstall) as i:
+            l = i.readlines()
+        l[0] = "#!{0}\n".format(options.python)
+        with open(desiInstall,'w') as i:
+            i.write(''.join(l))
+        chmod(mode)
     #
     # Figure out dependencies by reading the unprocessed module file
     #
