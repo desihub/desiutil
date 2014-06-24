@@ -21,14 +21,14 @@ setup_keywords['url'] = 'https://desi.lbl.gov/svn/code/tools/desiUtil'
 # END OF SETTINGS THAT NEED TO BE CHANGED.
 #
 #
-# Import this module to get __doc__ and version().
+# Import this module to get __doc__ and __version__.
 #
 sys.path.insert(int(sys.path[0] == ''),'./py')
 try:
     from importlib import import_module
     product = import_module(setup_keywords['name'])
     setup_keywords['long_description'] = product.__doc__
-    setup_keywords['version'] = product.version()
+    setup_keywords['version'] = product.__version__
 except ImportError:
     #
     # Try to get the long description from the README.rst file.
