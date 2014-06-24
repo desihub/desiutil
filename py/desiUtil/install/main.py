@@ -362,9 +362,9 @@ set ModulesVersion "{0}"
             cf = list()
             for root, dirs, files in walk('etc'):
                 for d in dirs:
-                    md.append(join(install_dir,'etc',d))
+                    md.append(join(install_dir,root,d))
                 for name in files:
-                    if name == 'README.rst' or name.endswith('.module'):
+                    if name.endswith('.module'):
                         continue
                     cf.append((join(root,name),join(install_dir,root,name)))
         if md or cf:
