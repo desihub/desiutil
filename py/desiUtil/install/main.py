@@ -216,7 +216,7 @@ def main():
         l[0] = "#!{0}\n".format(options.python)
         with open(desiInstall,'w') as i:
             i.write(''.join(l))
-        chmod(mode)
+        chmod(desiInstall,mode)
     #
     # Figure out dependencies by reading the unprocessed module file
     #
@@ -362,9 +362,9 @@ set ModulesVersion "{0}"
             cf = list()
             for root, dirs, files in walk('etc'):
                 for d in dirs:
-                    md.append(join(install_dir,'etc',d))
+                    md.append(join(install_dir,root,d))
                 for name in files:
-                    if name == 'README.rst' or name.endswith('.module'):
+                    if name.endswith('.module'):
                         continue
                     cf.append((join(root,name),join(install_dir,root,name)))
         if md or cf:
