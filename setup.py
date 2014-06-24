@@ -6,8 +6,8 @@
 import glob
 import os
 import sys
-from .ez_setup import use_setuptools
-use_setuptools()
+import ez_setup
+ez_setup.use_setuptools()
 from setuptools import setup, find_packages
 setup_keywords = dict()
 #
@@ -69,6 +69,10 @@ setup_keywords['zip_safe'] = False
 setup_keywords['use_2to3'] = True
 setup_keywords['packages'] = find_packages('py')
 setup_keywords['package_dir'] = {'':'py'}
+#
+# Autogenerate command-line scripts.
+#
+setup_keywords['entry_points'] = {'console_scripts':['desiInstall = desiUtil.install.main:main']}
 #
 # Run setup command.
 #
