@@ -72,7 +72,7 @@ setup_keywords['package_dir'] = {'':'py'}
 #
 # Autogenerate command-line scripts.
 #
-setup_keywords['entry_points'] = {'console_scripts':['desiInstall = desiUtil.install.main:main']}
+# setup_keywords['entry_points'] = {'console_scripts':['desiInstall = desiUtil.install.main:main']}
 #
 # Run setup command.
 #
