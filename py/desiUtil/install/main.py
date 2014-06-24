@@ -216,7 +216,7 @@ def main():
         l[0] = "#!{0}\n".format(options.python)
         with open(desiInstall,'w') as i:
             i.write(''.join(l))
-        chmod(mode)
+        chmod(desiInstall,mode)
     #
     # Figure out dependencies by reading the unprocessed module file
     #
