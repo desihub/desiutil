@@ -206,17 +206,19 @@ def main():
             logger.error(ose.strerror)
             return 1
     #
-    # Store the value of the Python executable, if set.
+    # Store the value of the Python executable, if set.  This is not
+    # necessary to do because the setup.py process will convert the
+    # script.
     #
-    if options.product == 'tools/desiUtil' and options.python is not None:
-        desiInstall = join(working_dir,'bin','desiInstall')
-        mode = stat(desiInstall).st_mode
-        with open(desiInstall) as i:
-            l = i.readlines()
-        l[0] = "#!{0}\n".format(options.python)
-        with open(desiInstall,'w') as i:
-            i.write(''.join(l))
-        chmod(mode)
+    # if options.product == 'tools/desiUtil' and options.python is not None:
+    #     desiInstall = join(working_dir,'bin','desiInstall')
+    #     mode = stat(desiInstall).st_mode
+    #     with open(desiInstall) as i:
+    #         l = i.readlines()
+    #     l[0] = "#!{0}\n".format(options.python)
+    #     with open(desiInstall,'w') as i:
+    #         i.write(''.join(l))
+    #     chmod(desiInstall,mode)
     #
     # Figure out dependencies by reading the unprocessed module file
     #
@@ -237,11 +239,13 @@ def main():
     module_keywords['needs_ld_lib'] = '# '
     module_keywords['needs_idl'] = '# '
     module_keywords['pyversion'] = "python{0:d}.{1:d}".format(*version_info)
+    if isdir(join(working_dir,'bin')):
+        module_keywords['needs_bin'] = ''
+    if isdir(join(working_dir,'lib')):
+        module_keywords['needs_ld_lib'] = ''
+    if isdir(join(working_dir,'pro')):
+        module_keywords['needs_idl'] = ''
     if 'py' in build_type:
-        scripts = [fname for fname in glob.glob(join(working_dir,'bin', '*'))
-            if not basename(fname).endswith('.rst')]
-        if len(scripts) > 0:
-            module_keywords['needs_bin'] = ''
         if is_branch or is_trunk:
             module_keywords['needs_trunk_py'] = ''
         else:
@@ -264,13 +268,6 @@ def main():
                     newpythonpath = lib_dir
                 environ['PYTHONPATH'] = newpythonpath
                 path.insert(int(path[0] == ''),lib_dir)
-    else:
-        if isdir(join(working_dir,'bin')):
-            module_keywords['needs_bin'] = ''
-        if isdir(join(working_dir,'lib')):
-            module_keywords['needs_ld_lib'] = ''
-        if isdir(join(working_dir,'pro')):
-            module_keywords['needs_idl'] = ''
     #
     # Process the module file.
     #
@@ -362,9 +359,9 @@ set ModulesVersion "{0}"
             cf = list()
             for root, dirs, files in walk('etc'):
                 for d in dirs:
-                    md.append(join(install_dir,'etc',d))
+                    md.append(join(install_dir,root,d))
                 for name in files:
-                    if name == 'README.rst' or name.endswith('.module'):
+                    if name.endswith('.module'):
                         continue
                     cf.append((join(root,name),join(install_dir,root,name)))
         if md or cf:
