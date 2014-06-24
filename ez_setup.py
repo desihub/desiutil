@@ -25,7 +25,7 @@ import textwrap
 import contextlib
 
 from distutils import log
-
+log.set_verbosity(1) # Log to stdout
 try:
     from urllib.request import urlopen
 except ImportError:
