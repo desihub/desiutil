@@ -25,7 +25,7 @@ import textwrap
 import contextlib
 
 from distutils import log
-log.set_verbosity(1) # Log to stdout
+
 try:
     from urllib.request import urlopen
 except ImportError:
@@ -50,10 +50,10 @@ def _python_cmd(*args):
 def _install(archive_filename, install_args=()):
     with archive_context(archive_filename):
         # installing
-        log.warn('Installing Setuptools')
+        log.info('Installing Setuptools')
         if not _python_cmd('setup.py', 'install', *install_args):
-            log.warn('Something went wrong during the installation.')
-            log.warn('See the error message above.')
+            log.info('Something went wrong during the installation.')
+            log.info('See the error message above.')
             # exitcode will be 2
             return 2
 
@@ -61,10 +61,10 @@ def _install(archive_filename, install_args=()):
 def _build_egg(egg, archive_filename, to_dir):
     with archive_context(archive_filename):
         # building an egg
-        log.warn('Building a Setuptools egg in %s', to_dir)
+        log.info('Building a Setuptools egg in %s', to_dir)
         _python_cmd('setup.py', '-q', 'bdist_egg', '--dist-dir', to_dir)
     # returning the result
-    log.warn(egg)
+    log.info(egg)
     if not os.path.exists(egg):
         raise IOError('Could not build the egg.')
 
@@ -93,7 +93,7 @@ class ContextualZipFile(zipfile.ZipFile):
 def archive_context(filename):
     # extracting the archive
     tmpdir = tempfile.mkdtemp()
-    log.warn('Extracting in %s', tmpdir)
+    log.info('Extracting in %s', tmpdir)
     old_wd = os.getcwd()
     try:
         os.chdir(tmpdir)
@@ -103,7 +103,7 @@ def archive_context(filename):
         # going in the directory
         subdir = os.path.join(tmpdir, os.listdir(tmpdir)[0])
         os.chdir(subdir)
-        log.warn('Now working in %s', subdir)
+        log.info('Now working in %s', subdir)
         yield
 
     finally:
@@ -282,7 +282,7 @@ def download_setuptools(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
     url = download_base + zip_name
     saveto = os.path.join(to_dir, zip_name)
     if not os.path.exists(saveto):  # Avoid repeated downloads
-        log.warn("Downloading %s", url)
+        log.info("Downloading %s", url)
         downloader = downloader_factory()
         downloader(url, saveto)
     return os.path.realpath(saveto)
