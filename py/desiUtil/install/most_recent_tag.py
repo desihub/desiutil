@@ -17,6 +17,7 @@ def most_recent_tag(tags,username=None):
     most_recent_tag : str
         The most recent tag found in ``tags``.
     """
+    from distutils.version import StrictVersion as V
     from subprocess import Popen, PIPE
     command = ['svn']
     if username is not None:
@@ -25,7 +26,8 @@ def most_recent_tag(tags,username=None):
     proc = Popen(command,stdout=PIPE,stderr=PIPE)
     out, err = proc.communicate()
     try:
-        mrt = sorted([v.rstrip('/') for v in out.split('\n') if len(v) > 0])[-1]
+        mrt = sorted([v.rstrip('/') for v in out.split('\n') if len(v) > 0],
+            key=lambda x: V(x))[-1]
     except IndexError:
         mrt = '0.0.0'
     return mrt
