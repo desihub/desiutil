@@ -95,6 +95,12 @@ pygments_style = 'sphinx'
 # A list of ignored prefixes for module index sorting.
 #modindex_common_prefix = []
 
+# If true, keep warnings as "system message" paragraphs in the built documents.
+keep_warnings = True
+
+# Numpy extensions generate autosummary code after autosummary has already run.
+numpydoc_show_class_members = False
+
 
 # -- Options for HTML output ---------------------------------------------------
 
