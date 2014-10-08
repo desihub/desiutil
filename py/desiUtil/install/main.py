@@ -147,7 +147,7 @@ def main():
         get_svn = 'checkout'
     else:
         get_svn = 'export'
-    product_dir = "{0}_DIR".format(baseproduct.upper())
+    # product_dir = "{0}_DIR".format(baseproduct.upper())
     working_dir = join(abspath('.'),'{0}-{1}'.format(baseproduct,baseversion))
     if isdir(working_dir):
         logger.info("Detected old working directory, {0}. Deleting...".format(working_dir))
