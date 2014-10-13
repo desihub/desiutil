@@ -49,7 +49,7 @@ this downloaded code.
 Determine Build Type
 --------------------
 
-The downloaded code is scanned to determine the build type.  There are three
+The downloaded code is scanned to determine the build type.  There are several
 possible build types that are *not* mutually exclusive.
 
 plain
@@ -158,7 +158,7 @@ desiInstall will construct the files needed to build Doxygen documentation.
 However, the actual construction of the documentation is left up to the
 top-level ``make install``.
 
-Build C/C++ code
+Build C/C++ Code
 ----------------
 
 If the build-type 'make' is detected, ``make install`` will be run in
