@@ -140,7 +140,6 @@ def main():
         get_svn = 'checkout'
     else:
         get_svn = 'export'
-    # product_dir = "{0}_DIR".format(baseproduct.upper())
     working_dir = join(abspath('.'),'{0}-{1}'.format(baseproduct,baseversion))
     if isdir(working_dir):
         logger.info("Detected old working directory, {0}. Deleting...".format(working_dir))
@@ -192,12 +191,12 @@ def main():
     # If this is a trunk or branch install, this directory will be created
     # by other means.
     #
-    if not (is_branch or is_trunk or options.test):
-        try:
-            makedirs(install_dir)
-        except OSError as ose:
-            logger.error(ose.strerror)
-            return 1
+    # if not (is_branch or is_trunk or options.test):
+    #     try:
+    #         makedirs(install_dir)
+    #     except OSError as ose:
+    #         logger.error(ose.strerror)
+    #         return 1
     #
     # Store the value of the Python executable, if set.  This is not
     # necessary to do because the setup.py process will convert the
@@ -313,6 +312,8 @@ set ModulesVersion "{0}"
     #
     environ['WORKING_DIR'] = working_dir
     environ['INSTALL_DIR'] = install_dir
+    logger.debug("module('load','{0}/{1}')".format(baseproduct,baseversion))
+    module('load',baseproduct+'/'+baseversion)
     #
     # Run the install
     #
@@ -323,8 +324,6 @@ set ModulesVersion "{0}"
             copytree(working_dir,install_dir)
             chdir(install_dir)
             if 'c' in build_type:
-                logger.debug("module('load','{0}/{1}')".format(baseproduct,baseversion))
-                module('load',baseproduct+'/'+baseversion)
                 command = ['make','-C', 'src', 'all']
                 logger.info('Running "{0}" in {1}.'.format(' '.join(command),install_dir))
                 proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
@@ -359,8 +358,6 @@ set ModulesVersion "{0}"
                     # Assume Sphinx documentation.
                     #
                     logger.debug("Found Sphinx documentation.")
-                    logger.debug("module('load','{0}/{1}')".format(baseproduct,baseversion))
-                    module('load',baseproduct+'/'+baseversion)
                     sphinx_keywords = {
                         'name':baseproduct,
                         'release':baseversion,
@@ -447,9 +444,6 @@ set ModulesVersion "{0}"
         # doc/Makefile first).
         #
         if 'c' in build_type or isdir('src'):
-            # environ[baseproduct.upper()+'_DIR'] = working_dir
-            logger.debug("module('load','{0}/{1}')".format(baseproduct,baseversion))
-            module('load',baseproduct+'/'+baseversion)
             if 'c' in build_type:
                 command = ['make', 'install']
             else:
