@@ -131,7 +131,7 @@ def main():
     #
     # Check for existence of the URL.
     #
-    command = ['svn','--username',options.username,'ls',product_url]
+    command = ['svn','--non-interactive','--username',options.username,'ls',product_url]
     logger.debug(' '.join(command))
     proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
     out, err = proc.communicate()
@@ -152,7 +152,7 @@ def main():
     if isdir(working_dir):
         logger.info("Detected old working directory, {0}. Deleting...".format(working_dir))
         rmtree(working_dir)
-    command = ['svn','--username',options.username,get_svn,product_url,working_dir]
+    command = ['svn','--non-interactive','--username',options.username,get_svn,product_url,working_dir]
     logger.debug(' '.join(command))
     proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
     out, err = proc.communicate()
@@ -402,10 +402,10 @@ set ModulesVersion "{0}"
                                 logger.error(ose.strerror)
                                 return 1
                     if not exists(join('doc','Makefile')):
-                        copyfile(join(getenv('DESIUTIL_DIR'),'etc','doc','sphinx','Makefile'),
+                        copyfile(join(getenv('DESIUTIL'),'etc','doc','sphinx','Makefile'),
                             join('doc','Makefile'))
                     if not exists(join('doc','conf.py')):
-                        with open(join(getenv('DESIUTIL_DIR'),'etc','doc','sphinx','conf.py')) as conf:
+                        with open(join(getenv('DESIUTIL'),'etc','doc','sphinx','conf.py')) as conf:
                             newconf = conf.read().format(**sphinx_keywords)
                         with open(join('doc','conf.py'),'w') as conf2:
                             conf2.write(newconf)
@@ -434,10 +434,10 @@ set ModulesVersion "{0}"
                         'version':baseversion,
                         'description':"Documentation for {0} built by desiInstall.".format(baseproduct)}
                     if not exists(join('doc','Makefile')):
-                        copyfile(join(getenv('DESIUTIL_DIR'),'etc','doc','doxygen','Makefile'),
+                        copyfile(join(getenv('DESIUTIL'),'etc','doc','doxygen','Makefile'),
                             join('doc','Makefile'))
                     if not exists(join('doc','Docyfile')):
-                        with open(join(getenv('DESIUTIL_DIR'),'etc','doc','doxygen','Doxyfile')) as conf:
+                        with open(join(getenv('DESIUTIL'),'etc','doc','doxygen','Doxyfile')) as conf:
                             newconf = conf.read().format(**doxygen_keywords)
                         with open(join('doc','Doxyfile'),'w') as conf2:
                             conf2.write(newconf)

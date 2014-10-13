@@ -19,7 +19,7 @@ def most_recent_tag(tags,username=None):
     """
     from distutils.version import StrictVersion as V
     from subprocess import Popen, PIPE
-    command = ['svn']
+    command = ['svn', '--non-interactive']
     if username is not None:
         command += ['--username', username]
     command += ['ls',tags]

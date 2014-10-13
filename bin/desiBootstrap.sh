@@ -52,17 +52,21 @@ if [[ -z "${MODULESHOME}" ]]; then
     echo "You do not appear to have Modules installed."
     exit 1
 fi
-svn --username ${u} export https://desi.lbl.gov/svn/code/tools/desiUtil/trunk desiUtil-trunk
-export DESIUTIL_DIR=$(pwd)/desiUtil-trunk
-export PATH=${DESIUTIL_DIR}/bin:${PATH}
+#
+# Export
+#
+svn --username ${u} --non-interactive export \
+    https://desi.lbl.gov/svn/code/tools/desiUtil/trunk desiUtil-trunk
+export DESIUTIL=$(pwd)/desiUtil-trunk
+export PATH=${DESIUTIL}/bin:${PATH}
 if [[ -z "${PYTHONPATH}" ]]; then
-    export PYTHONPATH=${DESIUTIL_DIR}/py
+    export PYTHONPATH=${DESIUTIL}/py
 else
-    export PYTHONPATH=${DESIUTIL_DIR}/py:${PYTHONPATH}
+    export PYTHONPATH=${DESIUTIL}/py:${PYTHONPATH}
 fi
 if [[ -z "${py}" ]]; then
     desiInstall -b -U ${u} ${test} ${verbose}
 else
-    ${py} ${DESIUTIL_DIR}/bin/desiInstall -b -U ${u} -p ${py} ${test} ${verbose}
+    ${py} ${DESIUTIL}/bin/desiInstall -b -U ${u} -p ${py} ${test} ${verbose}
 fi
-/bin/rm -rf desiUtil-trunk
+/bin/rm -rf ${DESIUTIL}
