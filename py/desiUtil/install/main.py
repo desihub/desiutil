@@ -38,8 +38,8 @@ def main():
         help="Force C/C++ install mode, even if a setup.py file is detected (WARNING: this is for experts only).")
     parser.add_argument('-d', '--default', action='store_true', dest='default',
         help='Make this version the default version.')
-    parser.add_argument('-D', '--documentation', action='store_true', dest='documentation',
-        help='Build any Sphinx or Doxygen documentation.')
+    parser.add_argument('-D', '--no-documentation', action='store_false', dest='documentation',
+        help='Do NOT build any Sphinx or Doxygen documentation.')
     parser.add_argument('-F', '--force', action='store_true', dest='force',
         help='Overwrite any existing installation of this product/version.')
     parser.add_argument('-k', '--keep', action='store_true', dest='keep',
@@ -158,12 +158,15 @@ def main():
     #
     build_type = set(['plain'])
     if options.force_build_type:
-        build_type.add('c')
+        build_type.add('make')
     else:
         if exists(join(working_dir,'setup.py')):
             build_type.add('py')
-            if exists(join(working_dir,'Makefile')):
-                build_type.add('c')
+        if exists(join(working_dir,'Makefile')):
+            build_type.add('make')
+        else:
+            if isdir(join(working_dir,'src')):
+                build_type.add('src')
     #
     # Pick an install directory
     #
@@ -224,15 +227,16 @@ def main():
     #
     # Prepare to configure module.
     #
-    module_keywords = dict()
-    module_keywords['name'] = baseproduct
-    module_keywords['version'] = baseversion
-    module_keywords['needs_bin'] = '# '
-    module_keywords['needs_python'] = '# '
-    module_keywords['needs_trunk_py'] = '# '
-    module_keywords['needs_ld_lib'] = '# '
-    module_keywords['needs_idl'] = '# '
-    module_keywords['pyversion'] = "python{0:d}.{1:d}".format(*version_info)
+    module_keywords = {
+        'name': baseproduct
+        'version': baseversion
+        'needs_bin': '# '
+        'needs_python': '# '
+        'needs_trunk_py': '# '
+        'needs_ld_lib': '# '
+        'needs_idl': '# '
+        'pyversion': "python{0:d}.{1:d}".format(*version_info)
+        }
     if isdir(join(working_dir,'bin')):
         module_keywords['needs_bin'] = ''
     if isdir(join(working_dir,'lib')):
@@ -244,24 +248,6 @@ def main():
             module_keywords['needs_trunk_py'] = ''
         else:
             module_keywords['needs_python'] = ''
-        if not (is_branch or is_trunk):
-            lib_dir = join(install_dir,'lib',module_keywords['pyversion'],'site-packages')
-            #
-            # If this is a python package, we need to manipulate the PYTHONPATH and
-            # include the install directory
-            #
-            if not options.test:
-                try:
-                    makedirs(lib_dir)
-                except OSError as ose:
-                    logger.error(ose.strerror)
-                    return 1
-                try:
-                    newpythonpath = lib_dir + ':' + environ['PYTHONPATH']
-                except KeyError:
-                    newpythonpath = lib_dir
-                environ['PYTHONPATH'] = newpythonpath
-                path.insert(int(path[0] == ''),lib_dir)
     else:
         if isdir(join(working_dir,'py')):
             module_keywords['needs_trunk_py'] = ''
@@ -314,30 +300,57 @@ set ModulesVersion "{0}"
     environ['INSTALL_DIR'] = install_dir
     logger.debug("module('load','{0}/{1}')".format(baseproduct,baseversion))
     module('load',baseproduct+'/'+baseversion)
-    #
-    # Run the install
-    #
     original_dir = getcwd()
-    if is_branch or is_trunk:
-        logger.debug("copytree('{0}','{1}')".format(working_dir,install_dir))
-        if not options.test:
-            copytree(working_dir,install_dir)
+    #
+    # Start the install by simply copying the files.
+    #
+    logger.debug("copytree('{0}','{1}')".format(working_dir,install_dir))
+    if not options.test:
+        copytree(working_dir,install_dir)
+    #
+    # Handle trunk or branch installs.
+    #
+    if (is_trunk or is_branch):
+        if 'src' in build_type:
             chdir(install_dir)
-            if 'c' in build_type:
-                command = ['make','-C', 'src', 'all']
-                logger.info('Running "{0}" in {1}.'.format(' '.join(command),install_dir))
-                proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-                out, err = proc.communicate()
-                logger.debug(out)
-                if len(err) > 0:
-                    logger.error("Error during compile:")
-                    logger.error(err)
-                    return 1
+            command = ['make','-C', 'src', 'all']
+            logger.info('Running "{0}" in {1}.'.format(' '.join(command),install_dir))
+            proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            out, err = proc.communicate()
+            logger.debug(out)
+            if len(err) > 0:
+                logger.error("Error during compile:")
+                logger.error(err)
+                return 1
         if options.documentation:
             logger.warn('Documentation will not be built for trunk or branch installs!')
     else:
+        #
+        # Run a 'real' install
+        #
         chdir(working_dir)
         if 'py' in build_type:
+            #
+            # For Python installs, a site-packages directory needs to exist.
+            # We may need to manipulate sys.path to include this directory.
+            #
+            lib_dir = join(install_dir,'lib',module_keywords['pyversion'],'site-packages')
+            if not options.test:
+                try:
+                    makedirs(lib_dir)
+                except OSError as ose:
+                    logger.error(ose.strerror)
+                    return 1
+                if lib_dir not in path:
+                    try:
+                        newpythonpath = lib_dir + ':' + environ['PYTHONPATH']
+                    except KeyError:
+                        newpythonpath = lib_dir
+                    environ['PYTHONPATH'] = newpythonpath
+                    path.insert(int(path[0] == ''),lib_dir)
+            #
+            # Ready to python setup.py
+            #
             command = [executable, 'setup.py', 'install', '--prefix={0}'.format(install_dir)]
             logger.debug(' '.join(command))
             if not options.test:
@@ -390,7 +403,7 @@ set ModulesVersion "{0}"
                             return 1
                     if not options.test:
                         if isdir(join('build','sphinx','html')):
-                            copytree(join('build','sphinx','html'),join(install_dir,'doc'))
+                            copytree(join('build','sphinx','html'),join(install_dir,'doc','html'))
                 else:
                     logger.warn("Documentation build requested, but no documentation found.")
             else:
@@ -405,7 +418,7 @@ set ModulesVersion "{0}"
                     if not exists(join('doc','Makefile')):
                         copyfile(join(getenv('DESIUTIL'),'etc','doc','doxygen','Makefile'),
                             join('doc','Makefile'))
-                    if not exists(join('doc','Docyfile')):
+                    if not exists(join('doc','Doxyfile')):
                         with open(join(getenv('DESIUTIL'),'etc','doc','doxygen','Doxyfile')) as conf:
                             newconf = conf.read().format(**doxygen_keywords)
                         with open(join('doc','Doxyfile'),'w') as conf2:
@@ -413,41 +426,16 @@ set ModulesVersion "{0}"
                 else:
                     logger.warn("Documentation build requested, but no documentation found.")
         #
-        # Copy additional files
-        #
-        if isdir('etc'):
-            md = list()
-            cf = list()
-            for root, dirs, files in walk('etc'):
-                for d in dirs:
-                    md.append(join(install_dir,root,d))
-                for name in files:
-                    if name.endswith('.module'):
-                        continue
-                    cf.append((join(root,name),join(install_dir,root,name)))
-        if md or cf:
-            logger.debug('Creating {0}'.format(join(install_dir,'etc')))
-            makedirs(join(install_dir,'etc'))
-            if md:
-                for name in md:
-                    logger.debug('Creating {0}'.format(name))
-                    if not options.test:
-                        makedirs(name)
-            if cf:
-                for src,dst in cf:
-                    logger.debug('Copying {0} -> {1}'.format(src,dst))
-                    if not options.test:
-                        copyfile(src,dst)
-        #
         # At this point either we have already completed a Python installation
         # or we still need to compile the C/C++ product (we had to construct
         # doc/Makefile first).
         #
-        if 'c' in build_type or isdir('src'):
-            if 'c' in build_type:
-                command = ['make', 'install']
+        if 'make' in build_type or 'src' in build_type:
+            if 'src' in build_type:
+                chdir(install_dir)
+                command = ['make','-C', 'src', 'all']
             else:
-                command = ['make', '-C', 'src', 'all']
+                command = ['make', 'install']
             logger.debug(' '.join(command))
             if not options.test:
                 proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
@@ -457,16 +445,10 @@ set ModulesVersion "{0}"
                     logger.error("Error during compile:")
                     logger.error(err)
                     return 1
-                # if isdir('bin'):
-                #     copytree('bin',join(install_dir,'bin'))
-                # if isdir('lib'):
-                #     copytree('lib',join(install_dir,'lib'))
-                # if isdir(join('doc','html')) and options.documentation:
-                #     copytree(join('doc','html'),join(install_dir,'doc'))
-    chdir(original_dir)
     #
     # Clean up
     #
+    chdir(original_dir)
     if not options.keep:
         rmtree(working_dir)
     return 0
