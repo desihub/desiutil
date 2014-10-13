@@ -63,20 +63,13 @@ def main():
         metavar='USER',help="Set svn username to USER.",default=getenv('USER'))
     parser.add_argument('-v', '--verbose', action='store_true', dest='verbose',
         help='Print extra information.')
-    parser.add_argument('-V', '--version', action='store_true', dest='version',
-        help='Print version information.')
+    parser.add_argument('-V', '--version', action='version',
+        version='%(prog)s '+desiUtilVersion)
     parser.add_argument('product',nargs='?',default='NO PACKAGE',
         help='Name of product to install.')
     parser.add_argument('product_version',nargs='?',default='NO VERSION',
         help='Version of product to install.')
     options = parser.parse_args()
-    #
-    # Print version if requested.
-    #
-    if options.version:
-        vers = version()
-        print(desiUtilVersion)
-        return 0
     #
     # Set up logger
     #
@@ -164,14 +157,14 @@ def main():
     #
     # Analyze the code to determine the build type
     #
-    build_type = 'c'
-    if exists(join(working_dir,'setup.py')) and not options.force_build_type:
-        build_type = 'py'
-        if exists(join(working_dir,'Makefile')):
-            build_type += 'c'
-    if build_type == 'c' and not exists(join(working_dir,'Makefile')):
-        logger.error('Could not find setup.py nor Makefile!')
-        return 1
+    build_type = set(['plain'])
+    if options.force_build_type:
+        build_type.add('c')
+    else:
+        if exists(join(working_dir,'setup.py')):
+            build_type.add('py')
+            if exists(join(working_dir,'Makefile')):
+                build_type.add('c')
     #
     # Pick an install directory
     #
@@ -223,6 +216,8 @@ def main():
     # Figure out dependencies by reading the unprocessed module file
     #
     module_file = join(working_dir,'etc',baseproduct+'.module')
+    if not exists(module_file):
+        module_file = join(getenv('DESIUTIL'),'etc','desiUtil.module')
     deps = dependencies(module_file)
     for d in deps:
         logger.debug("module('load','{0}')".format(d))
@@ -268,6 +263,9 @@ def main():
                     newpythonpath = lib_dir
                 environ['PYTHONPATH'] = newpythonpath
                 path.insert(int(path[0] == ''),lib_dir)
+    else:
+        if isdir(join(working_dir,'py')):
+            module_keywords['needs_trunk_py'] = ''
     #
     # Process the module file.
     #
@@ -352,36 +350,10 @@ set ModulesVersion "{0}"
                     logger.error(err)
                     return 1
         #
-        # Copy additional files
-        #
-        if isdir('etc'):
-            md = list()
-            cf = list()
-            for root, dirs, files in walk('etc'):
-                for d in dirs:
-                    md.append(join(install_dir,root,d))
-                for name in files:
-                    if name.endswith('.module'):
-                        continue
-                    cf.append((join(root,name),join(install_dir,root,name)))
-        if md or cf:
-            logger.debug('Creating {0}'.format(join(install_dir,'etc')))
-            makedirs(join(install_dir,'etc'))
-            if md:
-                for name in md:
-                    logger.debug('Creating {0}'.format(name))
-                    if not options.test:
-                        makedirs(name)
-            if cf:
-                for src,dst in cf:
-                    logger.debug('Copying {0} -> {1}'.format(src,dst))
-                    if not options.test:
-                        copyfile(src,dst)
-        #
         # Build documentation
         #
         if options.documentation:
-            if 'py' in build_type:
+            if 'py' in build_type or isdir('py'):
                 if exists(join('doc','index.rst')):
                     #
                     # Assume Sphinx documentation.
@@ -444,13 +416,44 @@ set ModulesVersion "{0}"
                 else:
                     logger.warn("Documentation build requested, but no documentation found.")
         #
+        # Copy additional files
+        #
+        if isdir('etc'):
+            md = list()
+            cf = list()
+            for root, dirs, files in walk('etc'):
+                for d in dirs:
+                    md.append(join(install_dir,root,d))
+                for name in files:
+                    if name.endswith('.module'):
+                        continue
+                    cf.append((join(root,name),join(install_dir,root,name)))
+        if md or cf:
+            logger.debug('Creating {0}'.format(join(install_dir,'etc')))
+            makedirs(join(install_dir,'etc'))
+            if md:
+                for name in md:
+                    logger.debug('Creating {0}'.format(name))
+                    if not options.test:
+                        makedirs(name)
+            if cf:
+                for src,dst in cf:
+                    logger.debug('Copying {0} -> {1}'.format(src,dst))
+                    if not options.test:
+                        copyfile(src,dst)
+        #
         # At this point either we have already completed a Python installation
         # or we still need to compile the C/C++ product (we had to construct
         # doc/Makefile first).
         #
-        if 'c' in build_type:
-            environ[baseproduct.upper()+'_DIR'] = working_dir
-            command = ['make', 'install']
+        if 'c' in build_type or isdir('src'):
+            # environ[baseproduct.upper()+'_DIR'] = working_dir
+            logger.debug("module('load','{0}/{1}')".format(baseproduct,baseversion))
+            module('load',baseproduct+'/'+baseversion)
+            if 'c' in build_type:
+                command = ['make', 'install']
+            else:
+                command = ['make', '-C', 'src', 'all']
             logger.debug(' '.join(command))
             if not options.test:
                 proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
