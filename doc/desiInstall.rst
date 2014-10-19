@@ -16,17 +16,12 @@ Input Validation
 desiInstall checks the command-line input, verifying that the user has
 specified a product and a version to install.
 
-Module Infrastructure
----------------------
-
-desiInstall sets up the Modules infrastructure by running ``execfile()`` on
-the Python init file supplied by the Modules install.
-
 Product/Version Parsing
 -----------------------
 
 Because of the structure of the DESI code repository, it is sometimes necessary
-to specify a directory name along with the product name.  desiInstall parses
+to specify a directory name along with the product name.  desiInstall contains
+a list of known products, but it is not necessarily complete. desiInstall parses
 the input to determine the base name and base version to install.  At this
 stage desiInstall also determines whether a trunk or branch install has
 been requested.
@@ -86,6 +81,12 @@ If the install directory already exists, desiInstall will exit, unless the
 
 desiInstall will set the environment variable ``INSTALL_DIR`` to point to the
 install directory.
+
+Module Infrastructure
+---------------------
+
+desiInstall sets up the Modules infrastructure by running ``execfile()`` on
+the Python init file supplied by the Modules install.
 
 Find Module File
 ----------------

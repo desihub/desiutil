@@ -26,7 +26,7 @@ def main():
     from os.path import abspath, basename, exists, isdir, join
     from argparse import ArgumentParser
     from .. import __version__ as desiUtilVersion
-    from . import dependencies, most_recent_tag
+    from . import dependencies, known_products, most_recent_tag
     #
     # Parse arguments
     #
@@ -95,32 +95,29 @@ def main():
         else:
             logger.error("You must specify a product and a version!")
             return 1
-    #
-    # Set up Modules
-    #
     if options.moduleshome is None or not isdir(options.moduleshome):
         logger.error("You do not appear to have Modules set up.")
-        return 1
-    initpy_found = False
-    for modpy in ('python','python.py'):
-        initpy = join(options.moduleshome,'init',modpy)
-        if exists(initpy):
-            initpy_found = True
-            execfile(initpy,globals())
-    if not initpy_found:
-        logger.error("Could not find the Python file in {0}/init!".format(options.moduleshome))
         return 1
     #
     # Determine the product and version names.
     #
-    baseproduct = basename(options.product)
+    if '/' in options.product:
+        fullproduct = options.product
+        baseproduct = basename(options.product)
+    else:
+        try:
+            fullproduct = known_products[options.product]
+            baseproduct = options.product
+        except KeyError:
+            logger.error("Could not determine the exact location of {0}!".format(options.product))
+            return 1
     baseversion = basename(options.product_version)
     is_branch = options.product_version.startswith('branches')
     is_trunk = options.product_version == 'trunk'
     if is_trunk or is_branch:
-        product_url = join(options.url,options.product,options.product_version)
+        product_url = join(options.url,fullproduct,options.product_version)
     else:
-        product_url = join(options.url,options.product,'tags',options.product_version)
+        product_url = join(options.url,fullproduct,'tags',options.product_version)
     #
     # Check for existence of the URL.
     #
@@ -214,6 +211,18 @@ def main():
     #     with open(desiInstall,'w') as i:
     #         i.write(''.join(l))
     #     chmod(desiInstall,mode)
+    #
+    # Set up Modules
+    #
+    initpy_found = False
+    for modpy in ('python','python.py'):
+        initpy = join(options.moduleshome,'init',modpy)
+        if exists(initpy):
+            initpy_found = True
+            execfile(initpy,globals())
+    if not initpy_found:
+        logger.error("Could not find the Python file in {0}/init!".format(options.moduleshome))
+        return 1
     #
     # Figure out dependencies by reading the unprocessed module file
     #

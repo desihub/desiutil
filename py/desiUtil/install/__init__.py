@@ -11,5 +11,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 # The line above will help with 2to3 support.
 from .dependencies import dependencies
 from .get_svn_devstr import get_svn_devstr
+from .known_products import known_products
 from .most_recent_tag import most_recent_tag
 from .version import version
