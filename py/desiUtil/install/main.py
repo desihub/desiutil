@@ -65,6 +65,8 @@ def main():
         help='Print extra information.')
     parser.add_argument('-V', '--version', action='version',
         version='%(prog)s '+desiUtilVersion)
+    parser.add_argument('-x', '--cross-install', action='store_true', dest='cross_install',
+        help='Make the install available on multiple systems (e.g. NERSC).')
     parser.add_argument('product',nargs='?',default='NO PACKAGE',
         help='Name of product to install.')
     parser.add_argument('product_version',nargs='?',default='NO VERSION',
