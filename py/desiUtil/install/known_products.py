@@ -11,7 +11,7 @@ within the DESI svn repository.
 from __future__ import absolute_import, division, print_function, unicode_literals
 # The line above will help with 2to3 support.
 known_products = {
-    'desiDataModel': 'archive/desiDataModel',
+    'desiDataModel': 'desiDataModel',
     'desimodel': 'desimodel',
     'plate_layout': 'focalplane/plate_layout',
     'positioner_control': 'focalplane/positioner_control',
