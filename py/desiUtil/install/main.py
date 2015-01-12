@@ -239,13 +239,13 @@ def main():
     # Prepare to configure module.
     #
     module_keywords = {
-        'name': baseproduct
-        'version': baseversion
-        'needs_bin': '# '
-        'needs_python': '# '
-        'needs_trunk_py': '# '
-        'needs_ld_lib': '# '
-        'needs_idl': '# '
+        'name': baseproduct,
+        'version': baseversion,
+        'needs_bin': '# ',
+        'needs_python': '# ',
+        'needs_trunk_py': '# ',
+        'needs_ld_lib': '# ',
+        'needs_idl': '# ',
         'pyversion': "python{0:d}.{1:d}".format(*version_info)
         }
     if isdir(join(working_dir,'bin')):
