@@ -22,8 +22,9 @@ def main():
     import datetime
     from sys import argv, executable, path, version_info
     from shutil import copyfile, copytree, rmtree
-    from os import chdir, chmod, environ, getcwd, getenv, makedirs, stat, walk
+    from os import chdir, chmod, environ, getcwd, getenv, makedirs, remove, stat, walk
     from os.path import abspath, basename, exists, isdir, join
+    from urllib2 import urlopen, HTTPError
     from argparse import ArgumentParser
     from .. import __version__ as desiUtilVersion
     from . import dependencies, known_products, most_recent_tag
@@ -100,6 +101,10 @@ def main():
     if options.moduleshome is None or not isdir(options.moduleshome):
         logger.error("You do not appear to have Modules set up.")
         return 1
+    github = False
+    if 'github' in options.url:
+        github = True
+        logger.debug("Detected GitHub install.")
     #
     # Determine the product and version names.
     #
@@ -115,43 +120,102 @@ def main():
             return 1
     baseversion = basename(options.product_version)
     is_branch = options.product_version.startswith('branches')
-    is_trunk = options.product_version == 'trunk'
+    is_trunk = options.product_version == 'trunk' or options.product_version == 'master'
     if is_trunk or is_branch:
-        product_url = join(options.url,fullproduct,options.product_version)
+        if github:
+            product_url = join(options.url,fullproduct)+'.git'
+        else:
+            product_url = join(options.url,fullproduct,baseproduct)
     else:
-        product_url = join(options.url,fullproduct,'tags',options.product_version)
+        if github:
+            product_url = join(options.url,fullproduct,'archive',options.product_version+'.tar.gz')
+        else:
+            product_url = join(options.url,fullproduct,'tags',options.product_version)
+    logger.debug("Using {0} as the URL of this product.".format(product_url))
     #
     # Check for existence of the URL.
     #
-    command = ['svn','--non-interactive','--username',options.username,'ls',product_url]
-    logger.debug(' '.join(command))
-    proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-    out, err = proc.communicate()
-    logger.debug(out)
-    if len(err) > 0:
-        logger.error("svn error while testing product URL:")
-        logger.error(err)
-        return 1
+    if not github:
+        command = ['svn','--non-interactive','--username',options.username,'ls',product_url]
+        logger.debug(' '.join(command))
+        proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        out, err = proc.communicate()
+        logger.debug(out)
+        if len(err) > 0:
+            logger.error("svn error while testing product URL:")
+            logger.error(err)
+            return 1
     #
     # Get the code
     #
-    if is_trunk or is_branch:
-        get_svn = 'checkout'
-    else:
-        get_svn = 'export'
     working_dir = join(abspath('.'),'{0}-{1}'.format(baseproduct,baseversion))
     if isdir(working_dir):
         logger.info("Detected old working directory, {0}. Deleting...".format(working_dir))
         rmtree(working_dir)
-    command = ['svn','--non-interactive','--username',options.username,get_svn,product_url,working_dir]
-    logger.debug(' '.join(command))
-    proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-    out, err = proc.communicate()
-    logger.debug(out)
-    if len(err) > 0:
-        logger.error("svn error while downloading product code:")
-        logger.error(err)
-        return 1
+    if github:
+        if is_trunk or is_branch:
+            if is_branch:
+                try:
+                    f = urlopen(join(options.url,fullproduct,'tree',baseversion))
+                except HTTPError as e:
+                    logger.error("Branch {0} does not appear to exist. HTTP response was {1:d}.".format(baseversion,e.code))
+                    return 1
+            command = ['git', 'clone', '-q', product_url, working_dir]
+            logger.debug(' '.join(command))
+            proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            out, err = proc.communicate()
+            logger.debug(out)
+            if len(err) > 0:
+                logger.error("git error while downloading product code:")
+                logger.error(err)
+                return 1
+            if is_branch:
+                original_dir = getcwd()
+                chdir(working_dir)
+                command = ['git', 'checkout', '-q', '-b', baseversion, 'origin/'+baseversion]
+                logger.debug(' '.join(command))
+                proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                out, err = proc.communicate()
+                logger.debug(out)
+                if len(err) > 0:
+                    logger.error("git error while changing branch:")
+                    logger.error(err)
+                    return 1
+                chdir(original_dir)
+        else:
+            try:
+                u = urlopen(product_url)
+                tgz = u.read()
+            except HTTPError as e:
+                logger.error("Error while downloading {0}, HTTP response was {1:d}.".format(product_url,e.code))
+                return 1
+            u.close()
+            with open(options.product_version+'.tar.gz','w') as u:
+                u.write(tgz)
+            command = ['tar', '-xzf', options.product_version+'.tar.gz']
+            logger.debug(' '.join(command))
+            proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            out, err = proc.communicate()
+            logger.debug(out)
+            if len(err) > 0:
+                logger.error("tar error while expanding product code:")
+                logger.error(err)
+                return 1
+            remove(options.product_version+'.tar.gz')
+    else:
+        if is_trunk or is_branch:
+            get_svn = 'checkout'
+        else:
+            get_svn = 'export'
+        command = ['svn','--non-interactive','--username',options.username,get_svn,product_url,working_dir]
+        logger.debug(' '.join(command))
+        proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        out, err = proc.communicate()
+        logger.debug(out)
+        if len(err) > 0:
+            logger.error("svn error while downloading product code:")
+            logger.error(err)
+            return 1
     #
     # Analyze the code to determine the build type
     #
