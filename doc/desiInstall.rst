@@ -19,7 +19,7 @@ specified a product and a version to install.
 Product/Version Parsing
 -----------------------
 
-Because of the structure of the DESI code repository, it is sometimes necessary
+Because of the structures of the DESI code repositories, it is sometimes necessary
 to specify a directory name along with the product name.  desiInstall contains
 a list of known products, but it is not necessarily complete. desiInstall parses
 the input to determine the base name and base version to install.  At this
@@ -30,16 +30,18 @@ Product Existence
 -----------------
 
 After the product name and version have been determined, desiInstall
-constructs the full URL pointing to the product/version and runs ``svn ls`` to
-verify that the product/version really exists.
+constructs the full URL pointing to the product/version. And runs the code
+necessary to verify that the product/version really exists.  Typically, this
+will be ``svn ls``, unless a GitHub install is detected.
 
 Download Code
 -------------
 
 The code is downloaded, using ``svn export`` for standard (tag) installs, or
-``svn checkout`` for trunk or branch installs.  desiInstall will set the
-environment variable ``WORKING_DIR`` to point to the directory containing
-this downloaded code.
+``svn checkout`` for trunk or branch installs.  For GitHub installs, desiInstall
+will look for a release tarball, or do a ``git clone`` for tag or master/branch
+installs.  desiInstall will set the environment variable ``WORKING_DIR``
+to point to the directory containing this downloaded code.
 
 Determine Build Type
 --------------------
@@ -99,7 +101,10 @@ Load Dependencies
 -----------------
 
 desiInstall will scan the module file identified in the previous stage, and
-will module load any dependencies found in the file.
+will module load any dependencies found in the file.  desiInstall will
+purge modules whose name contains ``-hpcp`` if it detects it is not running
+at NERSC.  Similarly, it will purge modules *not* containing ``-hpcp`` if
+it detects a NERSC environment.
 
 Configure Module File
 ---------------------
@@ -158,6 +163,8 @@ If the product appears to be primarily C/C++, and a doc/ directory exists,
 desiInstall will construct the files needed to build Doxygen documentation.
 However, the actual construction of the documentation is left up to the
 top-level ``make install``.
+
+Documentation can also be built in-place using the desiDoc script.
 
 Build C/C++ Code
 ----------------

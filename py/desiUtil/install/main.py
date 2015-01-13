@@ -27,7 +27,7 @@ def main():
     from urllib2 import urlopen, HTTPError
     from argparse import ArgumentParser
     from .. import __version__ as desiUtilVersion
-    from . import dependencies, known_products, most_recent_tag
+    from . import dependencies, generate_doc, get_product_version, most_recent_tag, set_build_type
     #
     # Parse arguments
     #
@@ -77,13 +77,13 @@ def main():
     # Set up logger
     #
     debug = options.test or options.verbose
-    logger = logging.getLogger('desiInstall')
+    logger = logging.getLogger(__name__)
     if debug:
         logger.setLevel(logging.DEBUG)
     else:
         logger.setLevel(logging.INFO)
     handler = logging.StreamHandler()
-    formatter = logging.Formatter('%(name)s Log - %(levelname)s - %(message)s')
+    formatter = logging.Formatter(xct+' (%(name)s) Log - %(levelname)s - %(message)s')
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     #
@@ -108,17 +108,10 @@ def main():
     #
     # Determine the product and version names.
     #
-    if '/' in options.product:
-        fullproduct = options.product
-        baseproduct = basename(options.product)
-    else:
-        try:
-            fullproduct = known_products[options.product]
-            baseproduct = options.product
-        except KeyError:
-            logger.error("Could not determine the exact location of {0}!".format(options.product))
-            return 1
-    baseversion = basename(options.product_version)
+    try:
+        fullproduct, baseproduct, baseversion = get_product_version(options)
+    except KeyError:
+        return 1
     is_branch = options.product_version.startswith('branches')
     is_trunk = options.product_version == 'trunk' or options.product_version == 'master'
     if is_trunk or is_branch:
@@ -219,17 +212,7 @@ def main():
     #
     # Analyze the code to determine the build type
     #
-    build_type = set(['plain'])
-    if options.force_build_type:
-        build_type.add('make')
-    else:
-        if exists(join(working_dir,'setup.py')):
-            build_type.add('py')
-        if exists(join(working_dir,'Makefile')):
-            build_type.add('make')
-        else:
-            if isdir(join(working_dir,'src')):
-                build_type.add('src')
+    build_type = set_build_type(working_dir,options.force_build_type)
     #
     # Pick an install directory
     #
@@ -398,7 +381,8 @@ set ModulesVersion "{0}"
                 logger.error(err)
                 return 1
         if options.documentation:
-            logger.warn('Documentation will not be built for trunk or branch installs!')
+            logger.warn('Documentation will not be built automatically for trunk or branch installs!')
+            logger.warn('You can use the desiDoc script to build documentation on your own.')
     else:
         #
         # Run a 'real' install
@@ -440,66 +424,9 @@ set ModulesVersion "{0}"
         # Build documentation
         #
         if options.documentation:
-            if 'py' in build_type or isdir('py'):
-                if exists(join('doc','index.rst')):
-                    #
-                    # Assume Sphinx documentation.
-                    #
-                    logger.debug("Found Sphinx documentation.")
-                    sphinx_keywords = {
-                        'name':baseproduct,
-                        'release':baseversion,
-                        'version':'.'.join(baseversion.split('.')[0:3]),
-                        'year':datetime.date.today().year}
-                    for sd in ('_templates','_build','_static'):
-                        if not isdir(join('doc',sd)):
-                            try:
-                                makedirs(join('doc',sd))
-                            except OSError as ose:
-                                logger.error(ose.strerror)
-                                return 1
-                    if not exists(join('doc','Makefile')):
-                        copyfile(join(getenv('DESIUTIL'),'etc','doc','sphinx','Makefile'),
-                            join('doc','Makefile'))
-                    if not exists(join('doc','conf.py')):
-                        with open(join(getenv('DESIUTIL'),'etc','doc','sphinx','conf.py')) as conf:
-                            newconf = conf.read().format(**sphinx_keywords)
-                        with open(join('doc','conf.py'),'w') as conf2:
-                            conf2.write(newconf)
-                    command = [executable, 'setup.py', 'build_sphinx']
-                    logger.debug(' '.join(command))
-                    if not options.test:
-                        proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-                        out, err = proc.communicate()
-                        logger.debug(out)
-                        if len(err) > 0:
-                            logger.error("Error during documentation build:")
-                            logger.error(err)
-                            return 1
-                    if not options.test:
-                        if isdir(join('build','sphinx','html')):
-                            copytree(join('build','sphinx','html'),join(install_dir,'doc','html'))
-                else:
-                    logger.warn("Documentation build requested, but no documentation found.")
-            else:
-                #
-                # This is not a Python product, assume Doxygen documentation.
-                #
-                if isdir('doc'):
-                    doxygen_keywords = {
-                        'name':baseproduct,
-                        'version':baseversion,
-                        'description':"Documentation for {0} built by desiInstall.".format(baseproduct)}
-                    if not exists(join('doc','Makefile')):
-                        copyfile(join(getenv('DESIUTIL'),'etc','doc','doxygen','Makefile'),
-                            join('doc','Makefile'))
-                    if not exists(join('doc','Doxyfile')):
-                        with open(join(getenv('DESIUTIL'),'etc','doc','doxygen','Doxyfile')) as conf:
-                            newconf = conf.read().format(**doxygen_keywords)
-                        with open(join('doc','Doxyfile'),'w') as conf2:
-                            conf2.write(newconf)
-                else:
-                    logger.warn("Documentation build requested, but no documentation found.")
+            status = generate_doc(working_dir,install_dir,options)
+            if status != 0:
+                return status
         #
         # At this point either we have already completed a Python installation
         # or we still need to compile the C/C++ product (we had to construct

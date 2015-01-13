@@ -16,11 +16,23 @@ def dependencies(modulefile):
         Returns the list of dependencies.  If the module file
         is not found or there are no dependencies, the list will be empty.
     """
-    from os import getenv
+    from os import environ
     from os.path import exists
+    nersc = 'NERSC_HOST' in environ
     deps = list()
     if exists(modulefile):
         with open(modulefile) as m:
             lines = m.readlines()
-        deps = [l.strip().split()[2] for l in lines if l.startswith('module load')]
-    return deps
+        raw_deps = [l.strip().split()[2] for l in lines if l.startswith('module load')]
+    if nersc:
+        hpcp_deps = [d for d in raw_deps if '-hpcp' in d]
+        for d in hpcp_deps:
+            nd = d.replace("-hpcp","")
+            try:
+                raw_deps.remove(nd)
+            except ValueError:
+                pass
+        return raw_deps
+    else:
+        deps = [d for d in deps if '-hpcp' not in d]
+        return deps
