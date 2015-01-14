@@ -458,9 +458,12 @@ set ModulesVersion "{0}"
                 if not isdir(www_dir):
                     makedirs(www_dir)
                 doc_dir = join(install_dir,'doc','html')
-                if isdir(doc_dir):
-                    logger.debug("symlink('{0}','{1}')".format(doc_dir,join(www_dir,baseversion))
-                    symlink(doc_dir,join(www_dir,baseversion))
+                if islink(join(www_dir,baseversion)):
+                    logger.warning("Documentation for {0}/{1} already exists.".format(baseproduct,baseversion))
+                else:
+                    if isdir(doc_dir):
+                        logger.debug("symlink('{0}','{1}')".format(doc_dir,join(www_dir,baseversion))
+                        symlink(doc_dir,join(www_dir,baseversion))
     #
     # Cross-install this product at NERSC.
     #
