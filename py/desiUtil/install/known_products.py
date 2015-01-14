@@ -17,7 +17,8 @@ known_products = {
     'positioner_control': 'focalplane/positioner_control',
     'bbspecsim': 'spectro/bbspecsim',
     'desispec': 'spectro/desispec',
-    'dspecsim', 'spectro/dspecsim',
+    'desisim': 'desihub/desisim',
+    'dspecsim': 'spectro/dspecsim',
     'templates': 'spectro/templates',
     'fiberassignment': 'survey/fiberassignment',
     'surveyplan': 'survey/surveyplan',
@@ -27,4 +28,6 @@ known_products = {
     'desiTemplate': 'tools/desiTemplate',
     'desiTree': 'tools/desiTree',
     'desiUtil': 'tools/desiUtil',
+    'specex': 'desihub/specex',
+    'desispec': 'desihub/desispec',
     }

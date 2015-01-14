@@ -22,11 +22,12 @@ def main():
     import datetime
     from sys import argv, executable, path, version_info
     from shutil import copyfile, copytree, rmtree
-    from os import chdir, chmod, environ, getcwd, getenv, makedirs, stat, walk
-    from os.path import abspath, basename, exists, isdir, join
+    from os import chdir, chmod, environ, getcwd, getenv, makedirs, remove, stat, symlink, walk
+    from os.path import abspath, basename, exists, isdir, islink, join
+    from urllib2 import urlopen, HTTPError
     from argparse import ArgumentParser
     from .. import __version__ as desiUtilVersion
-    from . import dependencies, known_products, most_recent_tag
+    from . import dependencies, generate_doc, get_product_version, most_recent_tag, set_build_type
     #
     # Parse arguments
     #
@@ -76,13 +77,13 @@ def main():
     # Set up logger
     #
     debug = options.test or options.verbose
-    logger = logging.getLogger('desiInstall')
+    logger = logging.getLogger(__name__)
     if debug:
         logger.setLevel(logging.DEBUG)
     else:
         logger.setLevel(logging.INFO)
     handler = logging.StreamHandler()
-    formatter = logging.Formatter('%(name)s Log - %(levelname)s - %(message)s')
+    formatter = logging.Formatter(xct+' (%(name)s) Log - %(levelname)s - %(message)s')
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     #
@@ -100,72 +101,118 @@ def main():
     if options.moduleshome is None or not isdir(options.moduleshome):
         logger.error("You do not appear to have Modules set up.")
         return 1
+    github = False
+    if 'github' in options.url:
+        github = True
+        logger.debug("Detected GitHub install.")
     #
     # Determine the product and version names.
     #
-    if '/' in options.product:
-        fullproduct = options.product
-        baseproduct = basename(options.product)
-    else:
-        try:
-            fullproduct = known_products[options.product]
-            baseproduct = options.product
-        except KeyError:
-            logger.error("Could not determine the exact location of {0}!".format(options.product))
-            return 1
-    baseversion = basename(options.product_version)
+    try:
+        fullproduct, baseproduct, baseversion = get_product_version(options)
+    except KeyError:
+        return 1
     is_branch = options.product_version.startswith('branches')
-    is_trunk = options.product_version == 'trunk'
+    is_trunk = options.product_version == 'trunk' or options.product_version == 'master'
     if is_trunk or is_branch:
-        product_url = join(options.url,fullproduct,options.product_version)
+        if github:
+            product_url = join(options.url,fullproduct)+'.git'
+        else:
+            product_url = join(options.url,fullproduct,baseproduct)
     else:
-        product_url = join(options.url,fullproduct,'tags',options.product_version)
+        if github:
+            product_url = join(options.url,fullproduct,'archive',options.product_version+'.tar.gz')
+        else:
+            product_url = join(options.url,fullproduct,'tags',options.product_version)
+    logger.debug("Using {0} as the URL of this product.".format(product_url))
     #
     # Check for existence of the URL.
     #
-    command = ['svn','--non-interactive','--username',options.username,'ls',product_url]
-    logger.debug(' '.join(command))
-    proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-    out, err = proc.communicate()
-    logger.debug(out)
-    if len(err) > 0:
-        logger.error("svn error while testing product URL:")
-        logger.error(err)
-        return 1
+    if not github:
+        command = ['svn','--non-interactive','--username',options.username,'ls',product_url]
+        logger.debug(' '.join(command))
+        proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        out, err = proc.communicate()
+        logger.debug(out)
+        if len(err) > 0:
+            logger.error("svn error while testing product URL:")
+            logger.error(err)
+            return 1
     #
     # Get the code
     #
-    if is_trunk or is_branch:
-        get_svn = 'checkout'
-    else:
-        get_svn = 'export'
     working_dir = join(abspath('.'),'{0}-{1}'.format(baseproduct,baseversion))
     if isdir(working_dir):
         logger.info("Detected old working directory, {0}. Deleting...".format(working_dir))
         rmtree(working_dir)
-    command = ['svn','--non-interactive','--username',options.username,get_svn,product_url,working_dir]
-    logger.debug(' '.join(command))
-    proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-    out, err = proc.communicate()
-    logger.debug(out)
-    if len(err) > 0:
-        logger.error("svn error while downloading product code:")
-        logger.error(err)
-        return 1
+    if github:
+        if is_trunk or is_branch:
+            if is_branch:
+                try:
+                    f = urlopen(join(options.url,fullproduct,'tree',baseversion))
+                except HTTPError as e:
+                    logger.error("Branch {0} does not appear to exist. HTTP response was {1:d}.".format(baseversion,e.code))
+                    return 1
+            command = ['git', 'clone', '-q', product_url, working_dir]
+            logger.debug(' '.join(command))
+            proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            out, err = proc.communicate()
+            logger.debug(out)
+            if len(err) > 0:
+                logger.error("git error while downloading product code:")
+                logger.error(err)
+                return 1
+            if is_branch:
+                original_dir = getcwd()
+                chdir(working_dir)
+                command = ['git', 'checkout', '-q', '-b', baseversion, 'origin/'+baseversion]
+                logger.debug(' '.join(command))
+                proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                out, err = proc.communicate()
+                logger.debug(out)
+                if len(err) > 0:
+                    logger.error("git error while changing branch:")
+                    logger.error(err)
+                    return 1
+                chdir(original_dir)
+        else:
+            try:
+                u = urlopen(product_url)
+                tgz = u.read()
+            except HTTPError as e:
+                logger.error("Error while downloading {0}, HTTP response was {1:d}.".format(product_url,e.code))
+                return 1
+            u.close()
+            with open(options.product_version+'.tar.gz','w') as u:
+                u.write(tgz)
+            command = ['tar', '-xzf', options.product_version+'.tar.gz']
+            logger.debug(' '.join(command))
+            proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            out, err = proc.communicate()
+            logger.debug(out)
+            if len(err) > 0:
+                logger.error("tar error while expanding product code:")
+                logger.error(err)
+                return 1
+            remove(options.product_version+'.tar.gz')
+    else:
+        if is_trunk or is_branch:
+            get_svn = 'checkout'
+        else:
+            get_svn = 'export'
+        command = ['svn','--non-interactive','--username',options.username,get_svn,product_url,working_dir]
+        logger.debug(' '.join(command))
+        proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        out, err = proc.communicate()
+        logger.debug(out)
+        if len(err) > 0:
+            logger.error("svn error while downloading product code:")
+            logger.error(err)
+            return 1
     #
     # Analyze the code to determine the build type
     #
-    build_type = set(['plain'])
-    if options.force_build_type:
-        build_type.add('make')
-    else:
-        if exists(join(working_dir,'setup.py')):
-            build_type.add('py')
-        if exists(join(working_dir,'Makefile')):
-            build_type.add('make')
-        else:
-            if isdir(join(working_dir,'src')):
-                build_type.add('src')
+    build_type = set_build_type(working_dir,options.force_build_type)
     #
     # Pick an install directory
     #
@@ -239,13 +286,13 @@ def main():
     # Prepare to configure module.
     #
     module_keywords = {
-        'name': baseproduct
-        'version': baseversion
-        'needs_bin': '# '
-        'needs_python': '# '
-        'needs_trunk_py': '# '
-        'needs_ld_lib': '# '
-        'needs_idl': '# '
+        'name': baseproduct,
+        'version': baseversion,
+        'needs_bin': '# ',
+        'needs_python': '# ',
+        'needs_trunk_py': '# ',
+        'needs_ld_lib': '# ',
+        'needs_idl': '# ',
         'pyversion': "python{0:d}.{1:d}".format(*version_info)
         }
     if isdir(join(working_dir,'bin')):
@@ -334,7 +381,8 @@ set ModulesVersion "{0}"
                 logger.error(err)
                 return 1
         if options.documentation:
-            logger.warn('Documentation will not be built for trunk or branch installs!')
+            logger.warn('Documentation will not be built automatically for trunk or branch installs!')
+            logger.warn('You can use the desiDoc script to build documentation on your own.')
     else:
         #
         # Run a 'real' install
@@ -376,66 +424,9 @@ set ModulesVersion "{0}"
         # Build documentation
         #
         if options.documentation:
-            if 'py' in build_type or isdir('py'):
-                if exists(join('doc','index.rst')):
-                    #
-                    # Assume Sphinx documentation.
-                    #
-                    logger.debug("Found Sphinx documentation.")
-                    sphinx_keywords = {
-                        'name':baseproduct,
-                        'release':baseversion,
-                        'version':'.'.join(baseversion.split('.')[0:3]),
-                        'year':datetime.date.today().year}
-                    for sd in ('_templates','_build','_static'):
-                        if not isdir(join('doc',sd)):
-                            try:
-                                makedirs(join('doc',sd))
-                            except OSError as ose:
-                                logger.error(ose.strerror)
-                                return 1
-                    if not exists(join('doc','Makefile')):
-                        copyfile(join(getenv('DESIUTIL'),'etc','doc','sphinx','Makefile'),
-                            join('doc','Makefile'))
-                    if not exists(join('doc','conf.py')):
-                        with open(join(getenv('DESIUTIL'),'etc','doc','sphinx','conf.py')) as conf:
-                            newconf = conf.read().format(**sphinx_keywords)
-                        with open(join('doc','conf.py'),'w') as conf2:
-                            conf2.write(newconf)
-                    command = [executable, 'setup.py', 'build_sphinx']
-                    logger.debug(' '.join(command))
-                    if not options.test:
-                        proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-                        out, err = proc.communicate()
-                        logger.debug(out)
-                        if len(err) > 0:
-                            logger.error("Error during documentation build:")
-                            logger.error(err)
-                            return 1
-                    if not options.test:
-                        if isdir(join('build','sphinx','html')):
-                            copytree(join('build','sphinx','html'),join(install_dir,'doc','html'))
-                else:
-                    logger.warn("Documentation build requested, but no documentation found.")
-            else:
-                #
-                # This is not a Python product, assume Doxygen documentation.
-                #
-                if isdir('doc'):
-                    doxygen_keywords = {
-                        'name':baseproduct,
-                        'version':baseversion,
-                        'description':"Documentation for {0} built by desiInstall.".format(baseproduct)}
-                    if not exists(join('doc','Makefile')):
-                        copyfile(join(getenv('DESIUTIL'),'etc','doc','doxygen','Makefile'),
-                            join('doc','Makefile'))
-                    if not exists(join('doc','Doxyfile')):
-                        with open(join(getenv('DESIUTIL'),'etc','doc','doxygen','Doxyfile')) as conf:
-                            newconf = conf.read().format(**doxygen_keywords)
-                        with open(join('doc','Doxyfile'),'w') as conf2:
-                            conf2.write(newconf)
-                else:
-                    logger.warn("Documentation build requested, but no documentation found.")
+            status = generate_doc(working_dir,install_dir,options)
+            if status != 0:
+                return status
         #
         # At this point either we have already completed a Python installation
         # or we still need to compile the C/C++ product (we had to construct
@@ -456,6 +447,39 @@ set ModulesVersion "{0}"
                     logger.error("Error during compile:")
                     logger.error(err)
                     return 1
+        #
+        # Link documentation into www directory at NERSC
+        #
+        if options.documentation:
+            if nersc is None:
+                logger.debug("Skipping installation into www directory.")
+            else:
+                www_dir = join('/project/projectdirs/desi/www/doc',baseproduct))
+                if not isdir(www_dir):
+                    makedirs(www_dir)
+                doc_dir = join(install_dir,'doc','html')
+                if islink(join(www_dir,baseversion)):
+                    logger.warning("Documentation for {0}/{1} already exists.".format(baseproduct,baseversion))
+                else:
+                    if isdir(doc_dir):
+                        logger.debug("symlink('{0}','{1}')".format(doc_dir,join(www_dir,baseversion))
+                        symlink(doc_dir,join(www_dir,baseversion))
+    #
+    # Cross-install this product at NERSC.
+    #
+    if options.cross_install:
+        if nersc is None:
+            logger.warning("Cross-installs are only supported at NERSC.")
+        elif nersc != 'edison':
+            logger.warning("Cross-installs should be performed on edison.")
+        else:
+            for nh in ('carver','hopper','datatran','scigate'):
+                if not islink(join('/project/projectdirs/desi/software',nh,baseproduct)):
+                    logger.debug("symlink('../edison/{0}','/project/projectdirs/desi/software/{1}/{0}')".format(baseproduct,nh))
+                    symlink(join('..','edison',baseproduct),join('/project/projectdirs/desi/software',nh,baseproduct))
+                if not islink(join('/project/projectdirs/desi/software/modules',nh,baseproduct)):
+                    logger.debug("symlink('../edison/{0}','/project/projectdirs/desi/software/modules/{1}/{0}')".format(baseproduct,nh))
+                    symlink(join('..','edison',baseproduct),join('/project/projectdirs/desi/modules/software',nh,baseproduct))
     #
     # Clean up
     #
