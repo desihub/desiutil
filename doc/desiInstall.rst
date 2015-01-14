@@ -173,6 +173,19 @@ If the build-type 'make' is detected, ``make install`` will be run in
 ``$WORKING_DIR``.  If the build-type 'src' is detected, ``make -C src all``
 will be run in ``$INSTALL_DIR``.
 
+Link Documentation
+------------------
+
+If the NERSC environment is detected, the built documentation will be linked
+into the www directory.
+
+Cross Install
+-------------
+
+If the ``--cross-install`` option is specified, and the NERSC environment is
+detected, symlinks will be created to make the package available on all
+NERSC platforms.
+
 Clean Up
 --------
 

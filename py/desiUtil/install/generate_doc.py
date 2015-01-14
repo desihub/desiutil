@@ -76,38 +76,37 @@ def generate_doc(working_dir,install_dir=None,options=None):
                     return 1
             if not options.test and install_dir is not None:
                 if isdir(join('build','sphinx','html')):
-                    copytree(join('build','sphinx','html'),join(install_dir,'doc','html'))
+                    copytree(join('build','sphinx','html'),join(install_dir,'doc','html','sphinx'))
         else:
             logger.warn("Documentation build requested, but no documentation found.")
+    #
+    # Look for Doxygen documentation.
+    #
+    if 'make' in build_type and isdir('doc'):
+        doxygen_keywords = {
+            'name':baseproduct,
+            'version':baseversion,
+            'description':"Documentation for {0} built by desiInstall.".format(baseproduct)}
+        if not exists(join('doc','Doxygen.Makefile')):
+            copyfile(join(getenv('DESIUTIL'),'etc','doc','doxygen','Makefile'),
+                join('doc','Doxygen.Makefile'))
+        if not exists(join('doc','Doxyfile')):
+            with open(join(getenv('DESIUTIL'),'etc','doc','doxygen','Doxyfile')) as conf:
+                newconf = conf.read().format(**doxygen_keywords)
+            with open(join('doc','Doxyfile'),'w') as conf2:
+                conf2.write(newconf)
+        command = ['make', '-C', 'doc', '-f', 'Doxygen.Makefile', 'all']
+        logger.debug(' '.join(command))
+        if not options.test:
+            proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            out, err = proc.communicate()
+            logger.debug(out)
+            if len(err) > 0:
+                logger.error("Error during compile:")
+                logger.error(err)
+                return 1
     else:
-        #
-        # This is not a Python product, assume Doxygen documentation.
-        #
-        if isdir('doc'):
-            doxygen_keywords = {
-                'name':baseproduct,
-                'version':baseversion,
-                'description':"Documentation for {0} built by desiInstall.".format(baseproduct)}
-            if not exists(join('doc','Makefile')):
-                copyfile(join(getenv('DESIUTIL'),'etc','doc','doxygen','Makefile'),
-                    join('doc','Makefile'))
-            if not exists(join('doc','Doxyfile')):
-                with open(join(getenv('DESIUTIL'),'etc','doc','doxygen','Doxyfile')) as conf:
-                    newconf = conf.read().format(**doxygen_keywords)
-                with open(join('doc','Doxyfile'),'w') as conf2:
-                    conf2.write(newconf)
-            command = ['make', '-C', 'doc', 'all']
-            logger.debug(' '.join(command))
-            if not options.test:
-                proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-                out, err = proc.communicate()
-                logger.debug(out)
-                if len(err) > 0:
-                    logger.error("Error during compile:")
-                    logger.error(err)
-                    return 1
-        else:
-            logger.warn("Documentation build requested, but no documentation found.")
+        logger.warn("Documentation build requested, but no documentation found.")
     return 0
 #
 #

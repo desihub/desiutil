@@ -22,8 +22,8 @@ def main():
     import datetime
     from sys import argv, executable, path, version_info
     from shutil import copyfile, copytree, rmtree
-    from os import chdir, chmod, environ, getcwd, getenv, makedirs, remove, stat, walk
-    from os.path import abspath, basename, exists, isdir, join
+    from os import chdir, chmod, environ, getcwd, getenv, makedirs, remove, stat, symlink, walk
+    from os.path import abspath, basename, exists, isdir, islink, join
     from urllib2 import urlopen, HTTPError
     from argparse import ArgumentParser
     from .. import __version__ as desiUtilVersion
@@ -447,6 +447,36 @@ set ModulesVersion "{0}"
                     logger.error("Error during compile:")
                     logger.error(err)
                     return 1
+        #
+        # Link documentation into www directory at NERSC
+        #
+        if options.documentation:
+            if nersc is None:
+                logger.debug("Skipping installation into www directory.")
+            else:
+                www_dir = join('/project/projectdirs/desi/www/doc',baseproduct))
+                if not isdir(www_dir):
+                    makedirs(www_dir)
+                doc_dir = join(install_dir,'doc','html')
+                if isdir(doc_dir):
+                    logger.debug("symlink('{0}','{1}')".format(doc_dir,join(www_dir,baseversion))
+                    symlink(doc_dir,join(www_dir,baseversion))
+    #
+    # Cross-install this product at NERSC.
+    #
+    if options.cross_install:
+        if nersc is None:
+            logger.warning("Cross-installs are only supported at NERSC.")
+        elif nersc != 'edison':
+            logger.warning("Cross-installs should be performed on edison.")
+        else:
+            for nh in ('carver','hopper','datatran','scigate'):
+                if not islink(join('/project/projectdirs/desi/software',nh,baseproduct)):
+                    logger.debug("symlink('../edison/{0}','/project/projectdirs/desi/software/{1}/{0}')".format(baseproduct,nh))
+                    symlink(join('..','edison',baseproduct),join('/project/projectdirs/desi/software',nh,baseproduct))
+                if not islink(join('/project/projectdirs/desi/software/modules',nh,baseproduct)):
+                    logger.debug("symlink('../edison/{0}','/project/projectdirs/desi/software/modules/{1}/{0}')".format(baseproduct,nh))
+                    symlink(join('..','edison',baseproduct),join('/project/projectdirs/desi/modules/software',nh,baseproduct))
     #
     # Clean up
     #
