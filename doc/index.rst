@@ -21,6 +21,10 @@ The desiUtil package
 .. automodule:: desiUtil
    :members:
 
+.. automodle:: desiUtil.install
+   :members:
+   :imported-members:
+
 Indices and tables
 ==================
 
