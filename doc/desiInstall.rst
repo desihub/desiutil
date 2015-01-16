@@ -30,7 +30,7 @@ Product Existence
 -----------------
 
 After the product name and version have been determined, desiInstall
-constructs the full URL pointing to the product/version. And runs the code
+constructs the full URL pointing to the product/version and runs the code
 necessary to verify that the product/version really exists.  Typically, this
 will be ``svn ls``, unless a GitHub install is detected.
 
@@ -40,7 +40,7 @@ Download Code
 The code is downloaded, using ``svn export`` for standard (tag) installs, or
 ``svn checkout`` for trunk or branch installs.  For GitHub installs, desiInstall
 will look for a release tarball, or do a ``git clone`` for tag or master/branch
-installs.  desiInstall will set the environment variable ``WORKING_DIR``
+installs.  desiInstall will set the environment variable :envvar:`WORKING_DIR`
 to point to the directory containing this downloaded code.
 
 Determine Build Type
@@ -76,12 +76,12 @@ install is taking place at NERSC, the install directory will be placed in
 ``/project/projectdirs/desi/software/${NERSC_HOST}``.
 
 At other locations, the user must set the environment variable
-``DESI_PRODUCT_ROOT`` to point to the equivalent directory.
+:envvar:`DESI_PRODUCT_ROOT` to point to the equivalent directory.
 
 If the install directory already exists, desiInstall will exit, unless the
 ``--force`` parameter is supplied on the command line.
 
-desiInstall will set the environment variable ``INSTALL_DIR`` to point to the
+desiInstall will set the environment variable :envvar:`INSTALL_DIR` to point to the
 install directory.
 
 Module Infrastructure
@@ -109,10 +109,10 @@ it detects a NERSC environment.
 Configure Module File
 ---------------------
 
-desiInstall will scan ``$WORKING_DIR`` to determine the details that need
+desiInstall will scan :envvar:`WORKING_DIR` to determine the details that need
 to be added to the module file.  The final module file will then be written
 into the DESI module directory at NERSC or the module directory associated
-with ``DESI_PRODUCT_ROOT``.  If ``--default`` is specified on the command
+with :envvar:`DESI_PRODUCT_ROOT`.  If ``--default`` is specified on the command
 line, an approproate .version file will be created.
 
 Load Module
@@ -120,14 +120,14 @@ Load Module
 
 desiInstall will load the module file just created to set up any environment
 variables needed by the install.  At this point it is also safe to assume that
-the environment variables ``WORKING_DIR`` and ``INSTALL_DIR`` exist.
+the environment variables :envvar:`WORKING_DIR` and :envvar:`INSTALL_DIR` exist.
 
 Copy All Files
 --------------
 
-The entire contents of ``WORKING_DIR`` will be copied to ``INSTALL_DIR``.
+The entire contents of :envvar:`WORKING_DIR` will be copied to :envvar:`INSTALL_DIR`.
 If this is a trunk or branch install and a src/ directory is detected,
-desiInstall will attempt to run ``make -C src all`` in ``$WORKING_DIR``.
+desiInstall will attempt to run ``make -C src all`` in :envvar:`INSTALL_DIR`.
 For trunk or branch installs, no further processing is performed past this
 point.
 
@@ -135,7 +135,7 @@ Create site-packages
 --------------------
 
 If the build-type 'py' is detected, a site-packages directory will be
-created in ``INSTALL_DIR``.  If necessary, this directory will be
+created in :envvar:`INSTALL_DIR`.  If necessary, this directory will be
 added to Python's ``sys.path``.
 
 Run setup.py
@@ -157,7 +157,8 @@ If the build-type 'py' is detected, or even if just the py/ directory exists,
 *and* a doc/index.rst file exists, desiInstall will attempt to build Sphinx
 documentation.  The index.rst file is necessary to contain entry points to the
 API documentation contained in the code itself.  The built documentation will
-be placed in ``$INSTALL_DIR/doc/html``.
+be placed in ``$INSTALL_DIR/doc/html/sphinx`` (to avoid conficts with Doxygen
+documentation).
 
 If the product appears to be primarily C/C++, and a doc/ directory exists,
 desiInstall will construct the files needed to build Doxygen documentation.
@@ -170,8 +171,8 @@ Build C/C++ Code
 ----------------
 
 If the build-type 'make' is detected, ``make install`` will be run in
-``$WORKING_DIR``.  If the build-type 'src' is detected, ``make -C src all``
-will be run in ``$INSTALL_DIR``.
+:envvar:`WORKING_DIR`.  If the build-type 'src' is detected, ``make -C src all``
+will be run in :envvar:`INSTALL_DIR`.
 
 Link Documentation
 ------------------
@@ -189,5 +190,5 @@ NERSC platforms.
 Clean Up
 --------
 
-The original download directory, specified by ``WORKING_DIR``, is removed,
+The original download directory, specified by :envvar:`WORKING_DIR`, is removed,
 unless ``--keep`` is specified on the command line.
