@@ -454,7 +454,7 @@ set ModulesVersion "{0}"
             if nersc is None:
                 logger.debug("Skipping installation into www directory.")
             else:
-                www_dir = join('/project/projectdirs/desi/www/doc',baseproduct))
+                www_dir = join('/project/projectdirs/desi/www/doc',baseproduct)
                 if not isdir(www_dir):
                     makedirs(www_dir)
                 doc_dir = join(install_dir,'doc','html')
