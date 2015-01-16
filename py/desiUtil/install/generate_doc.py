@@ -27,13 +27,14 @@ def generate_doc(working_dir,install_dir=None,options=None):
     from datetime import date
     from os import getenv, makedirs
     from os.path import exists, isdir, join
-    from shutil import copyfile
+    from shutil import copyfile, copytree
     from . import get_product_version, set_build_type
     logger = logging.getLogger(__name__)
     if options is None:
         logger.error("options parameter is not set!")
         return 1
     build_type = set_build_type(working_dir,options.force_build_type)
+    logger.debug(str(build_type))
     try:
         fullproduct, baseproduct, baseversion = get_product_version(options)
     except KeyError:
@@ -43,13 +44,13 @@ def generate_doc(working_dir,install_dir=None,options=None):
             #
             # Assume Sphinx documentation.
             #
-            # logger.debug("Found Sphinx documentation.")
+            sphinx_dir = join(getenv('DESIUTIL'),'etc','doc','sphinx')
             sphinx_keywords = {
                 'name':baseproduct,
                 'release':baseversion,
                 'version':'.'.join(baseversion.split('.')[0:3]),
                 'year':date.today().year}
-            for sd in ('_templates','_build','_static'):
+            for sd in ('_build','_static'):
                 if not isdir(join('doc',sd)):
                     try:
                         makedirs(join('doc',sd))
@@ -57,14 +58,15 @@ def generate_doc(working_dir,install_dir=None,options=None):
                         logger.error(ose.strerror)
                         return 1
             if not exists(join('doc','Makefile')):
-                copyfile(join(getenv('DESIUTIL'),'etc','doc','sphinx','Makefile'),
-                    join('doc','Makefile'))
+                copyfile(join(sphinx_dir,'Makefile'),join('doc','Makefile'))
             if not exists(join('doc','conf.py')):
-                with open(join(getenv('DESIUTIL'),'etc','doc','sphinx','conf.py')) as conf:
+                with open(join(sphinx_dir,'conf.py')) as conf:
                     newconf = conf.read().format(**sphinx_keywords)
                 with open(join('doc','conf.py'),'w') as conf2:
                     conf2.write(newconf)
-            command = [executable, 'setup.py', 'build_sphinx']
+            if not exists(join('doc','_templates')):
+                copytree(join(sphinx_dir,'_templates'),join('doc','_templates'))
+            command = [executable, 'setup.py', 'build_sphinx', '--fresh-env', '--all-files']
             logger.debug(' '.join(command))
             if not options.test:
                 proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
@@ -82,31 +84,32 @@ def generate_doc(working_dir,install_dir=None,options=None):
     #
     # Look for Doxygen documentation.
     #
-    if 'make' in build_type and isdir('doc'):
-        doxygen_keywords = {
-            'name':baseproduct,
-            'version':baseversion,
-            'description':"Documentation for {0} built by desiInstall.".format(baseproduct)}
-        if not exists(join('doc','Doxygen.Makefile')):
-            copyfile(join(getenv('DESIUTIL'),'etc','doc','doxygen','Makefile'),
-                join('doc','Doxygen.Makefile'))
-        if not exists(join('doc','Doxyfile')):
-            with open(join(getenv('DESIUTIL'),'etc','doc','doxygen','Doxyfile')) as conf:
-                newconf = conf.read().format(**doxygen_keywords)
-            with open(join('doc','Doxyfile'),'w') as conf2:
-                conf2.write(newconf)
-        command = ['make', '-C', 'doc', '-f', 'Doxygen.Makefile', 'all']
-        logger.debug(' '.join(command))
-        if not options.test:
-            proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-            out, err = proc.communicate()
-            logger.debug(out)
-            if len(err) > 0:
-                logger.error("Error during compile:")
-                logger.error(err)
-                return 1
-    else:
-        logger.warn("Documentation build requested, but no documentation found.")
+    if 'make' in build_type:
+        if isdir('doc'):
+            doxygen_keywords = {
+                'name':baseproduct,
+                'version':baseversion,
+                'description':"Documentation for {0} built by desiInstall.".format(baseproduct)}
+            if not exists(join('doc','Doxygen.Makefile')):
+                copyfile(join(getenv('DESIUTIL'),'etc','doc','doxygen','Makefile'),
+                    join('doc','Doxygen.Makefile'))
+            if not exists(join('doc','Doxyfile')):
+                with open(join(getenv('DESIUTIL'),'etc','doc','doxygen','Doxyfile')) as conf:
+                    newconf = conf.read().format(**doxygen_keywords)
+                with open(join('doc','Doxyfile'),'w') as conf2:
+                    conf2.write(newconf)
+            command = ['make', '-C', 'doc', '-f', 'Doxygen.Makefile', 'all']
+            logger.debug(' '.join(command))
+            if not options.test:
+                proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                out, err = proc.communicate()
+                logger.debug(out)
+                if len(err) > 0:
+                    logger.error("Error during compile:")
+                    logger.error(err)
+                    return 1
+        else:
+            logger.warn("Documentation build requested, but no documentation found.")
     return 0
 #
 #

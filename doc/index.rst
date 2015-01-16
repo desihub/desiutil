@@ -21,7 +21,7 @@ The desiUtil package
 .. automodule:: desiUtil
    :members:
 
-.. automodle:: desiUtil.install
+.. automodule:: desiUtil.install
    :members:
    :imported-members:
 
