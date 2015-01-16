@@ -357,7 +357,10 @@ set ModulesVersion "{0}"
     environ['WORKING_DIR'] = working_dir
     environ['INSTALL_DIR'] = install_dir
     logger.debug("module('load','{0}/{1}')".format(baseproduct,baseversion))
-    module('load',baseproduct+'/'+baseversion)
+    if baseproduct == 'desiUtil':
+        environ['DESIUTIL'] = install_dir
+    else:
+        module('load',baseproduct+'/'+baseversion)
     original_dir = getcwd()
     #
     # Start the install by simply copying the files.
