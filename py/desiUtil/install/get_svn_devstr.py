@@ -18,16 +18,21 @@ def get_svn_devstr(product):
         an error of some kind.
     """
     from subprocess import Popen, PIPE
-    from os import getenv
-    path = getenv(product.upper()+'_DIR')
-    if path is None:
-        return '0'
+    from os import environ
+    try:
+        path = environ[product.upper()]
+    except KeyError:
+        try:
+            path = environ[product.upper()+'_DIR']
+        except KeyError:
+            return '0'
     proc = Popen(['svnversion','-n',path],stdout=PIPE,stderr=PIPE)
     out, err = proc.communicate()
-    rev = out
-    if rev == 'Unversioned directory':
+    if out.startswith('Unversioned'):
         return '0'
     if ':' in out:
         rev = out.split(':')[1]
+    else:
+        rev = out
     rev = rev.replace('M','').replace('S','').replace('P','')
     return rev
