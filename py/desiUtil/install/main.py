@@ -77,15 +77,11 @@ def main():
     # Set up logger
     #
     debug = options.test or options.verbose
-    logger = logging.getLogger(__name__)
+    ll = logging.INFO
     if debug:
-        logger.setLevel(logging.DEBUG)
-    else:
-        logger.setLevel(logging.INFO)
-    handler = logging.StreamHandler()
-    formatter = logging.Formatter(xct+' (%(name)s) Log - %(levelname)s - %(message)s')
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
+        ll = logging.DEBUG
+    logging.basicConfig(level=ll, format=xct+'  [%(name)s] Log - %(levelname)s: %(message)s', datefmt='%Y-%m-%dT%H:%M:%S')
+    logger = logging.getLogger(__name__)
     #
     # Sanity check options
     #
