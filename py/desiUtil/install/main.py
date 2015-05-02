@@ -276,8 +276,13 @@ def main():
         module_file = join(getenv('DESIUTIL'),'etc','desiUtil.module')
     deps = dependencies(module_file)
     for d in deps:
-        logger.debug("module('load','{0}')".format(d))
-        module('load',d)
+        base_d = d.split('/')[0]
+        if base_d in environ['LOADEDMODULES']:
+            m_command = 'switch'
+        else:
+            m_command = 'load'
+        logger.debug("module('{0}','{1}')".format(m_command, d))
+        module(m_command,d)
     #
     # Prepare to configure module.
     #
@@ -352,11 +357,15 @@ set ModulesVersion "{0}"
     #
     environ['WORKING_DIR'] = working_dir
     environ['INSTALL_DIR'] = install_dir
-    logger.debug("module('load','{0}/{1}')".format(baseproduct,baseversion))
     if baseproduct == 'desiUtil':
         environ['DESIUTIL'] = install_dir
     else:
-        module('load',baseproduct+'/'+baseversion)
+        if baseproduct in environ['LOADEDMODULES']:
+            m_command = 'switch'
+        else:
+            m_command = 'load'
+        logger.debug("module('{0}','{1}/{2}')".format(m_command,baseproduct,baseversion))
+        module(m_command,baseproduct+'/'+baseversion)
     original_dir = getcwd()
     #
     # Start the install by simply copying the files.

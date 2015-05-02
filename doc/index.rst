@@ -14,6 +14,7 @@ Contents
    :maxdepth: 2
 
    desiInstall.rst
+   changes.rst
 
 The desiUtil package
 ====================
