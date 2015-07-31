@@ -29,14 +29,14 @@ function run() {
 #
 # Get options
 #
-apache=False
+apache=''
 test=False
 verbose=False
 group=desi
 acl=True
 while getopts ag:htv argname; do
     case ${argname} in
-        a) apache=True ;;
+        a) apache='u:apache:rX' ;;
         g) group=${OPTARG} ;;
         h) usage; exit 0 ;;
         t) test=True; verbose=True ;;
@@ -77,17 +77,31 @@ if [ -z "${USER}" ]; then
     echo "The USER environment variable does not appear to be set!" >&2
     exit 1
 fi
+if [ -z "${NERSC_HOST}" ]; then
+    echo "Unable to determine NERSC environment.  Are you running this script at NERSC?"
+    exit 1
+fi
+#
+# Not all NERSC hosts know about the apache user, so make sure we're running
+# on one that does.
+#
+if [ -n "${apache}" ]; then
+    if [ "${NERSC_HOST}" != "datatran" ]; then
+        echo "You are attempting to set apache permissions on a host that might not be aware of apache.  Skipping request."
+        apache=''
+    fi
+fi
 [ "${verbose}" = "True" ] && echo "Fixing permissions on ${directory} ..."
 if [ "${test}" = "True" ]; then
     run ${verbose} "${find} ${directory} -user ${USER} -not -group ${group} -ls"
     run ${verbose} "${find} ${directory} -user ${USER} -type f -not -perm 660 -ls"
     run ${verbose} "${find} ${directory} -user ${USER} -type d -not -perm 2770 -ls"
     if [ "${acl}" = "True" ]; then
-        run ${verbose} "${find} ${directory} -user ${USER} -type f -exec ${setfacl} --test --remove-all {} ;"
-        run ${verbose} "${find} ${directory} -user ${USER} -type d -exec ${setfacl} --test --remove-all {} ;"
-        run ${verbose} "${setfacl} --test --recursive --default -m u::rwx,g::rwx,o::--- ${directory}"
-        if [ "${apache}" = "True" ]; then
-            run ${verbose} "${setfacl} --test --recursive --default -m u:apache:rx ${directory}"
+        run ${verbose} "${find} ${directory} -user ${USER} -exec ${setfacl} --test --remove-all {} ;"
+        run ${verbose} "${find} ${directory} -user ${USER} -type d -exec ${setfacl} --test --default -m u::rwx,g::rwx,o::--- {} ;"
+        if [ -n "${apache}" ]; then
+            run ${verbose} "${find} ${directory} -user ${USER} -exec ${setfacl} --test -m ${apache} {} ;"
+            run ${verbose} "${find} ${directory} -user ${USER} -type d -exec ${setfacl} --test --default -m ${apache} {} ;"
         fi
     fi
 else
@@ -97,11 +111,11 @@ else
     run ${verbose} "${find} ${directory} -user ${USER} -type f -not -perm 660 -exec chmod ${vflag} 660 {} ;"
     run ${verbose} "${find} ${directory} -user ${USER} -type d -not -perm 2770 -exec chmod ${vflag} 2770 {} ;"
     if [ "${acl}" = "True" ]; then
-        run ${verbose} "${find} ${directory} -user ${USER} -type f -exec ${setfacl} --remove-all {} ;"
-        run ${verbose} "${find} ${directory} -user ${USER} -type d -exec ${setfacl} --remove-all {} ;"
-        run ${verbose} "${setfacl} --recursive --default -m u::rwx,g::rwx,o::--- ${directory}"
-        if [ "${apache}" = "True" ]; then
-            run ${verbose} "${setfacl} --recursive --default -m u:apache:rx ${directory}"
+        run ${verbose} "${find} ${directory} -user ${USER} -exec ${setfacl} --remove-all {} ;"
+        run ${verbose} "${find} ${directory} -user ${USER} -type d -exec ${setfacl} --default -m u::rwx,g::rwx,o::--- {} ;"
+        if [ -n "${apache}" ]; then
+            run ${verbose} "${find} ${directory} -user ${USER} -exec ${setfacl} -m ${apache} {} ;"
+            run ${verbose} "${find} ${directory} -user ${USER} -type d -exec ${setfacl} --default -m ${apache} {} ;"
         fi
     fi
 fi
