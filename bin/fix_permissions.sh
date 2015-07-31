@@ -86,6 +86,9 @@ if [ "${test}" = "True" ]; then
         run ${verbose} "${find} ${directory} -user ${USER} -type f -exec ${setfacl} --test --remove-all {} ;"
         run ${verbose} "${find} ${directory} -user ${USER} -type d -exec ${setfacl} --test --remove-all {} ;"
         run ${verbose} "${setfacl} --test --recursive --default -m u::rwx,g::rwx,o::--- ${directory}"
+        if [ "${apache}" = "True" ]; then
+            run ${verbose} "${setfacl} --test --recursive --default -m u:apache:rx ${directory}"
+        fi
     fi
 else
     vflag=''
@@ -97,5 +100,8 @@ else
         run ${verbose} "${find} ${directory} -user ${USER} -type f -exec ${setfacl} --remove-all {} ;"
         run ${verbose} "${find} ${directory} -user ${USER} -type d -exec ${setfacl} --remove-all {} ;"
         run ${verbose} "${setfacl} --recursive --default -m u::rwx,g::rwx,o::--- ${directory}"
+        if [ "${apache}" = "True" ]; then
+            run ${verbose} "${setfacl} --recursive --default -m u:apache:rx ${directory}"
+        fi
     fi
 fi
