@@ -5,10 +5,11 @@
 function usage() {
     local execName=$(basename $0)
     (
-    echo "${execName} [-g GROUP] [-h] [-t] [-v] DIR"
+    echo "${execName} [-a] [-g GROUP] [-h] [-t] [-v] DIR"
     echo ""
     echo "Set group-friendly permissions on a directory tree."
     echo ""
+    echo "    -a = Include apache/www access when modifying permissons."
     echo "    -g = Change group ownership to GROUP (default 'desi')."
     echo "    -h = Print this message and exit."
     echo "    -t = Test mode.  Do not make any changes.  Implies -v."
@@ -28,12 +29,14 @@ function run() {
 #
 # Get options
 #
+apache=False
 test=False
 verbose=False
 group=desi
 acl=True
-while getopts g:htv argname; do
+while getopts ag:htv argname; do
     case ${argname} in
+        a) apache=True ;;
         g) group=${OPTARG} ;;
         h) usage; exit 0 ;;
         t) test=True; verbose=True ;;
