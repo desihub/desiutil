@@ -1,11 +1,11 @@
 ====================================
-Welcome to desiUtil's documentation!
+Welcome to desiutil's documentation!
 ====================================
 
 Introduction
 ============
 
-This is the documentation for desiUtil.
+This is the documentation for desiutil.
 
 Contents
 ========
@@ -16,7 +16,7 @@ Contents
    desiInstall.rst
    changes.rst
 
-The desiUtil package
+The desiutil package
 ====================
 
 .. automodule:: desiUtil

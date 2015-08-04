@@ -2,13 +2,14 @@
 Change Log
 ==========
 
-0.5.6 (unreleased)
+0.6.0 (unreleased)
 ------------------
 
 * Fixed a problem with log handling.
 * Use ``module switch`` instead of ``module load`` when a module is already
   loaded.
 * Add changes.rst file.
+* Migration to GitHub
 
 0.5.5 (2015-01-16)
 ------------------

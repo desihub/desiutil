@@ -18,7 +18,7 @@ setup_keywords['description'] = 'DESI utilities package'
 setup_keywords['author'] = 'Benjamin Alan Weaver'
 setup_keywords['author_email'] = 'baweaver@lbl.gov'
 setup_keywords['license'] = 'BSD'
-setup_keywords['url'] = 'https://desi.lbl.gov/svn/code/tools/desiUtil'
+setup_keywords['url'] = 'https://github.com/desihub/desiutil'
 #
 # END OF SETTINGS THAT NEED TO BE CHANGED.
 #
