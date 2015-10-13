@@ -4,5 +4,5 @@
 # $Id$
 #
 from sys import exit
-from desiUtil.install.main import main
+from desiutil.install.main import main
 exit(main())

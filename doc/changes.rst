@@ -10,6 +10,11 @@ Change Log
   loaded.
 * Add changes.rst file.
 * Migration to GitHub
+  - Change case of desiutil.
+  - Add git support files.
+  - pip install support.
+  - Travis build support.
+  - ReadTheDocs support.
 
 0.5.5 (2015-01-16)
 ------------------
