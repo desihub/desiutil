@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 ========
-desiUtil
+desiutil
 ========
 
 This package provides low-level utilities for general use by DESI_.
@@ -15,4 +15,4 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 #
 # Set version string.
 #
-__version__ = '0.6.0.dev'
+__version__ = '1.0.0.dev'

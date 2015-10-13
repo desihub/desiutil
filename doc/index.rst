@@ -19,10 +19,10 @@ Contents
 The desiutil package
 ====================
 
-.. automodule:: desiUtil
+.. automodule:: desiutil
    :members:
 
-.. automodule:: desiUtil.install
+.. automodule:: desiutil.install
    :members:
    :imported-members:
 

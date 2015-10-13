@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 ================
-desiUtil.install
+desiutil.install
 ================
 
 This package contains code for installing DESI software products.

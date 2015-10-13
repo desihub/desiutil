@@ -34,7 +34,7 @@ def main():
     xct = basename(argv[0])
     parser = ArgumentParser(description=__doc__,prog=xct)
     parser.add_argument('-b', '--bootstrap', action='store_true', dest='bootstrap',
-        help="Run in bootstrap mode to install the desiUtil product.")
+        help="Run in bootstrap mode to install the desiutil product.")
     parser.add_argument('-C', '--compile-c', action='store_true', dest='force_build_type',
         help="Force C/C++ install mode, even if a setup.py file is detected (WARNING: this is for experts only).")
     parser.add_argument('-d', '--default', action='store_true', dest='default',
@@ -51,7 +51,7 @@ def main():
     parser.add_argument('-M', '--module-dir', action='store', dest='moduledir',
         metavar='DIR',help="Install module files in DIR.",default='')
     parser.add_argument('-p', '--python', action='store', dest='python',
-        metavar='PYTHON',help="Use the Python executable PYTHON (e.g. /opt/local/bin/python2.7).  This option is only relevant when installing desiUtil itself.")
+        metavar='PYTHON',help="Use the Python executable PYTHON (e.g. /opt/local/bin/python2.7).  This option is only relevant when installing desiutil itself.")
     parser.add_argument('-r', '--root', action='store', dest='root',
         metavar='DIR', help='Set or override the value of $DESI_PRODUCT_ROOT',
         default=getenv('DESI_PRODUCT_ROOT'))
@@ -88,9 +88,9 @@ def main():
     if options.product == 'NO PACKAGE' or options.product_version == 'NO VERSION':
         if options.bootstrap:
             options.default = True
-            options.product = 'tools/desiUtil'
+            options.product = 'desihub/desiutil'
             options.product_version = most_recent_tag(join(options.url,options.product,'tags'),username=options.username)
-            logger.info("Selected desiUtil/{0} for installation.".format(options.product_version))
+            logger.info("Selected desiutil/{0} for installation.".format(options.product_version))
         else:
             logger.error("You must specify a product and a version!")
             return 1
@@ -247,7 +247,7 @@ def main():
     # necessary to do because the setup.py process will convert the
     # script.
     #
-    # if options.product == 'tools/desiUtil' and options.python is not None:
+    # if options.product == 'desihub/desiutil' and options.python is not None:
     #     desiInstall = join(working_dir,'bin','desiInstall')
     #     mode = stat(desiInstall).st_mode
     #     with open(desiInstall) as i:
@@ -273,7 +273,7 @@ def main():
     #
     module_file = join(working_dir,'etc',baseproduct+'.module')
     if not exists(module_file):
-        module_file = join(getenv('DESIUTIL'),'etc','desiUtil.module')
+        module_file = join(getenv('DESIUTIL'),'etc','desiutil.module')
     deps = dependencies(module_file)
     for d in deps:
         base_d = d.split('/')[0]
@@ -357,7 +357,7 @@ set ModulesVersion "{0}"
     #
     environ['WORKING_DIR'] = working_dir
     environ['INSTALL_DIR'] = install_dir
-    if baseproduct == 'desiUtil':
+    if baseproduct == 'desiutil':
         environ['DESIUTIL'] = install_dir
     else:
         if baseproduct in environ['LOADEDMODULES']:

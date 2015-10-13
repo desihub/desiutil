@@ -13,10 +13,10 @@ setup_keywords = dict()
 #
 # THESE SETTINGS NEED TO BE CHANGED FOR EVERY PRODUCT.
 #
-setup_keywords['name'] = 'desiUtil'
+setup_keywords['name'] = 'desiutil'
 setup_keywords['description'] = 'DESI utilities package'
-setup_keywords['author'] = 'Benjamin Alan Weaver'
-setup_keywords['author_email'] = 'baweaver@lbl.gov'
+setup_keywords['author'] = 'DESI Collaboration'
+setup_keywords['author_email'] = 'desi-data@desi.lbl.gov'
 setup_keywords['license'] = 'BSD'
 setup_keywords['url'] = 'https://github.com/desihub/desiutil'
 #
@@ -50,7 +50,7 @@ if setup_keywords['version'].endswith('dev'):
     #
     if 'github' not in setup_keywords['url'].lower():
         try:
-            from desiUtil.install import get_svn_devstr
+            from desiutil.install import get_svn_devstr
             setup_keywords['version'] += get_svn_devstr(setup_keywords['name'])
         except ImportError:
             pass
@@ -73,7 +73,7 @@ setup_keywords['package_dir'] = {'':'py'}
 #
 # Autogenerate command-line scripts.
 #
-# setup_keywords['entry_points'] = {'console_scripts':['desiInstall = desiUtil.install.main:main']}
+# setup_keywords['entry_points'] = {'console_scripts':['desiInstall = desiutil.install.main:main']}
 #
 # Run setup command.
 #

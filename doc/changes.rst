@@ -2,7 +2,7 @@
 Change Log
 ==========
 
-0.6.0 (unreleased)
+1.0.0 (unreleased)
 ------------------
 
 * Fixed a problem with log handling.

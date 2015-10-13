@@ -95,7 +95,7 @@ Find Module File
 
 desiInstall will search for a module file in ``$WORKING_DIR/etc``.  If that
 module file is not found, desiInstall will use the file that comes with
-desiUtil (*i.e.*, this product's own module file).
+desiutil (*i.e.*, this product's own module file).
 
 Load Dependencies
 -----------------

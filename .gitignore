@@ -2,11 +2,11 @@
 *.py[co]
 
 # Sphinx
-docs/api
-docs/_build
+doc/api
+doc/_build
 
 # iPython
-docs/nb/.ipynb_checkpoints
+doc/nb/.ipynb_checkpoints
 
 # Packages/installer info
 *.egg
