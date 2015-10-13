@@ -20,6 +20,7 @@ tags.
 * Use ``module switch`` instead of ``module load`` when a module is already
   loaded.
 * Add changes.rst file.
+* Add LICENSE.rst file.
 * Migration to GitHub
   - Change case of desiutil.
   - Add git support functions.
