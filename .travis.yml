@@ -38,9 +38,9 @@ env:
         # The following versions are the 'default' for tests, unless
         # overidden underneath. They are defined here in order to save having
         # to repeat them for all configurations.
-        # - NUMPY_VERSION=1.9
-        # - SCIPY_VERSION=0.14
-        # - ASTROPY_VERSION=1.0.4
+        - NUMPY_VERSION=1.9
+        - SCIPY_VERSION=0.14
+        - ASTROPY_VERSION=1.0.4
         - SPHINX_VERSION=1.3
         - CONDA_INSTALL='conda install -c astropy-ci-extras --yes'
         - PIP_INSTALL='pip install'
@@ -72,8 +72,8 @@ matrix:
           env: PYTHON_VERSION=2.7 SETUP_CMD='bdist_egg'
 
         # Try all python versions with the latest numpy
-        # - os: linux
-        #   env: PYTHON_VERSION=2.7 SETUP_CMD='test'
+        - os: linux
+          env: PYTHON_VERSION=2.7 SETUP_CMD='test --coverage'
 
         # - os: osx
         #   env: PYTHON_VERSION=2.7 SETUP_CMD='test'
@@ -108,4 +108,4 @@ script:
     - $MAIN_CMD $SETUP_CMD
 
 after_success:
-    - if [[ $SETUP_CMD == 'test --coverage' ]]; then coveralls --rcfile='desiutil/test/coveragerc'; fi
+    - if [[ $SETUP_CMD == 'test --coverage' ]]; then coveralls; fi

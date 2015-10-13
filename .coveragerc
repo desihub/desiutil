@@ -1,0 +1,31 @@
+[run]
+source = py/desiutil
+omit =
+   py/desiutil/_version.py
+   py/desiutil/conftest*
+   py/desiutil/cython_version*
+   py/desiutil/setup_package*
+   py/desiutil/*/setup_package*
+   py/desiutil/*/*/setup_package*
+   py/desiutil/test/*
+   py/desiutil/*/test/*
+   py/desiutil/*/*/test/*
+
+[report]
+exclude_lines =
+   # Have to re-enable the standard pragma
+   pragma: no cover
+
+   # Don't complain about packages we have installed
+   except ImportError
+
+   # Don't complain if tests don't hit assertions
+   raise AssertionError
+   raise NotImplementedError
+
+   # Don't complain about script hooks
+   def main\(.*\):
+
+   # Ignore branches that don't pertain to this version of Python
+   pragma: py{ignore_python_version}
+   six.PY{ignore_python_version}
