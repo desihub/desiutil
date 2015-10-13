@@ -120,11 +120,10 @@ setup_keywords['version'] = get_version(setup_keywords['name'])
 #
 # Use README.rst as long_description.
 #
+setup_keywords['long_description'] = ''
 if os.path.exists('README.rst'):
     with open('README.rst') as readme:
         setup_keywords['long_description'] = readme.read()
-else:
-setup_keywords['long_description'] = ''
 #
 # Set other keywords for the setup function.  These are automated, & should
 # be left alone unless you are an expert.
