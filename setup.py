@@ -5,8 +5,6 @@ import glob
 import os
 import re
 from subprocess import Popen, PIPE
-# import ez_setup
-# ez_setup.use_setuptools()
 from setuptools import setup, Command, find_packages
 from distutils.log import INFO
 #
