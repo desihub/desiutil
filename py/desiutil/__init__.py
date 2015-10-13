@@ -16,4 +16,3 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 # Set version string.
 #
 from ._version import __version__
-# __version__ = '1.0.0.dev'
