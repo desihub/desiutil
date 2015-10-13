@@ -97,8 +97,9 @@ class Version(Command):
     def finalize_options(self):
         pass
     def run(self):
-        update_version_py(tag=self.tag)
-        ver = get_version()
+        meta = self.distribution.metadata
+        update_version_py(meta.get_name(),tag=self.tag)
+        ver = get_version(meta.get_name())
         self.announce("Version is now {}.".format( ver ), level=INFO)
 #
 # End of function/class definitions.
@@ -140,7 +141,7 @@ setup_keywords['zip_safe'] = False
 setup_keywords['use_2to3'] = True
 setup_keywords['packages'] = find_packages('py')
 setup_keywords['package_dir'] = {'':'py'}
-setup_keywords['cmdclass'] = {'version': Version},
+setup_keywords['cmdclass'] = {'version': Version}
 setup_keywords['test_suite']='{name}.test.{name}_test_suite.{name}_test_suite'.format(**setup_keywords)
 #
 # Autogenerate command-line scripts.
