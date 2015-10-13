@@ -1,0 +1,8 @@
+include LICENSE.rst
+include README.rst
+
+graft bin
+graft doc
+graft etc
+
+prune doc/_build
