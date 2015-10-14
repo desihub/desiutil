@@ -5,8 +5,9 @@
 #
 from __future__ import absolute_import, division, print_function
 from setuptools import Command
-from . import update_version, get_version
 from distutils.log import INFO
+from .get_version import get_version
+from .update_version import update_version
 #
 class DesiVersion(Command):
     """Allow users to easily update the package version with ``python setup.py version``.

@@ -7,7 +7,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import os
 import re
 from subprocess import Popen, PIPE
-from . import update_version
+from .update_version import update_version
 from .find_version_directory import find_version_directory
 #
 def get_version(productname,debug=False):
