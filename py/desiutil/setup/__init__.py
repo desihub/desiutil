@@ -8,3 +8,7 @@ desiutil.setup
 This package contains code that might be useful in DESI setup.py files.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
+from .desi_test import DesiTest
+from .desi_version import DesiVersion
+from .get_version import get_version
+from .update_version import update_version
