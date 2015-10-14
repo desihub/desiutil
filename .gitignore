@@ -1,6 +1,10 @@
 # Compiled files
 *.py[co]
 
+# Other generated files
+htmlcov
+.coverage
+
 # Sphinx
 doc/api
 doc/_build

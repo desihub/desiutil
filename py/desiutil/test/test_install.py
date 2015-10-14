@@ -23,6 +23,8 @@ class TestInstall(unittest.TestCase):
         """
         v = version("$HeadURL: https://desi.lbl.gov/svn/code/tools/desiUtil/tags/0.5.5/py/desiutil/test/test_install.py $")
         self.assertEqual(v,'0.5.5', 'Failed to extract version, got {0}.'.format(v))
+        v = version("$HeadURL$")
+        self.assertEqual(v,'0.0.1.dev', 'Failed to return default version, got {0}.'.format(v))
 
 if __name__ == '__main__':
     unittest.main()

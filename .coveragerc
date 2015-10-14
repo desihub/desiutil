@@ -7,6 +7,7 @@ omit =
    py/desiutil/setup_package*
    py/desiutil/*/setup_package*
    py/desiutil/*/*/setup_package*
+   py/desiutil/sphinx/*
    py/desiutil/test/*
    py/desiutil/*/test/*
    py/desiutil/*/*/test/*
@@ -25,7 +26,3 @@ exclude_lines =
 
    # Don't complain about script hooks
    def main\(.*\):
-
-   # Ignore branches that don't pertain to this version of Python
-   pragma: py{ignore_python_version}
-   six.PY{ignore_python_version}
