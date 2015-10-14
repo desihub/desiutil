@@ -26,6 +26,10 @@ The desiutil package
    :members:
    :imported-members:
 
+.. automodule:: desiutil.setup
+   :members:
+   :imported-members:
+
 Indices and tables
 ==================
 
