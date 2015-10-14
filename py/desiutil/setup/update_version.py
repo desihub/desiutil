@@ -6,6 +6,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import os
 from subprocess import Popen, PIPE
+from .find_version_directory import find_version_directory
 #
 def update_version(productname,tag=None,debug=False):
     """Update the _version.py file.
@@ -23,6 +24,7 @@ def update_version(productname,tag=None,debug=False):
     -------
     None
     """
+    version_dir = find_version_directory(productname,debug=debug)
     if tag is not None:
         ver = tag
     else:
@@ -54,7 +56,7 @@ def update_version(productname,tag=None,debug=False):
             print(no_git)
             return
         ver += out.rstrip()
-    version_file = os.path.join('py',productname,'_version.py')
+    version_file = os.path.join(version_dir,'_version.py')
     with open(version_file, "w") as f:
         f.write( "__version__ = '{}'\n".format( ver ) )
     if debug:

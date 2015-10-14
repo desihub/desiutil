@@ -3,7 +3,7 @@
 """Easy updates of package version.
 """
 #
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import absolute_import, division, print_function
 from setuptools import Command
 from . import update_version, get_version
 from distutils.log import INFO

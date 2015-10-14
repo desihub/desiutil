@@ -8,6 +8,7 @@ import os
 import re
 from subprocess import Popen, PIPE
 from . import update_version
+from .find_version_directory import find_version_directory
 #
 def get_version(productname,debug=False):
     """Get the value of ``__version__`` without having to import the module.
@@ -24,12 +25,16 @@ def get_version(productname,debug=False):
     get_version : str
         The value of ``__version__``.
     """
-    version_file = os.path.join('py',productname,'_version.py')
+    ver = 'unknown'
+    try:
+        version_dir = find_version_directory(productname,debug=debug)
+    except IOError:
+        return ver
+    version_file = os.path.join(version_dir,'_version.py')
     if not os.path.isfile(version_file):
         if debug:
             print('Creating initial version file.')
         update_version(productname,debug=debug)
-    ver = 'unknown'
     with open(version_file, "r") as f:
         for line in f.readlines():
             mo = re.match("__version__ = '(.*)'", line)
