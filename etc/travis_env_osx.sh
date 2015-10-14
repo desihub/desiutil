@@ -8,4 +8,4 @@ export PATH=/Users/travis/miniconda/bin:$PATH
 conda update --yes conda
 
 # Install Python dependencies
-source "$( dirname "${BASH_SOURCE[0]}" )"/setup_dependencies_common.sh
+source "$( dirname "${BASH_SOURCE[0]}" )"/travis_env_common.sh
