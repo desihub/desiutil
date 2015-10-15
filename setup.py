@@ -6,7 +6,6 @@ from __future__ import absolute_import, division, print_function
 #
 import glob
 import os
-import re
 import sys
 from setuptools import setup, find_packages
 #
