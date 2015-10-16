@@ -10,7 +10,7 @@ from setuptools.compat import PY3
 from setuptools.py31compat import unittest_main
 from setuptools.command.test import test as BaseTest
 from pkg_resources import _namespace_packages
-from distutils.log import INFO
+from distutils.log import INFO, WARN
 #
 # Note, need to explicitly add object as a superclass, because BaseTest
 # inherits from an old-style class.  Ugly, but it allows the use of
@@ -36,7 +36,9 @@ class DesiTest(BaseTest,object):
             try:
                 import coverage
             except ImportError:
-                raise ImportError("--coverage requires that the coverage package is installed.")
+                self.announce("--coverage requires that the coverage package is installed, disabling coverage option.",level=WARN)
+                self.coverage = False
+                # raise ImportError("--coverage requires that the coverage package is installed.")
         super(DesiTest,self).finalize_options()
     def run_tests(self):
         # Purge modules under test from sys.modules. The test loader will

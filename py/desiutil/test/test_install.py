@@ -8,7 +8,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 #
 import unittest
 from ..install import version
-# from desispec.maskbits import spmask, ccdmask, fibermask
 #
 class TestInstall(unittest.TestCase):
 
