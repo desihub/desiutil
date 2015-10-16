@@ -7,15 +7,17 @@ test util.install
 from __future__ import absolute_import, division, print_function, unicode_literals
 #
 import os
+import logging
 import unittest
 from argparse import Namespace
-from ..install import dependencies, get_product_version, version
+from ..install import dependencies, get_product_version, set_build_type, version
 #
 class TestInstall(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
         cls.data_dir = os.path.join(os.path.dirname(__file__),'t')
+        logging.getLogger('desiutil').addHandler(logging.NullHandler())
 
     @classmethod
     def tearDownClass(cls):
@@ -63,6 +65,31 @@ class TestInstall(unittest.TestCase):
         pv = Namespace(product='desihub/desispec',product_version='2.0.0')
         out = get_product_version(pv)
         self.assertEqual(out, (u'desihub/desispec', 'desispec', '2.0.0'))
+
+    def test_set_build_type(self):
+        """Test the determination of the build type.
+        """
+        bt = set_build_type(self.data_dir)
+        self.assertEqual(bt,set(['plain']))
+        bt = set_build_type(self.data_dir,force=True)
+        self.assertEqual(bt,set(['plain','make']))
+        # Create temporary files
+        tempfiles = {'Makefile':'make','setup.py':'py'}
+        for t in tempfiles:
+            tempfile = os.path.join(self.data_dir,t)
+            with open(tempfile,'w') as tf:
+                tf.write('Temporary file.\n')
+            bt = set_build_type(self.data_dir)
+            self.assertEqual(bt,set(['plain',tempfiles[t]]))
+            os.remove(tempfile)
+        # Create temporary directories
+        tempdirs = {'src':'src'}
+        for t in tempdirs:
+            tempdir = os.path.join(self.data_dir,t)
+            os.mkdir(tempdir)
+            bt = set_build_type(self.data_dir)
+            self.assertEqual(bt,set(['plain',tempdirs[t]]))
+            os.rmdir(tempdir)
 
     def test_version(self):
         """Test version parser.
