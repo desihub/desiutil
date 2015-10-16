@@ -1,0 +1,5 @@
+# This is a dummy module file for testing purposes.
+module load astropy
+prereq astropy
+module load desiutil/1.0.0
+prereq desiutil/1.0.0

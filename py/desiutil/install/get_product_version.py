@@ -14,6 +14,11 @@ def get_product_version(options):
     -------
     get_product_version : tuple
         A tuple containing the base product name and version.
+
+    Raises
+    ------
+    ValueError
+        If the product and version inputs didn't make sense.
     """
     import logging
     from os.path import basename
@@ -28,6 +33,6 @@ def get_product_version(options):
             baseproduct = options.product
         except KeyError:
             logger.error("Could not determine the exact location of {0}!".format(options.product))
-            raise
+            raise ValueError("Could not determine the exact location of {0}!".format(options.product))
     baseversion = basename(options.product_version)
     return (fullproduct, baseproduct, baseversion)
