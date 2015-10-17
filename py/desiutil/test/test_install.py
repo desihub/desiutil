@@ -10,19 +10,71 @@ import os
 import logging
 import unittest
 from argparse import Namespace
-from ..install import dependencies, get_product_version, set_build_type, svn_version
+from subprocess import Popen, PIPE
+from shutil import rmtree
+from ..install import dependencies, desiInstall_options, get_product_version, set_build_type, svn_version
+#
+#
 #
 class TestInstall(unittest.TestCase):
-
+    """Test desiutil.install.
+    """
     @classmethod
     def setUpClass(cls):
         cls.data_dir = os.path.join(os.path.dirname(__file__),'t')
         # Suppress log messages.
         logging.getLogger('desiutil').addHandler(logging.NullHandler())
+        # Set up a dummy svn repository.
+        cls.svn_path = os.path.join(os.path.abspath(cls.data_dir),'svn_test')
+        cls.svn_checkout_path = os.path.join(os.path.abspath(cls.data_dir),'svn_test_co')
+        p = Popen(['which','svnadmin'],stdout=PIPE,stderr=PIPE)
+        out,err = p.communicate()
+        cls.has_subversion = p.returncode == 0
+        if cls.has_subversion:
+            try:
+                cls.svn_url = 'file://'+cls.svn_path
+                p = Popen(['svnadmin','create',cls.svn_path],stdout=PIPE,stderr=PIPE)
+                out,err = p.communicate()
+                assert p.returncode == 0
+                p = Popen(['svn','mkdir',cls.svn_url+'/trunk',
+                    cls.svn_url+'/tags',cls.svn_url+'/branches',
+                    '-m',"Create initial structure."],
+                    stdout=PIPE,stderr=PIPE)
+                out,err = p.communicate()
+                assert p.returncode == 0
+                p = Popen(['svn','mkdir',cls.svn_url+'/tags/0.0.1',
+                    cls.svn_url+'/tags/0.1.0',cls.svn_url+'/tags/0.1.1',
+                    cls.svn_url+'/tags/0.2.0',cls.svn_url+'/tags/0.2.1',
+                    '-m',"Create tags."],
+                    stdout=PIPE,stderr=PIPE)
+                out,err = p.communicate()
+                assert p.returncode == 0
+                p = Popen(['svn','checkout',cls.svn_url, cls.svn_checkout_path],
+                    stdout=PIPE,stderr=PIPE)
+                out,err = p.communicate()
+                assert p.returncode == 0
+            except AssertionError:
+                cls.has_subversion = False
+                rmtree(cls.svn_path)
+                rmtree(cls.svn_checkout_path)
+        # Create an environment variable pointing to a dummy product.
+        if os.path.isdir(cls.svn_checkout_path):
+            if 'SVN_TEST_DIR' in os.environ:
+                cls.old_svn_test_dir = os.environ['SVN_TEST_DIR']
+            else:
+                cls.old_svn_test_dir = None
+            os.environ['SVN_TEST_DIR'] = cls.svn_checkout_path
 
     @classmethod
     def tearDownClass(cls):
-        pass
+        # Clean up svn repository.
+        if cls.has_subversion:
+            rmtree(cls.svn_path)
+            rmtree(cls.svn_checkout_path)
+        if cls.old_svn_test_dir is None:
+            del os.environ['SVN_TEST_DIR']
+        else:
+            os.environ['SVN_TEST_DIR'] = cls.old_svn_test_dir
 
     def test_dependencies(self):
         """Test dependency processing.
@@ -52,6 +104,52 @@ class TestInstall(unittest.TestCase):
         # Clean up the environment.
         if os.environ['NERSC_HOST'] == 'FAKE':
             del os.environ['NERSC_HOST']
+
+    def test_desiInstall_options(self):
+        """Test the processing of desiInstall command-line arguments.
+        """
+        # Set a few environment variables for testing purposes.
+        env_settings = {
+            'MODULESHOME':{'old':None,'new':'/fake/module/directory'},
+            'DESI_PRODUCT_ROOT':{'old':None,'new':'/fake/desi/directory'},
+            }
+        for key in env_settings:
+            if key in os.environ:
+                env_settings[key]['old'] = os.environ[key]
+            os.environ[key] = env_settings[key]['new']
+        default_namespace = Namespace(
+            bootstrap=False,
+            cross_install=False,
+            default=False,
+            documentation=True,
+            force=False,
+            force_build_type=False,
+            keep=False,
+            moduledir=u'',
+            moduleshome='/fake/module/directory',
+            product=u'NO PACKAGE',
+            product_version=u'NO VERSION',
+            python=None,
+            root='/fake/desi/directory',
+            test=False,
+            url=u'https://desi.lbl.gov/svn/code',
+            username=os.environ['USER'],
+            verbose=False)
+        options = desiInstall_options([])
+        self.assertEqual(options,default_namespace)
+        default_namespace.product = 'product'
+        default_namespace.product_version = 'version'
+        options = desiInstall_options(['product','version'])
+        self.assertEqual(options,default_namespace)
+        default_namespace.default = True
+        options = desiInstall_options(['-d','product','version'])
+        self.assertEqual(options,default_namespace)
+        # Restore environment.
+        for key in env_settings:
+            if env_settings[key]['old'] is None:
+                del os.environ[key]
+            else:
+                os.environ[key] = env_settings[key]['old']
 
     def test_get_product_version(self):
         """Test resolution of product/version input.
@@ -95,10 +193,15 @@ class TestInstall(unittest.TestCase):
     def test_svn_version(self):
         """Test svn version parser.
         """
-        v = svn_version("$HeadURL: https://desi.lbl.gov/svn/code/tools/desiUtil/tags/0.5.5/py/desiutil/test/test_install.py $")
+        v = svn_version("$HeadURL: {0}/tags/0.5.5/README.rst $".format(self.svn_url))
         self.assertEqual(v,'0.5.5', 'Failed to extract version, got {0}.'.format(v))
         v = svn_version("$HeadURL$")
         self.assertEqual(v,'0.0.1.dev', 'Failed to return default version, got {0}.'.format(v))
+        if self.has_subversion:
+            v = svn_version("$HeadURL: {0}/trunk/README.rst $".format(self.svn_url))
+            self.assertEqual(v,'0.2.1.dev2')
+            v = svn_version("$HeadURL: {0}/branches/frobulate/README.rst $".format(self.svn_url))
+            self.assertEqual(v,'0.2.1.dev2')
 
 if __name__ == '__main__':
     unittest.main()

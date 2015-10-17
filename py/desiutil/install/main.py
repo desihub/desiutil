@@ -20,59 +20,16 @@ def main():
     import logging
     import subprocess
     import datetime
-    from sys import argv, executable, path, version_info
+    from sys import executable, path, version_info
     from shutil import copyfile, copytree, rmtree
-    from os import chdir, chmod, environ, getcwd, getenv, makedirs, remove, stat, symlink, walk
+    from os import chdir, chmod, environ, getcwd, makedirs, remove, stat, symlink, walk
     from os.path import abspath, basename, exists, isdir, islink, join
     from urllib2 import urlopen, HTTPError
-    from argparse import ArgumentParser
-    from .. import __version__ as desiUtilVersion
-    from . import dependencies, generate_doc, get_product_version, most_recent_svn_tag, set_build_type
+    from . import dependencies, desiInstall_options, generate_doc, get_product_version, most_recent_svn_tag, set_build_type
     #
     # Parse arguments
     #
-    xct = basename(argv[0])
-    parser = ArgumentParser(description=__doc__,prog=xct)
-    parser.add_argument('-b', '--bootstrap', action='store_true', dest='bootstrap',
-        help="Run in bootstrap mode to install the desiutil product.")
-    parser.add_argument('-C', '--compile-c', action='store_true', dest='force_build_type',
-        help="Force C/C++ install mode, even if a setup.py file is detected (WARNING: this is for experts only).")
-    parser.add_argument('-d', '--default', action='store_true', dest='default',
-        help='Make this version the default version.')
-    parser.add_argument('-D', '--no-documentation', action='store_false', dest='documentation',
-        help='Do NOT build any Sphinx or Doxygen documentation.')
-    parser.add_argument('-F', '--force', action='store_true', dest='force',
-        help='Overwrite any existing installation of this product/version.')
-    parser.add_argument('-k', '--keep', action='store_true', dest='keep',
-        help='Keep the exported build directory.')
-    parser.add_argument('-m', '--module-home', action='store', dest='moduleshome',
-        metavar='DIR',help='Set or override the value of $MODULESHOME',
-        default=getenv('MODULESHOME'))
-    parser.add_argument('-M', '--module-dir', action='store', dest='moduledir',
-        metavar='DIR',help="Install module files in DIR.",default='')
-    parser.add_argument('-p', '--python', action='store', dest='python',
-        metavar='PYTHON',help="Use the Python executable PYTHON (e.g. /opt/local/bin/python2.7).  This option is only relevant when installing desiutil itself.")
-    parser.add_argument('-r', '--root', action='store', dest='root',
-        metavar='DIR', help='Set or override the value of $DESI_PRODUCT_ROOT',
-        default=getenv('DESI_PRODUCT_ROOT'))
-    parser.add_argument('-t', '--test', action='store_true', dest='test',
-        help='Test mode.  Do not actually install anything.')
-    parser.add_argument('-u', '--url', action='store',dest='url',
-        metavar='URL',help="Download software from URL.",
-        default='https://desi.lbl.gov/svn/code')
-    parser.add_argument('-U', '--username', action='store', dest='username',
-        metavar='USER',help="Set svn username to USER.",default=getenv('USER'))
-    parser.add_argument('-v', '--verbose', action='store_true', dest='verbose',
-        help='Print extra information.')
-    parser.add_argument('-V', '--version', action='version',
-        version='%(prog)s '+desiUtilVersion)
-    parser.add_argument('-x', '--cross-install', action='store_true', dest='cross_install',
-        help='Make the install available on multiple systems (e.g. NERSC).')
-    parser.add_argument('product',nargs='?',default='NO PACKAGE',
-        help='Name of product to install.')
-    parser.add_argument('product_version',nargs='?',default='NO VERSION',
-        help='Version of product to install.')
-    options = parser.parse_args()
+    options = desiInstall_options()
     #
     # Set up logger
     #
@@ -273,7 +230,7 @@ def main():
     #
     module_file = join(working_dir,'etc',baseproduct+'.module')
     if not exists(module_file):
-        module_file = join(getenv('DESIUTIL'),'etc','desiutil.module')
+        module_file = join(environ['DESIUTIL'],'etc','desiutil.module')
     deps = dependencies(module_file)
     for d in deps:
         base_d = d.split('/')[0]
