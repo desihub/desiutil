@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 # The line above will help with 2to3 support.
-def most_recent_tag(tags,username=None):
+def most_recent_svn_tag(tags,username=None):
     """Scan an SVN tags directory and return the most recent tag.
 
     Parameters
@@ -14,7 +14,7 @@ def most_recent_tag(tags,username=None):
 
     Returns
     -------
-    most_recent_tag : str
+    most_recent_svn_tag : str
         The most recent tag found in ``tags``.
     """
     from distutils.version import StrictVersion as V

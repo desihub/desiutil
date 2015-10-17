@@ -27,7 +27,7 @@ def main():
     from urllib2 import urlopen, HTTPError
     from argparse import ArgumentParser
     from .. import __version__ as desiUtilVersion
-    from . import dependencies, generate_doc, get_product_version, most_recent_tag, set_build_type
+    from . import dependencies, generate_doc, get_product_version, most_recent_svn_tag, set_build_type
     #
     # Parse arguments
     #
@@ -89,7 +89,7 @@ def main():
         if options.bootstrap:
             options.default = True
             options.product = 'desihub/desiutil'
-            options.product_version = most_recent_tag(join(options.url,options.product,'tags'),username=options.username)
+            options.product_version = most_recent_svn_tag(join(options.url,options.product,'tags'),username=options.username)
             logger.info("Selected desiutil/{0} for installation.".format(options.product_version))
         else:
             logger.error("You must specify a product and a version!")
