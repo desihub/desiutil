@@ -10,13 +10,14 @@ import os
 import logging
 import unittest
 from argparse import Namespace
-from ..install import dependencies, get_product_version, set_build_type, version
+from ..install import dependencies, get_product_version, set_build_type, svn_version
 #
 class TestInstall(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
         cls.data_dir = os.path.join(os.path.dirname(__file__),'t')
+        # Suppress log messages.
         logging.getLogger('desiutil').addHandler(logging.NullHandler())
 
     @classmethod
@@ -91,12 +92,12 @@ class TestInstall(unittest.TestCase):
             self.assertEqual(bt,set(['plain',tempdirs[t]]))
             os.rmdir(tempdir)
 
-    def test_version(self):
-        """Test version parser.
+    def test_svn_version(self):
+        """Test svn version parser.
         """
-        v = version("$HeadURL: https://desi.lbl.gov/svn/code/tools/desiUtil/tags/0.5.5/py/desiutil/test/test_install.py $")
+        v = svn_version("$HeadURL: https://desi.lbl.gov/svn/code/tools/desiUtil/tags/0.5.5/py/desiutil/test/test_install.py $")
         self.assertEqual(v,'0.5.5', 'Failed to extract version, got {0}.'.format(v))
-        v = version("$HeadURL$")
+        v = svn_version("$HeadURL$")
         self.assertEqual(v,'0.0.1.dev', 'Failed to return default version, got {0}.'.format(v))
 
 if __name__ == '__main__':

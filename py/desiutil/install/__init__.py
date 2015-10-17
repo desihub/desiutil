@@ -15,6 +15,6 @@ from .get_product_version import get_product_version
 from .get_svn_devstr import get_svn_devstr
 from .git_version import git_version
 from .known_products import known_products
-from .most_recent_tag import most_recent_tag
+from .most_recent_svn_tag import most_recent_svn_tag
 from .set_build_type import set_build_type
-from .version import version
+from .svn_version import svn_version
