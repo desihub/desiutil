@@ -12,7 +12,9 @@ import unittest
 from argparse import Namespace
 from subprocess import Popen, PIPE
 from shutil import rmtree
-from ..install import dependencies, desiInstall_options, get_product_version, set_build_type, svn_version
+from ..install import (dependencies, desiInstall_options, get_product_version,
+    get_svn_devstr, git_version,
+    most_recent_svn_tag, set_build_type, svn_version)
 #
 #
 #
@@ -164,6 +166,45 @@ class TestInstall(unittest.TestCase):
         pv = Namespace(product='desihub/desispec',product_version='2.0.0')
         out = get_product_version(pv)
         self.assertEqual(out, (u'desihub/desispec', 'desispec', '2.0.0'))
+
+    def test_get_svn_devstr(self):
+        """Test svn revision number determination.
+        """
+        n = get_svn_devstr('frobulate')
+        self.assertEqual(n,'0')
+        if self.has_subversion:
+            if 'FROBULATE' in os.environ:
+                old_frob = os.environ['FROBULATE']
+            else:
+                old_frob = None
+            os.environ['FROBULATE'] = self.data_dir
+            n = get_svn_devstr('frobulate')
+            self.assertEqual(n,'0')
+            if old_frob is None:
+                del os.environ['FROBULATE']
+            else:
+                os.environ['FROBULATE'] = old_frob
+
+    def test_git_version(self):
+        """Test automated determination of git version.
+        """
+        v = git_version('/no/such/executable')
+        self.assertEqual(v,'0.0.1.dev')
+        v = git_version('false')
+        self.assertEqual(v,'0.0.1.dev')
+        v = git_version('echo')
+        self.assertEqual(v,'describe --tags --dirty --always')
+
+    def test_most_recent_svn_tag(self):
+        """Test the processing of svn tag lists.
+        """
+        if self.has_subversion:
+            tag = most_recent_svn_tag(self.svn_url+'/tags')
+            self.assertEqual(tag,'0.2.1')
+            tag = most_recent_svn_tag(self.svn_url+'/tags',username=os.environ['USER'])
+            self.assertEqual(tag,'0.2.1')
+            tag = most_recent_svn_tag(self.svn_url+'/branches')
+            self.assertEqual(tag,'0.0.0')
 
     def test_set_build_type(self):
         """Test the determination of the build type.

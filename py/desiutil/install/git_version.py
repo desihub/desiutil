@@ -19,7 +19,7 @@ def git_version(git='git'):
     myversion = '0.0.1.dev'
     try:
         p = Popen([git, "describe", "--tags", "--dirty", "--always"], stdout=PIPE)
-    except EnvironmentError:
+    except OSError:
         return myversion
     out = p.communicate()[0]
     if p.returncode != 0:
