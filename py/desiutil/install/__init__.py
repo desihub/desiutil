@@ -9,6 +9,7 @@ This package contains code for installing DESI software products.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 # The line above will help with 2to3 support.
+from .desi_install import DesiInstall
 from .dependencies import dependencies
 from .desiInstall_options import desiInstall_options
 from .generate_doc import generate_doc
