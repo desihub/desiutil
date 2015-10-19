@@ -6,6 +6,7 @@
 from __future__ import absolute_import, division, print_function
 import os
 import unittest
+from sys import exit
 from setuptools.compat import PY3
 from setuptools.py31compat import unittest_main
 from setuptools.command.test import test as BaseTest
@@ -67,10 +68,12 @@ class DesiTest(BaseTest,object):
             testRunner=self._resolve_as_ep(self.test_runner),
             exit=False
             )
-        if self.coverage:
-            cov.stop()
-            if result.result.wasSuccessful():
+        if result.result.wasSuccessful():
+            if self.coverage:
+                cov.stop()
                 self.announce('Saving coverage data in .coverage...', level=INFO)
                 cov.save()
                 self.announce('Saving HTML coverage report in htmlcov...', level=INFO)
                 cov.html_report(directory=os.path.abspath('htmlcov'))
+        else:
+            exit(1)

@@ -20,7 +20,7 @@ def main():
     import logging
     import subprocess
     import datetime
-    from sys import executable, path, version_info
+    from sys import argv, executable, path, version_info
     from shutil import copyfile, copytree, rmtree
     from os import chdir, chmod, environ, getcwd, makedirs, remove, stat, symlink, walk
     from os.path import abspath, basename, exists, isdir, islink, join
@@ -29,6 +29,7 @@ def main():
     #
     # Parse arguments
     #
+    xct = basename(argv[0])
     options = desiInstall_options()
     #
     # Set up logger
