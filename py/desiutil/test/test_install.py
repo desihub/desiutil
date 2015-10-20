@@ -12,7 +12,7 @@ import unittest
 from argparse import Namespace
 from subprocess import Popen, PIPE
 from shutil import rmtree
-from ..install import (dependencies, desiInstall_options, get_product_version,
+from ..install import (DesiInstall, dependencies, get_product_version,
     get_svn_devstr, git_version,
     most_recent_svn_tag, set_build_type, svn_version)
 #
@@ -23,9 +23,13 @@ class TestInstall(unittest.TestCase):
     """
     @classmethod
     def setUpClass(cls):
+        # Data directory
         cls.data_dir = os.path.join(os.path.dirname(__file__),'t')
         # Suppress log messages.
         logging.getLogger('desiutil').addHandler(logging.NullHandler())
+        # logging.getLogger('desiInstall').addHandler(logging.NullHandler())
+        # Obtain an instance of the DesiInstall object.
+        cls.desiInstall = DesiInstall(debug=True,test=True)
         # Set up a dummy svn repository.
         cls.svn_path = os.path.join(os.path.abspath(cls.data_dir),'svn_test')
         cls.svn_checkout_path = os.path.join(os.path.abspath(cls.data_dir),'svn_test_co')
@@ -107,7 +111,7 @@ class TestInstall(unittest.TestCase):
         if os.environ['NERSC_HOST'] == 'FAKE':
             del os.environ['NERSC_HOST']
 
-    def test_desiInstall_options(self):
+    def test_get_options(self):
         """Test the processing of desiInstall command-line arguments.
         """
         # Set a few environment variables for testing purposes.
@@ -137,14 +141,19 @@ class TestInstall(unittest.TestCase):
             url=u'https://desi.lbl.gov/svn/code',
             username=os.environ['USER'],
             verbose=False)
-        options = desiInstall_options([])
+        options = self.desiInstall.get_options([])
         self.assertEqual(options,default_namespace)
         default_namespace.product = 'product'
         default_namespace.product_version = 'version'
-        options = desiInstall_options(['product','version'])
+        options = self.desiInstall.get_options(['product','version'])
         self.assertEqual(options,default_namespace)
         default_namespace.default = True
-        options = desiInstall_options(['-d','product','version'])
+        options = self.desiInstall.get_options(['-d','product','version'])
+        self.assertEqual(options,default_namespace)
+        # Test missing environment:
+        del os.environ['DESI_PRODUCT_ROOT']
+        options = self.desiInstall.get_options(['-d','product','version'])
+        default_namespace.root = None
         self.assertEqual(options,default_namespace)
         # Restore environment.
         for key in env_settings:
@@ -152,6 +161,18 @@ class TestInstall(unittest.TestCase):
                 del os.environ[key]
             else:
                 os.environ[key] = env_settings[key]['old']
+
+    def test_sanity_check(self):
+        """Test the validation of command-line options.
+        """
+        options = self.desiInstall.get_options([])
+        status = self.desiInstall.sanity_check()
+        self.assertEqual(status,1)
+        options = self.desiInstall.get_options(['-b'])
+        status = self.desiInstall.sanity_check()
+        self.assertEqual(status,0)
+        self.assertTrue(options.bootstrap)
+        self.assertEqual(options.product,'desihub/desiutil')
 
     def test_get_product_version(self):
         """Test resolution of product/version input.
