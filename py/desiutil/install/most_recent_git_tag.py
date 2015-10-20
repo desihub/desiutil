@@ -19,6 +19,14 @@ def most_recent_git_tag(owner,repo,username=None):
     """
     from os.path import basename
     import requests
+    import logging
+    log = logging.getLogger('desiInstall.most_recent_git_tag')
+    api_url = 'https://api.github.com/repos/{0}/{1}/git/refs/tags/'.format(owner,repo)
+    log.debug(api_url)
     r = requests.get('https://api.github.com/repos/{0}/{1}/git/refs/tags/'.format(owner,repo))
     data = r.json()
-    return basename(data[-1]['ref'])
+    log.debug(data)
+    try:
+        return basename(data[-1]['ref'])
+    except KeyError:
+        return '0.0.0'

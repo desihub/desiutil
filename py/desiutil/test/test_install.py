@@ -25,11 +25,8 @@ class TestInstall(unittest.TestCase):
     def setUpClass(cls):
         # Data directory
         cls.data_dir = os.path.join(os.path.dirname(__file__),'t')
-        # Suppress log messages.
-        logging.getLogger('desiutil').addHandler(logging.NullHandler())
-        # logging.getLogger('desiInstall').addHandler(logging.NullHandler())
         # Obtain an instance of the DesiInstall object.
-        cls.desiInstall = DesiInstall(debug=True,test=True)
+        cls.desiInstall = DesiInstall(debug=True,test=False)
         # Set up a dummy svn repository.
         cls.svn_path = os.path.join(os.path.abspath(cls.data_dir),'svn_test')
         cls.svn_checkout_path = os.path.join(os.path.abspath(cls.data_dir),'svn_test_co')
