@@ -158,7 +158,11 @@ class TestInstall(unittest.TestCase):
         # Restore environment.
         for key in env_settings:
             if env_settings[key]['old'] is None:
-                del os.environ[key]
+                try:
+                    del os.environ[key]
+                except KeyError:
+                    # Catch double-del.
+                    pass
             else:
                 os.environ[key] = env_settings[key]['old']
 
@@ -169,22 +173,23 @@ class TestInstall(unittest.TestCase):
         with self.assertRaises(ValueError) as cm:
             self.desiInstall.sanity_check()
         self.assertEqual(cm.exception.message,"You must specify a product and a version!")
+        if 'MODULESHOME' in os.environ:
+            original_mh = os.environ['MODULESHOME']
+        else:
+            original_mh = None
+        os.environ['MODULESHOME'] = self.data_dir
         options = self.desiInstall.get_options(['-b'])
         self.desiInstall.sanity_check()
         self.assertTrue(options.bootstrap)
         self.assertEqual(options.product,'desihub/desiutil')
         #
-        if 'MODULESHOME' in os.environ:
-            mh = os.environ['MODULESHOME']
-            del os.environ['MODULESHOME']
-        else:
-            mh = None
+        del os.environ['MODULESHOME']
         options = self.desiInstall.get_options(['-b'])
         with self.assertRaises(ValueError) as cm:
             self.desiInstall.sanity_check()
         self.assertEqual(cm.exception.message,"You do not appear to have Modules set up.")
-        if mh is not None:
-            os.environ['MODULESHOME'] = mh
+        if original_mh is not None:
+            os.environ['MODULESHOME'] = original_mh
 
     def test_get_product_version(self):
         """Test resolution of product/version input.
