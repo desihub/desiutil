@@ -26,6 +26,8 @@ class DesiInstall(object):
     ----------
     debug : bool, optional
         If ``True`` the log level will be set to logging.DEBUG.
+    test : bool, optional
+        If ``True`` log messages will be supressed for testing purposes.
 
     Attributes
     ----------
