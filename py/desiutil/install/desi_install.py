@@ -13,7 +13,6 @@ from os.path import abspath, basename, exists, isdir, join
 from shutil import copyfile, copytree, rmtree
 from sys import argv, executable, path, version_info
 from .dependencies import dependencies
-from .generate_doc import generate_doc
 from .known_products import known_products
 from .most_recent_git_tag import most_recent_git_tag
 from .. import __version__ as desiUtilVersion

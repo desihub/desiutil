@@ -14,7 +14,7 @@ from subprocess import Popen, PIPE
 from shutil import rmtree
 from ..install import (DesiInstall, dependencies,
     get_svn_devstr, git_version,
-    most_recent_svn_tag, set_build_type, svn_version)
+    most_recent_svn_tag, svn_version)
 #
 #
 #
@@ -266,17 +266,27 @@ class TestInstall(unittest.TestCase):
     def test_set_build_type(self):
         """Test the determination of the build type.
         """
-        bt = set_build_type(self.data_dir)
+        options = self.desiInstall.get_options([])
+        if hasattr(self.desiInstall,'working_dir'):
+            old_working_dir = self.desiInstall.working_dir
+        else:
+            old_working_dir = None
+        self.desiInstall.working_dir = self.data_dir
+        self.assertEqual(self.desiInstall.working_dir,self.data_dir)
+        options = self.desiInstall.get_options(['desispec','1.0.0'])
+        bt = self.desiInstall.set_build_type()
         self.assertEqual(bt,set(['plain']))
-        bt = set_build_type(self.data_dir,force=True)
+        options = self.desiInstall.get_options(['-C','desispec','1.0.0'])
+        bt = self.desiInstall.set_build_type()
         self.assertEqual(bt,set(['plain','make']))
         # Create temporary files
+        options = self.desiInstall.get_options(['desispec','1.0.0'])
         tempfiles = {'Makefile':'make','setup.py':'py'}
         for t in tempfiles:
             tempfile = os.path.join(self.data_dir,t)
             with open(tempfile,'w') as tf:
                 tf.write('Temporary file.\n')
-            bt = set_build_type(self.data_dir)
+            bt = self.desiInstall.set_build_type()
             self.assertEqual(bt,set(['plain',tempfiles[t]]))
             os.remove(tempfile)
         # Create temporary directories
@@ -284,9 +294,13 @@ class TestInstall(unittest.TestCase):
         for t in tempdirs:
             tempdir = os.path.join(self.data_dir,t)
             os.mkdir(tempdir)
-            bt = set_build_type(self.data_dir)
+            bt = self.desiInstall.set_build_type()
             self.assertEqual(bt,set(['plain',tempdirs[t]]))
             os.rmdir(tempdir)
+        if old_working_dir is None:
+            del self.desiInstall.working_dir
+        else:
+            self.desiInstall.working_dir = old_working_dir
 
     def test_svn_version(self):
         """Test svn version parser.
