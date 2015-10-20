@@ -12,7 +12,7 @@ import unittest
 from argparse import Namespace
 from subprocess import Popen, PIPE
 from shutil import rmtree
-from ..install import (DesiInstall, dependencies, get_product_version,
+from ..install import (DesiInstall, dependencies,
     get_svn_devstr, git_version,
     most_recent_svn_tag, set_build_type, svn_version)
 #
@@ -166,27 +166,63 @@ class TestInstall(unittest.TestCase):
         """Test the validation of command-line options.
         """
         options = self.desiInstall.get_options([])
-        status = self.desiInstall.sanity_check()
-        self.assertEqual(status,1)
+        with self.assertRaises(ValueError) as cm:
+            self.desiInstall.sanity_check()
+        self.assertEqual(cm.exception.message,"You must specify a product and a version!")
         options = self.desiInstall.get_options(['-b'])
-        status = self.desiInstall.sanity_check()
-        self.assertEqual(status,0)
+        self.desiInstall.sanity_check()
         self.assertTrue(options.bootstrap)
         self.assertEqual(options.product,'desihub/desiutil')
+        #
+        if 'MODULESHOME' in os.environ:
+            mh = os.environ['MODULESHOME']
+            del os.environ['MODULESHOME']
+        else:
+            mh = None
+        options = self.desiInstall.get_options(['-b'])
+        with self.assertRaises(ValueError) as cm:
+            self.desiInstall.sanity_check()
+        self.assertEqual(cm.exception.message,"You do not appear to have Modules set up.")
+        if mh is not None:
+            os.environ['MODULESHOME'] = mh
 
     def test_get_product_version(self):
         """Test resolution of product/version input.
         """
-        pv = Namespace(product='foo',product_version='bar')
+        options = self.desiInstall.get_options(['foo','bar'])
         with self.assertRaises(ValueError) as cm:
-            out = get_product_version(pv)
+            out = self.desiInstall.get_product_version()
         self.assertEqual(cm.exception.message, "Could not determine the exact location of foo!")
-        pv = Namespace(product='desiutil',product_version='1.0.0')
-        out = get_product_version(pv)
+        options = self.desiInstall.get_options(['desiutil','1.0.0'])
+        out = self.desiInstall.get_product_version()
         self.assertEqual(out, (u'desihub/desiutil', 'desiutil', '1.0.0'))
-        pv = Namespace(product='desihub/desispec',product_version='2.0.0')
-        out = get_product_version(pv)
+        options = self.desiInstall.get_options(['desihub/desispec','2.0.0'])
+        out = self.desiInstall.get_product_version()
         self.assertEqual(out, (u'desihub/desispec', 'desispec', '2.0.0'))
+
+    def test_identify_branch(self):
+        """Test identification of branch installs.
+        """
+        options = self.desiInstall.get_options(['desiutil','1.0.0'])
+        out = self.desiInstall.get_product_version()
+        url = self.desiInstall.identify_branch()
+        self.assertEqual(url,'https://github.com/desihub/desiutil/archive/1.0.0.tar.gz')
+        options = self.desiInstall.get_options(['desiutil','master'])
+        out = self.desiInstall.get_product_version()
+        url = self.desiInstall.identify_branch()
+        self.assertEqual(url,'https://github.com/desihub/desiutil.git')
+        options = self.desiInstall.get_options(['desiAdmin','1.0.0'])
+        out = self.desiInstall.get_product_version()
+        url = self.desiInstall.identify_branch()
+        self.assertEqual(url,'https://desi.lbl.gov/svn/code/tools/desiAdmin/tags/1.0.0')
+        options = self.desiInstall.get_options(['desiAdmin','trunk'])
+        out = self.desiInstall.get_product_version()
+        url = self.desiInstall.identify_branch()
+        self.assertEqual(url,'https://desi.lbl.gov/svn/code/tools/desiAdmin/trunk')
+        options = self.desiInstall.get_options(['desiAdmin','branches/testing'])
+        out = self.desiInstall.get_product_version()
+        url = self.desiInstall.identify_branch()
+        self.assertEqual(url,'https://desi.lbl.gov/svn/code/tools/desiAdmin/branches/testing')
 
     def test_get_svn_devstr(self):
         """Test svn revision number determination.
