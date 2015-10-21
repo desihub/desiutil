@@ -23,7 +23,7 @@ def most_recent_git_tag(owner,repo,username=None):
     log = logging.getLogger('desiInstall.most_recent_git_tag')
     api_url = 'https://api.github.com/repos/{0}/{1}/git/refs/tags/'.format(owner,repo)
     log.debug(api_url)
-    r = requests.get('https://api.github.com/repos/{0}/{1}/git/refs/tags/'.format(owner,repo))
+    r = requests.get(api_url)
     data = r.json()
     log.debug(data)
     try:
