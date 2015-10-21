@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 # The line above will help with 2to3 support.
-def most_recent_git_tag(owner,repo,username=None):
+def last_tag(owner,repo):
     """Scan GitHub tags and return the most recent tag.
 
     Parameters
@@ -14,18 +14,14 @@ def most_recent_git_tag(owner,repo,username=None):
 
     Returns
     -------
-    most_recent_git_tag : str
+    last_tag : str
         The most recent tag found on GitHub.
     """
     from os.path import basename
     import requests
-    import logging
-    log = logging.getLogger('desiInstall.most_recent_git_tag')
     api_url = 'https://api.github.com/repos/{0}/{1}/git/refs/tags/'.format(owner,repo)
-    log.debug(api_url)
     r = requests.get(api_url)
     data = r.json()
-    log.debug(data)
     try:
         return basename(data[-1]['ref'])
     except KeyError:

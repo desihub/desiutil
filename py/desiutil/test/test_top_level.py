@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
-"""
-test top-level desiutil functions
+"""test top-level desiutil functions
 """
 #
 from __future__ import absolute_import, division, print_function, unicode_literals

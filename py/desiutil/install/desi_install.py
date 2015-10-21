@@ -14,7 +14,7 @@ from shutil import copyfile, copytree, rmtree
 from sys import argv, executable, path, version_info
 from .dependencies import dependencies
 from .known_products import known_products
-from .most_recent_git_tag import most_recent_git_tag
+from ..git import last_tag
 from .. import __version__ as desiUtilVersion
 #
 #
@@ -24,8 +24,6 @@ class DesiInstall(object):
 
     Parameters
     ----------
-    debug : bool, optional
-        If ``True`` the log level will be set to logging.DEBUG.
     test : bool, optional
         If ``True`` log messages will be supressed for testing purposes.
 
@@ -42,20 +40,15 @@ class DesiInstall(object):
     #
     #
     #
-    def __init__(self,debug=False,test=False):
+    def __init__(self,test=False):
         """Bare-bones initialization.  The only thing done here is setting up
         the logging infrastructure.
         """
         self.executable = basename(argv[0])
-        self.ll = logging.INFO
-        if debug:
-            self.ll = logging.DEBUG
         if test:
             logging.getLogger('desiInstall').addHandler(logging.NullHandler())
         else:
-            logging.basicConfig(level=self.ll, format=self.executable+' [%(name)s] Log - %(levelname)s: %(message)s', datefmt='%Y-%m-%dT%H:%M:%S')
-        log = logging.getLogger('desiInstall.__init__')
-        log.debug('Logging configured, level set to {0}.'.format(logging.getLevelName(self.ll)))
+            logging.basicConfig(format=self.executable+' [%(name)s] Log - %(levelname)s: %(message)s', datefmt='%Y-%m-%dT%H:%M:%S')
         return
     #
     #
@@ -128,6 +121,11 @@ class DesiInstall(object):
         else:
             log.debug('Calling parse_args() with: {0}'.format(' '.join(test_args)))
             self.options = parser.parse_args(test_args)
+        self.debug = self.options.verbose or self.options.test
+        self.ll = logging.INFO
+        if self.debug:
+            log.debug('Set log level to DEBUG.')
+            self.ll = logging.DEBUG
         return self.options
     #
     #
@@ -153,7 +151,7 @@ class DesiInstall(object):
             if self.options.bootstrap:
                 self.options.default = True
                 self.options.product = 'desihub/desiutil'
-                self.options.product_version = most_recent_git_tag('desihub','desiutil')
+                self.options.product_version = last_tag('desihub','desiutil')
                 log.info("Selected desiutil/{0} for installation.".format(self.options.product_version))
             else:
                 log.error("You must specify a product and a version!")
@@ -700,7 +698,6 @@ class DesiInstall(object):
             else:
                 logger.warning("Documentation build requested, but no documentation found.")
         return
-
     #
     #
     #
@@ -789,6 +786,6 @@ def main():
     main : int
         Exit status that will be passed to ``sys.exit()``.
     """
-    di = DesiInstall(debug=True)
+    di = DesiInstall()
     status = di.run()
     return status

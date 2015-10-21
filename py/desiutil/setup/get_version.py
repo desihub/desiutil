@@ -27,7 +27,7 @@ def get_version(productname,debug=False):
     """
     ver = 'unknown'
     try:
-        version_dir = find_version_directory(productname,debug=debug)
+        version_dir = find_version_directory(productname)
     except IOError:
         return ver
     version_file = os.path.join(version_dir,'_version.py')

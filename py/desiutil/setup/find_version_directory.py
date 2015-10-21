@@ -6,7 +6,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import os
 #
-def find_version_directory(productname,debug=False):
+def find_version_directory(productname):
     """Return the name of a directory containing version information.
 
     Looks for files in the following places:
@@ -18,8 +18,6 @@ def find_version_directory(productname,debug=False):
     ----------
     productname : str
         The name of the package.
-    debug : bool, optional
-        Print extra debug information.
 
     Returns
     -------
