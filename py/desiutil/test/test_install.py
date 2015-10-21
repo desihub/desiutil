@@ -109,9 +109,9 @@ class TestInstall(unittest.TestCase):
         self.assertTrue(self.desiInstall.options.verbose)
         self.assertTrue(self.desiInstall.debug)
         log = logging.getLogger('desiutil.install.desi_install')
-        self.assertEqual(len(log.handlers[0].buffer),2)
-        self.assertEqual(log.handlers[0].buffer[0].msg,"Called parse_args() with: -v product version")
-        self.assertEqual(log.handlers[0].buffer[1].msg,"Set log level to DEBUG.")
+        # self.assertEqual(len(log.handlers[0].buffer),2)
+        self.assertEqual(log.handlers[0].buffer[-2].msg,"Called parse_args() with: -v product version")
+        self.assertEqual(log.handlers[0].buffer[-1].msg,"Set log level to DEBUG.")
         # Test missing environment:
         del os.environ['DESI_PRODUCT_ROOT']
         options = self.desiInstall.get_options(['-v','product','version'])
