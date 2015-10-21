@@ -9,7 +9,7 @@ import os
 import logging
 import unittest
 from argparse import Namespace
-from ..install import DesiInstall, dependencies
+from ..install import DesiInstall, DesiInstallException, dependencies
 #
 #
 #
@@ -20,11 +20,16 @@ class TestInstall(unittest.TestCase):
     def setUpClass(cls):
         # Data directory
         cls.data_dir = os.path.join(os.path.dirname(__file__),'t')
-        # Obtain an instance of the DesiInstall object.
-        cls.desiInstall = DesiInstall(test=True)
 
     @classmethod
     def tearDownClass(cls):
+        pass
+
+    def setUp(self):
+        # Create a "fresh" DesiInstall object for every test.
+        self.desiInstall = DesiInstall(test=True)
+
+    def tearDown(self):
         pass
 
     def test_dependencies(self):
@@ -95,9 +100,21 @@ class TestInstall(unittest.TestCase):
         default_namespace.default = True
         options = self.desiInstall.get_options(['-d','product','version'])
         self.assertEqual(options,default_namespace)
+        #
+        # Examine the log.
+        #
+        default_namespace.default = False
+        default_namespace.verbose = True
+        options = self.desiInstall.get_options(['-v','product','version'])
+        self.assertTrue(self.desiInstall.options.verbose)
+        self.assertTrue(self.desiInstall.debug)
+        log = logging.getLogger('desiutil.install.desi_install')
+        self.assertEqual(len(log.handlers[0].buffer),2)
+        self.assertEqual(log.handlers[0].buffer[0].msg,"Called parse_args() with: -v product version")
+        self.assertEqual(log.handlers[0].buffer[1].msg,"Set log level to DEBUG.")
         # Test missing environment:
         del os.environ['DESI_PRODUCT_ROOT']
-        options = self.desiInstall.get_options(['-d','product','version'])
+        options = self.desiInstall.get_options(['-v','product','version'])
         default_namespace.root = None
         self.assertEqual(options,default_namespace)
         # Restore environment.
@@ -115,7 +132,7 @@ class TestInstall(unittest.TestCase):
         """Test the validation of command-line options.
         """
         options = self.desiInstall.get_options([])
-        with self.assertRaises(ValueError) as cm:
+        with self.assertRaises(DesiInstallException) as cm:
             self.desiInstall.sanity_check()
         self.assertEqual(cm.exception.message,"You must specify a product and a version!")
         if 'MODULESHOME' in os.environ:
@@ -130,7 +147,7 @@ class TestInstall(unittest.TestCase):
         #
         del os.environ['MODULESHOME']
         options = self.desiInstall.get_options(['-b'])
-        with self.assertRaises(ValueError) as cm:
+        with self.assertRaises(DesiInstallException) as cm:
             self.desiInstall.sanity_check()
         self.assertEqual(cm.exception.message,"You do not appear to have Modules set up.")
         if original_mh is not None:
@@ -140,7 +157,7 @@ class TestInstall(unittest.TestCase):
         """Test resolution of product/version input.
         """
         options = self.desiInstall.get_options(['foo','bar'])
-        with self.assertRaises(ValueError) as cm:
+        with self.assertRaises(DesiInstallException) as cm:
             out = self.desiInstall.get_product_version()
         self.assertEqual(cm.exception.message, "Could not determine the exact location of foo!")
         options = self.desiInstall.get_options(['desiutil','1.0.0'])
@@ -213,6 +230,17 @@ class TestInstall(unittest.TestCase):
         else:
             self.desiInstall.working_dir = old_working_dir
 
+    def test_cleanup(self):
+        """Test the cleanup stage of the install.
+        """
+        options = self.desiInstall.get_options(['desiutil','master'])
+        self.desiInstall.original_dir = os.getcwd()
+        self.desiInstall.working_dir = os.path.join(self.data_dir,'desiutil-master')
+        os.mkdir(self.desiInstall.working_dir)
+        os.chdir(self.desiInstall.working_dir)
+        self.desiInstall.cleanup()
+        self.assertEqual(os.getcwd(),self.desiInstall.original_dir)
+        self.assertFalse(os.path.isdir(self.desiInstall.working_dir))
 
 if __name__ == '__main__':
     unittest.main()

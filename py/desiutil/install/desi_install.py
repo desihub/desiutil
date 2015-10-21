@@ -7,6 +7,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import logging
 import subprocess
 import requests
+from logging.handlers import MemoryHandler
 from datetime import date
 from os import chdir, environ, getcwd, makedirs, remove, symlink
 from os.path import abspath, basename, exists, isdir, join
@@ -16,6 +17,14 @@ from .dependencies import dependencies
 from .known_products import known_products
 from ..git import last_tag
 from .. import __version__ as desiUtilVersion
+#
+#
+#
+class DesiInstallException(Exception):
+    """The methods of :class:`DesiInstall` should raise this exception
+    to indicate that the command-line script should exit immediately.
+    """
+    pass
 #
 #
 #
@@ -29,13 +38,30 @@ class DesiInstall(object):
 
     Attributes
     ----------
+    baseproduct : str
+        The bare name of the product, *e.g.* "desiutil".
+    baseversion : str
+        The bare version, without any ``branches/`` qualifiers.
+    debug : bool
+        ``True`` if the ``--test`` or ``--verbose`` options were selected.
     executable : str
         The command used to invoke the script.
+    fullproduct : str
+        The path to the product relative to its URL, *e.g.*, "desihub/desiutil".
+    github : bool
+        ``True`` if the selected product lives on GitHub.
+    is_branch : bool
+        ``True`` if a branch has been selected.
+    is_trunk : bool
+        ``True`` if trunk or the master branch has been selected.
     ll : int
         The log level.
     options : argparse.Namespace
         The parsed command-line options.
-
+    product_url : str
+        The URL that will be used to download the code.
+    test : bool
+        Captures the value of the test argument passed to the constructor.
     """
     #
     #
@@ -45,9 +71,12 @@ class DesiInstall(object):
         the logging infrastructure.
         """
         self.executable = basename(argv[0])
-        if test:
-            logging.getLogger('desiInstall').addHandler(logging.NullHandler())
-        else:
+        self.test = test
+        if self.test:
+            nh = logging.NullHandler()
+            mh = MemoryHandler(1000000,flushLevel=logging.CRITICAL,target=nh)
+            logging.getLogger(__name__).addHandler(mh)
+        else: # pragma: no cover
             logging.basicConfig(format=self.executable+' [%(name)s] Log - %(levelname)s: %(message)s', datefmt='%Y-%m-%dT%H:%M:%S')
         return
     #
@@ -69,7 +98,7 @@ class DesiInstall(object):
             attribute `options` is set.
         """
         from argparse import ArgumentParser
-        log = logging.getLogger('desiInstall.get_options')
+        log = logging.getLogger(__name__+'.DesiInstall.get_options')
         check_env = {'MODULESHOME':None,'DESI_PRODUCT_ROOT':None,'USER':None}
         for e in check_env:
             try:
@@ -119,13 +148,15 @@ class DesiInstall(object):
         if test_args is None: # pragma: no cover
             self.options = parser.parse_args()
         else:
-            log.debug('Calling parse_args() with: {0}'.format(' '.join(test_args)))
             self.options = parser.parse_args(test_args)
         self.debug = self.options.verbose or self.options.test
         self.ll = logging.INFO
         if self.debug:
-            log.debug('Set log level to DEBUG.')
             self.ll = logging.DEBUG
+        logging.getLogger(__name__).setLevel(self.ll)
+        if test_args is not None:
+            log.debug('Called parse_args() with: {0}'.format(' '.join(test_args)))
+        log.debug('Set log level to {0}.'.format(logging.getLevelName(self.ll)))
         return self.options
     #
     #
@@ -139,14 +170,15 @@ class DesiInstall(object):
 
         Returns
         -------
-        None
+        sanity_check : bool
+            ``True`` if there were no problems.
 
         Raises
         ------
-        ValueError
+        DesiInstallException
             If any options don't make sense.
         """
-        log = logging.getLogger('desiInstall.sanity_check')
+        log = logging.getLogger(__name__+'.DesiInstall.sanity_check')
         if self.options.product == 'NO PACKAGE' or self.options.product_version == 'NO VERSION':
             if self.options.bootstrap:
                 self.options.default = True
@@ -154,12 +186,14 @@ class DesiInstall(object):
                 self.options.product_version = last_tag('desihub','desiutil')
                 log.info("Selected desiutil/{0} for installation.".format(self.options.product_version))
             else:
-                log.error("You must specify a product and a version!")
-                raise ValueError("You must specify a product and a version!")
+                message = "You must specify a product and a version!"
+                log.critical(message)
+                raise DesiInstallException(message)
         if self.options.moduleshome is None or not isdir(self.options.moduleshome):
-            log.error("You do not appear to have Modules set up.")
-            raise ValueError("You do not appear to have Modules set up.")
-        return
+            message = "You do not appear to have Modules set up."
+            log.critical(message)
+            raise DesiInstallException(message)
+        return True
     #
     #
     #
@@ -177,10 +211,10 @@ class DesiInstall(object):
 
         Raises
         ------
-        ValueError
+        DesiInstallException
             If the product and version inputs didn't make sense.
         """
-        log = logging.getLogger('desiInstall.get_product_version')
+        log = logging.getLogger(__name__+'.DesiInstall.get_product_version')
         if '/' in self.options.product:
             self.fullproduct = self.options.product
             self.baseproduct = basename(self.options.product)
@@ -189,8 +223,9 @@ class DesiInstall(object):
                 self.fullproduct = known_products[self.options.product]
                 self.baseproduct = self.options.product
             except KeyError:
-                log.error("Could not determine the exact location of {0}!".format(self.options.product))
-                raise ValueError("Could not determine the exact location of {0}!".format(self.options.product))
+                message = "Could not determine the exact location of {0}!".format(self.options.product)
+                log.critical(message)
+                raise DesiInstallException(message)
         self.baseversion = basename(self.options.product_version)
         self.github = False
         if self.fullproduct.startswith('desihub/'):
@@ -203,8 +238,16 @@ class DesiInstall(object):
     #
     def identify_branch(self):
         """If this is not a tag install, determine whether this is a trunk or branch install.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
         """
-        log = logging.getLogger('desiInstall.identify_branch')
+        log = logging.getLogger(__name__+'.DesiInstall.identify_branch')
         self.is_branch = self.options.product_version.startswith('branches')
         self.is_trunk = self.options.product_version == 'trunk' or self.options.product_version == 'master'
         if self.is_trunk or self.is_branch:
@@ -225,7 +268,7 @@ class DesiInstall(object):
     def verify_url(self):
         """Ensure that the download URL is valid.
         """
-        log = logging.getLogger('desiInstall.verify_url')
+        log = logging.getLogger(__name__+'.DesiInstall.verify_url')
         if not self.github:
             command = ['svn','--non-interactive','--username',self.options.username,'ls',self.product_url]
             log.debug(' '.join(command))
@@ -233,9 +276,9 @@ class DesiInstall(object):
             out, err = proc.communicate()
             log.debug(out)
             if len(err) > 0:
-                log.error("svn error while testing product URL:")
-                log.error(err)
-                raise ValueError("svn error while testing product URL: {0}".format(err))
+                message = "svn error while testing product URL: {0}".format(err)
+                log.critical(message)
+                raise DesiInstallException(message)
         return
     #
     #
@@ -243,7 +286,7 @@ class DesiInstall(object):
     def get_code(self):
         """Actually download the code.
         """
-        log = logging.getLogger('desiInstall.get_code')
+        log = logging.getLogger(__name__+'.DesiInstall.get_code')
         self.working_dir = join(abspath('.'),'{0}-{1}'.format(self.baseproduct,self.baseversion))
         if isdir(self.working_dir):
             log.info("Detected old working directory, {0}. Deleting...".format(self.working_dir))
@@ -253,18 +296,18 @@ class DesiInstall(object):
                 if self.is_branch:
                     r = requests.get(join(self.options.url,self.fullproduct,'tree',self.baseversion))
                     if r.status_code != 200:
-                        message="Branch {0} does not appear to exist. HTTP response was {1:d}.".format(self.baseversion,r.status_code)
-                        log.error(message)
-                        raise ValueError(message)
+                        message = "Branch {0} does not appear to exist. HTTP response was {1:d}.".format(self.baseversion,r.status_code)
+                        log.critical(message)
+                        raise DesiInstallException(message)
                 command = ['git', 'clone', '-q', self.product_url, self.working_dir]
                 log.debug(' '.join(command))
                 proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                 out, err = proc.communicate()
                 log.debug(out)
                 if len(err) > 0:
-                    log.error("git error while downloading product code:")
-                    log.error(err)
-                    raise ValueError("git error while downloading product code: {0}".format(err))
+                    message = "git error while downloading product code: {0}".format(err)
+                    log.critical(message)
+                    raise DesiInstallException(message)
                 if self.is_branch:
                     original_dir = getcwd()
                     chdir(self.working_dir)
@@ -274,16 +317,16 @@ class DesiInstall(object):
                     out, err = proc.communicate()
                     log.debug(out)
                     if len(err) > 0:
-                        log.error("git error while changing branch:")
-                        log.error(err)
-                        raise ValueError("git error while changing branch: {0}".format(err))
+                        message = "git error while changing branch: {0}".format(err)
+                        log.critical(message)
+                        raise DesiInstallException(message)
                     chdir(original_dir)
             else:
                 r = requests.get(self.product_url)
                 if r.status_code != 200:
                     message = "Error while downloading {0}, HTTP response was {1:d}.".format(self.product_url,r.status_code)
-                    logger.error(message)
-                    raise ValueError(message)
+                    log.critical(message)
+                    raise DesiInstallException(message)
                 tgz = r.content
                 with open(self.options.product_version+'.tar.gz','w') as u:
                     u.write(tgz)
@@ -293,9 +336,9 @@ class DesiInstall(object):
                 out, err = proc.communicate()
                 log.debug(out)
                 if len(err) > 0:
-                    log.error("tar error while expanding product code:")
-                    log.error(err)
-                    raise ValueError("tar error while expanding product code: {0}".format(err))
+                    message = "tar error while expanding product code: {0}".format(err)
+                    log.critical(message)
+                    raise DesiInstallException(message)
                 log.debug("remove('{0}')".format(self.options.product_version+'.tar.gz'))
                 remove(self.options.product_version+'.tar.gz')
         else:
@@ -309,9 +352,9 @@ class DesiInstall(object):
             out, err = proc.communicate()
             log.debug(out)
             if len(err) > 0:
-                log.error("svn error while downloading product code:")
-                log.error(err)
-                raise ValueError("svn error while downloading product code: {0}".format(err))
+                message = "svn error while downloading product code: {0}".format(err)
+                log.critical(message)
+                raise DesiInstallException(message)
         return
     #
     #
@@ -329,7 +372,7 @@ class DesiInstall(object):
         set_build_type : set
             A set containing the detected build types.
         """
-        log = logging.getLogger('desiInstall.set_build_type')
+        log = logging.getLogger(__name__+'.DesiInstall.set_build_type')
         self.build_type = set(['plain'])
         if self.options.force_build_type:
             self.build_type.add('make')
@@ -348,7 +391,7 @@ class DesiInstall(object):
     def set_install_dir(self):
         """Decide on an install directory.
         """
-        log = logging.getLogger('desiInstall.set_install_dir')
+        log = logging.getLogger(__name__+'.DesiInstall.set_install_dir')
         self.nersc = None
         try:
             self.nersc = environ['NERSC_HOST']
@@ -358,8 +401,9 @@ class DesiInstall(object):
             if self.nersc is not None:
                 self.options.root = join('/project/projectdirs/desi/software',self.nersc)
             else:
-                log.error("DESI_PRODUCT_ROOT is missing or not set.")
-                raise ValueError("DESI_PRODUCT_ROOT is missing or not set.")
+                message = "DESI_PRODUCT_ROOT is missing or not set."
+                log.critical(message)
+                raise DesiInstallException(message)
         if self.options.root is not None:
             environ['DESI_PRODUCT_ROOT'] = self.options.root
         self.install_dir = join(self.options.root,self.baseproduct,self.baseversion)
@@ -368,8 +412,8 @@ class DesiInstall(object):
                 rmtree(self.install_dir)
             else:
                 message = "Install directory, {0}, already exists!".format(self.install_dir)
-                log.error(message)
-                raise ValueError(message)
+                log.critical(message)
+                raise DesiInstallException(message)
         return
     #
     #
@@ -377,7 +421,7 @@ class DesiInstall(object):
     def init_modules(self):
         """Set up the modules infrastructure.
         """
-        log = logging.getLogger('desiInstall.init_modules')
+        log = logging.getLogger(__name__+'.DesiInstall.init_modules')
         initpy_found = False
         for modpy in ('python','python.py'):
             initpy = join(self.options.moduleshome,'init',modpy)
@@ -387,8 +431,8 @@ class DesiInstall(object):
                 self.module = staticmethod(module)
         if not initpy_found:
             message = "Could not find the Python file in {0}/init!".format(options.moduleshome)
-            log.error(message)
-            raise ValueError(message)
+            log.critical(message)
+            raise DesiInstallException(message)
         return
     #
     #
@@ -396,7 +440,7 @@ class DesiInstall(object):
     def module_dependencies(self):
         """Figure out the dependencies and load them.
         """
-        log = logging.getLogger('desiInstall.module_dependencies')
+        log = logging.getLogger(__name__+'.DesiInstall.module_dependencies')
         self.module_file = join(self.working_dir,'etc',self.baseproduct+'.module')
         if not exists(self.module_file):
             self.module_file = join(environ['DESIUTIL'],'etc','desiutil.module')
@@ -447,7 +491,7 @@ class DesiInstall(object):
     def process_module(self):
         """Process the module file.
         """
-        log = logging.getLogger('desiInstall.process_module')
+        log = logging.getLogger(__name__+'.DesiInstall.process_module')
         if exists(self.module_file):
             if self.options.moduledir == '':
                 #
@@ -463,15 +507,15 @@ class DesiInstall(object):
                         try:
                             makedirs(self.options.moduledir)
                         except OSError as ose:
-                            log.error(ose.strerror)
-                            raise ValueError(ose.strerror)
+                            log.critical(ose.strerror)
+                            raise DesiInstallException(ose.strerror)
             if not self.options.test:
                 if not isdir(join(self.options.moduledir,self.baseproduct)):
                     try:
                         makedirs(join(self.options.moduledir,self.baseproduct))
                     except OSError as ose:
-                        log.error(ose.strerror)
-                        raise ValueError(ose.strerror)
+                        log.critical(ose.strerror)
+                        raise DesiInstallException(ose.strerror)
             install_module_file = join(self.options.moduledir,self.baseproduct,self.baseversion)
             with open(self.module_file) as m:
                 mod = m.read().format(**self.module_keywords)
@@ -492,7 +536,7 @@ class DesiInstall(object):
     def prepare_environment(self):
         """Prepare the environment for the install.
         """
-        log = logging.getLogger('desiInstall.prepare_environment')
+        log = logging.getLogger(__name__+'.DesiInstall.prepare_environment')
         environ['WORKING_DIR'] = self.working_dir
         environ['INSTALL_DIR'] = self.install_dir
         if baseproduct == 'desiutil':
@@ -512,7 +556,7 @@ class DesiInstall(object):
     def copy_install(self):
         """Simply copying the files from the checkout to the install.
         """
-        log = logging.getLogger('desiInstall.copy_install')
+        log = logging.getLogger(__name__+'.DesiInstall.copy_install')
         log.debug("copytree('{0}','{1}')".format(self.working_dir,self.install_dir))
         if not self.options.test:
             copytree(self.working_dir,self.install_dir)
@@ -523,7 +567,7 @@ class DesiInstall(object):
     def install(self):
         """Run setup.py, etc.
         """
-        log = logging.getLogger('desiInstall.install')
+        log = logging.getLogger(__name__+'.DesiInstall.install')
         if (self.is_trunk or self.is_branch):
             if 'src' in self.build_type:
                 chdir(self.install_dir)
@@ -533,9 +577,9 @@ class DesiInstall(object):
                 out, err = proc.communicate()
                 log.debug(out)
                 if len(err) > 0:
-                    log.error("Error during compile:")
-                    log.error(err)
-                    raise ValueError("Error during compile: {0}".format(err))
+                    message = "Error during compile: {0}".format(err)
+                    log.critical(message)
+                    raise DesiInstallException(message)
             if self.options.documentation:
                 log.warning('Documentation will not be built automatically for trunk or branch installs!')
                 log.warning('You can use the desiDoc script to build documentation on your own.')
@@ -554,8 +598,8 @@ class DesiInstall(object):
                     try:
                         makedirs(lib_dir)
                     except OSError as ose:
-                        log.error(ose.strerror)
-                        raise ValueError(ose.strerror)
+                        log.critical(ose.strerror)
+                        raise DesiInstallException(ose.strerror)
                     if lib_dir not in path:
                         try:
                             newpythonpath = lib_dir + ':' + environ['PYTHONPATH']
@@ -573,9 +617,9 @@ class DesiInstall(object):
                     out, err = proc.communicate()
                     log.debug(out)
                     if len(err) > 0:
-                        log.error("Error during installation:")
-                        log.error(err)
-                        raise ValueError("Error during installation: {0}".format(err))
+                        message = "Error during installation: {0}".format(err)
+                        log.critical(message)
+                        raise DesiInstallException(message)
             #
             # Build documentation
             #
@@ -598,9 +642,9 @@ class DesiInstall(object):
                     out, err = proc.communicate()
                     log.debug(out)
                     if len(err) > 0:
-                        log.error("Error during compile:")
-                        log.error(err)
-                        raise ValueError("Error during compile: {0}".format(err))
+                        message = "Error during compile: {0}".format(err)
+                        log.critical(message)
+                        raise DesiInstallException(message)
             #
             # Link documentation into www directory at NERSC
             #
@@ -625,7 +669,7 @@ class DesiInstall(object):
     def generate_doc(self):
         """Generate the documentation.
         """
-        log = logging.getLogger('desiInstall.generate_doc')
+        log = logging.getLogger(__name__+'.DesiInstall.generate_doc')
         if 'py' in self.build_type or isdir('py'):
             if exists(join('doc','index.rst')):
                 #
@@ -642,9 +686,10 @@ class DesiInstall(object):
                 #         try:
                 #             makedirs(join('doc',sd))
                 #         except OSError as ose:
-                #             log.error(ose.strerror)
-                #             raise ValueError(ose.strerror)
+                #             log.critical(ose.strerror)
+                #             raise DesiInstallException(ose.strerror)
                 if not exists(join('doc','Makefile')):
+                    log.debug("copyfile('{0}','{1}')".format(join(sphinx_dir,'Makefile'),join('doc','Makefile')))
                     copyfile(join(sphinx_dir,'Makefile'),join('doc','Makefile'))
                 if not exists(join('doc','conf.py')):
                     with open(join(sphinx_dir,'conf.py')) as conf:
@@ -652,22 +697,24 @@ class DesiInstall(object):
                     with open(join('doc','conf.py'),'w') as conf2:
                         conf2.write(newconf)
                 if not exists(join('doc','_templates')):
+                    log.debug("copytree('{0}','{1}')".format(join(sphinx_dir,'_templates'),join('doc','_templates')))
                     copytree(join(sphinx_dir,'_templates'),join('doc','_templates'))
                 command = [executable, 'setup.py', 'build_sphinx', '--fresh-env', '--all-files']
-                logger.debug(' '.join(command))
+                log.debug(' '.join(command))
                 if not options.test:
                     proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                     out, err = proc.communicate()
-                    logger.debug(out)
+                    log.debug(out)
                     if len(err) > 0:
-                        logger.error("Error during documentation build:")
-                        logger.error(err)
-                        raise ValueError("Error during documentation build: {0}".format(err))
+                        message = "Error during documentation build: {0}".format(err)
+                        log.critical(message)
+                        raise DesiInstallException(message)
                 if not options.test and install_dir is not None:
                     if isdir(join('build','sphinx','html')):
+                        log.debug("copytree('{0}','{1}')".format(join('build','sphinx','html'),join(install_dir,'doc','html','sphinx')))
                         copytree(join('build','sphinx','html'),join(install_dir,'doc','html','sphinx'))
             else:
-                logger.warning("Documentation build requested, but no documentation found.")
+                log.warning("Documentation build requested, but no documentation found.")
         #
         # Look for Doxygen documentation.
         #
@@ -678,6 +725,9 @@ class DesiInstall(object):
                     'version':baseversion,
                     'description':"Documentation for {0} built by desiInstall.".format(baseproduct)}
                 if not exists(join('doc','Doxygen.Makefile')):
+                    log.debug("copyfile('{0}','{1}')".format(
+                        join(getenv('DESIUTIL'),'etc','doc','doxygen','Makefile'),
+                        join('doc','Doxygen.Makefile')))
                     copyfile(join(getenv('DESIUTIL'),'etc','doc','doxygen','Makefile'),
                         join('doc','Doxygen.Makefile'))
                 if not exists(join('doc','Doxyfile')):
@@ -686,17 +736,17 @@ class DesiInstall(object):
                     with open(join('doc','Doxyfile'),'w') as conf2:
                         conf2.write(newconf)
                 command = ['make', '-C', 'doc', '-f', 'Doxygen.Makefile', 'all']
-                logger.debug(' '.join(command))
+                log.debug(' '.join(command))
                 if not options.test:
                     proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                     out, err = proc.communicate()
-                    logger.debug(out)
+                    log.debug(out)
                     if len(err) > 0:
-                        logger.error("Error during compile:")
-                        logger.error(err)
-                        raise ValueError("Error during compile: {0}".format(err))
+                        message = "Error during compile: {0}".format(err)
+                        log.critical(message)
+                        raise DesiInstallException(message)
             else:
-                logger.warning("Documentation build requested, but no documentation found.")
+                log.warning("Documentation build requested, but no documentation found.")
         return
     #
     #
@@ -705,12 +755,12 @@ class DesiInstall(object):
         """Make package available on multiple hosts.
         """
         cross_install_host = 'edison'
-        log = logging.getLogger('desiInstall.cross_install')
+        log = logging.getLogger(__name__+'.DesiInstall.cross_install')
         if self.options.cross_install:
             if self.nersc is None:
-                log.warning("Cross-installs are only supported at NERSC.")
+                log.error("Cross-installs are only supported at NERSC.")
             elif self.nersc != cross_install_host:
-                log.warning("Cross-installs should be performed on edison.")
+                log.error("Cross-installs should be performed on edison.")
             else:
                 for nh in ('carver','hopper','datatran','scigate'):
                     if not islink(join('/project/projectdirs/desi/software',nh,self.baseproduct)):
@@ -726,7 +776,7 @@ class DesiInstall(object):
     def cleanup(self):
         """Clean up after the install.
         """
-        log = logging.getLogger('desiInstall.cleanup')
+        log = logging.getLogger(__name__+'.DesiInstall.cleanup')
         log.debug("chdir('{0}')".format(self.original_dir))
         chdir(self.original_dir)
         if not self.options.keep:
@@ -736,7 +786,7 @@ class DesiInstall(object):
     #
     #
     #
-    def run(self):
+    def run(self): # pragma: no cover
         """This method wraps all the standard steps of the desiInstall script.
 
         Parameters
@@ -748,7 +798,7 @@ class DesiInstall(object):
         run : int
             An integer suitable for passing to sys.exit.
         """
-        log = logging.getLogger('desiInstall.run')
+        log = logging.getLogger(__name__+'.DesiInstall.run')
         log.debug('Commencing run().')
         self.get_options()
         try:
@@ -766,7 +816,7 @@ class DesiInstall(object):
             self.copy_install()
             self.install()
             self.cross_install()
-        except ValueError:
+        except DesiInstallException:
             return 1
         self.cleanup()
         log.debug('run() complete.')
