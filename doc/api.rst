@@ -3,12 +3,20 @@ desiutil API
 ============
 
 .. automodule:: desiutil
-   :members:
+    :members:
 
 .. automodule:: desiutil.install
-   :members:
-   :imported-members:
+    :members:
+    :imported-members:
+
+.. automodule:: desiutil.git
+    :members:
+    :imported-members:
 
 .. automodule:: desiutil.setup
-   :members:
-   :imported-members:
+    :members:
+    :imported-members:
+
+.. automodule:: desiutil.svn
+    :members:
+    :imported-members:

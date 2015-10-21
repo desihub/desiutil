@@ -32,6 +32,12 @@ class TestInstall(unittest.TestCase):
     def tearDown(self):
         pass
 
+    def assertLog(self,order=-1,message=''):
+        """Examine the log messages.
+        """
+        log = logging.getLogger('desiutil.install.desi_install')
+        self.assertEqual(log.handlers[0].buffer[order].msg,message)
+
     def test_dependencies(self):
         """Test dependency processing.
         """
@@ -108,10 +114,8 @@ class TestInstall(unittest.TestCase):
         options = self.desiInstall.get_options(['-v','product','version'])
         self.assertTrue(self.desiInstall.options.verbose)
         self.assertTrue(self.desiInstall.debug)
-        log = logging.getLogger('desiutil.install.desi_install')
-        # self.assertEqual(len(log.handlers[0].buffer),2)
-        self.assertEqual(log.handlers[0].buffer[-2].msg,"Called parse_args() with: -v product version")
-        self.assertEqual(log.handlers[0].buffer[-1].msg,"Set log level to DEBUG.")
+        self.assertLog(order=-1,message="Set log level to DEBUG.")
+        self.assertLog(order=-2,message="Called parse_args() with: -v product version")
         # Test missing environment:
         del os.environ['DESI_PRODUCT_ROOT']
         options = self.desiInstall.get_options(['-v','product','version'])
@@ -191,6 +195,18 @@ class TestInstall(unittest.TestCase):
         url = self.desiInstall.identify_branch()
         self.assertEqual(url,'https://desi.lbl.gov/svn/code/tools/desiAdmin/branches/testing')
 
+    def test_verify_url(self):
+        """Test the check for a valid svn URL.
+        """
+        options = self.desiInstall.get_options(['-v','desiAdmin','trunk'])
+        out = self.desiInstall.get_product_version()
+        url = self.desiInstall.identify_branch()
+        self.desiInstall.verify_url(svn='echo')
+        message = ' '.join(['--non-interactive','--username',self.desiInstall.options.username,'ls',self.desiInstall.product_url]) + "\n"
+        self.assertLog(-1,message=message)
+        with self.assertRaises(DesiInstallException):
+            self.desiInstall.verify_url(svn='which')
+
     def test_set_build_type(self):
         """Test the determination of the build type.
         """
@@ -229,6 +245,31 @@ class TestInstall(unittest.TestCase):
             del self.desiInstall.working_dir
         else:
             self.desiInstall.working_dir = old_working_dir
+
+    def test_set_install_dir(self):
+        """Test the determination of the install directory.
+        """
+        try:
+            old_nersc_host = os.environ['NERSC_HOST']
+            del os.environ['NERSC_HOST']
+        except KeyError:
+            old_nersc_host = None
+        options = self.desiInstall.get_options(['--root','/fake/root/directory','desiutil','master'])
+        with self.assertRaises(DesiInstallException):
+            install_dir = self.desiInstall.set_install_dir()
+        options = self.desiInstall.get_options(['--root',self.data_dir,'desiutil','master'])
+        self.desiInstall.get_product_version()
+        install_dir = self.desiInstall.set_install_dir()
+        self.assertEqual(install_dir,os.path.join(self.data_dir,'desiutil','master'))
+        os.environ['NERSC_HOST'] = 'FAKE'
+        options = self.desiInstall.get_options(['desiutil','master'])
+        self.desiInstall.get_product_version()
+        install_dir = self.desiInstall.set_install_dir()
+        self.assertEqual(install_dir,os.path.join('/project/projectdirs/desi/software/FAKE','desiutil','master'))
+        if old_nersc_host is None:
+            del os.environ['NERSC_HOST']
+        else:
+            os.environ['NERSC_HOST'] = old_nersc_host
 
     def test_cleanup(self):
         """Test the cleanup stage of the install.

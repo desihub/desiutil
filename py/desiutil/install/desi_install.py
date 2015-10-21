@@ -56,6 +56,8 @@ class DesiInstall(object):
         ``True`` if trunk or the master branch has been selected.
     ll : int
         The log level.
+    nersc : str
+        Holds the value of :envvar:`NERSC_HOST`, or ``None`` if not defined.
     options : argparse.Namespace
         The parsed command-line options.
     product_url : str
@@ -265,12 +267,27 @@ class DesiInstall(object):
     #
     #
     #
-    def verify_url(self):
+    def verify_url(self,svn='svn'):
         """Ensure that the download URL is valid.
+
+        Parameters
+        ----------
+        svn : str, optional
+            The path to the subversion command.
+
+        Returns
+        -------
+        verify_url : bool
+            ``True`` if everything checked out OK.
+
+        Raises
+        ------
+        DesiInstallException
+            If the subversion URL could not be found.
         """
         log = logging.getLogger(__name__+'.DesiInstall.verify_url')
         if not self.github:
-            command = ['svn','--non-interactive','--username',self.options.username,'ls',self.product_url]
+            command = [svn,'--non-interactive','--username',self.options.username,'ls',self.product_url]
             log.debug(' '.join(command))
             proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
             out, err = proc.communicate()
@@ -279,7 +296,7 @@ class DesiInstall(object):
                 message = "svn error while testing product URL: {0}".format(err)
                 log.critical(message)
                 raise DesiInstallException(message)
-        return
+        return True
     #
     #
     #
@@ -364,8 +381,7 @@ class DesiInstall(object):
 
         Parameters
         ----------
-        force : bool, optional
-            Set to ``True`` to force the 'make' build type.
+        None
 
         Returns
         -------
@@ -390,6 +406,15 @@ class DesiInstall(object):
     #
     def set_install_dir(self):
         """Decide on an install directory.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        set_install_dir : str
+            The directory selected for installation.
         """
         log = logging.getLogger(__name__+'.DesiInstall.set_install_dir')
         self.nersc = None
@@ -404,8 +429,6 @@ class DesiInstall(object):
                 message = "DESI_PRODUCT_ROOT is missing or not set."
                 log.critical(message)
                 raise DesiInstallException(message)
-        if self.options.root is not None:
-            environ['DESI_PRODUCT_ROOT'] = self.options.root
         self.install_dir = join(self.options.root,self.baseproduct,self.baseversion)
         if isdir(self.install_dir) and not self.options.test:
             if self.options.force:
@@ -414,7 +437,7 @@ class DesiInstall(object):
                 message = "Install directory, {0}, already exists!".format(self.install_dir)
                 log.critical(message)
                 raise DesiInstallException(message)
-        return
+        return self.install_dir
     #
     #
     #
