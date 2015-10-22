@@ -8,6 +8,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import os
 import logging
 import unittest
+from shutil import rmtree
 from argparse import Namespace
 from ..install import DesiInstall, DesiInstallException, dependencies
 #
@@ -261,6 +262,23 @@ class TestInstall(unittest.TestCase):
         self.desiInstall.get_product_version()
         install_dir = self.desiInstall.set_install_dir()
         self.assertEqual(install_dir,os.path.join(self.data_dir,'desiutil','master'))
+        # Test for presence of existing directory.
+        tmpdir = os.path.join(self.data_dir,'desiutil')
+        os.mkdir(tmpdir)
+        os.mkdir(os.path.join(tmpdir,'master'))
+        options = self.desiInstall.get_options(['--root',self.data_dir,'desiutil','master'])
+        self.desiInstall.get_product_version()
+        with self.assertRaises(DesiInstallException) as cm:
+            install_dir = self.desiInstall.set_install_dir()
+        self.assertEqual(cm.exception.message, "Install directory, {0}, already exists!".format(os.path.join(tmpdir,'master')))
+        options = self.desiInstall.get_options(['--root',self.data_dir,'--force','desiutil','master'])
+        self.assertTrue(self.desiInstall.options.force)
+        self.desiInstall.get_product_version()
+        install_dir = self.desiInstall.set_install_dir()
+        self.assertFalse(os.path.isdir(os.path.join(tmpdir,'master')))
+        if os.path.isdir(tmpdir):
+            rmtree(tmpdir)
+        # Test NERSC installs.
         os.environ['NERSC_HOST'] = 'FAKE'
         options = self.desiInstall.get_options(['desiutil','master'])
         self.desiInstall.get_product_version()
@@ -270,6 +288,18 @@ class TestInstall(unittest.TestCase):
             del os.environ['NERSC_HOST']
         else:
             os.environ['NERSC_HOST'] = old_nersc_host
+
+    @unittest.skipUnless('MODULESHOME' in os.environ,'Skipping because MODULESHOME is not defined.')
+    def test_init_modules(self):
+        """Test the initialization of the Modules environment.
+        """
+        options = self.desiInstall.get_options(['-m','/fake/modules/directory','desiutil','master'])
+        with self.assertRaises(DesiInstallException) as cm:
+            status = self.desiInstall.init_modules()
+        self.assertEqual(cm.exception.message,"Could not find the Python file in {0}/init!".format('/fake/modules/directory'))
+        options = self.desiInstall.get_options(['desiutil','master'])
+        status = self.desiInstall.init_modules()
+        self.assertTrue(callable(self.desiInstall.module))
 
     def test_cleanup(self):
         """Test the cleanup stage of the install.
