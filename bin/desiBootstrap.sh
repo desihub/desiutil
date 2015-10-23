@@ -61,8 +61,8 @@ else
     export PYTHONPATH=${DESIUTIL}/py:${PYTHONPATH}
 fi
 if [[ -z "${py}" ]]; then
-    desiInstall -b -U ${u} ${test} ${verbose}
+    desiInstall -b ${test} ${verbose}
 else
-    ${py} ${DESIUTIL}/bin/desiInstall -b -U ${u} -p ${py} ${test} ${verbose}
+    ${py} ${DESIUTIL}/bin/desiInstall -b -p ${py} ${test} ${verbose}
 fi
 /bin/rm -rf ${DESIUTIL}

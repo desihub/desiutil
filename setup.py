@@ -58,7 +58,7 @@ setup_keywords['test_suite']='{name}.test.{name}_test_suite.{name}_test_suite'.f
 #
 # Autogenerate command-line scripts.
 #
-# setup_keywords['entry_points'] = {'console_scripts':['desiInstall = desiutil.install.main:main']}
+# setup_keywords['entry_points'] = {'console_scripts':['desiInstall = desiutil.install.desi_install:main']}
 #
 # Run setup command.
 #

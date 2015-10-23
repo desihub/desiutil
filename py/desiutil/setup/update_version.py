@@ -24,7 +24,7 @@ def update_version(productname,tag=None,debug=False):
     -------
     None
     """
-    version_dir = find_version_directory(productname,debug=debug)
+    version_dir = find_version_directory(productname)
     if tag is not None:
         ver = tag
     else:
