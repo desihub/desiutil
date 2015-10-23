@@ -484,13 +484,18 @@ class DesiInstall(object):
                     :envvar:`PYTHONPATH`.  The wrapper function takes care
                     of that (and uses set theory!).
                     """
-                    old_python_path = set(environ['PYTHONPATH'].split(':'))
+                    try:
+                        old_python_path = set(environ['PYTHONPATH'].split(':'))
+                    except KeyError:
+                        old_python_path = set()
                     module(command,*arguments)
-                    new_python_path = set(environ['PYTHONPATH'].split(':'))
-                    if old_python_path != new_python_path:
-                        add_path = new_python_path - old_python_path
-                        for p in add_path:
-                            path.insert(int(path[0] == ''),p)
+                    try:
+                        new_python_path = set(environ['PYTHONPATH'].split(':'))
+                    except KeyError:
+                        new_python_path = set()
+                    add_path = new_python_path - old_python_path
+                    for p in add_path:
+                        path.insert(int(path[0] == ''),p)
                     return
                 self.module = instancemethod(module_wrapper,self,DesiInstall)
         if not initpy_found:
@@ -603,14 +608,14 @@ class DesiInstall(object):
         log = logging.getLogger(__name__+'.DesiInstall.prepare_environment')
         environ['WORKING_DIR'] = self.working_dir
         environ['INSTALL_DIR'] = self.install_dir
-        if baseproduct == 'desiutil':
+        if self.baseproduct == 'desiutil':
             environ['DESIUTIL'] = self.install_dir
         else:
             if self.baseproduct in environ['LOADEDMODULES']:
                 m_command = 'switch'
             else:
                 m_command = 'load'
-            log.debug("module('{0}','{1}/{2}')".format(m_command,baseproduct,baseversion))
+            log.debug("module('{0}','{1}/{2}')".format(m_command,self.baseproduct,self.baseversion))
             self.module(m_command,self.baseproduct+'/'+self.baseversion)
         self.original_dir = getcwd()
         return
