@@ -278,12 +278,19 @@ class TestInstall(unittest.TestCase):
         self.assertFalse(os.path.isdir(os.path.join(tmpdir,'master')))
         if os.path.isdir(tmpdir):
             rmtree(tmpdir)
-        # Test NERSC installs.
+        # Test NERSC installs.  Unset DESI_PRODUCT_ROOT for this to work.
+        try:
+            old_root = os.environ['DESI_PRODUCT_ROOT']
+            del os.environ['DESI_PRODUCT_ROOT']
+        except KeyError:
+            old_root = None
         os.environ['NERSC_HOST'] = 'FAKE'
         options = self.desiInstall.get_options(['desiutil','master'])
         self.desiInstall.get_product_version()
         install_dir = self.desiInstall.set_install_dir()
         self.assertEqual(install_dir,os.path.join('/project/projectdirs/desi/software/FAKE','desiutil','master'))
+        if old_root is not None:
+            os.environ['DESI_PRODUCT_ROOT'] = old_root
         if old_nersc_host is None:
             del os.environ['NERSC_HOST']
         else:
