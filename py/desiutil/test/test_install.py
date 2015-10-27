@@ -84,7 +84,6 @@ class TestInstall(unittest.TestCase):
             bootstrap=False,
             cross_install=False,
             default=False,
-            documentation=True,
             force=False,
             force_build_type=False,
             keep=False,
@@ -92,10 +91,8 @@ class TestInstall(unittest.TestCase):
             moduleshome='/fake/module/directory',
             product=u'NO PACKAGE',
             product_version=u'NO VERSION',
-            python=None,
             root='/fake/desi/directory',
             test=False,
-            url=u'https://desi.lbl.gov/svn/code',
             username=os.environ['USER'],
             verbose=False)
         options = self.desiInstall.get_options([])
@@ -114,7 +111,6 @@ class TestInstall(unittest.TestCase):
         default_namespace.verbose = True
         options = self.desiInstall.get_options(['-v','product','version'])
         self.assertTrue(self.desiInstall.options.verbose)
-        self.assertTrue(self.desiInstall.debug)
         self.assertLog(order=-1,message="Set log level to DEBUG.")
         self.assertLog(order=-2,message="Called parse_args() with: -v product version")
         # Test missing environment:
@@ -148,7 +144,7 @@ class TestInstall(unittest.TestCase):
         options = self.desiInstall.get_options(['-b'])
         self.desiInstall.sanity_check()
         self.assertTrue(options.bootstrap)
-        self.assertEqual(options.product,'desihub/desiutil')
+        self.assertEqual(options.product,'desiutil')
         #
         del os.environ['MODULESHOME']
         options = self.desiInstall.get_options(['-b'])
@@ -167,10 +163,10 @@ class TestInstall(unittest.TestCase):
         self.assertEqual(cm.exception.message, "Could not determine the exact location of foo!")
         options = self.desiInstall.get_options(['desiutil','1.0.0'])
         out = self.desiInstall.get_product_version()
-        self.assertEqual(out, (u'desihub/desiutil', 'desiutil', '1.0.0'))
+        self.assertEqual(out, (u'https://github.com/desihub/desiutil', 'desiutil', '1.0.0'))
         options = self.desiInstall.get_options(['desihub/desispec','2.0.0'])
         out = self.desiInstall.get_product_version()
-        self.assertEqual(out, (u'desihub/desispec', 'desispec', '2.0.0'))
+        self.assertEqual(out, (u'https://github.com/desihub/desispec', 'desispec', '2.0.0'))
 
     def test_identify_branch(self):
         """Test identification of branch installs.
@@ -199,6 +195,14 @@ class TestInstall(unittest.TestCase):
     def test_verify_url(self):
         """Test the check for a valid svn URL.
         """
+        options = self.desiInstall.get_options(['-v', 'desispec', '0.1'])
+        out = self.desiInstall.get_product_version()
+        url = self.desiInstall.identify_branch()
+        self.assertTrue(self.desiInstall.verify_url())
+        self.desiInstall.product_url = 'http://desi.lbl.gov/no/such/place'
+        with self.assertRaises(DesiInstallException) as cm:
+            self.desiInstall.verify_url()
+        self.assertEqual(cm.exception.message,"Error {0:d} querying GitHub URL: {1}.".format(404,self.desiInstall.product_url))
         options = self.desiInstall.get_options(['-v','desiAdmin','trunk'])
         out = self.desiInstall.get_product_version()
         url = self.desiInstall.identify_branch()
@@ -208,7 +212,7 @@ class TestInstall(unittest.TestCase):
         with self.assertRaises(DesiInstallException):
             self.desiInstall.verify_url(svn='which')
 
-    def test_set_build_type(self):
+    def test_build_type(self):
         """Test the determination of the build type.
         """
         options = self.desiInstall.get_options([])
@@ -219,11 +223,9 @@ class TestInstall(unittest.TestCase):
         self.desiInstall.working_dir = self.data_dir
         self.assertEqual(self.desiInstall.working_dir,self.data_dir)
         options = self.desiInstall.get_options(['desispec','1.0.0'])
-        bt = self.desiInstall.set_build_type()
-        self.assertEqual(bt,set(['plain']))
+        self.assertEqual(self.desiInstall.build_type,set(['plain']))
         options = self.desiInstall.get_options(['-C','desispec','1.0.0'])
-        bt = self.desiInstall.set_build_type()
-        self.assertEqual(bt,set(['plain','make']))
+        self.assertEqual(self.desiInstall.build_type,set(['plain','make']))
         # Create temporary files
         options = self.desiInstall.get_options(['desispec','1.0.0'])
         tempfiles = {'Makefile':'make','setup.py':'py'}
@@ -231,16 +233,14 @@ class TestInstall(unittest.TestCase):
             tempfile = os.path.join(self.data_dir,t)
             with open(tempfile,'w') as tf:
                 tf.write('Temporary file.\n')
-            bt = self.desiInstall.set_build_type()
-            self.assertEqual(bt,set(['plain',tempfiles[t]]))
+            self.assertEqual(self.desiInstall.build_type,set(['plain',tempfiles[t]]))
             os.remove(tempfile)
         # Create temporary directories
         tempdirs = {'src':'src'}
         for t in tempdirs:
             tempdir = os.path.join(self.data_dir,t)
             os.mkdir(tempdir)
-            bt = self.desiInstall.set_build_type()
-            self.assertEqual(bt,set(['plain',tempdirs[t]]))
+            self.assertEqual(self.desiInstall.build_type,set(['plain',tempdirs[t]]))
             os.rmdir(tempdir)
         if old_working_dir is None:
             del self.desiInstall.working_dir
