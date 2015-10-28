@@ -5,4 +5,9 @@ graft bin
 graft doc
 graft etc
 
+recursive-exclude etc travis*
+
+prune build
+prune dist
+prune htmlcov
 prune doc/_build
