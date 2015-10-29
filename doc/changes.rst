@@ -10,6 +10,7 @@ Change Log
 * ReadTheDocs support.
 * Remove unnecessary sphinx extensions.
 * Create setup subpackage for functions that go in setup.py files.
+* fix_permissions.sh won't clobber executable bits.
 
 0.6.0 (2015-10-13)
 ------------------

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id$
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 #
 function usage() {
     local execName=$(basename $0)
@@ -94,7 +94,7 @@ fi
 [ "${verbose}" = "True" ] && echo "Fixing permissions on ${directory} ..."
 if [ "${test}" = "True" ]; then
     run ${verbose} "${find} ${directory} -user ${USER} -not -group ${group} -ls"
-    run ${verbose} "${find} ${directory} -user ${USER} -type f -not -perm 660 -ls"
+    run ${verbose} "${find} ${directory} -user ${USER} -type f ( -perm /o+rwx -or -not -perm /g+w ) -ls"
     run ${verbose} "${find} ${directory} -user ${USER} -type d -not -perm 2770 -ls"
     if [ "${acl}" = "True" ]; then
         run ${verbose} "${find} ${directory} -user ${USER} -exec ${setfacl} --test --remove-all {} ;"
@@ -108,7 +108,7 @@ else
     vflag=''
     [ "${verbose}" = "True" ] && vflag='-v'
     run ${verbose} "${find} ${directory} -user ${USER} -not -group ${group} -exec chgrp ${vflag} -h ${group} {} ;"
-    run ${verbose} "${find} ${directory} -user ${USER} -type f -not -perm 660 -exec chmod ${vflag} 660 {} ;"
+    run ${verbose} "${find} ${directory} -user ${USER} -type f ( -perm /o+rwx -or -not -perm /g+w ) -exec chmod ${vflag} g+w,o-rwx {} ;"
     run ${verbose} "${find} ${directory} -user ${USER} -type d -not -perm 2770 -exec chmod ${vflag} 2770 {} ;"
     if [ "${acl}" = "True" ]; then
         run ${verbose} "${find} ${directory} -user ${USER} -exec ${setfacl} --remove-all {} ;"
