@@ -2,15 +2,23 @@
 Change Log
 ==========
 
-1.0.0 (unreleased)
+1.0.1 (unreleased)
+------------------
+
+* No changes yet.
+
+1.0.0 (2015-10-29)
 ------------------
 
 * pip install support.
-* Travis build support.
-* ReadTheDocs support.
-* Remove unnecessary sphinx extensions.
+* `Travis build support`_.
+* `Read the Docs support`_.
+* Remove unnecessary Sphinx extensions.
 * Create setup subpackage for functions that go in setup.py files.
 * fix_permissions.sh won't clobber executable bits.
+
+.. _`Travis build support`: https://travis-ci.org/desihub/desiutil
+.. _`Read the Docs support`: http://desiutil.readthedocs.org/en/latest/
 
 0.6.0 (2015-10-13)
 ------------------
