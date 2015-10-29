@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 # The line above will help with 2to3 support.
-def get_svn_devstr(product):
+def last_revision(product):
     """Get the svn revision number.
 
     Parameters
@@ -13,7 +13,7 @@ def get_svn_devstr(product):
 
     Returns
     -------
-    get_svn_devstr : str
+    last_revision : str
         The latest svn revision number.  A revision number of 0 indicates
         an error of some kind.
     """
@@ -28,7 +28,8 @@ def get_svn_devstr(product):
             return '0'
     proc = Popen(['svnversion','-n',path],stdout=PIPE,stderr=PIPE)
     out, err = proc.communicate()
-    if out.startswith('Unversioned'):
+    # svn 1.7.x says 'Unversioned', svn < 1.7 says 'exported'.
+    if out.startswith('Unversioned') or out.startswith('exported'):
         return '0'
     if ':' in out:
         rev = out.split(':')[1]

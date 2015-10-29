@@ -8,6 +8,8 @@ Change Log
 * pip install support.
 * Travis build support.
 * ReadTheDocs support.
+* Remove unnecessary sphinx extensions.
+* Create setup subpackage for functions that go in setup.py files.
 
 0.6.0 (2015-10-13)
 ------------------

@@ -13,18 +13,9 @@ Contents
 .. toctree::
    :maxdepth: 1
 
+   api.rst
    desiInstall.rst
    changes.rst
-
-The desiutil package
-====================
-
-.. automodule:: desiutil
-   :members:
-
-.. automodule:: desiutil.install
-   :members:
-   :imported-members:
 
 Indices and tables
 ==================

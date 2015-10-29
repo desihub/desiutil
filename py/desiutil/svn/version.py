@@ -23,7 +23,7 @@ def version(headurl):
     .. _`PEP 386`: http://legacy.python.org/dev/peps/pep-0386/
     .. _`PEP 440`: http://legacy.python.org/dev/peps/pep-0440/
     """
-    from . import get_svn_devstr, most_recent_tag
+    from . import last_revision, last_tag
     if headurl.find('tags') > 0:
         # myproduct = headurl[0:headurl.find('tags')-1].split('/')[-1]
         myversion = headurl[headurl.find('tags')+5:].split('/')[0]
@@ -32,7 +32,7 @@ def version(headurl):
         findstr = ('branches','trunk')[int(headurl.find('trunk') > 0)]
         myproduct = headurl[0:headurl.find(findstr)-1].split('/')[-1]
         tagurl = url[0:url.find(findstr)]+'tags'
-        myversion = most_recent_tag(tagurl) + '.dev' + get_svn_devstr(myproduct)
+        myversion = last_tag(tagurl) + '.dev' + last_revision(myproduct)
     else:
-        myversion = '0.0.1.dev'
+        myversion = '0.0.1.dev0'
     return myversion

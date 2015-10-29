@@ -1,0 +1,11 @@
+# This is a dummy module file for testing purposes.
+if {[info exists env(NERSC_HOST)]} {
+    module load astropy-hpcp
+    prereq astropy-hpcp
+    module load setuptools-hpcp
+} else {
+    module load astropy
+    prereq astropy
+}
+module load desiutil/1.0.0
+prereq desiutil/1.0.0

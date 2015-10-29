@@ -15,15 +15,21 @@ def dependencies(modulefile):
     dependencies : list
         Returns the list of dependencies.  If the module file
         is not found or there are no dependencies, the list will be empty.
+
+    Raises
+    ------
+    ValueError
+        If `modulefile` can't be found.
     """
     from os import environ
     from os.path import exists
     nersc = 'NERSC_HOST' in environ
-    deps = list()
     if exists(modulefile):
         with open(modulefile) as m:
             lines = m.readlines()
-        raw_deps = [l.strip().split()[2] for l in lines if l.startswith('module load')]
+        raw_deps = [l.strip().split()[2] for l in lines if l.strip().startswith('module load')]
+    else:
+        raise ValueError("Modulefile {0} does not exist!".format(modulefile))
     if nersc:
         hpcp_deps = [d for d in raw_deps if '-hpcp' in d]
         for d in hpcp_deps:
@@ -34,5 +40,5 @@ def dependencies(modulefile):
                 pass
         return raw_deps
     else:
-        deps = [d for d in deps if '-hpcp' not in d]
+        deps = [d for d in raw_deps if '-hpcp' not in d]
         return deps
