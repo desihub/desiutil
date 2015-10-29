@@ -30,8 +30,8 @@ Travis Build Status
 Test Coverage Status
 ====================
 
-.. image:: https://coveralls.io/repos/desihub/desiutil/badge.svg?branch=pre-1.0&service=github
-    :target: https://coveralls.io/github/desihub/desiutil?branch=pre-1.0
+.. image:: https://coveralls.io/repos/desihub/desiutil/badge.svg?service=github
+    :target: https://coveralls.io/github/desihub/desiutil
     :alt: Test Coverage Status
 
 License
