@@ -144,41 +144,12 @@ Run setup.py
 If the build-type 'py' is detected, ``python setup.py install`` will be run
 at this point.
 
-Documentation
--------------
-
-Documentation will be built automatically unless one of these two conditions
-exists:
-
-* ``--no-documentation`` is specified on the command-line.
-* This is a trunk or branch install.
-
-If the build-type 'py' is detected, or even if just the py/ directory exists,
-*and* a doc/index.rst file exists, desiInstall will attempt to build Sphinx
-documentation.  The index.rst file is necessary to contain entry points to the
-API documentation contained in the code itself.  The built documentation will
-be placed in ``$INSTALL_DIR/doc/html/sphinx`` (to avoid conficts with Doxygen
-documentation).
-
-If the product appears to be primarily C/C++, and a doc/ directory exists,
-desiInstall will construct the files needed to build Doxygen documentation.
-However, the actual construction of the documentation is left up to the
-top-level ``make install``.
-
-Documentation can also be built in-place using the desiDoc script.
-
 Build C/C++ Code
 ----------------
 
 If the build-type 'make' is detected, ``make install`` will be run in
 :envvar:`WORKING_DIR`.  If the build-type 'src' is detected, ``make -C src all``
 will be run in :envvar:`INSTALL_DIR`.
-
-Link Documentation
-------------------
-
-If the NERSC environment is detected, the built documentation will be linked
-into the www directory.
 
 Cross Install
 -------------
