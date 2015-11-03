@@ -23,19 +23,26 @@ def version(git='git'):
     .. _`PEP 386`: http://legacy.python.org/dev/peps/pep-0386/
     .. _`PEP 440`: http://legacy.python.org/dev/peps/pep-0440/
     """
-    import re
-    dirty = re.compile('([0-9.]+)-([0-9]+)-(g[0-9a-f]+)(-dirty|)')
     from subprocess import Popen, PIPE
     myversion = '0.0.1.dev0'
     try:
-        p = Popen([git, "describe", "--tags", "--dirty", "--always"], stdout=PIPE)
+        p = Popen([git, "describe", "--tags", "--dirty", "--always"], stdout=PIPE, stderr=PIPE)
     except OSError:
         return myversion
-    out = p.communicate()[0]
+    except EnvironmentError:
+        return myversion
+    out, err = p.communicate()
     if p.returncode != 0:
         return myversion
-    m = dirty.match(out)
-    if m is None:
-        return out.rstrip()
-    else:
-        return '.dev'.join(m.groups()[0:2])
+    ver = out.rstrip().split('-')[0]+'.dev'
+    try:
+        p = Popen([git, "rev-list", "--count", "HEAD"], stdout=PIPE, stderr=PIPE)
+    except OSError:
+        return myversion
+    except EnvironmentError:
+        return myversion
+    out, err = p.communicate()
+    if p.returncode != 0:
+        return myversion
+    ver += out.rstrip()
+    return ver

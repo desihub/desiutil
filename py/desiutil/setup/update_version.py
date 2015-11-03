@@ -7,8 +7,10 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import os
 from subprocess import Popen, PIPE
 from .find_version_directory import find_version_directory
+from ..svn.version import version as svn_version
+from ..git.version import version as git_version
 #
-def update_version(productname,tag=None,debug=False):
+def update_version(productname,tag=None,headurl=None,debug=False):
     """Update the _version.py file.
 
     Parameters
@@ -17,6 +19,8 @@ def update_version(productname,tag=None,debug=False):
         The name of the package.
     tag : str, optional
         Set the version to this string, unconditionally.
+    headurl : str, optional
+        A HeadURL string, used for svn products.
     debug : bool, optional
         Print extra debug information.
 
@@ -28,34 +32,13 @@ def update_version(productname,tag=None,debug=False):
     if tag is not None:
         ver = tag
     else:
-        if not os.path.isdir(".git"):
-            print("This is not a git repository.")
+        if os.path.isdir(".svn"):
+            ver = svn_version(headurl)
+        elif os.path.isdir(".git"):
+            ver = git_version()
+        else:
+            print("Could not determine repository type.")
             return
-        no_git = "Unable to run git, leaving py/{0}/_version.py alone.".format(productname)
-        try:
-            p = Popen(["git", "describe", "--tags", "--dirty", "--always"], stdout=PIPE, stderr=PIPE)
-        except EnvironmentError:
-            print("Could not run 'git describe'!")
-            print(no_git)
-            return
-        out, err = p.communicate()
-        if p.returncode != 0:
-            print("Returncode = {0}".format(p.returncode))
-            print(no_git)
-            return
-        ver = out.rstrip().split('-')[0]+'.dev'
-        try:
-            p = Popen(["git", "rev-list", "--count", "HEAD"], stdout=PIPE, stderr=PIPE)
-        except EnvironmentError:
-            print("Could not run 'git rev-list'!")
-            print(no_git)
-            return
-        out, err = p.communicate()
-        if p.returncode != 0:
-            print("Returncode = {0}".format(p.returncode))
-            print(no_git)
-            return
-        ver += out.rstrip()
     version_file = os.path.join(version_dir,'_version.py')
     with open(version_file, "w") as f:
         f.write( "__version__ = '{}'\n".format( ver ) )
