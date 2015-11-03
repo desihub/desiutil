@@ -2,10 +2,16 @@
 Change Log
 ==========
 
-1.0.1 (unreleased)
+1.0.2 (unreleased)
 ------------------
 
 * No changes yet.
+
+1.0.1 (2015-11-03)
+------------------
+
+* Fix issue where the Python tarfile package was failing to autodetect
+  gzipped files.
 
 1.0.0 (2015-10-29)
 ------------------
