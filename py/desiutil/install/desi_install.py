@@ -378,8 +378,9 @@ class DesiInstall(object):
                         raise DesiInstallException(message)
                     try:
                         tgz = StringIO(r.content)
-                        tf = tarfile.TarFile(fileobj=tgz)
+                        tf = tarfile.open(fileobj=tgz,mode='r:gz')
                         tf.extractall()
+                        tf.close()
                         tgz.close()
                     except:
                         message = "tar error while expanding product code!"
