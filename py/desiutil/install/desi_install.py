@@ -108,7 +108,10 @@ class DesiInstall(object):
             try:
                 check_env[e] = environ[e]
             except KeyError:
-                log.warning('The environment variable {0} is not set!'.format(e))
+                if e == 'DESI_PRODUCT_ROOT' and 'NERSC_HOST' in environ:
+                    log.debug('The environment variable DESI_PRODUCT_ROOT is not set, but this is probably not a problem at NERSC.')
+                else:
+                    log.warning('The environment variable {0} is not set!'.format(e))
         parser = ArgumentParser(description="Install DESI software.",prog=self.executable)
         parser.add_argument('-b', '--bootstrap', action='store_true', dest='bootstrap',
             help="Run in bootstrap mode to install the desiutil product.")

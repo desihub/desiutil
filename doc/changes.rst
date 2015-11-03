@@ -5,7 +5,8 @@ Change Log
 1.0.2 (unreleased)
 ------------------
 
-* No changes yet.
+* Don't print scary warning about :envvar:`DESI_PRODUCT_ROOT` not being
+  set if running at NERSC.
 
 1.0.1 (2015-11-03)
 ------------------
