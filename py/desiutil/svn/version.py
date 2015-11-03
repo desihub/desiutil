@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 # The line above will help with 2to3 support.
-def version(productname):
+def version(productname,url=None):
     """Returns the version of a package.
 
     Parameters
@@ -14,6 +14,9 @@ def version(productname):
     -------
     version : str
         A PEP 386-compatible version string.
+    url : str, optional
+        If the product is not defined in the known_products file, the url
+        can be set this way.
 
     Notes
     -----
@@ -27,6 +30,9 @@ def version(productname):
     from . import last_revision, last_tag
     if productname in known_products:
         myversion = (last_tag(known_products[productname]+'/tags') + '.dev'
+            + last_revision(productname))
+    elif url is not None:
+        myversion = (last_tag(url+'/tags') + '.dev'
             + last_revision(productname))
     else:
         myversion = '0.0.1.dev0'

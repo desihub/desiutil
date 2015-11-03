@@ -29,4 +29,4 @@ class TestSetup(unittest.TestCase):
         v = version('false')
         self.assertEqual(v,'0.0.1.dev0')
         v = version('echo')
-        self.assertEqual(v,'describe --tags --dirty --always')
+        self.assertEqual(v,'describe .devrev-list --count HEAD')

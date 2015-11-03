@@ -104,12 +104,12 @@ class TestSvn(unittest.TestCase):
     def test_version(self):
         """Test svn version parser.
         """
-        v = version("$HeadURL: {0}/tags/0.5.5/README.rst $".format(self.svn_url))
-        self.assertEqual(v,'0.5.5', 'Failed to extract version, got {0}.'.format(v))
-        v = version("$HeadURL$")
+        v = version('svn_test',url=self.svn_url)
+        self.assertEqual(v,'0.2.1.dev0', 'Failed to extract version, got {0}.'.format(v))
+        v = version('foo_bar')
         self.assertEqual(v,'0.0.1.dev0', 'Failed to return default version, got {0}.'.format(v))
-        if self.has_subversion:
-            v = version("$HeadURL: {0}/trunk/README.rst $".format(self.svn_url))
-            self.assertEqual(v,'0.2.1.dev2')
-            v = version("$HeadURL: {0}/branches/frobulate/README.rst $".format(self.svn_url))
-            self.assertEqual(v,'0.2.1.dev2')
+        # if self.has_subversion:
+        #     v = version('svn_test',url=self.svn_url))
+        #     self.assertEqual(v,'0.2.1.dev2')
+        #     v = version('svn_test',url=self.svn_url)
+        #     self.assertEqual(v,'0.2.1.dev2')
