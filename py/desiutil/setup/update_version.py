@@ -10,7 +10,7 @@ from .find_version_directory import find_version_directory
 from ..svn.version import version as svn_version
 from ..git.version import version as git_version
 #
-def update_version(productname,tag=None,headurl=None,debug=False):
+def update_version(productname,tag=None,debug=False):
     """Update the _version.py file.
 
     Parameters
@@ -19,8 +19,6 @@ def update_version(productname,tag=None,headurl=None,debug=False):
         The name of the package.
     tag : str, optional
         Set the version to this string, unconditionally.
-    headurl : str, optional
-        A HeadURL string, used for svn products.
     debug : bool, optional
         Print extra debug information.
 
@@ -33,7 +31,7 @@ def update_version(productname,tag=None,headurl=None,debug=False):
         ver = tag
     else:
         if os.path.isdir(".svn"):
-            ver = svn_version(headurl)
+            ver = svn_version(productname)
         elif os.path.isdir(".git"):
             ver = git_version()
         else:

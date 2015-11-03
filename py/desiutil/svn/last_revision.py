@@ -5,28 +5,19 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 def last_revision(product):
     """Get the svn revision number.
 
-    Parameters
-    ----------
-    product : str
-        The name of the product.  This will be converted into the
-        environment variable that points to the product.
-
     Returns
     -------
     last_revision : str
         The latest svn revision number.  A revision number of 0 indicates
         an error of some kind.
+
+    Notes
+    -----
+    This assumes that you're running ``python setup.py version`` in an
+    svn checkout directory.
     """
     from subprocess import Popen, PIPE
-    from os import environ
-    try:
-        path = environ[product.upper()]
-    except KeyError:
-        try:
-            path = environ[product.upper()+'_DIR']
-        except KeyError:
-            return '0'
-    proc = Popen(['svnversion','-n',path],stdout=PIPE,stderr=PIPE)
+    proc = Popen(['svnversion','-n','.'],stdout=PIPE,stderr=PIPE)
     out, err = proc.communicate()
     # svn 1.7.x says 'Unversioned', svn < 1.7 says 'exported'.
     if out.startswith('Unversioned') or out.startswith('exported'):
