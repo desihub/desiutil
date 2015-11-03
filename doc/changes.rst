@@ -7,6 +7,7 @@ Change Log
 
 * Don't print scary warning about :envvar:`DESI_PRODUCT_ROOT` not being
   set if running at NERSC.
+* Support running ``python setup.py version`` in svn products.
 
 1.0.1 (2015-11-03)
 ------------------
