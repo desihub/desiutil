@@ -297,7 +297,8 @@ class DesiInstall(object):
         else:
             command = [svn,'--non-interactive','--username',self.options.username,'ls',self.product_url]
             log.debug(' '.join(command))
-            proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            proc = subprocess.Popen(command,
+                universal_newlines=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
             out, err = proc.communicate()
             log.debug(out)
             if len(err) > 0:
@@ -344,7 +345,8 @@ class DesiInstall(object):
                 if self.options.test:
                     out, err = 'Test Mode.', ''
                 else:
-                    proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                    proc = subprocess.Popen(command,
+                        universal_newlines=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                     out, err = proc.communicate()
                 log.debug(out)
                 if len(err) > 0:
@@ -361,7 +363,8 @@ class DesiInstall(object):
                     if self.options.test:
                         out, err = 'Test Mode.', ''
                     else:
-                        proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                        proc = subprocess.Popen(command,
+                            universal_newlines=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                         out, err = proc.communicate()
                     log.debug(out)
                     if len(err) > 0:
@@ -402,7 +405,8 @@ class DesiInstall(object):
             if self.options.test:
                 out, err = 'Test Mode.', ''
             else:
-                proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                proc = subprocess.Popen(command,
+                universal_newlines=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                 out, err = proc.communicate()
             log.debug(out)
             if len(err) > 0:
@@ -746,7 +750,8 @@ class DesiInstall(object):
                 chdir(self.install_dir)
                 command = ['make','-C', 'src', 'all']
                 log.info('Running "{0}" in {1}.'.format(' '.join(command),self.install_dir))
-                proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                proc = subprocess.Popen(command,
+                    universal_newlines=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                 out, err = proc.communicate()
                 log.debug(out)
                 if len(err) > 0:
@@ -783,7 +788,8 @@ class DesiInstall(object):
                 command = [executable, 'setup.py', 'install', '--prefix={0}'.format(self.install_dir)]
                 log.debug(' '.join(command))
                 if not self.options.test:
-                    proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                    proc = subprocess.Popen(command,
+                        universal_newlines=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                     out, err = proc.communicate()
                     log.debug(out)
                     if len(err) > 0:
@@ -803,7 +809,8 @@ class DesiInstall(object):
                     command = ['make', 'install']
                 log.debug(' '.join(command))
                 if not self.options.test:
-                    proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                    proc = subprocess.Popen(command,
+                        universal_newlines=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                     out, err = proc.communicate()
                     log.debug(out)
                     if len(err) > 0:
