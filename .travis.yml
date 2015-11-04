@@ -14,7 +14,7 @@ language: python
 
 os:
     - linux
-    - osx
+    # - osx
 
 # Setting sudo to false opts in to Travis-CI container-based builds.
 sudo: false
@@ -30,8 +30,8 @@ addons:
 python:
     # - 2.6
     - 2.7
-    # - 3.3
-    # - 3.4
+    - 3.3
+    - 3.4
     # This is just for "egg_info".  All other builds are explicitly given in the matrix
 env:
     global:
@@ -40,7 +40,7 @@ env:
         # to repeat them for all configurations.
         - MAIN_CMD='python setup.py'
     matrix:
-        - SETUP_CMD='egg_info'
+        - SETUP_CMD='test'
 
 matrix:
     # Don't wait for allowed failures.
