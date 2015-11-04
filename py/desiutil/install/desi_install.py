@@ -14,7 +14,7 @@ except ImportError:
     from io import StringIO
 from logging.handlers import MemoryHandler
 from datetime import date
-from new import instancemethod
+from types import MethodType
 from os import chdir, environ, getcwd, makedirs, remove, symlink
 from os.path import abspath, basename, exists, isdir, join
 from shutil import copyfile, copytree, rmtree
@@ -540,7 +540,7 @@ class DesiInstall(object):
                     for p in add_path:
                         path.insert(int(path[0] == ''),p)
                     return
-                self.module = instancemethod(module_wrapper,self,DesiInstall)
+                self.module = MethodType(module_wrapper,self)
         if not initpy_found:
             message = "Could not find the Python file in {0}/init!".format(self.options.moduleshome)
             log.critical(message)

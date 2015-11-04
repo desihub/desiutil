@@ -14,12 +14,18 @@ class TestTopLevel(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.versionre = re.compile(r'([0-9]+!)?([0-9]+)(\.[0-9]+)*((a|b|rc|\.post|\.dev)[0-9]+)?')
-        if sys.version_info.major == 3:
-            cls.assertRegexpMatches = cls.assertRegexp
+        pass
 
     @classmethod
     def tearDownClass(cls):
+        pass
+
+    def setUp(self):
+        self.versionre = re.compile(r'([0-9]+!)?([0-9]+)(\.[0-9]+)*((a|b|rc|\.post|\.dev)[0-9]+)?')
+        if sys.version_info.major == 3:
+            self.assertRegexpMatches = self.assertRegexp
+
+    def tearDown(self):
         pass
 
     def test_version(self):

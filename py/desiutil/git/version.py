@@ -26,7 +26,8 @@ def version(git='git'):
     from subprocess import Popen, PIPE
     myversion = '0.0.1.dev0'
     try:
-        p = Popen([git, "describe", "--tags", "--dirty", "--always"], stdout=PIPE, stderr=PIPE)
+        p = Popen([git, "describe", "--tags", "--dirty", "--always"],
+            universal_newlines=True, stdout=PIPE, stderr=PIPE)
     except OSError:
         return myversion
     except EnvironmentError:
@@ -36,7 +37,8 @@ def version(git='git'):
         return myversion
     ver = out.rstrip().split('-')[0]+'.dev'
     try:
-        p = Popen([git, "rev-list", "--count", "HEAD"], stdout=PIPE, stderr=PIPE)
+        p = Popen([git, "rev-list", "--count", "HEAD"],
+            universal_newlines=True, stdout=PIPE, stderr=PIPE)
     except OSError:
         return myversion
     except EnvironmentError:
