@@ -22,8 +22,6 @@ class TestTopLevel(unittest.TestCase):
 
     def setUp(self):
         self.versionre = re.compile(r'([0-9]+!)?([0-9]+)(\.[0-9]+)*((a|b|rc|\.post|\.dev)[0-9]+)?')
-        if sys.version_info.major == 3:
-            self.assertRegexpMatches = super().assertRegexp
 
     def tearDown(self):
         pass
@@ -31,7 +29,10 @@ class TestTopLevel(unittest.TestCase):
     def test_version(self):
         """Ensure the version conforms to PEP386/PEP440.
         """
-        self.assertRegexpMatches(theVersion,self.versionre)
+        if sys.version_info.major == 3:
+            self.assertRegexp(theVersion,self.versionre)
+        else:
+            self.assertRegexpMatches(theVersion,self.versionre)
 
 if __name__ == '__main__':
     unittest.main()
