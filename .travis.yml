@@ -98,7 +98,7 @@ matrix:
         #   env: MAIN_CMD='pep8 astropy --count' SETUP_CMD=''
 
 install:
-    - pip install --user -r requirements.txt
+    - pip install -r requirements.txt
 
 script:
     - $MAIN_CMD $SETUP_CMD
