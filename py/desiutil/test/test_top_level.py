@@ -7,6 +7,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 #
 import unittest
 import re
+import sys
 from .. import __version__ as theVersion
 #
 class TestTopLevel(unittest.TestCase):
@@ -14,6 +15,8 @@ class TestTopLevel(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.versionre = re.compile(r'([0-9]+!)?([0-9]+)(\.[0-9]+)*((a|b|rc|\.post|\.dev)[0-9]+)?')
+        if sys.version_info.major == 3:
+            cls.assertRegexpMatches = cls.assertRegexp
 
     @classmethod
     def tearDownClass(cls):

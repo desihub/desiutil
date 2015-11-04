@@ -8,7 +8,10 @@ import logging
 import subprocess
 import requests
 import tarfile
-from cStringIO import StringIO
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from io import StringIO
 from logging.handlers import MemoryHandler
 from datetime import date
 from new import instancemethod
