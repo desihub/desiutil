@@ -30,7 +30,7 @@ class TestTopLevel(unittest.TestCase):
         """Ensure the version conforms to PEP386/PEP440.
         """
         if sys.version_info.major == 3:
-            self.assertRegexp(theVersion,self.versionre)
+            self.assertRegex(theVersion,self.versionre)
         else:
             self.assertRegexpMatches(theVersion,self.versionre)
 
