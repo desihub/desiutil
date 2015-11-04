@@ -23,7 +23,7 @@ class TestTopLevel(unittest.TestCase):
     def setUp(self):
         self.versionre = re.compile(r'([0-9]+!)?([0-9]+)(\.[0-9]+)*((a|b|rc|\.post|\.dev)[0-9]+)?')
         if sys.version_info.major == 3:
-            self.assertRegexpMatches = self.assertRegexp
+            self.assertRegexpMatches = super(self,TestTopLevel).assertRegexp
 
     def tearDown(self):
         pass

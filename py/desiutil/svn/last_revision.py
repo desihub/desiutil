@@ -17,7 +17,8 @@ def last_revision(product):
     svn checkout directory.
     """
     from subprocess import Popen, PIPE
-    proc = Popen(['svnversion','-n','.'],stdout=PIPE,stderr=PIPE)
+    proc = Popen(['svnversion','-n','.'],
+        universal_newlines=True, stdout=PIPE, stderr=PIPE)
     out, err = proc.communicate()
     # svn 1.7.x says 'Unversioned', svn < 1.7 says 'exported'.
     if out.startswith('Unversioned') or out.startswith('exported'):

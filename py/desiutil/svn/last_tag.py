@@ -23,7 +23,7 @@ def last_tag(tags,username=None):
     if username is not None:
         command += ['--username', username]
     command += ['ls',tags]
-    proc = Popen(command,stdout=PIPE,stderr=PIPE)
+    proc = Popen(command,universal_newlines=True,stdout=PIPE,stderr=PIPE)
     out, err = proc.communicate()
     try:
         mrt = sorted([v.rstrip('/') for v in out.split('\n') if len(v) > 0],
