@@ -11,7 +11,6 @@ desiutil API
 
 .. automodule:: desiutil.git
     :members:
-    :imported-members:
 
 .. automodule:: desiutil.modules
     :members:
