@@ -36,7 +36,7 @@ class TestInstall(unittest.TestCase):
     def assertLog(self,order=-1,message=''):
         """Examine the log messages.
         """
-        log = logging.getLogger('desiutil.install.desi_install')
+        log = logging.getLogger('desiutil.install')
         self.assertEqual(log.handlers[0].buffer[order].msg,message)
 
     def test_dependencies(self):

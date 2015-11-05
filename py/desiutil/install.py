@@ -1,6 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
-"""Install DESI software.
+"""
+================
+desiutil.install
+================
+
+This package contains code for installing DESI software products.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 # The line above will help with 2to3 support.
@@ -23,7 +28,77 @@ from .dependencies import dependencies
 from .known_products import known_products
 from ..git import last_tag
 from ..modules import init_modules, configure_module
-from .. import __version__ as desiUtilVersion
+from .. import __version__ as desiutilVersion
+#
+#
+known_products = {
+    'desiBackup': 'https://github.com/desihub/desiBackup',
+    'desidatamodel': 'https://github.com/desihub/desidatamodel',
+    'desietc': 'https://github.com/desihub/desietc',
+    'desimodules': 'https://github.com/desihub/desimodules',
+    'desisim': 'https://github.com/desihub/desisim',
+    'desispec': 'https://github.com/desihub/desispec',
+    'desisurvey': 'https://github.com/desihub/desisurvey',
+    'desitarget': 'https://github.com/desihub/desitarget',
+    'desitemplate': 'https://github.com/desihub/desitemplate',
+    'desitemplate_cpp': 'https://github.com/desihub/desitemplate_cpp',
+    'desitree': 'https://github.com/desihub/desitree',
+    'desiutil': 'https://github.com/desihub/desiutil',
+    'fiberassign': 'https://github.com/desihub/fiberassign',
+    'fiberassign_sqlite': 'https://github.com/desihub/fiberassign_sqlite',
+    'imaginglss': 'https://github.com/desihub/imaginglss',
+    'specex': 'https://github.com/desihub/specex',
+    'specter': 'https://github.com/desihub/specter',
+    'bbspecsim': 'https://desi.lbl.gov/svn/code/spectro/bbspecsim',
+    'desiAdmin': 'https://desi.lbl.gov/svn/code/tools/desiAdmin',
+    'desimodel': 'https://desi.lbl.gov/svn/code/desimodel',
+    'dspecsim': 'https://desi.lbl.gov/svn/code/spectro/dspecsim',
+    'elg_deep2': 'https://desi.lbl.gov/svn/code/targeting/elg_deep2',
+    'plate_layout': 'https://desi.lbl.gov/svn/code/focalplane/plate_layout',
+    'positioner_control': 'https://desi.lbl.gov/svn/code/focalplane/positioner_control',
+    'templates': 'https://desi.lbl.gov/svn/code/spectro/templates',
+    }
+#
+#
+#
+def dependencies(modulefile):
+    """Process the dependencies for a software product.
+
+    Parameters
+    ----------
+    modulefile : str
+        Name of the module file containing dependencies.
+
+    Returns
+    -------
+    dependencies : list
+        Returns the list of dependencies.  If the module file
+        is not found or there are no dependencies, the list will be empty.
+
+    Raises
+    ------
+    ValueError
+        If `modulefile` can't be found.
+    """
+    nersc = 'NERSC_HOST' in environ
+    if exists(modulefile):
+        with open(modulefile) as m:
+            lines = m.readlines()
+        raw_deps = [l.strip().split()[2] for l in lines if l.strip().startswith('module load')]
+    else:
+        raise ValueError("Modulefile {0} does not exist!".format(modulefile))
+    if nersc:
+        hpcp_deps = [d for d in raw_deps if '-hpcp' in d]
+        for d in hpcp_deps:
+            nd = d.replace("-hpcp","")
+            try:
+                raw_deps.remove(nd)
+            except ValueError:
+                pass
+        return raw_deps
+    else:
+        deps = [d for d in raw_deps if '-hpcp' not in d]
+        return deps
 #
 #
 #
@@ -142,7 +217,7 @@ class DesiInstall(object):
         parser.add_argument('-v', '--verbose', action='store_true', dest='verbose',
             help='Print extra information.')
         parser.add_argument('-V', '--version', action='version',
-            version='%(prog)s '+desiUtilVersion)
+            version='%(prog)s '+desiutilVersion)
         parser.add_argument('-x', '--cross-install', action='store_true', dest='cross_install',
             help='Make the install available on multiple systems (e.g. NERSC).')
         parser.add_argument('product',nargs='?',default='NO PACKAGE',
