@@ -21,4 +21,3 @@ desiutil API
 
 .. automodule:: desiutil.svn
     :members:
-    :imported-members:

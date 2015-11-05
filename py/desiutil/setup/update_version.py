@@ -7,8 +7,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import os
 from subprocess import Popen, PIPE
 from .find_version_directory import find_version_directory
-from ..svn.version import version as svn_version
-from ..git.version import version as git_version
+from ..svn import version as svn_version
+from ..git import version as git_version
 #
 def update_version(productname,tag=None,debug=False):
     """Update the _version.py file.
