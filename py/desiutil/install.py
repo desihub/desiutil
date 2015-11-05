@@ -24,11 +24,9 @@ from os import chdir, environ, getcwd, makedirs, remove, symlink
 from os.path import abspath, basename, exists, isdir, join
 from shutil import copyfile, copytree, rmtree
 from sys import argv, executable, path, version_info
-from .dependencies import dependencies
-from .known_products import known_products
-from ..git import last_tag
-from ..modules import init_modules, configure_module
-from .. import __version__ as desiutilVersion
+from .git import last_tag
+from .modules import init_modules, configure_module
+from . import __version__ as desiutilVersion
 #
 #
 known_products = {
