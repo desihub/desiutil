@@ -1,5 +1,2 @@
 setuptools
 requests
-Sphinx
-coverage
-coveralls

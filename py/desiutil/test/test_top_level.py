@@ -14,14 +14,14 @@ class TestTopLevel(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        pass
+        cls.versionre = re.compile(r'([0-9]+!)?([0-9]+)(\.[0-9]+)*((a|b|rc|\.post|\.dev)[0-9]+)?')
 
     @classmethod
     def tearDownClass(cls):
         pass
 
     def setUp(self):
-        self.versionre = re.compile(r'([0-9]+!)?([0-9]+)(\.[0-9]+)*((a|b|rc|\.post|\.dev)[0-9]+)?')
+        pass
 
     def tearDown(self):
         pass
