@@ -928,7 +928,7 @@ class DesiInstall(object):
 #
 #
 def main():
-    """Main program.
+    """Entry point for the desiInstall script.
 
     Parameters
     ----------

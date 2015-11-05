@@ -11,6 +11,7 @@ Change Log
 * Move Modules support code into separate sub-package.
 * Simplify Travis build system.
 * Remove some obsolete files.
+* Simplify package structure.
 
 1.0.1 (2015-11-03)
 ------------------
