@@ -297,15 +297,15 @@ class TestInstall(unittest.TestCase):
             os.environ['NERSC_HOST'] = old_nersc_host
 
     @unittest.skipUnless('MODULESHOME' in os.environ,'Skipping because MODULESHOME is not defined.')
-    def test_init_modules(self):
+    def test_start_modules(self):
         """Test the initialization of the Modules environment.
         """
         options = self.desiInstall.get_options(['-m','/fake/modules/directory','desiutil','master'])
         with self.assertRaises(DesiInstallException) as cm:
-            status = self.desiInstall.init_modules()
+            status = self.desiInstall.start_modules()
         self.assertEqual(str(cm.exception),"Could not find the Python file in {0}/init!".format('/fake/modules/directory'))
         options = self.desiInstall.get_options(['desiutil','master'])
-        status = self.desiInstall.init_modules()
+        status = self.desiInstall.start_modules()
         self.assertTrue(callable(self.desiInstall.module))
 
     def test_cleanup(self):

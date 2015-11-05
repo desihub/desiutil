@@ -22,6 +22,7 @@ from sys import argv, executable, path, version_info
 from .dependencies import dependencies
 from .known_products import known_products
 from ..git import last_tag
+from ..modules import init_modules
 from .. import __version__ as desiUtilVersion
 #
 #
@@ -489,7 +490,7 @@ class DesiInstall(object):
     #
     #
     #
-    def init_modules(self):
+    def start_modules(self):
         """Set up the modules infrastructure.
 
         Parameters
@@ -498,58 +499,20 @@ class DesiInstall(object):
 
         Returns
         -------
-        init_modules : bool
+        start_modules : bool
             ``True`` if the modules infrastructure was initialized successfully.
         """
-        log = logging.getLogger(__name__+'.DesiInstall.init_modules')
+        log = logging.getLogger(__name__+'.DesiInstall.start_modules')
         initpy_found = False
-        for modpy in ('python','python.py'):
-            initpy = join(self.options.moduleshome,'init',modpy)
-            if exists(initpy):
-                log.debug("Found Modules init file at {0}.".format(initpy))
-                initpy_found = True
-                execfile(initpy,globals())
-                def module_wrapper(self,command,*arguments):
-                    """Wrap the module function provided by the Modules init script.
-
-                    Parameters
-                    ----------
-                    command : str
-                        Command passed to the base module command.
-                    arguments : list
-                        Arguments passed to the module command.
-
-                    Returns
-                    -------
-                    module_wrapper : None
-                        Just like the module command.
-
-                    Notes
-                    -----
-                    The base module function does not update sys.path to
-                    reflect any additional directories added to
-                    :envvar:`PYTHONPATH`.  The wrapper function takes care
-                    of that (and uses set theory!).
-                    """
-                    try:
-                        old_python_path = set(environ['PYTHONPATH'].split(':'))
-                    except KeyError:
-                        old_python_path = set()
-                    module(command,*arguments)
-                    try:
-                        new_python_path = set(environ['PYTHONPATH'].split(':'))
-                    except KeyError:
-                        new_python_path = set()
-                    add_path = new_python_path - old_python_path
-                    for p in add_path:
-                        path.insert(int(path[0] == ''),p)
-                    return
-                self.module = MethodType(module_wrapper,self)
-        if not initpy_found:
+        module_method = init_modules(self.options.moduleshome,method=True)
+        if module_method is None:
             message = "Could not find the Python file in {0}/init!".format(self.options.moduleshome)
             log.critical(message)
             raise DesiInstallException(message)
-        return initpy_found
+        else:
+            log.debug("Found Modules init file in {0}.".format(self.options.moduleshome))
+            self.module = MethodType(module_method,self)
+        return True
     #
     #
     #
@@ -906,7 +869,7 @@ class DesiInstall(object):
             self.get_code()
             # build_type = self.set_build_type()
             self.set_install_dir()
-            self.init_modules()
+            self.start_modules()
             self.module_dependencies()
             self.configure_module()
             self.process_module()
