@@ -13,6 +13,9 @@ desiutil API
     :members:
     :imported-members:
 
+.. automodule:: desiutil.modules
+    :members:
+
 .. automodule:: desiutil.setup
     :members:
     :imported-members:

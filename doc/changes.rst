@@ -2,12 +2,15 @@
 Change Log
 ==========
 
-1.0.2 (unreleased)
+1.1.0 (unreleased)
 ------------------
 
 * Don't print scary warning about :envvar:`DESI_PRODUCT_ROOT` not being
   set if running at NERSC.
 * Support running ``python setup.py version`` in svn products.
+* Move Modules support code into separate sub-package.
+* Simplify Travis build system.
+* Remove some obsolete files.
 
 1.0.1 (2015-11-03)
 ------------------

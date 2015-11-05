@@ -22,7 +22,7 @@ from sys import argv, executable, path, version_info
 from .dependencies import dependencies
 from .known_products import known_products
 from ..git import last_tag
-from ..modules import init_modules
+from ..modules import init_modules, configure_module
 from .. import __version__ as desiUtilVersion
 #
 #
@@ -554,46 +554,6 @@ class DesiInstall(object):
     #
     #
     #
-    def configure_module(self):
-        """Decide what needs to go in the module file.
-
-        Parameters
-        ----------
-        None
-
-        Returns
-        -------
-        configure_module : dict
-            A dictionary containing the module configuration parameters.
-        """
-        self.module_keywords = {
-            'name': self.baseproduct,
-            'version': self.baseversion,
-            'needs_bin': '# ',
-            'needs_python': '# ',
-            'needs_trunk_py': '# ',
-            'needs_ld_lib': '# ',
-            'needs_idl': '# ',
-            'pyversion': "python{0:d}.{1:d}".format(*version_info)
-            }
-        if isdir(join(self.working_dir,'bin')):
-            self.module_keywords['needs_bin'] = ''
-        if isdir(join(self.working_dir,'lib')):
-            self.module_keywords['needs_ld_lib'] = ''
-        if isdir(join(self.working_dir,'pro')):
-            self.module_keywords['needs_idl'] = ''
-        if 'py' in self.build_type:
-            if self.is_branch or self.is_trunk:
-                self.module_keywords['needs_trunk_py'] = ''
-            else:
-                self.module_keywords['needs_python'] = ''
-        else:
-            if isdir(join(self.working_dir,'py')):
-                self.module_keywords['needs_trunk_py'] = ''
-        return self.module_keywords
-    #
-    #
-    #
     def process_module(self):
         """Process the module file.
 
@@ -607,6 +567,15 @@ class DesiInstall(object):
             The text of the processed module file.
         """
         log = logging.getLogger(__name__+'.DesiInstall.process_module')
+        dev = False
+        if 'py' in build_type:
+            if self.is_trunk or self.is_branch:
+                dev = True
+        else:
+            if isdir(join(self.working_dir,'py')):
+                dev = True
+        module_keywords = configure_module(self.baseproduct,self.baseversion,
+            working_dir=self.working_dir,dev=dev)
         if self.options.moduledir == '':
             #
             # We didn't set a module dir, so derive it from options.root
@@ -871,7 +840,6 @@ class DesiInstall(object):
             self.set_install_dir()
             self.start_modules()
             self.module_dependencies()
-            self.configure_module()
             self.process_module()
             self.copy_install()
             self.install()

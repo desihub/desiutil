@@ -1,7 +1,18 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
-"""Set up the Modules infrastructure.
 """
+================
+desiutil.modules
+================
+
+This package contains code for processing and installing `Module files`_.
+
+.. _`Module files`: http://modules.sourceforge.net
+"""
+from __future__ import absolute_import, division, print_function, unicode_literals
+#
+#
+#
 def init_modules(moduleshome=None,method=False):
     """Set up the Modules infrastructure.
 
@@ -110,3 +121,54 @@ def init_modules(moduleshome=None,method=False):
                     return
                 return module_wrapper
     return None
+#
+#
+#
+def configure_module(product,version,working_dir=None,dev=False):
+    """Decide what needs to go in the Module file.
+
+    Parameters
+    ----------
+    product : str
+        Name of the product.
+    version : str
+        Version of the product.
+    working_dir : str, optional
+        The directory to examine.  If not set, the current working directory
+        will be used.
+    dev : bool, optional
+        If ``True``, interpret the directory as a 'development' install,
+        *e.g.* a trunk or branch install.
+
+    Returns
+    -------
+    configure_module : dict
+        A dictionary containing the module configuration parameters.
+    """
+    from os import getcwd
+    from os.path import isdir, join
+    from sys import version_info
+    if working_dir is None:
+        working_dir = getcwd()
+    module_keywords = {
+        'name': product,
+        'version': version,
+        'needs_bin': '# ',
+        'needs_python': '# ',
+        'needs_trunk_py': '# ',
+        'needs_ld_lib': '# ',
+        'needs_idl': '# ',
+        'pyversion': "python{0:d}.{1:d}".format(*version_info)
+        }
+    if isdir(join(working_dir,'bin')):
+        module_keywords['needs_bin'] = ''
+    if isdir(join(working_dir,'lib')):
+        module_keywords['needs_ld_lib'] = ''
+    if isdir(join(working_dir,'pro')):
+        module_keywords['needs_idl'] = ''
+    if isdir(join(working_dir,'py')):
+        if dev:
+            module_keywords['needs_trunk_py'] = ''
+        else:
+            module_keywords['needs_python'] = ''
+    return module_keywords
