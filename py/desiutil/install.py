@@ -25,7 +25,7 @@ from os.path import abspath, basename, exists, isdir, join
 from shutil import copyfile, copytree, rmtree
 from sys import argv, executable, path, version_info
 from .git import last_tag
-from .modules import init_modules, configure_module
+from .modules import init_modules, configure_module, process_module, default_module
 from . import __version__ as desiutilVersion
 #
 #
@@ -627,7 +627,7 @@ class DesiInstall(object):
     #
     #
     #
-    def process_module(self):
+    def install_module(self):
         """Process the module file.
 
         Parameters
@@ -667,26 +667,19 @@ class DesiInstall(object):
                     except OSError as ose:
                         log.critical(ose.strerror)
                         raise DesiInstallException(ose.strerror)
-        if not self.options.test:
-            if not isdir(join(self.options.moduledir,self.baseproduct)):
-                try:
-                    makedirs(join(self.options.moduledir,self.baseproduct))
-                except OSError as ose:
-                    log.critical(ose.strerror)
-                    raise DesiInstallException(ose.strerror)
-        install_module_file = join(self.options.moduledir,self.baseproduct,self.baseversion)
-        with open(self.module_file) as m:
-            mod = m.read().format(**self.module_keywords)
         if self.options.test:
-            log.debug(mod)
+            log.debug("Test Mode. Skipping Module file installation.")
+            mod = ''
         else:
-            with open(install_module_file,'w') as m:
-                m.write(mod)
+            try:
+                log.debug("process_module('{0}',self.module_keywords,'{1}')".format(self.module_file,self.options.moduledir))
+                mod = process_module(self.module_file, self.module_keywords, self.options.moduledir)
+            except OSError as ose:
+                log.critical(ose.strerror)
+                raise DesiInstallException(ose.strerror)
             if self.options.default:
-                dot_version = '#%Module1.0\nset ModulesVersion "{0}"\n'.format(self.baseversion)
-                install_version_file = join(self.options.moduledir,self.baseproduct,'.version')
-                with open(install_version_file,'w') as v:
-                    v.write(dot_version)
+                log.debug("default_module(self.module_keywords,'{0}')".format(self.options.moduledir))
+                dot_version = default_module(self.module_keywords,self.options.moduledir)
         return mod
     #
     #
@@ -915,7 +908,7 @@ class DesiInstall(object):
             self.set_install_dir()
             self.start_modules()
             self.module_dependencies()
-            self.process_module()
+            self.install_module()
             self.copy_install()
             self.install()
             self.cross_install()

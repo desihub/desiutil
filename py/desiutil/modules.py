@@ -172,3 +172,57 @@ def configure_module(product,version,working_dir=None,dev=False):
         else:
             module_keywords['needs_python'] = ''
     return module_keywords
+#
+#
+#
+def process_module(module_file, module_keywords, module_dir):
+    """Process a Module file.
+
+    Parameters
+    ----------
+    module_file : str
+        A template Module file to process.
+    module_keywords : dict
+        The parameters to use for Module file processing.
+    module_dir : str
+        The directory where the Module file should be installed.
+
+    Returns
+    -------
+    process_module : str
+        The text of the processed Module file.
+    """
+    from os import makedirs
+    from os.path import isdir, join
+    if not isdir(join(module_dir,module_keywords['name'])):
+        makedirs(join(module_dir,module_keywords['name']))
+    install_module_file = join(module_dir,module_keywords['name'],module_keywords['version'])
+    with open(module_file) as m:
+        mod = m.read().format(**module_keywords)
+    with open(install_module_file,'w') as m:
+        m.write(mod)
+    return mod
+#
+#
+#
+def default_module(module_keywords, module_dir):
+    """Install or update a .version file to set the default Module.
+
+    Parameters
+    ----------
+    module_keywords : dict
+        The parameters to use for Module file processing.
+    module_dir : str
+        The directory where the Module file should be installed.
+
+    Returns
+    -------
+    default_module : str
+        The text of the processed .version file.
+    """
+    from os.path import join
+    dot_version = '#%Module1.0\nset ModulesVersion "{0}"\n'.format(module_keywords['version'])
+    install_version_file = join(module_dir,module_keywords['name'],'.version')
+    with open(install_version_file,'w') as v:
+        v.write(dot_version)
+    return dot_version

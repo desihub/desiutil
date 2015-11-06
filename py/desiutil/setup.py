@@ -18,9 +18,10 @@ from setuptools.compat import PY3
 from setuptools.py31compat import unittest_main
 from setuptools.command.test import test as BaseTest
 from pkg_resources import _namespace_packages
-from distutils.log import INFO, WARN
+from distutils.log import INFO, WARN, ERROR
 from .svn import version as svn_version
 from .git import version as git_version
+from .modules import configure_module, process_module, default_module
 #
 #
 #
@@ -28,19 +29,38 @@ class DesiModule(Command):
     """Allow users to install module files with ``python setup.py module_file``.
     """
     description = "install a module file for this package"
-    # user_options = [ ('tag=', 't', 'Set the version to a name in preparation for tagging.'), ]
-    user_options = []
-    boolean_options = []
+    user_options = [ ('default', 'd', 'Set this version as the default Module file.'),
+        ('modules=', 'm', 'Set the Module install directory.')
+        ]
+    boolean_options = ['default']
     def initialize_options(self):
-        # self.tag = None
-        pass
+        self.modules = None
+        self.default = False
     def finalize_options(self):
-        pass
+        if self.modules is None:
+            try:
+                self.modules = os.path.join('/project/projectdirs/desi/software/modules',os.environ['NERSC_HOST'])
+            except KeyError:
+                try:
+                    self.modules = os.path.join(os.environ['DESI_PRODUCT_ROOT'],'modulefiles')
+                except KeyError:
+                    self.announce("Could not determine a Module install directory!", level=ERROR)
+                    exit(1)
     def run(self):
         meta = self.distribution.metadata
-        # update_version(meta.get_name(),tag=self.tag)
-        # ver = get_version(meta.get_name())
-        # self.announce("Version is now {}.".format( ver ), level=INFO)
+        name = meta.get_name()
+        version = meta.get_version()
+        dev = 'dev' in version
+        working_dir = os.path.abspath('.')
+        module_keywords = configure_module(name, version, dev=dev)
+        module_file = os.path.join(working_dir,'etc','{0}.module'.format(name))
+        if os.path.exists(module_file):
+            process_module(module_file,module_keywords,self.modules)
+        else:
+            self.announce("Could not find a Module file: {}.".format(module_file), level=ERROR)
+        if self.default:
+            default_module(module_keywords,self.modules)
+        return
 #
 #
 #
