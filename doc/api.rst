@@ -7,16 +7,15 @@ desiutil API
 
 .. automodule:: desiutil.install
     :members:
-    :imported-members:
 
 .. automodule:: desiutil.git
     :members:
-    :imported-members:
+
+.. automodule:: desiutil.modules
+    :members:
 
 .. automodule:: desiutil.setup
     :members:
-    :imported-members:
 
 .. automodule:: desiutil.svn
     :members:
-    :imported-members:

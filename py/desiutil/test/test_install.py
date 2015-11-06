@@ -36,7 +36,7 @@ class TestInstall(unittest.TestCase):
     def assertLog(self,order=-1,message=''):
         """Examine the log messages.
         """
-        log = logging.getLogger('desiutil.install.desi_install')
+        log = logging.getLogger('desiutil.install')
         self.assertEqual(log.handlers[0].buffer[order].msg,message)
 
     def test_dependencies(self):
@@ -45,7 +45,7 @@ class TestInstall(unittest.TestCase):
         # Raise ValueError if file doesn't exist:
         with self.assertRaises(ValueError) as cm:
             dependencies("foo/bar/baz.module")
-        self.assertEqual(cm.exception.message, "Modulefile foo/bar/baz.module does not exist!")
+        self.assertEqual(str(cm.exception), "Modulefile foo/bar/baz.module does not exist!")
         # Manipulate the environment.
         nersc_host = None
         if 'NERSC_HOST' in os.environ:
@@ -135,7 +135,7 @@ class TestInstall(unittest.TestCase):
         options = self.desiInstall.get_options([])
         with self.assertRaises(DesiInstallException) as cm:
             self.desiInstall.sanity_check()
-        self.assertEqual(cm.exception.message,"You must specify a product and a version!")
+        self.assertEqual(str(cm.exception),"You must specify a product and a version!")
         if 'MODULESHOME' in os.environ:
             original_mh = os.environ['MODULESHOME']
         else:
@@ -150,7 +150,7 @@ class TestInstall(unittest.TestCase):
         options = self.desiInstall.get_options(['-b'])
         with self.assertRaises(DesiInstallException) as cm:
             self.desiInstall.sanity_check()
-        self.assertEqual(cm.exception.message,"You do not appear to have Modules set up.")
+        self.assertEqual(str(cm.exception),"You do not appear to have Modules set up.")
         if original_mh is not None:
             os.environ['MODULESHOME'] = original_mh
 
@@ -160,7 +160,7 @@ class TestInstall(unittest.TestCase):
         options = self.desiInstall.get_options(['foo','bar'])
         with self.assertRaises(DesiInstallException) as cm:
             out = self.desiInstall.get_product_version()
-        self.assertEqual(cm.exception.message, "Could not determine the exact location of foo!")
+        self.assertEqual(str(cm.exception), "Could not determine the exact location of foo!")
         options = self.desiInstall.get_options(['desiutil','1.0.0'])
         out = self.desiInstall.get_product_version()
         self.assertEqual(out, (u'https://github.com/desihub/desiutil', 'desiutil', '1.0.0'))
@@ -202,7 +202,7 @@ class TestInstall(unittest.TestCase):
         self.desiInstall.product_url = 'http://desi.lbl.gov/no/such/place'
         with self.assertRaises(DesiInstallException) as cm:
             self.desiInstall.verify_url()
-        self.assertEqual(cm.exception.message,"Error {0:d} querying GitHub URL: {1}.".format(404,self.desiInstall.product_url))
+        self.assertEqual(str(cm.exception),"Error {0:d} querying GitHub URL: {1}.".format(404,self.desiInstall.product_url))
         options = self.desiInstall.get_options(['-v','desiAdmin','trunk'])
         out = self.desiInstall.get_product_version()
         url = self.desiInstall.identify_branch()
@@ -270,7 +270,7 @@ class TestInstall(unittest.TestCase):
         self.desiInstall.get_product_version()
         with self.assertRaises(DesiInstallException) as cm:
             install_dir = self.desiInstall.set_install_dir()
-        self.assertEqual(cm.exception.message, "Install directory, {0}, already exists!".format(os.path.join(tmpdir,'master')))
+        self.assertEqual(str(cm.exception), "Install directory, {0}, already exists!".format(os.path.join(tmpdir,'master')))
         options = self.desiInstall.get_options(['--root',self.data_dir,'--force','desiutil','master'])
         self.assertTrue(self.desiInstall.options.force)
         self.desiInstall.get_product_version()
@@ -297,15 +297,15 @@ class TestInstall(unittest.TestCase):
             os.environ['NERSC_HOST'] = old_nersc_host
 
     @unittest.skipUnless('MODULESHOME' in os.environ,'Skipping because MODULESHOME is not defined.')
-    def test_init_modules(self):
+    def test_start_modules(self):
         """Test the initialization of the Modules environment.
         """
         options = self.desiInstall.get_options(['-m','/fake/modules/directory','desiutil','master'])
         with self.assertRaises(DesiInstallException) as cm:
-            status = self.desiInstall.init_modules()
-        self.assertEqual(cm.exception.message,"Could not find the Python file in {0}/init!".format('/fake/modules/directory'))
+            status = self.desiInstall.start_modules()
+        self.assertEqual(str(cm.exception),"Could not find the Python file in {0}/init!".format('/fake/modules/directory'))
         options = self.desiInstall.get_options(['desiutil','master'])
-        status = self.desiInstall.init_modules()
+        status = self.desiInstall.start_modules()
         self.assertTrue(callable(self.desiInstall.module))
 
     def test_cleanup(self):

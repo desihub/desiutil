@@ -1,6 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
-"""Install DESI software.
+"""
+================
+desiutil.install
+================
+
+This package contains code for installing DESI software products.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 # The line above will help with 2to3 support.
@@ -8,18 +13,90 @@ import logging
 import subprocess
 import requests
 import tarfile
-from cStringIO import StringIO
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from io import StringIO
 from logging.handlers import MemoryHandler
 from datetime import date
-from new import instancemethod
+from types import MethodType
 from os import chdir, environ, getcwd, makedirs, remove, symlink
 from os.path import abspath, basename, exists, isdir, join
 from shutil import copyfile, copytree, rmtree
 from sys import argv, executable, path, version_info
-from .dependencies import dependencies
-from .known_products import known_products
-from ..git import last_tag
-from .. import __version__ as desiUtilVersion
+from .git import last_tag
+from .modules import init_modules, configure_module, process_module, default_module
+from . import __version__ as desiutilVersion
+#
+#
+known_products = {
+    'desiBackup': 'https://github.com/desihub/desiBackup',
+    'desidatamodel': 'https://github.com/desihub/desidatamodel',
+    'desietc': 'https://github.com/desihub/desietc',
+    'desimodules': 'https://github.com/desihub/desimodules',
+    'desisim': 'https://github.com/desihub/desisim',
+    'desispec': 'https://github.com/desihub/desispec',
+    'desisurvey': 'https://github.com/desihub/desisurvey',
+    'desitarget': 'https://github.com/desihub/desitarget',
+    'desitemplate': 'https://github.com/desihub/desitemplate',
+    'desitemplate_cpp': 'https://github.com/desihub/desitemplate_cpp',
+    'desitree': 'https://github.com/desihub/desitree',
+    'desiutil': 'https://github.com/desihub/desiutil',
+    'fiberassign': 'https://github.com/desihub/fiberassign',
+    'fiberassign_sqlite': 'https://github.com/desihub/fiberassign_sqlite',
+    'imaginglss': 'https://github.com/desihub/imaginglss',
+    'specex': 'https://github.com/desihub/specex',
+    'specter': 'https://github.com/desihub/specter',
+    'bbspecsim': 'https://desi.lbl.gov/svn/code/spectro/bbspecsim',
+    'desiAdmin': 'https://desi.lbl.gov/svn/code/tools/desiAdmin',
+    'desimodel': 'https://desi.lbl.gov/svn/code/desimodel',
+    'dspecsim': 'https://desi.lbl.gov/svn/code/spectro/dspecsim',
+    'elg_deep2': 'https://desi.lbl.gov/svn/code/targeting/elg_deep2',
+    'plate_layout': 'https://desi.lbl.gov/svn/code/focalplane/plate_layout',
+    'positioner_control': 'https://desi.lbl.gov/svn/code/focalplane/positioner_control',
+    'templates': 'https://desi.lbl.gov/svn/code/spectro/templates',
+    }
+#
+#
+#
+def dependencies(modulefile):
+    """Process the dependencies for a software product.
+
+    Parameters
+    ----------
+    modulefile : str
+        Name of the module file containing dependencies.
+
+    Returns
+    -------
+    dependencies : list
+        Returns the list of dependencies.  If the module file
+        is not found or there are no dependencies, the list will be empty.
+
+    Raises
+    ------
+    ValueError
+        If `modulefile` can't be found.
+    """
+    nersc = 'NERSC_HOST' in environ
+    if exists(modulefile):
+        with open(modulefile) as m:
+            lines = m.readlines()
+        raw_deps = [l.strip().split()[2] for l in lines if l.strip().startswith('module load')]
+    else:
+        raise ValueError("Modulefile {0} does not exist!".format(modulefile))
+    if nersc:
+        hpcp_deps = [d for d in raw_deps if '-hpcp' in d]
+        for d in hpcp_deps:
+            nd = d.replace("-hpcp","")
+            try:
+                raw_deps.remove(nd)
+            except ValueError:
+                pass
+        return raw_deps
+    else:
+        deps = [d for d in raw_deps if '-hpcp' not in d]
+        return deps
 #
 #
 #
@@ -138,7 +215,7 @@ class DesiInstall(object):
         parser.add_argument('-v', '--verbose', action='store_true', dest='verbose',
             help='Print extra information.')
         parser.add_argument('-V', '--version', action='version',
-            version='%(prog)s '+desiUtilVersion)
+            version='%(prog)s '+desiutilVersion)
         parser.add_argument('-x', '--cross-install', action='store_true', dest='cross_install',
             help='Make the install available on multiple systems (e.g. NERSC).')
         parser.add_argument('product',nargs='?',default='NO PACKAGE',
@@ -294,7 +371,8 @@ class DesiInstall(object):
         else:
             command = [svn,'--non-interactive','--username',self.options.username,'ls',self.product_url]
             log.debug(' '.join(command))
-            proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            proc = subprocess.Popen(command,
+                universal_newlines=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
             out, err = proc.communicate()
             log.debug(out)
             if len(err) > 0:
@@ -341,7 +419,8 @@ class DesiInstall(object):
                 if self.options.test:
                     out, err = 'Test Mode.', ''
                 else:
-                    proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                    proc = subprocess.Popen(command,
+                        universal_newlines=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                     out, err = proc.communicate()
                 log.debug(out)
                 if len(err) > 0:
@@ -358,7 +437,8 @@ class DesiInstall(object):
                     if self.options.test:
                         out, err = 'Test Mode.', ''
                     else:
-                        proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                        proc = subprocess.Popen(command,
+                            universal_newlines=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                         out, err = proc.communicate()
                     log.debug(out)
                     if len(err) > 0:
@@ -399,7 +479,8 @@ class DesiInstall(object):
             if self.options.test:
                 out, err = 'Test Mode.', ''
             else:
-                proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                proc = subprocess.Popen(command,
+                universal_newlines=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                 out, err = proc.communicate()
             log.debug(out)
             if len(err) > 0:
@@ -482,7 +563,7 @@ class DesiInstall(object):
     #
     #
     #
-    def init_modules(self):
+    def start_modules(self):
         """Set up the modules infrastructure.
 
         Parameters
@@ -491,58 +572,20 @@ class DesiInstall(object):
 
         Returns
         -------
-        init_modules : bool
+        start_modules : bool
             ``True`` if the modules infrastructure was initialized successfully.
         """
-        log = logging.getLogger(__name__+'.DesiInstall.init_modules')
+        log = logging.getLogger(__name__+'.DesiInstall.start_modules')
         initpy_found = False
-        for modpy in ('python','python.py'):
-            initpy = join(self.options.moduleshome,'init',modpy)
-            if exists(initpy):
-                log.debug("Found Modules init file at {0}.".format(initpy))
-                initpy_found = True
-                execfile(initpy,globals())
-                def module_wrapper(self,command,*arguments):
-                    """Wrap the module function provided by the Modules init script.
-
-                    Parameters
-                    ----------
-                    command : str
-                        Command passed to the base module command.
-                    arguments : list
-                        Arguments passed to the module command.
-
-                    Returns
-                    -------
-                    module_wrapper : None
-                        Just like the module command.
-
-                    Notes
-                    -----
-                    The base module function does not update sys.path to
-                    reflect any additional directories added to
-                    :envvar:`PYTHONPATH`.  The wrapper function takes care
-                    of that (and uses set theory!).
-                    """
-                    try:
-                        old_python_path = set(environ['PYTHONPATH'].split(':'))
-                    except KeyError:
-                        old_python_path = set()
-                    module(command,*arguments)
-                    try:
-                        new_python_path = set(environ['PYTHONPATH'].split(':'))
-                    except KeyError:
-                        new_python_path = set()
-                    add_path = new_python_path - old_python_path
-                    for p in add_path:
-                        path.insert(int(path[0] == ''),p)
-                    return
-                self.module = instancemethod(module_wrapper,self,DesiInstall)
-        if not initpy_found:
+        module_method = init_modules(self.options.moduleshome,method=True)
+        if module_method is None:
             message = "Could not find the Python file in {0}/init!".format(self.options.moduleshome)
             log.critical(message)
             raise DesiInstallException(message)
-        return initpy_found
+        else:
+            log.debug("Found Modules init file in {0}.".format(self.options.moduleshome))
+            self.module = MethodType(module_method,self)
+        return True
     #
     #
     #
@@ -584,47 +627,7 @@ class DesiInstall(object):
     #
     #
     #
-    def configure_module(self):
-        """Decide what needs to go in the module file.
-
-        Parameters
-        ----------
-        None
-
-        Returns
-        -------
-        configure_module : dict
-            A dictionary containing the module configuration parameters.
-        """
-        self.module_keywords = {
-            'name': self.baseproduct,
-            'version': self.baseversion,
-            'needs_bin': '# ',
-            'needs_python': '# ',
-            'needs_trunk_py': '# ',
-            'needs_ld_lib': '# ',
-            'needs_idl': '# ',
-            'pyversion': "python{0:d}.{1:d}".format(*version_info)
-            }
-        if isdir(join(self.working_dir,'bin')):
-            self.module_keywords['needs_bin'] = ''
-        if isdir(join(self.working_dir,'lib')):
-            self.module_keywords['needs_ld_lib'] = ''
-        if isdir(join(self.working_dir,'pro')):
-            self.module_keywords['needs_idl'] = ''
-        if 'py' in self.build_type:
-            if self.is_branch or self.is_trunk:
-                self.module_keywords['needs_trunk_py'] = ''
-            else:
-                self.module_keywords['needs_python'] = ''
-        else:
-            if isdir(join(self.working_dir,'py')):
-                self.module_keywords['needs_trunk_py'] = ''
-        return self.module_keywords
-    #
-    #
-    #
-    def process_module(self):
+    def install_module(self):
         """Process the module file.
 
         Parameters
@@ -637,6 +640,17 @@ class DesiInstall(object):
             The text of the processed module file.
         """
         log = logging.getLogger(__name__+'.DesiInstall.process_module')
+        dev = False
+        if 'py' in build_type:
+            if self.is_trunk or self.is_branch:
+                dev = True
+        else:
+            if isdir(join(self.working_dir,'py')):
+                dev = True
+        log.debug("configure_module({0},{1},working_dir={2},dev={3})".format(
+            self.baseproduct,self.baseversion,self.working_dir,dev))
+        self.module_keywords = configure_module(self.baseproduct,self.baseversion,
+            working_dir=self.working_dir,dev=dev)
         if self.options.moduledir == '':
             #
             # We didn't set a module dir, so derive it from options.root
@@ -653,26 +667,19 @@ class DesiInstall(object):
                     except OSError as ose:
                         log.critical(ose.strerror)
                         raise DesiInstallException(ose.strerror)
-        if not self.options.test:
-            if not isdir(join(self.options.moduledir,self.baseproduct)):
-                try:
-                    makedirs(join(self.options.moduledir,self.baseproduct))
-                except OSError as ose:
-                    log.critical(ose.strerror)
-                    raise DesiInstallException(ose.strerror)
-        install_module_file = join(self.options.moduledir,self.baseproduct,self.baseversion)
-        with open(self.module_file) as m:
-            mod = m.read().format(**self.module_keywords)
         if self.options.test:
-            log.debug(mod)
+            log.debug("Test Mode. Skipping Module file installation.")
+            mod = ''
         else:
-            with open(install_module_file,'w') as m:
-                m.write(mod)
+            try:
+                log.debug("process_module('{0}',self.module_keywords,'{1}')".format(self.module_file,self.options.moduledir))
+                mod = process_module(self.module_file, self.module_keywords, self.options.moduledir)
+            except OSError as ose:
+                log.critical(ose.strerror)
+                raise DesiInstallException(ose.strerror)
             if self.options.default:
-                dot_version = '#%Module1.0\nset ModulesVersion "{0}"\n'.format(self.baseversion)
-                install_version_file = join(self.options.moduledir,self.baseproduct,'.version')
-                with open(install_version_file,'w') as v:
-                    v.write(dot_version)
+                log.debug("default_module(self.module_keywords,'{0}')".format(self.options.moduledir))
+                dot_version = default_module(self.module_keywords,self.options.moduledir)
         return mod
     #
     #
@@ -743,7 +750,8 @@ class DesiInstall(object):
                 chdir(self.install_dir)
                 command = ['make','-C', 'src', 'all']
                 log.info('Running "{0}" in {1}.'.format(' '.join(command),self.install_dir))
-                proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                proc = subprocess.Popen(command,
+                    universal_newlines=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                 out, err = proc.communicate()
                 log.debug(out)
                 if len(err) > 0:
@@ -780,7 +788,8 @@ class DesiInstall(object):
                 command = [executable, 'setup.py', 'install', '--prefix={0}'.format(self.install_dir)]
                 log.debug(' '.join(command))
                 if not self.options.test:
-                    proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                    proc = subprocess.Popen(command,
+                        universal_newlines=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                     out, err = proc.communicate()
                     log.debug(out)
                     if len(err) > 0:
@@ -800,7 +809,8 @@ class DesiInstall(object):
                     command = ['make', 'install']
                 log.debug(' '.join(command))
                 if not self.options.test:
-                    proc = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                    proc = subprocess.Popen(command,
+                        universal_newlines=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                     out, err = proc.communicate()
                     log.debug(out)
                     if len(err) > 0:
@@ -896,10 +906,9 @@ class DesiInstall(object):
             self.get_code()
             # build_type = self.set_build_type()
             self.set_install_dir()
-            self.init_modules()
+            self.start_modules()
             self.module_dependencies()
-            self.configure_module()
-            self.process_module()
+            self.install_module()
             self.copy_install()
             self.install()
             self.cross_install()
@@ -912,7 +921,7 @@ class DesiInstall(object):
 #
 #
 def main():
-    """Main program.
+    """Entry point for the desiInstall script.
 
     Parameters
     ----------

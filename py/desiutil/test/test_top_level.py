@@ -7,6 +7,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 #
 import unittest
 import re
+import sys
 from .. import __version__ as theVersion
 #
 class TestTopLevel(unittest.TestCase):
@@ -19,10 +20,19 @@ class TestTopLevel(unittest.TestCase):
     def tearDownClass(cls):
         pass
 
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        pass
+
     def test_version(self):
         """Ensure the version conforms to PEP386/PEP440.
         """
-        self.assertRegexpMatches(theVersion,self.versionre)
+        if sys.version_info.major == 3:
+            self.assertRegex(theVersion,self.versionre)
+        else:
+            self.assertRegexpMatches(theVersion,self.versionre)
 
 if __name__ == '__main__':
     unittest.main()
