@@ -185,7 +185,8 @@ class TestInstall(unittest.TestCase):
         out = self.desiInstall.get_product_version()
         url = self.desiInstall.identify_branch()
         self.assertEqual(url,
-                         'https://github.com/desihub/desiutil/archive/1.0.0.tar.gz')
+                         ('https://github.com/desihub/desiutil/archive/' +
+                          '1.0.0.tar.gz'))
         options = self.desiInstall.get_options(['desiutil', 'master'])
         out = self.desiInstall.get_product_version()
         url = self.desiInstall.identify_branch()
@@ -195,7 +196,8 @@ class TestInstall(unittest.TestCase):
         out = self.desiInstall.get_product_version()
         url = self.desiInstall.identify_branch()
         self.assertEqual(url,
-                         'https://desi.lbl.gov/svn/code/tools/desiAdmin/tags/1.0.0')
+                         ('https://desi.lbl.gov/svn/code/tools/desiAdmin/' +
+                          'tags/1.0.0'))
         options = self.desiInstall.get_options(['desiAdmin', 'trunk'])
         out = self.desiInstall.get_product_version()
         url = self.desiInstall.identify_branch()
@@ -206,7 +208,8 @@ class TestInstall(unittest.TestCase):
         out = self.desiInstall.get_product_version()
         url = self.desiInstall.identify_branch()
         self.assertEqual(url,
-                         'https://desi.lbl.gov/svn/code/tools/desiAdmin/branches/testing')
+                         ('https://desi.lbl.gov/svn/code/tools/desiAdmin/' +
+                          'branches/testing'))
 
     def test_verify_url(self):
         """Test the check for a valid svn URL.
@@ -218,9 +221,9 @@ class TestInstall(unittest.TestCase):
         self.desiInstall.product_url = 'http://desi.lbl.gov/no/such/place'
         with self.assertRaises(DesiInstallException) as cm:
             self.desiInstall.verify_url()
-        self.assertEqual(str(cm.exception),
-                         "Error {0:d} querying GitHub URL: {1}.".format(404,
-                                                                        self.desiInstall.product_url))
+        message = ("Error {0:d} querying GitHub URL: {1}.".format(
+                   404, self.desiInstall.product_url))
+        self.assertEqual(str(cm.exception), message)
         options = self.desiInstall.get_options(['-v', 'desiAdmin', 'trunk'])
         out = self.desiInstall.get_product_version()
         url = self.desiInstall.identify_branch()

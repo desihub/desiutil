@@ -19,11 +19,10 @@ def desiutil_test_suite():
     ``python setup.py test``.
     """
     from os.path import dirname
-    desiutil_dir = dirname(dirname(__file__))
+    py_dir = dirname(dirname(__file__))
     # print(desiutil_dir)
-    return unittest.defaultTestLoader.discover(desiutil_dir,
-                                               top_level_dir=dirname(
-                                                                     desiutil_dir))
+    return unittest.defaultTestLoader.discover(py_dir,
+                                               top_level_dir=dirname(py_dir))
 
 
 def runtests():

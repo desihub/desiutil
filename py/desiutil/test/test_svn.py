@@ -7,7 +7,7 @@ from __future__ import (absolute_import, division,
 # The line above will help with 2to3 support.
 import unittest
 from os import environ
-from os.path import abspath, dirname, isdirjoin
+from os.path import abspath, dirname, isdir, join
 from subprocess import Popen, PIPE
 from shutil import rmtree
 from ..svn import last_revision, last_tag, version
