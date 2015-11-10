@@ -8,10 +8,12 @@ desiutil.setup
 This package contains code that might be useful in DESI setup.py files.
 """
 from __future__ import absolute_import, division, print_function
-# Note: distutils can be sensitive to unicode, so dont import unicode_literals.
-import os
+# Note: distutils can be sensitive to unicode, so don't import
+# unicode_literals.
 import re
 import unittest
+from os import environ
+from os.path import abspath, exists, isdir, isfile, join
 from sys import exit
 from setuptools import Command
 from setuptools.compat import PY3
@@ -22,72 +24,88 @@ from distutils.log import INFO, WARN, ERROR
 from .svn import version as svn_version
 from .git import version as git_version
 from .modules import configure_module, process_module, default_module
-#
-#
-#
+
+
 class DesiModule(Command):
-    """Allow users to install module files with ``python setup.py module_file``.
+    """Allow users to install module files with
+    ``python setup.py module_file``.
     """
     description = "install a module file for this package"
-    user_options = [ ('default', 'd', 'Set this version as the default Module file.'),
-        ('modules=', 'm', 'Set the Module install directory.')
-        ]
+    user_options = [('default', 'd',
+                     'Set this version as the default Module file.'),
+                    ('modules=', 'm', 'Set the Module install directory.')
+                    ]
     boolean_options = ['default']
+
     def initialize_options(self):
         self.modules = None
         self.default = False
+
     def finalize_options(self):
         if self.modules is None:
             try:
-                self.modules = os.path.join('/project/projectdirs/desi/software/modules',os.environ['NERSC_HOST'])
+                self.modules = join(
+                        '/project/projectdirs/desi/software/modules',
+                        environ['NERSC_HOST'])
             except KeyError:
                 try:
-                    self.modules = os.path.join(os.environ['DESI_PRODUCT_ROOT'],'modulefiles')
+                    self.modules = join(
+                                    environ['DESI_PRODUCT_ROOT'],
+                                    'modulefiles')
                 except KeyError:
-                    self.announce("Could not determine a Module install directory!", level=ERROR)
+                    self.announce(
+                            "Could not determine a Module install directory!",
+                            level=ERROR)
                     exit(1)
+
     def run(self):
         meta = self.distribution.metadata
         name = meta.get_name()
         version = meta.get_version()
         dev = 'dev' in version
-        working_dir = os.path.abspath('.')
+        working_dir = abspath('.')
         module_keywords = configure_module(name, version, dev=dev)
-        module_file = os.path.join(working_dir,'etc','{0}.module'.format(name))
-        if os.path.exists(module_file):
-            process_module(module_file,module_keywords,self.modules)
+        module_file = join(working_dir, 'etc', '{0}.module'.format(
+                                   name))
+        if exists(module_file):
+            process_module(module_file, module_keywords, self.modules)
         else:
-            self.announce("Could not find a Module file: {}.".format(module_file), level=ERROR)
+            self.announce("Could not find a Module file: {}.".format(
+                          module_file), level=ERROR)
         if self.default:
-            default_module(module_keywords,self.modules)
+            default_module(module_keywords, self.modules)
         return
-#
-#
-#
-class DesiTest(BaseTest,object):
+
+
+class DesiTest(BaseTest, object):
     """Add coverage to test commands.
     """
     description = "run unit tests after in-place build"
-    user_options = [
-        ('test-module=', 'm', "Run 'test_suite' in specified module"),
-        ('test-suite=', 's',
-         "Test suite to run (e.g. 'some_module.test_suite')"),
-        ('test-runner=', 'r', "Test runner to use"),
-        ('coverage', 'c', 'Create a coverage report. Requires the coverage package.')
-    ]
+    user_options = [('test-module=', 'm',
+                     "Run 'test_suite' in specified module"),
+                    ('test-suite=', 's',
+                     "Test suite to run (e.g. 'some_module.test_suite')"),
+                    ('test-runner=', 'r', "Test runner to use"),
+                    ('coverage', 'c', ('Create a coverage report. ' +
+                     'Requires the coverage package.'))
+                    ]
     boolean_options = ['coverage']
+
     def initialize_options(self):
         self.coverage = False
-        super(DesiTest,self).initialize_options()
+        super(DesiTest, self).initialize_options()
+
     def finalize_options(self):
         if self.coverage:
             try:
                 import coverage
             except ImportError:
-                self.announce("--coverage requires that the coverage package is installed, disabling coverage option.",level=WARN)
+                self.announce(("--coverage requires that the coverage " +
+                               "package is installed, disabling coverage" +
+                               "option."), level=WARN)
                 self.coverage = False
-                # raise ImportError("--coverage requires that the coverage package is installed.")
-        super(DesiTest,self).finalize_options()
+        super(DesiTest, self).finalize_options()
+
     def run_tests(self):
         # Purge modules under test from sys.modules. The test loader will
         # re-import them from the build location. Required when 2to3 is used
@@ -106,45 +124,53 @@ class DesiTest(BaseTest,object):
         if self.coverage:
             self.announce("Coverage selected!", level=INFO)
             import coverage
-            cov = coverage.coverage(data_file=os.path.abspath(".coverage"), config_file=os.path.abspath(".coveragerc"))
+            cov = coverage.coverage(data_file=abspath(".coverage"),
+                                    config_file=abspath(".coveragerc"))
             cov.start()
 
-        result = unittest_main(
-            None, None, [unittest.__file__] + self.test_args,
-            testLoader=self._resolve_as_ep(self.test_loader),
-            testRunner=self._resolve_as_ep(self.test_runner),
-            exit=False
-            )
+        result = unittest_main(None, None,
+                               ([unittest.__file__] + self.test_args),
+                               testLoader=self._resolve_as_ep(
+                                            self.test_loader),
+                               testRunner=self._resolve_as_ep(
+                                            self.test_runner),
+                               exit=False)
         if result.result.wasSuccessful():
             if self.coverage:
                 cov.stop()
-                self.announce('Saving coverage data in .coverage...', level=INFO)
+                self.announce('Saving coverage data in .coverage...',
+                              level=INFO)
                 cov.save()
-                self.announce('Saving HTML coverage report in htmlcov...', level=INFO)
-                cov.html_report(directory=os.path.abspath('htmlcov'))
+                self.announce('Saving HTML coverage report in htmlcov...',
+                              level=INFO)
+                cov.html_report(directory=abspath.abspath('htmlcov'))
         else:
             exit(1)
-#
-#
-#
+
+
 class DesiVersion(Command):
-    """Allow users to easily update the package version with ``python setup.py version``.
+    """Allow users to easily update the package version with
+    ``python setup.py version``.
     """
     description = "update _version.py from git repo"
-    user_options = [ ('tag=', 't', 'Set the version to a name in preparation for tagging.'), ]
+    user_options = [('tag=', 't',
+                     'Set the version to a name in preparation for tagging.'),
+                    ]
     boolean_options = []
+
     def initialize_options(self):
         self.tag = None
+
     def finalize_options(self):
         pass
+
     def run(self):
         meta = self.distribution.metadata
-        update_version(meta.get_name(),tag=self.tag)
+        update_version(meta.get_name(), tag=self.tag)
         ver = get_version(meta.get_name())
-        self.announce("Version is now {}.".format( ver ), level=INFO)
-#
-#
-#
+        self.announce("Version is now {}.".format(ver), level=INFO)
+
+
 def find_version_directory(productname):
     """Return the name of a directory containing version information.
 
@@ -168,18 +194,18 @@ def find_version_directory(productname):
     IOError
         If no valid directory can be found.
     """
-    setup_dir = os.path.abspath('.')
-    if os.path.isdir(os.path.join(setup_dir,'py',productname)):
-        version_dir = os.path.join(setup_dir,'py',productname)
-    elif os.path.isdir(os.path.join(setup_dir,productname)):
-        version_dir = os.path.join(setup_dir,productname)
+    setup_dir = abspath('.')
+    if isdir(join(setup_dir, 'py', productname)):
+        version_dir = join(setup_dir, 'py', productname)
+    elif isdir(join(setup_dir, productname)):
+        version_dir = join(setup_dir, productname)
     else:
-        raise IOError("Could not find a directory containing version information!")
+        raise IOError(
+                "Could not find a directory containing version information!")
     return version_dir
-#
-#
-#
-def get_version(productname,debug=False):
+
+
+def get_version(productname, debug=False):
     """Get the value of ``__version__`` without having to import the module.
 
     Parameters
@@ -199,21 +225,20 @@ def get_version(productname,debug=False):
         version_dir = find_version_directory(productname)
     except IOError:
         return ver
-    version_file = os.path.join(version_dir,'_version.py')
-    if not os.path.isfile(version_file):
+    version_file = join(version_dir, '_version.py')
+    if not isfile(version_file):
         if debug:
             print('Creating initial version file.')
-        update_version(productname,debug=debug)
+        update_version(productname, debug=debug)
     with open(version_file, "r") as f:
         for line in f.readlines():
             mo = re.match("__version__ = '(.*)'", line)
             if mo:
                 ver = mo.group(1)
     return ver
-#
-#
-#
-def update_version(productname,tag=None,debug=False):
+
+
+def update_version(productname, tag=None, debug=False):
     """Update the _version.py file.
 
     Parameters
@@ -233,16 +258,16 @@ def update_version(productname,tag=None,debug=False):
     if tag is not None:
         ver = tag
     else:
-        if os.path.isdir(".svn"):
+        if isdir(".svn"):
             ver = svn_version(productname)
-        elif os.path.isdir(".git"):
+        elif isdir(".git"):
             ver = git_version()
         else:
             print("Could not determine repository type.")
             return
-    version_file = os.path.join(version_dir,'_version.py')
+    version_file = join(version_dir, '_version.py')
     with open(version_file, "w") as f:
-        f.write( "__version__ = '{}'\n".format( ver ) )
+        f.write("__version__ = '{}'\n".format(ver))
     if debug:
-        print("Set {0} to {1}".format( version_file, ver ))
+        print("Set {0} to {1}".format(version_file, ver))
     return

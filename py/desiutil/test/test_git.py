@@ -2,17 +2,17 @@
 # -*- coding: utf-8 -*-
 """test desiutil.git
 """
-#
-from __future__ import absolute_import, division, print_function, unicode_literals
-#
+from __future__ import (absolute_import, division,
+                        print_function, unicode_literals)
+# The line above will help with 2to3 support.
 import unittest
 from ..git import version
-#
-#
-#
+
+
 class TestSetup(unittest.TestCase):
     """Test desiutil.git.
     """
+
     @classmethod
     def setUpClass(cls):
         pass
@@ -25,8 +25,8 @@ class TestSetup(unittest.TestCase):
         """Test automated determination of git version.
         """
         v = version('/no/such/executable')
-        self.assertEqual(v,'0.0.1.dev0')
+        self.assertEqual(v, '0.0.1.dev0')
         v = version('false')
-        self.assertEqual(v,'0.0.1.dev0')
+        self.assertEqual(v, '0.0.1.dev0')
         v = version('echo')
-        self.assertEqual(v,'describe .devrev-list --count HEAD')
+        self.assertEqual(v, 'describe .devrev-list --count HEAD')

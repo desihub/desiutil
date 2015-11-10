@@ -7,10 +7,11 @@ desiutil.svn
 
 This package contains code for interacting with DESI svn products.
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import (absolute_import, division,
+                        print_function, unicode_literals)
 # The line above will help with 2to3 support.
-#
-#
+
+
 def last_revision(product):
     """Get the svn revision number.
 
@@ -26,8 +27,8 @@ def last_revision(product):
     svn checkout directory.
     """
     from subprocess import Popen, PIPE
-    proc = Popen(['svnversion','-n','.'],
-        universal_newlines=True, stdout=PIPE, stderr=PIPE)
+    proc = Popen(['svnversion', '-n', '.'],
+                 universal_newlines=True, stdout=PIPE, stderr=PIPE)
     out, err = proc.communicate()
     # svn 1.7.x says 'Unversioned', svn < 1.7 says 'exported'.
     if out.startswith('Unversioned') or out.startswith('exported'):
@@ -36,12 +37,11 @@ def last_revision(product):
         rev = out.split(':')[1]
     else:
         rev = out
-    rev = rev.replace('M','').replace('S','').replace('P','')
+    rev = rev.replace('M', '').replace('S', '').replace('P', '')
     return rev
-#
-#
-#
-def last_tag(tags,username=None):
+
+
+def last_tag(tags, username=None):
     """Scan an SVN tags directory and return the most recent tag.
 
     Parameters
@@ -61,19 +61,18 @@ def last_tag(tags,username=None):
     command = ['svn', '--non-interactive']
     if username is not None:
         command += ['--username', username]
-    command += ['ls',tags]
-    proc = Popen(command,universal_newlines=True,stdout=PIPE,stderr=PIPE)
+    command += ['ls', tags]
+    proc = Popen(command, universal_newlines=True, stdout=PIPE, stderr=PIPE)
     out, err = proc.communicate()
     try:
         mrt = sorted([v.rstrip('/') for v in out.split('\n') if len(v) > 0],
-            key=lambda x: V(x))[-1]
+                     key=lambda x: V(x))[-1]
     except IndexError:
         mrt = '0.0.0'
     return mrt
-#
-#
-#
-def version(productname,url=None):
+
+
+def version(productname, url=None):
     """Returns the version of a package.
 
     Parameters
@@ -99,11 +98,11 @@ def version(productname,url=None):
     """
     from .install import known_products
     if productname in known_products:
-        myversion = (last_tag(known_products[productname]+'/tags') + '.dev'
-            + last_revision(productname))
+        myversion = (last_tag(known_products[productname]+'/tags') + '.dev' +
+                     last_revision(productname))
     elif url is not None:
-        myversion = (last_tag(url+'/tags') + '.dev'
-            + last_revision(productname))
+        myversion = (last_tag(url+'/tags') + '.dev' +
+                     last_revision(productname))
     else:
         myversion = '0.0.1.dev0'
     return myversion

@@ -2,17 +2,17 @@
 # -*- coding: utf-8 -*-
 """test desiutil.setup
 """
-#
-from __future__ import absolute_import, division, print_function, unicode_literals
-#
+from __future__ import (absolute_import, division,
+                        print_function, unicode_literals)
+# The line above will help with 2to3 support.
 import unittest
 from ..setup import find_version_directory
-#
-#
-#
+
+
 class TestSetup(unittest.TestCase):
     """Test desiutil.setup.
     """
+
     @classmethod
     def setUpClass(cls):
         pass
