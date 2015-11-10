@@ -9,11 +9,12 @@ This package contains code for processing and installing `Module files`_.
 
 .. _`Module files`: http://modules.sourceforge.net
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
-#
-#
-#
-def init_modules(moduleshome=None,method=False):
+from __future__ import (absolute_import, division,
+                        print_function, unicode_literals)
+# The line above will help with 2to3 support.
+
+
+def init_modules(moduleshome=None, method=False):
     """Set up the Modules infrastructure.
 
     Parameters
@@ -38,12 +39,12 @@ def init_modules(moduleshome=None,method=False):
             moduleshome = os.environ['MODULESHOME']
         except KeyError:
             return None
-    for modpy in ('python','python.py'):
-        initpy = os.path.join(moduleshome,'init',modpy)
+    for modpy in ('python', 'python.py'):
+        initpy = os.path.join(moduleshome, 'init', modpy)
         if os.path.exists(initpy):
-            execfile(initpy,globals())
+            execfile(initpy, globals())
             if method:
-                def module_method(self,command,*arguments):
+                def module_method(self, command, *arguments):
                     """Wrap the module function provided by the Modules init script.
 
                     Parameters
@@ -71,18 +72,18 @@ def init_modules(moduleshome=None,method=False):
                         old_python_path = set(environ['PYTHONPATH'].split(':'))
                     except KeyError:
                         old_python_path = set()
-                    module(command,*arguments)
+                    module(command, *arguments)
                     try:
                         new_python_path = set(environ['PYTHONPATH'].split(':'))
                     except KeyError:
                         new_python_path = set()
                     add_path = new_python_path - old_python_path
                     for p in add_path:
-                        path.insert(int(path[0] == ''),p)
+                        path.insert(int(path[0] == ''), p)
                     return
                 return module_method
             else:
-                def module_wrapper(command,*arguments):
+                def module_wrapper(command, *arguments):
                     """Wrap the module function provided by the Modules init script.
 
                     Parameters
@@ -110,21 +111,20 @@ def init_modules(moduleshome=None,method=False):
                         old_python_path = set(environ['PYTHONPATH'].split(':'))
                     except KeyError:
                         old_python_path = set()
-                    module(command,*arguments)
+                    module(command, *arguments)
                     try:
                         new_python_path = set(environ['PYTHONPATH'].split(':'))
                     except KeyError:
                         new_python_path = set()
                     add_path = new_python_path - old_python_path
                     for p in add_path:
-                        path.insert(int(path[0] == ''),p)
+                        path.insert(int(path[0] == ''), p)
                     return
                 return module_wrapper
     return None
-#
-#
-#
-def configure_module(product,version,working_dir=None,dev=False):
+
+
+def configure_module(product, version, working_dir=None, dev=False):
     """Decide what needs to go in the Module file.
 
     Parameters
@@ -160,21 +160,20 @@ def configure_module(product,version,working_dir=None,dev=False):
         'needs_idl': '# ',
         'pyversion': "python{0:d}.{1:d}".format(*version_info)
         }
-    if isdir(join(working_dir,'bin')):
+    if isdir(join(working_dir, 'bin')):
         module_keywords['needs_bin'] = ''
-    if isdir(join(working_dir,'lib')):
+    if isdir(join(working_dir, 'lib')):
         module_keywords['needs_ld_lib'] = ''
-    if isdir(join(working_dir,'pro')):
+    if isdir(join(working_dir, 'pro')):
         module_keywords['needs_idl'] = ''
-    if isdir(join(working_dir,'py')):
+    if isdir(join(working_dir, 'py')):
         if dev:
             module_keywords['needs_trunk_py'] = ''
         else:
             module_keywords['needs_python'] = ''
     return module_keywords
-#
-#
-#
+
+
 def process_module(module_file, module_keywords, module_dir):
     """Process a Module file.
 
@@ -194,17 +193,17 @@ def process_module(module_file, module_keywords, module_dir):
     """
     from os import makedirs
     from os.path import isdir, join
-    if not isdir(join(module_dir,module_keywords['name'])):
-        makedirs(join(module_dir,module_keywords['name']))
-    install_module_file = join(module_dir,module_keywords['name'],module_keywords['version'])
+    if not isdir(join(module_dir, module_keywords['name'])):
+        makedirs(join(module_dir, module_keywords['name']))
+    install_module_file = join(module_dir, module_keywords['name'],
+                               module_keywords['version'])
     with open(module_file) as m:
         mod = m.read().format(**module_keywords)
-    with open(install_module_file,'w') as m:
+    with open(install_module_file, 'w') as m:
         m.write(mod)
     return mod
-#
-#
-#
+
+
 def default_module(module_keywords, module_dir):
     """Install or update a .version file to set the default Module.
 
@@ -221,8 +220,10 @@ def default_module(module_keywords, module_dir):
         The text of the processed .version file.
     """
     from os.path import join
-    dot_version = '#%Module1.0\nset ModulesVersion "{0}"\n'.format(module_keywords['version'])
-    install_version_file = join(module_dir,module_keywords['name'],'.version')
-    with open(install_version_file,'w') as v:
+    dot_version = '#%Module1.0\nset ModulesVersion "{0}"\n'.format(
+                    module_keywords['version'])
+    install_version_file = join(module_dir, module_keywords['name'],
+                                '.version')
+    with open(install_version_file, 'w') as v:
         v.write(dot_version)
     return dot_version

@@ -5,7 +5,9 @@ Change Log
 1.1.1 (unreleased)
 ------------------
 
-* No changes yet.
+* Code is now `PEP 8`_ compliant.
+
+.. _`PEP 8`: http://legacy.python.org/dev/peps/pep-0008/
 
 1.1.0 (2015-11-06)
 ------------------

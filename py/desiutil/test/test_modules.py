@@ -2,29 +2,31 @@
 # -*- coding: utf-8 -*-
 """test desiutil.modules
 """
-#
-from __future__ import absolute_import, division, print_function, unicode_literals
-#
-import os
-import sys
+from __future__ import (absolute_import, division,
+                        print_function, unicode_literals)
+# The line above will help with 2to3 support.
 import unittest
+from os import environ, mkdir, rmdir
+from os.path import dirname, join
+from sys import version_info
 from ..modules import init_modules, configure_module
-#
-#
-#
+
+
 class TestModules(unittest.TestCase):
     """Test desiutil.modules.
     """
+
     @classmethod
     def setUpClass(cls):
         # Data directory
-        cls.data_dir = os.path.join(os.path.dirname(__file__),'t')
+        cls.data_dir = join(dirname(__file__), 't')
 
     @classmethod
     def tearDownClass(cls):
         pass
 
-    @unittest.skipUnless('MODULESHOME' in os.environ,'Skipping because MODULESHOME is not defined.')
+    @unittest.skipUnless('MODULESHOME' in environ,
+                         'Skipping because MODULESHOME is not defined.')
     def test_init_modules(self):
         """Test the initialization of the Modules environment.
         """
@@ -38,7 +40,7 @@ class TestModules(unittest.TestCase):
     def test_configure_module(self):
         """Test detection of directories for module configuration.
         """
-        test_dirs = ('bin','lib','pro','py')
+        test_dirs = ('bin', 'lib', 'pro', 'py')
         results = {
             'name': 'foo',
             'version': 'bar',
@@ -47,17 +49,18 @@ class TestModules(unittest.TestCase):
             'needs_trunk_py': '# ',
             'needs_ld_lib': '',
             'needs_idl': '',
-            'pyversion': "python{0:d}.{1:d}".format(*sys.version_info)
-        }
+            'pyversion': "python{0:d}.{1:d}".format(*version_info)
+            }
         for t in test_dirs:
-            os.mkdir(os.path.join(self.data_dir,t))
-        conf = configure_module('foo','bar',working_dir=self.data_dir)
+            mkdir(join(self.data_dir, t))
+        conf = configure_module('foo', 'bar', working_dir=self.data_dir)
         for key in results:
-            self.assertEqual(conf[key],results[key])
+            self.assertEqual(conf[key], results[key])
         results['needs_python'] = '# '
         results['needs_trunk_py'] = ''
-        conf = configure_module('foo','bar',working_dir=self.data_dir,dev=True)
+        conf = configure_module('foo', 'bar', working_dir=self.data_dir,
+                                dev=True)
         for key in results:
-            self.assertEqual(conf[key],results[key])
+            self.assertEqual(conf[key], results[key])
         for t in test_dirs:
-            os.rmdir(os.path.join(self.data_dir,t))
+            rmdir(join(self.data_dir, t))
