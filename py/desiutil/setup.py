@@ -143,7 +143,7 @@ class DesiTest(BaseTest, object):
                 cov.save()
                 self.announce('Saving HTML coverage report in htmlcov...',
                               level=INFO)
-                cov.html_report(directory=abspath.abspath('htmlcov'))
+                cov.html_report(directory=abspath('htmlcov'))
         else:
             exit(1)
 
