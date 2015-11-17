@@ -5,6 +5,7 @@ Change Log
 1.1.1 (unreleased)
 ------------------
 
+* Update the list of NERSC hosts.
 * Code is now `PEP 8`_ compliant.
 
 .. _`PEP 8`: http://legacy.python.org/dev/peps/pep-0008/
