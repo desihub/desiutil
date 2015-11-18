@@ -995,6 +995,7 @@ class DesiInstall(object):
             self.start_modules()
             self.module_dependencies()
             self.install_module()
+            self.prepare_environment()
             self.copy_install()
             self.install()
             self.cross_install()

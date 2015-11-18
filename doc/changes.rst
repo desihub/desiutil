@@ -8,6 +8,7 @@ Change Log
 * Fixed a minor variable name bug.
 * Ignore warnings produced by processing MANIFEST.in.
 * Fixed return value in cross_install.
+* Fixed a missing run stage.
 
 1.1.1 (2015-11-18)
 ------------------
