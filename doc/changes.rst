@@ -5,7 +5,7 @@ Change Log
 1.1.2 (unreleased)
 ------------------
 
-* No changes yet.
+* Fixed a minor variable name bug.
 
 1.1.1 (2015-11-18)
 ------------------

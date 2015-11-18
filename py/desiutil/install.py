@@ -700,7 +700,7 @@ class DesiInstall(object):
         """
         log = logging.getLogger(__name__ + '.DesiInstall.process_module')
         dev = False
-        if 'py' in build_type:
+        if 'py' in self.build_type:
             if self.is_trunk or self.is_branch:
                 dev = True
         else:
