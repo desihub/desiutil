@@ -920,13 +920,13 @@ class DesiInstall(object):
                                self.baseproduct)
                     if not islink(dst):
                         src = join('..', self.cross_install_host,
-                                    self.baseproduct)
+                                   self.baseproduct)
                         links.append((src, dst))
                     dst = join('/project/projectdirs/desi/software/modules',
                                nh, self.baseproduct)
                     if not islink(dst):
                         src = join('..', self.cross_install_host,
-                                    self.baseproduct)
+                                   self.baseproduct)
                         links.append((src, dst))
                 for s, d in links:
                     log.debug("symlink('{0}', '{1}')".format(s, d))
