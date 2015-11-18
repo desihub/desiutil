@@ -123,6 +123,8 @@ class DesiInstall(object):
         The bare name of the product, *e.g.* "desiutil".
     baseversion : str
         The bare version, without any ``branches/`` qualifiers.
+    cross_install_host : str
+        The NERSC host on which to perform cross-installs.
     executable : str
         The command used to invoke the script.
     fullproduct : str
@@ -138,6 +140,8 @@ class DesiInstall(object):
         The log level.
     nersc : str
         Holds the value of :envvar:`NERSC_HOST`, or ``None`` if not defined.
+    nersc_hosts : tuple
+        The list of NERSC hosts names to be used for cross-installs.
     options : argparse.Namespace
         The parsed command-line options.
     product_url : str
@@ -146,6 +150,8 @@ class DesiInstall(object):
     test : bool
         Captures the value of the `test` argument passed to the constructor.
     """
+    cross_install_host = 'edison'
+    nersc_hosts = ('cori', 'edison', 'hopper', 'datatran', 'scigate')
 
     def __init__(self, test=False):
         """Bare-bones initialization.  The only thing done here is setting up
@@ -899,25 +905,28 @@ class DesiInstall(object):
             A list of the symlinks created.
         """
         log = logging.getLogger(__name__ + '.DesiInstall.cross_install')
-        cross_install_host = 'edison'
         if self.options.cross_install:
             if self.nersc is None:
                 log.error("Cross-installs are only supported at NERSC.")
-            elif self.nersc != cross_install_host:
+            elif self.nersc != self.cross_install_host:
                 log.error("Cross-installs should be performed on {0}.".format(
-                          cross_install_host))
+                          self.cross_install_host))
             else:
                 links = list()
-                for nh in ('hopper', 'datatran', 'scigate'):
+                for nh in self.nersc_hosts:
+                    if nh == self.cross_install_host:
+                        continue
                     dst = join('/project/projectdirs/desi/software', nh,
                                self.baseproduct)
                     if not islink(dst):
-                        src = join('..', cross_install_host, self.baseproduct)
+                        src = join('..', self.cross_install_host,
+                                   self.baseproduct)
                         links.append((src, dst))
                     dst = join('/project/projectdirs/desi/software/modules',
                                nh, self.baseproduct)
                     if not islink(dst):
-                        src = join('..', cross_install_host, self.baseproduct)
+                        src = join('..', self.cross_install_host,
+                                   self.baseproduct)
                         links.append((src, dst))
                 for s, d in links:
                     log.debug("symlink('{0}', '{1}')".format(s, d))
