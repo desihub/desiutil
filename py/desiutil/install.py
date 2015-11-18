@@ -13,6 +13,7 @@ from __future__ import (absolute_import, division,
 import requests
 import tarfile
 import logging
+import re
 from logging.handlers import MemoryHandler
 from subprocess import Popen, PIPE
 try:
@@ -866,9 +867,21 @@ class DesiInstall(object):
                     out, err = proc.communicate()
                     log.debug(out)
                     if len(err) > 0:
-                        message = "Error during installation: {0}".format(err)
-                        log.critical(message)
-                        raise DesiInstallException(message)
+                        #
+                        # Some warnings can be produced by processing
+                        # MANIFEST.in and not finding directories.  These
+                        # can be ignored.
+                        #
+                        manifestre = re.compile(r"no previously-included " +
+                                                r"directories found " +
+                                                r"matching '[^']+'")
+                        lines = [l for l in err.split('\n') if len(l) > 0 and
+                                 manifestre.search(l) is None]
+                        if len(lines) > 0:
+                            message = ("Error during installation: " +
+                                       "{0}".format(err))
+                            log.critical(message)
+                            raise DesiInstallException(message)
             #
             # At this point either we have already completed a Python
             # installation or we still need to compile the C/C++ product
@@ -905,6 +918,7 @@ class DesiInstall(object):
             A list of the symlinks created.
         """
         log = logging.getLogger(__name__ + '.DesiInstall.cross_install')
+        links = list()
         if self.options.cross_install:
             if self.nersc is None:
                 log.error("Cross-installs are only supported at NERSC.")
@@ -912,7 +926,6 @@ class DesiInstall(object):
                 log.error("Cross-installs should be performed on {0}.".format(
                           self.cross_install_host))
             else:
-                links = list()
                 for nh in self.nersc_hosts:
                     if nh == self.cross_install_host:
                         continue
