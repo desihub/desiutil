@@ -71,7 +71,7 @@ class BitMask(object):
 
         Typical users are not expected to create BitMask objects directly.
         """
-        self._bits = dict()        
+        self._bits = dict()
         self._name = name
         # self._bitname = dict()  #- key num -> value name
         # self._bitnum = dict()   #- key name -> value num
@@ -89,10 +89,6 @@ class BitMask(object):
     def __getitem__(self, bitname):
         return self._bits[bitname]
 
-    # def extra(self, bitname):
-    #     """Return extra metadata for bitname (or an empty dict if no extra info)"""
-    #     return self.[bitname]
-    # 
     def bitnum(self, bitname):
         """Return bit number (int) for bitname (string)"""
         return self._bits[bitname].bitnum
@@ -107,7 +103,7 @@ class BitMask(object):
 
     def mask(self, name_or_num):
         """Return mask value, e.g.
-        
+
         bitmask.mask(3)         #- 2**3
         bitmask.mask('BLAT')
         bitmask.mask('BLAT|FOO')
@@ -126,10 +122,10 @@ class BitMask(object):
         """
         names = list()
         if mask is None:
-            #- use keys and sort to return names in order of bit number
-            for key, bit in sorted(self._bits.items()):
-                if isinstance(key, int):
-                    names.append(bit.name)
+            #- return names in sorted order of bitnum
+            bitnums = [x for x in self._bits.keys() if isinstance(x, int)]
+            for bitnum in sorted(bitnums):
+                names.append(self._bits[bitnum].name)
         else:
             bitnum = 0
             while bitnum**2 <= mask:
@@ -153,8 +149,11 @@ class BitMask(object):
     def __repr__(self):
         result = list()
         result.append( self._name+':' )
-        for key, bit in sorted(self._bits.items()):
-            if isinstance(key, int):
-                result.append('    - [{:16s} {:2d}, "{}"]'.format(bit.name, bit.bitnum, bit.comment))
+        #- return names in sorted order of bitnum
+        bitnums = [x for x in self._bits.keys() if isinstance(x, int)]
+        for bitnum in sorted(bitnums):
+            bit = self._bits[bitnum]
+            result.append('    - [{:16s} {:2d}, "{}"]'.format(bit.name, bit.bitnum, bit.comment))
 
         return "\n".join(result)
+
