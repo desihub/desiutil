@@ -37,8 +37,9 @@ Example::
     ccdmask.names()            #- ['BAD', 'HOT', 'DEAD', 'SATURATED', 'COSMIC']
     ccdmask.names(3)           #- ['BAD', 'HOT']
     ccdmask.comment(0)         #- "Pre-determined bad pixel (any reason)"
-    ccdmask.comment('COSMIC')  #- "Cosmic ray"    
+    ccdmask.comment('COSMIC')  #- "Cosmic ray"
 """
+
 
 class _MaskBit(int):
     """
@@ -52,11 +53,17 @@ class _MaskBit(int):
         self.mask = 2**bitnum
         self.comment = comment
         for key, value in extra.items():
-            assert key not in ('bitlength', 'conjugate', 'real', 'imag', 'numerator', 'denominator'), "key '{}' already in use by int objects".format(key)
+            assert key not in (
+                'bitlength', 'conjugate', 'real', 'imag',
+                'numerator', 'denominator'), \
+                "key '{}' already in use by int objects".format(key)
             self.__dict__[key] = value
         return self
+
     def __str__(self):
-        return '{:16s} bit {} mask 0x{:X} - {}'.format(self.name, self.bitnum, self.mask, self.comment)
+        return '{:16s} bit {} mask 0x{:X} - {}'.format(
+            self.name, self.bitnum, self.mask, self.comment)
+
 
 #- Class to provide mask bit utility functions
 class BitMask(object):
@@ -73,10 +80,6 @@ class BitMask(object):
         """
         self._bits = dict()
         self._name = name
-        # self._bitname = dict()  #- key num -> value name
-        # self._bitnum = dict()   #- key name -> value num
-        # self._comment = dict()  #- key name or num -> comment
-        # self._extra = dict()
         for x in bitdefs[name]:
             bitname, bitnum, comment = x[0:3]
             if len(x) == 4:
@@ -148,12 +151,12 @@ class BitMask(object):
     #- What to print
     def __repr__(self):
         result = list()
-        result.append( self._name+':' )
+        result.append(self._name+':')
         #- return names in sorted order of bitnum
         bitnums = [x for x in self._bits.keys() if isinstance(x, int)]
         for bitnum in sorted(bitnums):
             bit = self._bits[bitnum]
-            result.append('    - [{:16s} {:2d}, "{}"]'.format(bit.name, bit.bitnum, bit.comment))
+            result.append('    - [{:16s} {:2d}, "{}"]'.format(
+                bit.name, bit.bitnum, bit.comment))
 
         return "\n".join(result)
-
