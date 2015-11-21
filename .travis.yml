@@ -23,7 +23,6 @@ addons:
             - graphviz
             - texlive-latex-extra
             - dvipng
-            - pyyaml
 python:
     - 2.7
     - 3.3
