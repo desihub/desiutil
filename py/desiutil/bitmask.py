@@ -13,11 +13,11 @@ Fall 2015
 
 Example::
 
-    from desiutil.maskbits import BitMask
+    #- Creating a BitMask
+    from desiutil.bitmask import BitMask
 
     import yaml
     _bitdefs = yaml.load('''
-    #- CCD pixel mask
     ccdmask:
         - [BAD,       0, "Pre-determined bad pixel (any reason)"]
         - [HOT,       1, "Hot pixel"]
@@ -27,7 +27,8 @@ Example::
     ''')
     ccdmask = BitMask('ccdmask', _bitdefs)
 
-    ccdmask.COSMIC | ccdmask.SATURATED
+    #- Accessing the mask
+    ccdmask.COSMIC | ccdmask.SATURATED  #- 2**4 + 2**3
     ccdmask.mask('COSMIC')     #- 2**4, same as ccdmask.COSMIC
     ccdmask.mask(4)            #- 2**4, same as ccdmask.COSMIC
     ccdmask.COSMIC             #- 2**4, same as ccdmask.mask('COSMIC')
@@ -37,9 +38,29 @@ Example::
     ccdmask.names(3)           #- ['BAD', 'HOT']
     ccdmask.comment(0)         #- "Pre-determined bad pixel (any reason)"
     ccdmask.comment('COSMIC')  #- "Cosmic ray"    
+    
+Playing with syntax:
+
+targetmask.LRG.priority[targetstate.UNOBS]
 """
 
-#- Move these definitions into a separate yaml file
+class _MaskBit(int):
+    """
+    A single mask bit.  Subclasses int to act like an int, but allows the
+    ability to extend with blat.name, blat.comment, blat.mask, blat.bitnum.
+    """
+    def __new__(cls, name, bitnum, comment, extra=dict()):
+        self = super(_MaskBit, cls).__new__(cls, 2**bitnum)
+        self.name = name
+        self.bitnum = bitnum
+        self.mask = 2**bitnum
+        self.comment = comment
+        for key, value in extra.items():
+            assert key not in ('bitlength', 'conjugate', 'real', 'imag', 'numerator', 'denominator'), "key '{}' already in use by int objects".format(key)
+            self.__dict__[key] = value
+        return self
+    def __str__(self):
+        return '{:16s} bit {} mask 0x{:X} - {}'.format(self.name, self.bitnum, self.mask, self.comment)
 
 #- Class to provide mask bit utility functions
 class BitMask(object):
@@ -54,47 +75,54 @@ class BitMask(object):
 
         Typical users are not expected to create BitMask objects directly.
         """
+        self._bits = dict()        
         self._name = name
-        self._bitname = dict()  #- key num -> value name
-        self._bitnum = dict()   #- key name -> value num
-        self._comment = dict()  #- key name or num -> comment
-        self._extra = dict()
+        # self._bitname = dict()  #- key num -> value name
+        # self._bitnum = dict()   #- key name -> value num
+        # self._comment = dict()  #- key name or num -> comment
+        # self._extra = dict()
         for x in bitdefs[name]:
             bitname, bitnum, comment = x[0:3]
-            assert bitname not in self._bitnum
-            assert bitnum not in self._bitname
-            self._bitnum[bitname] = bitnum
-            self._bitname[bitnum] = bitname
-            self._comment[bitname] = comment
-            self._comment[bitnum] = comment
-            
             if len(x) == 4:
-                self._extra[bitname] = x[3]
+                extra = x[3]
             else:
-                self._extra[bitname] = dict()
+                extra = dict()
+            self._bits[bitname] = _MaskBit(bitname, bitnum, comment, extra)
+            self._bits[bitnum] = self._bits[bitname]
 
-    def extra(self, bitname):
-        """Return extra metadata for bitname (or an empty dict if no extra info)"""
-        return self._extra[bitname]
+    def __getitem__(self, bitname):
+        return self._bits[bitname]
 
+    # def extra(self, bitname):
+    #     """Return extra metadata for bitname (or an empty dict if no extra info)"""
+    #     return self.[bitname]
+    # 
     def bitnum(self, bitname):
         """Return bit number (int) for bitname (string)"""
-        return self._bitnum[bitname]
+        return self._bits[bitname].bitnum
 
     def bitname(self, bitnum):
         """Return bit name (string) for this bitnum (integer)"""
-        return self._bitname[bitnum]
+        return self._bits[bitnum].name
 
     def comment(self, bitname_or_num):
         """Return comment for this bit name or bit number"""
-        return self._comment[bitname_or_num]
+        return self._bits[bitname_or_num].comment
 
     def mask(self, name_or_num):
-        """Return mask value, i.e. 2**bitnum for this name or number"""
+        """Return mask value, e.g.
+        
+        bitmask.mask(3)         #- 2**3
+        bitmask.mask('BLAT')
+        bitmask.mask('BLAT|FOO')
+        """
         if isinstance(name_or_num, int):
-            return 2**name_or_num
+            return self._bits[name_or_num].mask
         else:
-            return 2**self._bitnum[name_or_num]
+            mask = 0
+            for name in name_or_num.split('|'):
+                mask |= self._bits[name].mask
+            return mask
 
     def names(self, mask=None):
         """Return list of names of masked bits.
@@ -102,14 +130,16 @@ class BitMask(object):
         """
         names = list()
         if mask is None:
-            for bitnum in sorted(self._bitname.keys()):
-                names.append(self._bitname[bitnum])
+            #- use keys and sort to return names in order of bit number
+            for key, bit in sorted(self._bits.items()):
+                if isinstance(key, int):
+                    names.append(bit.name)
         else:
             bitnum = 0
             while bitnum**2 <= mask:
                 if (2**bitnum & mask):
-                    if bitnum in self._bitname.keys():
-                        names.append(self._bitname[bitnum])
+                    if bitnum in self._bits.keys():
+                        names.append(self._bits[bitnum].name)
                     else:
                         names.append('UNKNOWN'+str(bitnum))
                 bitnum += 1
@@ -118,8 +148,8 @@ class BitMask(object):
 
     #- Allow access via mask.BITNAME
     def __getattr__(self, name):
-        if name in self._bitnum:
-            return 2**self._bitnum[name]
+        if name in self._bits:
+            return self._bits[name]
         else:
             raise AttributeError('Unknown mask bit name '+name)
 
@@ -127,7 +157,8 @@ class BitMask(object):
     def __repr__(self):
         result = list()
         result.append( self._name+':' )
-        for i in sorted(self._bitname.keys()):
-            result.append('    - [{:16s} {:2d}, "{}"]'.format(self._bitname[i]+',', i, self._comment[i]))
+        for key, bit in sorted(self._bits.items()):
+            if isinstance(key, int):
+                result.append('    - [{:16s} {:2d}, "{}"]'.format(bit.name, bit.bitnum, bit.comment))
 
         return "\n".join(result)
