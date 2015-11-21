@@ -38,10 +38,6 @@ Example::
     ccdmask.names(3)           #- ['BAD', 'HOT']
     ccdmask.comment(0)         #- "Pre-determined bad pixel (any reason)"
     ccdmask.comment('COSMIC')  #- "Cosmic ray"    
-    
-Playing with syntax:
-
-targetmask.LRG.priority[targetstate.UNOBS]
 """
 
 class _MaskBit(int):
