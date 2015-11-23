@@ -9,7 +9,7 @@ import unittest
 from ..git import version
 
 
-class TestSetup(unittest.TestCase):
+class TestGit(unittest.TestCase):
     """Test desiutil.git.
     """
 

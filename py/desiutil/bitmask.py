@@ -1,6 +1,9 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+# -*- coding: utf-8 -*-
 """
-desiutil.maskbits
-=================
+================
+desiutil.bitmask
+================
 
 Mask bits for the spectro pipeline.
 
@@ -13,7 +16,7 @@ Fall 2015
 
 Example::
 
-    #- Creating a BitMask
+    #  Creating a BitMask
     from desiutil.bitmask import BitMask
 
     import yaml
@@ -27,17 +30,17 @@ Example::
     ''')
     ccdmask = BitMask('ccdmask', _bitdefs)
 
-    #- Accessing the mask
-    ccdmask.COSMIC | ccdmask.SATURATED  #- 2**4 + 2**3
-    ccdmask.mask('COSMIC')     #- 2**4, same as ccdmask.COSMIC
-    ccdmask.mask(4)            #- 2**4, same as ccdmask.COSMIC
-    ccdmask.COSMIC             #- 2**4, same as ccdmask.mask('COSMIC')
-    ccdmask.bitnum('COSMIC')   #- 4
-    ccdmask.bitname(4)         #- 'COSMIC'
-    ccdmask.names()            #- ['BAD', 'HOT', 'DEAD', 'SATURATED', 'COSMIC']
-    ccdmask.names(3)           #- ['BAD', 'HOT']
-    ccdmask.comment(0)         #- "Pre-determined bad pixel (any reason)"
-    ccdmask.comment('COSMIC')  #- "Cosmic ray"
+    #  Accessing the mask
+    ccdmask.COSMIC | ccdmask.SATURATED  #  2**4 + 2**3
+    ccdmask.mask('COSMIC')     #  2**4, same as ccdmask.COSMIC
+    ccdmask.mask(4)            #  2**4, same as ccdmask.COSMIC
+    ccdmask.COSMIC             #  2**4, same as ccdmask.mask('COSMIC')
+    ccdmask.bitnum('COSMIC')   #  4
+    ccdmask.bitname(4)         #  'COSMIC'
+    ccdmask.names()            #  ['BAD', 'HOT', 'DEAD', 'SATURATED', 'COSMIC']
+    ccdmask.names(3)           #  ['BAD', 'HOT']
+    ccdmask.comment(0)         #  "Pre-determined bad pixel (any reason)"
+    ccdmask.comment('COSMIC')  #  "Cosmic ray"
 """
 
 
@@ -65,7 +68,7 @@ class _MaskBit(int):
             self.name, self.bitnum, self.mask, self.comment)
 
 
-#- Class to provide mask bit utility functions
+#  Class to provide mask bit utility functions
 class BitMask(object):
     """BitMask object.
     """
@@ -107,7 +110,7 @@ class BitMask(object):
     def mask(self, name_or_num):
         """Return mask value, e.g.
 
-        bitmask.mask(3)         #- 2**3
+        bitmask.mask(3)         #  2**3
         bitmask.mask('BLAT')
         bitmask.mask('BLAT|FOO')
         """
@@ -125,7 +128,7 @@ class BitMask(object):
         """
         names = list()
         if mask is None:
-            #- return names in sorted order of bitnum
+            #  return names in sorted order of bitnum
             bitnums = [x for x in self._bits.keys() if isinstance(x, int)]
             for bitnum in sorted(bitnums):
                 names.append(self._bits[bitnum].name)
@@ -136,23 +139,23 @@ class BitMask(object):
                     if bitnum in self._bits.keys():
                         names.append(self._bits[bitnum].name)
                     else:
-                        names.append('UNKNOWN'+str(bitnum))
+                        names.append('UNKNOWN' + str(bitnum))
                 bitnum += 1
 
         return names
 
-    #- Allow access via mask.BITNAME
+    #  Allow access via mask.BITNAME
     def __getattr__(self, name):
         if name in self._bits:
             return self._bits[name]
         else:
-            raise AttributeError('Unknown mask bit name '+name)
+            raise AttributeError('Unknown mask bit name ' + name)
 
-    #- What to print
+    #  What to print
     def __repr__(self):
         result = list()
-        result.append(self._name+':')
-        #- return names in sorted order of bitnum
+        result.append(self._name + ':')
+        #  return names in sorted order of bitnum
         bitnums = [x for x in self._bits.keys() if isinstance(x, int)]
         for bitnum in sorted(bitnums):
             bit = self._bits[bitnum]

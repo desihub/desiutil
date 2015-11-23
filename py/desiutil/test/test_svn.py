@@ -29,23 +29,23 @@ class TestSvn(unittest.TestCase):
         cls.has_subversion = p.returncode == 0
         if cls.has_subversion:
             try:
-                cls.svn_url = 'file://'+cls.svn_path
+                cls.svn_url = 'file://' + cls.svn_path
                 p = Popen(['svnadmin', 'create', cls.svn_path],
                           stdout=PIPE, stderr=PIPE)
                 out, err = p.communicate()
                 assert p.returncode == 0
-                p = Popen(['svn', 'mkdir', cls.svn_url+'/trunk',
-                          cls.svn_url+'/tags', cls.svn_url+'/branches',
+                p = Popen(['svn', 'mkdir', cls.svn_url + '/trunk',
+                          cls.svn_url + '/tags', cls.svn_url + '/branches',
                           '-m', "Create initial structure."],
                           stdout=PIPE, stderr=PIPE)
                 out, err = p.communicate()
                 assert p.returncode == 0
                 p = Popen(['svn', 'mkdir',
-                          cls.svn_url+'/tags/0.0.1',
-                          cls.svn_url+'/tags/0.1.0',
-                          cls.svn_url+'/tags/0.1.1',
-                          cls.svn_url+'/tags/0.2.0',
-                          cls.svn_url+'/tags/0.2.1',
+                          cls.svn_url + '/tags/0.0.1',
+                          cls.svn_url + '/tags/0.1.0',
+                          cls.svn_url + '/tags/0.1.1',
+                          cls.svn_url + '/tags/0.2.0',
+                          cls.svn_url + '/tags/0.2.1',
                           '-m', "Create tags."],
                           stdout=PIPE, stderr=PIPE)
                 out, err = p.communicate()
@@ -100,11 +100,11 @@ class TestSvn(unittest.TestCase):
         """Test the processing of svn tag lists.
         """
         if self.has_subversion:
-            tag = last_tag(self.svn_url+'/tags')
+            tag = last_tag(self.svn_url + '/tags')
             self.assertEqual(tag, '0.2.1')
-            tag = last_tag(self.svn_url+'/tags', username=environ['USER'])
+            tag = last_tag(self.svn_url + '/tags', username=environ['USER'])
             self.assertEqual(tag, '0.2.1')
-            tag = last_tag(self.svn_url+'/branches')
+            tag = last_tag(self.svn_url + '/branches')
             self.assertEqual(tag, '0.0.0')
 
     def test_version(self):

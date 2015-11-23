@@ -1,5 +1,6 @@
-"""
-test desiutil.maskbits
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+# -*- coding: utf-8 -*-
+"""test desiutil.bitmask
 """
 
 import unittest
@@ -29,11 +30,12 @@ class TestBitMasks(unittest.TestCase):
         m = self.ccdmask
         for name in m.names():
             self.assertEqual(m.mask(name), 2**m.bitnum(name),
-                             'Failed matching mask to bitnum for '+name)
+                             'Failed matching mask to bitnum for ' + name)
             self.assertEqual(m.mask(name), m.mask(m.bitnum(name)),
-                             'Failed matching mask to name for '+name)
+                             'Failed matching mask to name for ' + name)
             self.assertEqual(m.bitname(m.bitnum(name)), name,
-                             'Failed bit name->num->name roundtrip for '+name)
+                             'Failed bit name->num->name roundtrip for ' +
+                             name)
             self.assertEqual(m[name], m[name].mask)
             self.assertEqual(m.bitname(name), m[name].name)
             self.assertEqual(m.bitnum(name), m[name].bitnum)
