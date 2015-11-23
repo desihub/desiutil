@@ -23,9 +23,11 @@ class TestBitMasks(unittest.TestCase):
     def setUp(self):
         self.ccdmask = BitMask('ccdmask', _bitdefs)
 
+    def tearDown(self):
+        pass
+
     def test_names(self):
-        """
-        Test consistency for names to bits to masks
+        """Test consistency for names to bits to masks.
         """
         m = self.ccdmask
         for name in m.names():
@@ -47,7 +49,8 @@ class TestBitMasks(unittest.TestCase):
         self.assertTrue('UNKNOWN13' in names)
 
     def test_mask(self):
-        '''test options for blat.mask()'''
+        """Test options for blat.mask().
+        """
         for i in range(4):
             self.assertEqual(self.ccdmask.mask(i), 2**i)
 
@@ -55,7 +58,8 @@ class TestBitMasks(unittest.TestCase):
         self.assertEqual(m.mask('BAD|COSMIC'), m.BAD | m.COSMIC)
 
     def test_access(self):
-        '''Misc stuff that should work'''
+        """Miscellaneous stuff that should work.
+        """
         self.assertEqual(self.ccdmask['HOT'].blat, 'foo')
         self.assertEqual(self.ccdmask.HOT.blat, 'foo')
         self.assertEqual(self.ccdmask.HOT.name, 'HOT')
@@ -66,13 +70,38 @@ class TestBitMasks(unittest.TestCase):
         self.ccdmask.names()
 
     def test_badname(self):
+        """Test raising AttributeError for bad names.
+        """
         with self.assertRaises(AttributeError):
             x = self.ccdmask.BLATFOO
 
     def test_print(self):
-        blat = self.ccdmask.__repr__()
-        for name in self.ccdmask.names():
-            foo = self.ccdmask[name].__str__()
+        """Test string representations.
+        """
+        ccdmask_repr = """ccdmask:
+    - [BAD               0, "Pre-determined bad pixel (any reason)"]
+    - [HOT               1, "Hot pixel"]
+    - [DEAD              2, "Dead pixel"]
+    - [SATURATED         3, "Saturated pixel from object"]
+    - [COSMIC            4, "Cosmic ray"]"""
+        bit_str = (
+            ("BAD              bit 0 mask 0x1 - Pre-determined bad pixel " +
+             "(any reason)"),
+            "HOT              bit 1 mask 0x2 - Hot pixel",
+            "DEAD             bit 2 mask 0x4 - Dead pixel",
+            "SATURATED        bit 3 mask 0x8 - Saturated pixel from object",
+            "COSMIC           bit 4 mask 0x10 - Cosmic ray")
+        bit_repr = (
+            "_MaskBit('BAD', 0, 'Pre-determined bad pixel (any reason)')",
+            "_MaskBit('HOT', 1, 'Hot pixel')",
+            "_MaskBit('DEAD', 2, 'Dead pixel')",
+            "_MaskBit('SATURATED', 3, 'Saturated pixel from object')",
+            "_MaskBit('COSMIC', 4, 'Cosmic ray')",)
+        blat = repr(self.ccdmask)
+        self.assertEqual(blat, ccdmask_repr)
+        for i, name in enumerate(self.ccdmask.names()):
+            self.assertEqual(str(self.ccdmask[name]), bit_str[i])
+            self.assertEqual(repr(self.ccdmask[name]), bit_repr[i])
 
 if __name__ == '__main__':
     unittest.main()
