@@ -64,8 +64,8 @@ class _MaskBit(int):
         return self
 
     def __str__(self):
-        return '{:16s} bit {} mask 0x{:X} - {}'.format(
-            self.name, self.bitnum, self.mask, self.comment)
+        return ('{0.name:16s} bit {0.bitnum} mask 0x{0.mask:X} - ' +
+                '{0.comment}').format(self)
 
     def __repr__(self):
         return "_MaskBit('{0.name}', {0.bitnum:d}, '{0.comment}')".format(self)
