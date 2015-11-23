@@ -70,6 +70,7 @@ class _MaskBit(int):
     def __repr__(self):
         return "_MaskBit('{0.name}', {0.bitnum:d}, '{0.comment}')".format(self)
 
+
 #  Class to provide mask bit utility functions
 class BitMask(object):
     """BitMask object.
