@@ -2,7 +2,7 @@
 Change Log
 ==========
 
-1.1.2 (unreleased)
+1.2.0 (2015-11-24)
 ------------------
 
 * Added bitmask processing code.
