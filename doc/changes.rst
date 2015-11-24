@@ -5,6 +5,7 @@ Change Log
 1.1.2 (unreleased)
 ------------------
 
+* Added bitmask processing code.
 * Fixed a minor variable name bug.
 * Ignore warnings produced by processing MANIFEST.in.
 * Fixed return value in cross_install.
