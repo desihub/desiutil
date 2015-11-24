@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
-"""test desiutil.git
+"""Test desiutil.git.
 """
 from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
@@ -9,7 +9,7 @@ import unittest
 from ..git import version
 
 
-class TestSetup(unittest.TestCase):
+class TestGit(unittest.TestCase):
     """Test desiutil.git.
     """
 

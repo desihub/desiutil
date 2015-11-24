@@ -5,6 +5,9 @@ desiutil API
 .. automodule:: desiutil
     :members:
 
+.. automodule:: desiutil.bitmask
+    :members:
+
 .. automodule:: desiutil.install
     :members:
 

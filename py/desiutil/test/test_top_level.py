@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
-"""test top-level desiutil functions
+"""Test top-level desiutil functions.
 """
 from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
@@ -12,6 +12,8 @@ from .. import __version__ as theVersion
 
 
 class TestTopLevel(unittest.TestCase):
+    """Test top-level desiutil functions.
+    """
 
     @classmethod
     def setUpClass(cls):
