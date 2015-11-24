@@ -65,9 +65,9 @@ matrix:
           env: SETUP_CMD='test --coverage'
 
         # PEP 8 compliance.
-        - os: linux
-          python: 2.7
-          env: MAIN_CMD='pep8' SETUP_CMD='--count py/desiutil'
+#         - os: linux
+#           python: 2.7
+#           env: MAIN_CMD='pep8' SETUP_CMD='--count py/desiutil'
 
 install:
     - if [[ $MAIN_CMD == 'pep8' ]]; then pip install pep8; fi
