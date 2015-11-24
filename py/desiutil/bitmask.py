@@ -72,12 +72,12 @@ class _MaskBit(int):
                 '{0.comment}').format(self)
 
     def __repr__(self):
-        return "_MaskBit('{0.name}', {0.bitnum:d}, '{0.comment}')".format(self)
+        return "_MaskBit(name='{0.name}', bitnum={0.bitnum:d}, comment='{0.comment}')".format(self)
 
 
 #  Class to provide mask bit utility functions
 class BitMask(object):
-    """BitMask object.
+    """BitMask object to represent bit names, masks, and comments.
     """
     def __init__(self, name, bitdefs):
         """
@@ -99,13 +99,15 @@ class BitMask(object):
             if len(x) == 4:
                 extra = x[3]
                 if not isinstance(extra, dict):
-                    raise ValueError('{} extra values should be a dict'.format(bitname))
+                    raise ValueError(
+                        '{} extra values should be a dict'.format(bitname))
             else:
                 extra = dict()
             self._bits[bitname] = _MaskBit(bitname, bitnum, comment, extra)
             self._bits[bitnum] = self._bits[bitname]
 
     def __getitem__(self, bitname):
+        """Return mask for individual bitname"""
         return self._bits[bitname]
 
     def bitnum(self, bitname):
@@ -141,7 +143,7 @@ class BitMask(object):
         """
         names = list()
         if mask is None:
-            #  return names in sorted order of bitnum
+            # return names in sorted order of bitnum
             bitnums = [x for x in self._bits.keys() if isinstance(x, int)]
             for bitnum in sorted(bitnums):
                 names.append(self._bits[bitnum].name)
@@ -157,22 +159,22 @@ class BitMask(object):
 
         return names
 
-    #  Allow access via mask.BITNAME
     def __getattr__(self, name):
+        """Enable mask.BITNAME equivalent to mask['BITNAME']"""
         if name in self._bits:
             return self._bits[name]
         else:
             raise AttributeError('Unknown mask bit name ' + name)
 
-    #  What to print
     def __repr__(self):
+        '''Return yaml representation defining the bits of this bitmask'''
         result = list()
         result.append(self._name + ':')
-        #  return names in sorted order of bitnum
+        # return names in sorted order of bitnum
         bitnums = [x for x in self._bits.keys() if isinstance(x, int)]
         for bitnum in sorted(bitnums):
             bit = self._bits[bitnum]
-            #- format the line for single bit, with or without extra keys
+            # format the line for single bit, with or without extra keys
             line = '  - [{:16s} {:2d}, "{}"'.format(
                 bit.name+',', bit.bitnum, bit.comment)
             if len(bit._extra) > 0:

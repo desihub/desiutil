@@ -16,7 +16,7 @@ ccdmask:
   - [COSMIC,           4, "Cosmic ray"]"""
 _bitdefs = yaml.load(_bitdefyaml)
 
-#- Has extra that isn't a dict
+# Has extra that isn't a dict
 _baddef1 = yaml.load("""
 #- CCD pixel mask
 ccdmask:
@@ -85,14 +85,24 @@ class TestBitMask(unittest.TestCase):
         with self.assertRaises(AttributeError):
             x = self.ccdmask.BLATFOO
 
-        #- Attribute already in use
+        # Attribute already in use
         with self.assertRaises(AttributeError):
             bit = _MaskBit('BAD', 0, "comment", extra={'real': 'foo'})
 
-        #- has extra that isn't a dict
+        # has extra that isn't a dict
         with self.assertRaises(ValueError):
             blat = BitMask('ccdmask', _baddef1)
-            
+
+    def test_str(self):
+        """Verify yaml-ness of string representation"""
+        bitmask = BitMask('ccdmask', yaml.load(str(self.ccdmask)))
+        self.assertEqual(bitmask.names(), self.ccdmask.names())
+        for name in bitmask.names():
+            self.assertEqual(bitmask[name].mask, self.ccdmask[name].mask)
+            self.assertEqual(bitmask[name].comment, self.ccdmask[name].comment)
+            self.assertEqual(bitmask[name].bitnum, self.ccdmask[name].bitnum)
+            self.assertEqual(bitmask[name]._extra, self.ccdmask[name]._extra)
+
     def test_print(self):
         """Test string representations.
         """
@@ -110,11 +120,11 @@ class TestBitMask(unittest.TestCase):
             "SATURATED        bit 3 mask 0x8 - Saturated pixel from object",
             "COSMIC           bit 4 mask 0x10 - Cosmic ray")
         bit_repr = (
-            "_MaskBit('BAD', 0, 'Pre-determined bad pixel (any reason)')",
-            "_MaskBit('HOT', 1, 'Hot pixel')",
-            "_MaskBit('DEAD', 2, 'Dead pixel')",
-            "_MaskBit('SATURATED', 3, 'Saturated pixel from object')",
-            "_MaskBit('COSMIC', 4, 'Cosmic ray')",)
+            "_MaskBit(name='BAD', bitnum=0, comment='Pre-determined bad pixel (any reason)')",
+            "_MaskBit(name='HOT', bitnum=1, comment='Hot pixel')",
+            "_MaskBit(name='DEAD', bitnum=2, comment='Dead pixel')",
+            "_MaskBit(name='SATURATED', bitnum=3, comment='Saturated pixel from object')",
+            "_MaskBit(name='COSMIC', bitnum=4, comment='Cosmic ray')",)
         blat = repr(self.ccdmask)
         self.assertEqual(blat, _bitdefyaml)
         for i, name in enumerate(self.ccdmask.names()):
