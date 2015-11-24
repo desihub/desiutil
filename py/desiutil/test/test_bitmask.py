@@ -119,12 +119,7 @@ class TestBitMask(unittest.TestCase):
             "DEAD             bit 2 mask 0x4 - Dead pixel",
             "SATURATED        bit 3 mask 0x8 - Saturated pixel from object",
             "COSMIC           bit 4 mask 0x10 - Cosmic ray")
-        bit_repr = (
-            "_MaskBit(name='BAD', bitnum=0, comment='Pre-determined bad pixel (any reason)')",
-            "_MaskBit(name='HOT', bitnum=1, comment='Hot pixel')",
-            "_MaskBit(name='DEAD', bitnum=2, comment='Dead pixel')",
-            "_MaskBit(name='SATURATED', bitnum=3, comment='Saturated pixel from object')",
-            "_MaskBit(name='COSMIC', bitnum=4, comment='Cosmic ray')",)
+        bit_repr = ('1', '2', '4', '8', '16')
         blat = repr(self.ccdmask)
         self.assertEqual(blat, _bitdefyaml)
         for i, name in enumerate(self.ccdmask.names()):
