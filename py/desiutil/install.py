@@ -155,8 +155,9 @@ class DesiInstall(object):
     nersc_hosts = ('cori', 'edison', 'hopper', 'datatran', 'scigate')
 
     def __init__(self, test=False):
-        """Bare-bones initialization.  The only thing done here is setting up
-        the logging infrastructure.
+        """Bare-bones initialization.
+
+        The only thing done here is setting up the logging infrastructure.
         """
         self.executable = basename(argv[0])
         self.test = test
