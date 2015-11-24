@@ -14,37 +14,50 @@ packages, not from here.
 Stephen Bailey, Lawrence Berkeley National Lab
 Fall 2015
 
-Example::
+Examples
+--------
 
-    #- desispec could create a ccdmask like this
+desispec_ could create a ccdmask like this:
 
-    from desiutil.bitmask import BitMask
-    import yaml
+>>> from desiutil.bitmask import BitMask
+>>> import yaml
+>>> _bitdefs = yaml.load('''
+... ccdmask:
+...     - [BAD,       0, "Pre-determined bad pixel (any reason)"]
+...     - [HOT,       1, "Hot pixel"]
+...     - [DEAD,      2, "Dead pixel"]
+...     - [SATURATED, 3, "Saturated pixel from object"]
+...     - [COSMIC,    4, "Cosmic ray"]
+... ''')
+...
+>>> ccdmask = BitMask('ccdmask', _bitdefs)
 
-    _bitdefs = yaml.load('''
-    ccdmask:
-        - [BAD,       0, "Pre-determined bad pixel (any reason)"]
-        - [HOT,       1, "Hot pixel"]
-        - [DEAD,      2, "Dead pixel"]
-        - [SATURATED, 3, "Saturated pixel from object"]
-        - [COSMIC,    4, "Cosmic ray"]
-    ''')
-    ccdmask = BitMask('ccdmask', _bitdefs)
+Users would then access this mask with:
 
-    #- Users would then get this mask with
-    from desispec.bitmasks import ccdmask
+>>> from desispec.bitmasks import ccdmask
+>>> ccdmask.COSMIC | ccdmask.SATURATED  #- 2**4 + 2**3
+24
+>>> ccdmask.mask('COSMIC')     # 2**4, same as ccdmask.COSMIC
+16
+>>> ccdmask.mask(4)            # 2**4, same as ccdmask.COSMIC
+16
+>>> ccdmask.COSMIC             # 2**4, same as ccdmask.mask('COSMIC')
+16
+>>> ccdmask.bitnum('COSMIC')
+4
+>>> ccdmask.bitname(4)
+'COSMIC'
+>>> ccdmask.names()
+['BAD', 'HOT', 'DEAD', 'SATURATED', 'COSMIC']
+>>> ccdmask.names(3)
+['BAD', 'HOT']
+>>> ccdmask.comment(0)
+'Pre-determined bad pixel (any reason)'
+>>> ccdmask.comment('COSMIC')
+'Cosmic ray'
 
-    #- Accessing the mask
-    ccdmask.COSMIC | ccdmask.SATURATED  #- 2**4 + 2**3
-    ccdmask.mask('COSMIC')     # 2**4, same as ccdmask.COSMIC
-    ccdmask.mask(4)            # 2**4, same as ccdmask.COSMIC
-    ccdmask.COSMIC             # 2**4, same as ccdmask.mask('COSMIC')
-    ccdmask.bitnum('COSMIC')   # 4
-    ccdmask.bitname(4)         # 'COSMIC'
-    ccdmask.names()            # ['BAD', 'HOT', 'DEAD', 'SATURATED', 'COSMIC']
-    ccdmask.names(3)           # ['BAD', 'HOT']
-    ccdmask.comment(0)         # "Pre-determined bad pixel (any reason)"
-    ccdmask.comment('COSMIC')  # "Cosmic ray"
+
+.. _desispec: http://desispec.readthedocs.org
 """
 
 
@@ -71,8 +84,8 @@ class _MaskBit(int):
         return ('{0.name:16s} bit {0.bitnum} mask 0x{0.mask:X} - ' +
                 '{0.comment}').format(self)
 
-    def __repr__(self):
-        return "_MaskBit(name='{0.name}', bitnum={0.bitnum:d}, comment='{0.comment}')".format(self)
+    # def __repr__(self):
+    #     return "_MaskBit(name='{0.name}', bitnum={0.bitnum:d}, comment='{0.comment}')".format(self)
 
 
 #  Class to provide mask bit utility functions
