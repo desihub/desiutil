@@ -5,7 +5,7 @@ Change Log
 1.2.1 (unreleased)
 ------------------
 
-* No changes yet.
+* Updated docstrings for bitmasks.
 
 1.2.0 (2015-11-24)
 ------------------

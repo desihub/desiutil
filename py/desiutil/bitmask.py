@@ -115,7 +115,7 @@ class BitMask(object):
         Name of this mask, must be key in `bitdefs`.
     bitdefs : dict
         Dictionary of different mask bit definitions;
-        each value is a list of [bitname, bitnum, comment]
+        each value is a list of ``[bitname, bitnum, comment]``.
         A 4th entry is optional, which must be a dictionary.
     """
 
