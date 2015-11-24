@@ -5,18 +5,19 @@ desiutil.maskbits
 Mask bits for the spectro pipeline.
 
 Individual packages will define their own mask bits and use this as a utility
-access wrapper.  Typical users will not need to construct BitMask objects on
-their own.
+access wrapper.  Typical users will get their bitmasks pre-made from those
+packages, not from here.
 
 Stephen Bailey, Lawrence Berkeley National Lab
 Fall 2015
 
 Example::
 
-    #- Creating a BitMask
+    #- desispec could create a ccdmask like this
+    
     from desiutil.bitmask import BitMask
-
     import yaml
+    
     _bitdefs = yaml.load('''
     ccdmask:
         - [BAD,       0, "Pre-determined bad pixel (any reason)"]
@@ -26,6 +27,9 @@ Example::
         - [COSMIC,    4, "Cosmic ray"]
     ''')
     ccdmask = BitMask('ccdmask', _bitdefs)
+
+    #- Users would then get this mask with
+    from desispec.bitmasks import ccdmask
 
     #- Accessing the mask
     ccdmask.COSMIC | ccdmask.SATURATED  #- 2**4 + 2**3
@@ -52,11 +56,10 @@ class _MaskBit(int):
         self.bitnum = bitnum
         self.mask = 2**bitnum
         self.comment = comment
+        self._extra = extra
         for key, value in extra.items():
-            assert key not in (
-                'bitlength', 'conjugate', 'real', 'imag',
-                'numerator', 'denominator'), \
-                "key '{}' already in use by int objects".format(key)
+            if hasattr(self, key):
+                raise ValueError('extra key {} not allowed since int already uses that'.format(key))
             self.__dict__[key] = value
         return self
 
@@ -75,8 +78,12 @@ class BitMask(object):
             name : name of this mask, must be key in bitdefs
             bitdefs : dictionary of different mask bit definitions;
                 each value is a list of [bitname, bitnum, comment]
+                A 4th entry is optional, which must be a dictionary
 
-        Typical users are not expected to create BitMask objects directly.
+        Typical users are not expected to create BitMask objects directly;
+        other packages like desispec and desitarget will have used this
+        to pre-create the bitmasks for them using definition files in those
+        packages.
         """
         self._bits = dict()
         self._name = name
@@ -84,6 +91,8 @@ class BitMask(object):
             bitname, bitnum, comment = x[0:3]
             if len(x) == 4:
                 extra = x[3]
+                if not isinstance(extra, dict):
+                    raise ValueError('{} extra values should be a dict'.format(bitname))
             else:
                 extra = dict()
             self._bits[bitname] = _MaskBit(bitname, bitnum, comment, extra)
@@ -156,7 +165,12 @@ class BitMask(object):
         bitnums = [x for x in self._bits.keys() if isinstance(x, int)]
         for bitnum in sorted(bitnums):
             bit = self._bits[bitnum]
-            result.append('    - [{:16s} {:2d}, "{}"]'.format(
-                bit.name, bit.bitnum, bit.comment))
+            line = '  - [{:16s} {:2d}, "{}"'.format(
+                bit.name+',', bit.bitnum, bit.comment)
+            if len(bit._extra) > 0:
+                line = line + ', '+str(bit._extra)+']'
+            else:
+                line = line + ']'
+            result.append(line)
 
         return "\n".join(result)

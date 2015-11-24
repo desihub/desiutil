@@ -16,6 +16,23 @@ ccdmask:
     - [COSMIC,    4, "Cosmic ray"]
 """)
 
+#- Has extra that isn't a dict
+_baddef1 = yaml.load("""
+#- CCD pixel mask
+ccdmask:
+    - [BAD,       0, "Pre-determined bad pixel (any reason)"]
+    - [HOT,       1, "Hot pixel", 1]
+""")
+
+#- has extra that collides with pre-existing int attributes
+_baddef2 = yaml.load("""
+#- CCD pixel mask
+ccdmask:
+    - [BAD,       0, "Pre-determined bad pixel (any reason)"]
+    - [HOT,       1, "Hot pixel", {real: 1, blat: 2}]
+""")
+
+
 
 class TestBitMasks(unittest.TestCase):
 
@@ -66,9 +83,16 @@ class TestBitMasks(unittest.TestCase):
     def test_badname(self):
         with self.assertRaises(AttributeError):
             x = self.ccdmask.BLATFOO
+            
+        with self.assertRaises(ValueError):
+            blat = BitMask('ccdmask', _baddef1)
 
+        with self.assertRaises(ValueError):
+            blat = BitMask('ccdmask', _baddef2)
+            
     def test_print(self):
         blat = self.ccdmask.__repr__()
+        print(self.ccdmask)
         for name in self.ccdmask.names():
             foo = self.ccdmask[name].__str__()
 
