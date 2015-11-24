@@ -1,10 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
-"""test desiutil.bitmask
+"""Test desiutil.bitmask.
 """
 
 import unittest
-from desiutil.bitmask import BitMask
+from desiutil.bitmask import BitMask, _MaskBit
 
 import yaml
 _bitdefs = yaml.load("""
@@ -18,7 +18,9 @@ ccdmask:
 """)
 
 
-class TestBitMasks(unittest.TestCase):
+class TestBitMask(unittest.TestCase):
+    """Test desiutil.bitmask.
+    """
 
     def setUp(self):
         self.ccdmask = BitMask('ccdmask', _bitdefs)
@@ -60,6 +62,7 @@ class TestBitMasks(unittest.TestCase):
     def test_access(self):
         """Miscellaneous stuff that should work.
         """
+        self.assertEqual(self.ccdmask._name, 'ccdmask')
         self.assertEqual(self.ccdmask['HOT'].blat, 'foo')
         self.assertEqual(self.ccdmask.HOT.blat, 'foo')
         self.assertEqual(self.ccdmask.HOT.name, 'HOT')
@@ -74,16 +77,18 @@ class TestBitMasks(unittest.TestCase):
         """
         with self.assertRaises(AttributeError):
             x = self.ccdmask.BLATFOO
+        with self.assertRaises(AttributeError):
+            bit = _MaskBit('BAD', 0, "comment", extra={'real': 'foo'})
 
     def test_print(self):
         """Test string representations.
         """
         ccdmask_repr = """ccdmask:
-    - [BAD               0, "Pre-determined bad pixel (any reason)"]
-    - [HOT               1, "Hot pixel"]
-    - [DEAD              2, "Dead pixel"]
-    - [SATURATED         3, "Saturated pixel from object"]
-    - [COSMIC            4, "Cosmic ray"]"""
+    - [BAD             ,  0, "Pre-determined bad pixel (any reason)"]
+    - [HOT             ,  1, "Hot pixel"]
+    - [DEAD            ,  2, "Dead pixel"]
+    - [SATURATED       ,  3, "Saturated pixel from object"]
+    - [COSMIC          ,  4, "Cosmic ray"]"""
         bit_str = (
             ("BAD              bit 0 mask 0x1 - Pre-determined bad pixel " +
              "(any reason)"),

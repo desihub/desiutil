@@ -56,10 +56,9 @@ class _MaskBit(int):
         self.mask = 2**bitnum
         self.comment = comment
         for key, value in extra.items():
-            assert key not in (
-                'bitlength', 'conjugate', 'real', 'imag',
-                'numerator', 'denominator'), \
-                "key '{}' already in use by int objects".format(key)
+            if hasattr(self, key):
+                raise AttributeError(
+                    "Key '{0}' is already in use by int objects.".format(key))
             self.__dict__[key] = value
         return self
 
@@ -162,7 +161,7 @@ class BitMask(object):
         bitnums = [x for x in self._bits.keys() if isinstance(x, int)]
         for bitnum in sorted(bitnums):
             bit = self._bits[bitnum]
-            result.append('    - [{:16s} {:2d}, "{}"]'.format(
-                bit.name, bit.bitnum, bit.comment))
+            result.append(('    - [{0.name:16s}, {0.bitnum:2d}, ' +
+                           '"{0.comment}"]').format(bit))
 
         return "\n".join(result)
