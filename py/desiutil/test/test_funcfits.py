@@ -46,7 +46,7 @@ class TestFuncFits(unittest.TestCase):
         np.testing.assert_allclose(y2[50], 0.99940823486206976)
 
     def test_iterfit(self):
-        """Test iter fit
+        """Test iter fit with Legendre
         """
         # Generate data
         x = np.linspace(0,np.pi,100)
