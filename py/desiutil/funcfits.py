@@ -91,7 +91,7 @@ def func_val(x,fit_dict):
 
 def iter_fit(xarray, yarray, func, order, weights=None, sigma=None, max_rej=None,  
     maxone=True, sig_rej=3.0, initialmask=None, forceimask=False, 
-    xmin=None, xmax=None, niter=999, debug=False, **kwargs):
+    xmin=None, xmax=None, niter=999, **kwargs):
     """A "robust" fit with iterative rejection is performed to the xarray, yarray pairs
 
     Modified code originally from Ryan Cooke (PYPIT)
@@ -126,7 +126,6 @@ def iter_fit(xarray, yarray, func, order, weights=None, sigma=None, max_rej=None
       minimum value in the array (or the left limit for a legendre/chebyshev polynomial)
     xmax : float
       maximum value in the array (or the right limit for a legendre/chebyshev polynomial)
-    debug : bool, optional
 
     Returns
     -------
@@ -163,9 +162,6 @@ def iter_fit(xarray, yarray, func, order, weights=None, sigma=None, max_rej=None
         yrng = func_val(xarray, dfit) 
         # Reject
         sigmed = 1.4826*np.median(np.abs(yfit-yrng[w]))
-        if debug:
-            import xpdb
-            xpdb.set_trace()
         # Check number of parameters
         if xarray.size-np.sum(mask) <= order+2:
             warnings.warn("More parameters than data points - fit might be undesirable")

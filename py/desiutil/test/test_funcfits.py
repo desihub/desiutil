@@ -7,6 +7,7 @@ from __future__ import (absolute_import, division,
 # The line above will help with 2to3 support.
 import unittest
 import numpy as np
+import pdb
 from ..funcfits import func_fit, func_val, iter_fit
 
 
@@ -44,6 +45,32 @@ class TestFuncFits(unittest.TestCase):
         x2 = np.linspace(0,np.pi,100)
         y2 = func_val(x2,dfit)
         np.testing.assert_allclose(y2[50], 0.99940823486206976)
+
+    def test_cheby_fit(self):
+        """Test Chebyshev fit
+        """
+        # Generate data
+        x = np.linspace(0,np.pi,50)
+        y = np.sin(x)
+        # Fit
+        dfit = func_fit(x, y, 'chebyshev', 4)
+        x2 = np.linspace(0,np.pi,100)
+        y2 = func_val(x2,dfit)
+        np.testing.assert_allclose(y2[50], 0.99940823486206942)
+
+    def test_fit_with_sigma(self):
+        """Test fit with sigma
+        """
+        # Generate data
+        x = np.linspace(0,np.pi,50)
+        y = np.sin(x)
+        sigy = np.ones_like(y)*0.1
+        sigy[::2] = 0.15
+        # Fit
+        dfit = func_fit(x, y, 'legendre', 4, w=1./sigy)
+        x2 = np.linspace(0,np.pi,100)
+        y2 = func_val(x2,dfit)
+        np.testing.assert_allclose(y2[50], 0.99941056289796115)
 
     def test_iterfit(self):
         """Test iter fit with Legendre
