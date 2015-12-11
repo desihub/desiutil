@@ -874,7 +874,7 @@ class DesiInstall(object):
                         # can be ignored.
                         #
                         manifestre = re.compile(r"no previously-included " +
-                                                r"directories found " +
+                                                r"(directories|files) found " +
                                                 r"matching '[^']+'")
                         lines = [l for l in err.split('\n') if len(l) > 0 and
                                  manifestre.search(l) is None]
