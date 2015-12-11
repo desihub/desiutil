@@ -2,10 +2,17 @@
 Change Log
 ==========
 
-1.2.1 (unreleased)
+1.3.1 (unreleased)
+------------------
+
+* Update MANIFEST.in file.
+* Ignore additional warnings produced by MANIFEST.in.
+
+1.3.0 (2015-12-09)
 ------------------
 
 * Updated docstrings for bitmasks.
+* Added :module:`~desuitil.funcfits` module.
 
 1.2.0 (2015-11-24)
 ------------------
