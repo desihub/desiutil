@@ -7,6 +7,7 @@ Change Log
 
 * Update MANIFEST.in file.
 * Ignore additional warnings produced by MANIFEST.in.
+* Always run ``fix_permissions.sh`` after install.
 
 1.3.0 (2015-12-09)
 ------------------

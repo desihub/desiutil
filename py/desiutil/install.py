@@ -948,6 +948,33 @@ class DesiInstall(object):
                         symlink(s, d)
         return links
 
+    def permissions(self):
+        """Fix possible install permission errors.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        int
+            Status code returned by fix_permissions.sh script.
+        """
+        log = logging.getLogger(__name__+'.DesiInstall.permissions')
+        command = ['fix_permissions.sh']
+        if self.options.verbose:
+            command.append('-v')
+        if self.options.test:
+            command.append('-t')
+        command.append(self.install_dir)
+        log.debug(' '.join(command))
+        proc = Popen(command, universal_newlines=True,
+                     stdout=PIPE, stderr=PIPE)
+        out, err = proc.communicate()
+        status = proc.returncode
+        log.debug(out)
+        return status
+
     def cleanup(self):
         """Clean up after the install.
 
@@ -1000,6 +1027,7 @@ class DesiInstall(object):
             self.copy_install()
             self.install()
             self.cross_install()
+            self.permissions()
         except DesiInstallException:
             return 1
         self.cleanup()
