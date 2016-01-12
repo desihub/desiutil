@@ -152,7 +152,7 @@ class DesiInstall(object):
         Captures the value of the `test` argument passed to the constructor.
     """
     cross_install_host = 'edison'
-    nersc_hosts = ('cori', 'edison', 'hopper', 'datatran', 'scigate')
+    nersc_hosts = ('cori', 'edison', 'datatran', 'scigate')
 
     def __init__(self, test=False):
         """Bare-bones initialization.

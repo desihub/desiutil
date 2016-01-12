@@ -2,12 +2,13 @@
 Change Log
 ==========
 
-1.3.1 (unreleased)
+1.3.1 (2016-01-12)
 ------------------
 
 * Update MANIFEST.in file.
 * Ignore additional warnings produced by MANIFEST.in.
 * Always run ``fix_permissions.sh`` after install.
+* Remove references to defunct hopper system.
 
 1.3.0 (2015-12-09)
 ------------------
