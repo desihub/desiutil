@@ -5,7 +5,8 @@ Change Log
 1.3.2 (unreleased)
 ------------------
 
-* No changes yet!
+* Recent versions of setuptools do not include ``setuptools.compat``.  A
+  simple workaround was added to fix that.
 
 1.3.1 (2016-01-12)
 ------------------
