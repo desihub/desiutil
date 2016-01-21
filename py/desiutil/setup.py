@@ -11,12 +11,16 @@ from __future__ import absolute_import, division, print_function
 # Note: distutils can be sensitive to unicode, so don't import
 # unicode_literals.
 import re
+import sys
 import unittest
 from os import environ
 from os.path import abspath, exists, isdir, isfile, join
 from sys import exit
 from setuptools import Command
-from setuptools.compat import PY3
+try:
+    from setuptools.compat import PY3
+except ImportError:
+    PY3 = sys.version_info >= (3,)
 from setuptools.py31compat import unittest_main
 from setuptools.command.test import test as BaseTest
 from pkg_resources import _namespace_packages
