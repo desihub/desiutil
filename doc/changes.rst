@@ -2,7 +2,7 @@
 Change Log
 ==========
 
-1.3.2 (unreleased)
+1.3.2 (2016-01-25)
 ------------------
 
 * Recent versions of setuptools do not include ``setuptools.compat``.  A
