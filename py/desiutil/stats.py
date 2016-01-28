@@ -24,6 +24,8 @@ def perc(x, per=0.68):
     i.e. for per=0.68, the code returns the upper and lower bounds
     that encompass 68percent of the distribution.
 
+    Uses simple interpolation
+
     Parameters
     ----------
       x : float
