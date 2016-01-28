@@ -15,7 +15,7 @@ Fall 2015
 from __future__ import print_function, absolute_import, division, unicode_literals
 
 import numpy as np
-from scipy.interpolate import interp1d
+#from scipy.interpolate import interp1d
 #import pdb
 
 
@@ -45,21 +45,9 @@ def perc(x, per=0.68):
     xsort = np.sort(x)
     perx = (np.arange(npt)+1) / npt
 
-    f = interp1d(perx, xsort)
-
     frac = (1.-per) / 2.
 
-    # Fill
-    xper = np.zeros(2)
-    try:
-        xper[0] = f( frac )
-    except ValueError:
-        xper[0] = np.min(x)
-
-    try:
-        xper[1] = f( 1.-frac )
-    except ValueError:
-        xper[1] = np.max(x)
+    xper = np.interp(np.array([frac,1.-frac]), perx, xsort)
 
     # Return
     return xper
