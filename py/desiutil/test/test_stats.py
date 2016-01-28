@@ -29,5 +29,5 @@ class TestFuncFits(unittest.TestCase):
         x = np.linspace(0,np.pi,100)
         y = np.sin(x)
         percv = perc(y)
-        np.testing.assert_allclose(percv, np.array([0.22031053278654081,
-                                                   0.96384215855994215]))
+        np.testing.assert_allclose(percv, np.array([0.24316108649289372,
+                                                   0.96590623568871437]))

@@ -19,7 +19,7 @@ import numpy as np
 #import pdb
 
 
-def perc(x, per=0.68):
+def perc(x, per=68.2):
     """ Calculate the percentile bounds of a distribution,
     i.e. for per=0.68, the code returns the upper and lower bounds
     that encompass 68percent of the distribution.
@@ -39,17 +39,6 @@ def perc(x, per=0.68):
         Value at lower, value at upper
     """
     #
-    npt = len(x)
-
-    # Sort
-    xsort = np.sort(x)
-    perx = (np.arange(npt)+1) / npt
-
-    frac = (1.-per) / 2.
-
-    xper = np.interp(np.array([frac,1.-frac]), perx, xsort)
-
-    # Return
-    return xper
+    return np.percentile(x, [50-per/2.0, 50+per/2.0])
 
 
