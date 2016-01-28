@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
-"""Test desiutil.setup.
+"""Test desiutil.stats.
 """
 from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
@@ -12,7 +12,7 @@ from desiutil.stats import perc
 
 
 class TestStats(unittest.TestCase):
-    """Test desiutil.funcfits
+    """Test desiutil.stats
     """
 
     @classmethod
