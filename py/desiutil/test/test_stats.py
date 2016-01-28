@@ -11,7 +11,7 @@ import pdb
 from desiutil.stats import perc
 
 
-class TestFuncFits(unittest.TestCase):
+class TestStats(unittest.TestCase):
     """Test desiutil.funcfits
     """
 
