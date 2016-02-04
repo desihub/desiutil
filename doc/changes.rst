@@ -2,7 +2,7 @@
 Change Log
 ==========
 
-1.3.3 (unreleased)
+1.3.3 (2016-02-03)
 ------------------
 
 * Added stats module to compute percentiles on distributions.
