@@ -49,6 +49,7 @@ known_products = {
     'fiberassign_sqlite': 'https://github.com/desihub/fiberassign_sqlite',
     'imaginglss': 'https://github.com/desihub/imaginglss',
     'specex': 'https://github.com/desihub/specex',
+    'speclite': 'https://github.com/dkirkby/speclite',
     'specter': 'https://github.com/desihub/specter',
     'bbspecsim': 'https://desi.lbl.gov/svn/code/spectro/bbspecsim',
     'desiAdmin': 'https://desi.lbl.gov/svn/code/tools/desiAdmin',
@@ -524,6 +525,13 @@ class DesiInstall(object):
                         tf.extractall()
                         tf.close()
                         tgz.close()
+                        self.working_dir = join(abspath('.'), '{0}-{1}'.format(
+                                                self.baseproduct, self.baseversion))
+                        if self.baseversion.startswith('v'):
+                            nov = join(abspath('.'), '{0}-{1}'.format(
+                                       self.baseproduct, self.baseversion[1:]))
+                            if exists(nov):
+                                self.working_dir = nov
                     except:
                         message = "tar error while expanding product code!"
                         log.critical(message)

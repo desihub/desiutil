@@ -5,7 +5,10 @@ Change Log
 1.3.4 (unreleased)
 ------------------
 
-* no changes yet
+* Support GitHub tags that start with 'v'.
+* Add support for `speclite`_.
+
+.. _`speclite`: https://github.com/dkirkby/speclite
 
 1.3.3 (2016-02-03)
 ------------------
