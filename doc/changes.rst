@@ -5,7 +5,7 @@ Change Log
 1.3.5 (unreleased)
 ------------------
 
-* No changes yet.
+* Ignore some additional MANIFEST.in warnings.
 
 1.3.4 (2016-02-22)
 ------------------
