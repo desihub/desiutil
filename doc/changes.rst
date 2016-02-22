@@ -2,7 +2,7 @@
 Change Log
 ==========
 
-1.3.4 (unreleased)
+1.3.4 (2016-02-22)
 ------------------
 
 * Support GitHub tags that start with 'v'.
