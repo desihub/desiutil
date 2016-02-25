@@ -26,7 +26,7 @@ class TestStats(unittest.TestCase):
     def test_perc(self):
         """Test percentile
         """
-        x = np.linspace(0,np.pi,100)
+        x = np.linspace(0, np.pi, 100)
         y = np.sin(x)
         percv = perc(y)
         np.testing.assert_allclose(percv, np.array([0.24316108649289372,
