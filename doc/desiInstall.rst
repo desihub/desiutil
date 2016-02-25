@@ -7,6 +7,41 @@ Introduction
 
 This document describes the desiInstall process and the logic behind it.
 
+Configuring desiInstall
+=======================
+
+desiInstall has many options, which are best viewed by typing
+``desiInstall -h``.
+
+In addition, it is possible to override certain internal settings of
+the :class:`~desiutil.install.DesiInstall` object using an
+INI-style configuration file, supplying the name of the file with the
+``--configuration`` option.  Here is an example of the contents of such
+file::
+
+    #
+    # READ ME FIRST
+    #
+    # This file provides an example of how to override certain internal settings
+    # in desiInstall (desiutil.install).  You can copy this file, edit your copy
+    # and supply it to desiInstall with the --configuration option.
+    #
+    #
+    # This section can be used to override built-in names of NERSC hosts.
+    # Specifically, these will override the cross_install_host and
+    # nersc_hosts attributes of the DesiInstall object.
+    #
+    [Cross Install]
+    cross_install_host = cori
+    nersc_hosts = cori,edison,datatran
+    #
+    # This section can be used to append to or override values in the
+    # known_products dictionary in desiutil.install.
+    #
+    [Known Products]
+    my_new_product = https://github.com/me/my_new_product
+    desiutil = https://github.com/you/new_path_to_desiutil
+
 Stages of the Install
 =====================
 

@@ -86,6 +86,7 @@ class TestInstall(unittest.TestCase):
             environ[key] = env_settings[key]['new']
         default_namespace = Namespace(
             bootstrap=False,
+            config_file='',
             cross_install=False,
             default=False,
             force=False,
