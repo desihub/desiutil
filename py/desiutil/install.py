@@ -964,9 +964,11 @@ class DesiInstall(object):
                                           'cross_install_host'):
                     cross_install_host = self.config.get("Cross Install",
                                                          'cross_install_host')
+                    log.debug("cross_install_host set to {0}.".format(cross_install_host))
                 if self.config.has_option("Cross Install", 'nersc_hosts'):
                     nersc_hosts = self.config.get("Cross Install",
                                                   'nersc_hosts').split(',')
+                    log.debug("nersc_hosts set to {0}.".format(", ".join(nersc_hosts)))
             if self.nersc is None:
                 log.error("Cross-installs are only supported at NERSC.")
             elif self.nersc != cross_install_host:
