@@ -178,6 +178,15 @@ class TestInstall(unittest.TestCase):
         out = self.desiInstall.get_product_version()
         self.assertEqual(out, (u'https://github.com/desihub/desispec',
                          'desispec', '2.0.0'))
+        options = self.desiInstall.get_options(['--configuration',
+                                                join(self.data_dir,
+                                                     'desiInstall_configuration.ini'),
+                                                'my_new_product', '1.2.3'])
+        out = self.desiInstall.get_product_version()
+        self.assertEqual(out, (u'https://github.com/me/my_new_product',
+                         'my_new_product', '1.2.3'))
+        # Reset the config attribute after testing.
+        self.desiInstall.config = None
 
     def test_identify_branch(self):
         """Test identification of branch installs.
