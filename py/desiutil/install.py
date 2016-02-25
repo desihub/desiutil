@@ -10,6 +10,11 @@ This package contains code for installing DESI software products.
 from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 # The line above will help with 2to3 support.
+from sys import argv, executable, path, version_info
+try:
+    from setuptools.compat import PY3
+except ImportError:
+    PY3 = version_info >= (3,)
 import requests
 import tarfile
 import logging
@@ -20,13 +25,15 @@ try:
     from cStringIO import StringIO
 except ImportError:
     from io import StringIO
-from ConfigParser import SafeConfigParser
+if PY3:
+    from configparser import SafeConfigParser
+else:
+    from ConfigParser import SafeConfigParser
 from datetime import date
 from types import MethodType
 from os import chdir, environ, getcwd, makedirs, remove, symlink
 from os.path import abspath, basename, exists, isdir, join
 from shutil import copyfile, copytree, rmtree
-from sys import argv, executable, path, version_info
 from .git import last_tag
 from .modules import (init_modules, configure_module,
                       process_module, default_module)
