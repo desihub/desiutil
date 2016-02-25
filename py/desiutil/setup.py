@@ -47,18 +47,15 @@ class DesiModule(Command):
     def finalize_options(self):
         if self.modules is None:
             try:
-                self.modules = join(
-                        '/project/projectdirs/desi/software/modules',
-                        environ['NERSC_HOST'])
+                self.modules = join('/project/projectdirs/desi/software/modules',
+                                    environ['NERSC_HOST'])
             except KeyError:
                 try:
-                    self.modules = join(
-                                    environ['DESI_PRODUCT_ROOT'],
-                                    'modulefiles')
+                    self.modules = join(environ['DESI_PRODUCT_ROOT'],
+                                        'modulefiles')
                 except KeyError:
-                    self.announce(
-                            "Could not determine a Module install directory!",
-                            level=ERROR)
+                    self.announce("Could not determine a Module install directory!",
+                                  level=ERROR)
                     exit(1)
 
     def run(self):
@@ -68,13 +65,12 @@ class DesiModule(Command):
         dev = 'dev' in version
         working_dir = abspath('.')
         module_keywords = configure_module(name, version, dev=dev)
-        module_file = join(working_dir, 'etc', '{0}.module'.format(
-                                   name))
+        module_file = join(working_dir, 'etc', '{0}.module'.format(name))
         if exists(module_file):
             process_module(module_file, module_keywords, self.modules)
         else:
-            self.announce("Could not find a Module file: {}.".format(
-                          module_file), level=ERROR)
+            self.announce("Could not find a Module file: {0}.".format(module_file),
+                          level=ERROR)
         if self.default:
             default_module(module_keywords, self.modules)
         return
@@ -133,10 +129,8 @@ class DesiTest(BaseTest, object):
 
         result = unittest_main(None, None,
                                ([unittest.__file__] + self.test_args),
-                               testLoader=self._resolve_as_ep(
-                                            self.test_loader),
-                               testRunner=self._resolve_as_ep(
-                                            self.test_runner),
+                               testLoader=self._resolve_as_ep(self.test_loader),
+                               testRunner=self._resolve_as_ep(self.test_runner),
                                exit=False)
         if result.result.wasSuccessful():
             if self.coverage:
@@ -203,8 +197,7 @@ def find_version_directory(productname):
     elif isdir(join(setup_dir, productname)):
         version_dir = join(setup_dir, productname)
     else:
-        raise IOError(
-                "Could not find a directory containing version information!")
+        raise IOError("Could not find a directory containing version information!")
     return version_dir
 
 

@@ -29,9 +29,8 @@ def last_tag(owner, repo):
     """
     from os.path import basename
     import requests
-    api_url = 'https://api.github.com/repos/{0}/{1}/git/refs/tags/'.format(
-                owner, repo)
-    r = requests.get(api_url)
+    api_url = 'https://api.github.com/repos/{0}/{1}/git/refs/tags/'
+    r = requests.get(api_url.format(owner, repo))
     data = r.json()
     try:
         return basename(data[-1]['ref'])

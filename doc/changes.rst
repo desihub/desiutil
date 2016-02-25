@@ -6,6 +6,8 @@ Change Log
 ------------------
 
 * Ignore some additional MANIFEST.in warnings.
+* Allow known_products and cross-install configuration to be overridden
+  using an optional configuration file.
 
 1.3.4 (2016-02-22)
 ------------------
@@ -18,7 +20,7 @@ Change Log
 1.3.3 (2016-02-03)
 ------------------
 
-* Added stats module to compute percentiles on distributions.
+* Added :mod:`~desiutil.stats` module to compute percentiles on distributions.
 
 1.3.2 (2016-01-25)
 ------------------
@@ -38,7 +40,7 @@ Change Log
 ------------------
 
 * Updated docstrings for bitmasks.
-* Added :module:`~desuitil.funcfits` module.
+* Added :mod:`~desuitil.funcfits` module.
 
 1.2.0 (2015-11-24)
 ------------------

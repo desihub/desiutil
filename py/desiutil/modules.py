@@ -45,7 +45,8 @@ def init_modules(moduleshome=None, method=False):
             execfile(initpy, globals())
             if method:
                 def module_method(self, command, *arguments):
-                    """Wrap the module function provided by the Modules init script.
+                    """Wrap the module function provided by the Modules
+                    init script.
 
                     Parameters
                     ----------
@@ -84,7 +85,8 @@ def init_modules(moduleshome=None, method=False):
                 return module_method
             else:
                 def module_wrapper(command, *arguments):
-                    """Wrap the module function provided by the Modules init script.
+                    """Wrap the module function provided by the Modules
+                    init script.
 
                     Parameters
                     ----------
@@ -220,10 +222,9 @@ def default_module(module_keywords, module_dir):
         The text of the processed .version file.
     """
     from os.path import join
-    dot_version = '#%Module1.0\nset ModulesVersion "{0}"\n'.format(
-                    module_keywords['version'])
+    dot_template = '#%Module1.0\nset ModulesVersion "{version}"\n'
     install_version_file = join(module_dir, module_keywords['name'],
                                 '.version')
     with open(install_version_file, 'w') as v:
-        v.write(dot_version)
+        v.write(dot_template.format(**module_keywords))
     return dot_version

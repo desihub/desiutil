@@ -26,63 +26,63 @@ class TestFuncFits(unittest.TestCase):
     def test_poly_fit(self):
         """Test polynomial fit
         """
-        x = np.linspace(0,np.pi,50)
+        x = np.linspace(0, np.pi, 50)
         y = np.sin(x)
         # Fit
         dfit = func_fit(x, y, 'polynomial', 3)
-        x2 = np.linspace(0,np.pi,100)
-        y2 = func_val(x2,dfit)
+        x2 = np.linspace(0, np.pi, 100)
+        y2 = func_val(x2, dfit)
         np.testing.assert_allclose(y2[50], 0.97854984428713754)
 
     def test_legendre_fit(self):
         """Test Legendre fit
         """
         # Generate data
-        x = np.linspace(0,np.pi,50)
+        x = np.linspace(0, np.pi, 50)
         y = np.sin(x)
         # Fit
         dfit = func_fit(x, y, 'legendre', 4)
-        x2 = np.linspace(0,np.pi,100)
-        y2 = func_val(x2,dfit)
+        x2 = np.linspace(0, np.pi, 100)
+        y2 = func_val(x2, dfit)
         np.testing.assert_allclose(y2[50], 0.99940823486206976)
 
     def test_cheby_fit(self):
         """Test Chebyshev fit
         """
         # Generate data
-        x = np.linspace(0,np.pi,50)
+        x = np.linspace(0, np.pi, 50)
         y = np.sin(x)
         # Fit
         dfit = func_fit(x, y, 'chebyshev', 4)
-        x2 = np.linspace(0,np.pi,100)
-        y2 = func_val(x2,dfit)
+        x2 = np.linspace(0, np.pi, 100)
+        y2 = func_val(x2, dfit)
         np.testing.assert_allclose(y2[50], 0.99940823486206942)
 
     def test_fit_with_sigma(self):
         """Test fit with sigma
         """
         # Generate data
-        x = np.linspace(0,np.pi,50)
+        x = np.linspace(0, np.pi, 50)
         y = np.sin(x)
         sigy = np.ones_like(y)*0.1
         sigy[::2] = 0.15
         # Fit
         dfit = func_fit(x, y, 'legendre', 4, w=1./sigy)
-        x2 = np.linspace(0,np.pi,100)
-        y2 = func_val(x2,dfit)
+        x2 = np.linspace(0, np.pi, 100)
+        y2 = func_val(x2, dfit)
         np.testing.assert_allclose(y2[50], 0.99941056289796115)
 
     def test_iterfit(self):
         """Test iter fit with Legendre
         """
         # Generate data
-        x = np.linspace(0,np.pi,100)
+        x = np.linspace(0, np.pi, 100)
         y = np.sin(x)
         #
         y[50] = 3.
         # Fit
         dfit, mask = iter_fit(x, y, 'legendre', 4)
         assert np.sum(mask) == 1
-        x2 = np.linspace(0,np.pi,100)
-        y2 = func_val(x2,dfit)
+        x2 = np.linspace(0, np.pi, 100)
+        y2 = func_val(x2, dfit)
         np.testing.assert_allclose(y2[50], 0.99941444872371643)

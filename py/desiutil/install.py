@@ -10,6 +10,11 @@ This package contains code for installing DESI software products.
 from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 # The line above will help with 2to3 support.
+from sys import argv, executable, path, version_info
+try:
+    from setuptools.compat import PY3
+except ImportError:
+    PY3 = version_info >= (3,)
 import requests
 import tarfile
 import logging
@@ -20,12 +25,15 @@ try:
     from cStringIO import StringIO
 except ImportError:
     from io import StringIO
+if PY3:
+    from configparser import SafeConfigParser
+else:
+    from ConfigParser import SafeConfigParser
 from datetime import date
 from types import MethodType
 from os import chdir, environ, getcwd, makedirs, remove, symlink
 from os.path import abspath, basename, exists, isdir, join
 from shutil import copyfile, copytree, rmtree
-from sys import argv, executable, path, version_info
 from .git import last_tag
 from .modules import (init_modules, configure_module,
                       process_module, default_module)
@@ -125,6 +133,9 @@ class DesiInstall(object):
         The bare name of the product, *e.g.* "desiutil".
     baseversion : str
         The bare version, without any ``branches/`` qualifiers.
+    config : SafeConfigParser
+        If an *optional* configuration file is specified on the command-line,
+        this holds the object that reads it.
     cross_install_host : str
         The NERSC host on which to perform cross-installs.
     executable : str
@@ -214,6 +225,11 @@ class DesiInstall(object):
                             help=("Force C/C++ install mode, even if a " +
                                   "setup.py file is detected (WARNING: " +
                                   "this is for experts only)."))
+        parser.add_argument('-c', '--configuration', action='store',
+                            dest='config_file', default='',
+                            metavar='FILE',
+                            help=("Override built-in configuration with " +
+                                  "data from FILE."))
         parser.add_argument('-d', '--default', action='store_true',
                             dest='default',
                             help='Make this version the default version.')
@@ -277,6 +293,14 @@ class DesiInstall(object):
                       ' '.join(test_args)))
         log.debug('Set log level to {0}.'.format(
                   logging.getLevelName(self.ll)))
+        self.config = None
+        if self.options.config_file:
+            log.debug("Detected configuration file: {0}.".format(self.options.config_file))
+            c = SafeConfigParser()
+            status = c.read([self.options.config_file])
+            if status[0] == self.options.config_file:
+                self.config = c
+                log.debug("Successfully parsed {0}.".format(self.options.config_file))
         return self.options
 
     def sanity_check(self):
@@ -334,6 +358,10 @@ class DesiInstall(object):
             If the product and version inputs didn't make sense.
         """
         log = logging.getLogger(__name__ + '.DesiInstall.get_product_version')
+        if self.config is not None:
+            if self.config.has_section("Known Products"):
+                for name, value in self.config.items("Known Products"):
+                    known_products[name] = value
         if '/' in self.options.product:
             self.baseproduct = basename(self.options.product)
             self.fullproduct = known_products[self.baseproduct]
@@ -929,25 +957,37 @@ class DesiInstall(object):
         log = logging.getLogger(__name__ + '.DesiInstall.cross_install')
         links = list()
         if self.options.cross_install:
+            cross_install_host = self.cross_install_host
+            nersc_hosts = self.nersc_hosts
+            if self.config is not None:
+                if self.config.has_option("Cross Install",
+                                          'cross_install_host'):
+                    cross_install_host = self.config.get("Cross Install",
+                                                         'cross_install_host')
+                    log.debug("cross_install_host set to {0}.".format(cross_install_host))
+                if self.config.has_option("Cross Install", 'nersc_hosts'):
+                    nersc_hosts = self.config.get("Cross Install",
+                                                  'nersc_hosts').split(',')
+                    log.debug("nersc_hosts set to {0}.".format(", ".join(nersc_hosts)))
             if self.nersc is None:
                 log.error("Cross-installs are only supported at NERSC.")
-            elif self.nersc != self.cross_install_host:
+            elif self.nersc != cross_install_host:
                 log.error("Cross-installs should be performed on {0}.".format(
-                          self.cross_install_host))
+                          cross_install_host))
             else:
-                for nh in self.nersc_hosts:
-                    if nh == self.cross_install_host:
+                for nh in nersc_hosts:
+                    if nh == cross_install_host:
                         continue
                     dst = join('/project/projectdirs/desi/software', nh,
                                self.baseproduct)
                     if not islink(dst):
-                        src = join('..', self.cross_install_host,
+                        src = join('..', cross_install_host,
                                    self.baseproduct)
                         links.append((src, dst))
                     dst = join('/project/projectdirs/desi/software/modules',
                                nh, self.baseproduct)
                     if not islink(dst):
-                        src = join('..', self.cross_install_host,
+                        src = join('..', cross_install_host,
                                    self.baseproduct)
                         links.append((src, dst))
                 for s, d in links:
