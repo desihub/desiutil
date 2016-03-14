@@ -8,6 +8,8 @@ Change Log
 * Ignore some additional MANIFEST.in warnings.
 * Allow known_products and cross-install configuration to be overridden
   using an optional configuration file.
+* Allow products to specify a method to download additional data not
+  bundled with the code.
 
 1.3.4 (2016-02-22)
 ------------------

@@ -816,8 +816,39 @@ class DesiInstall(object):
             log.debug("module('{0}', '{1}/{2}')".format(m_command,
                       self.baseproduct, self.baseversion))
             self.module(m_command, self.baseproduct + '/' + self.baseversion)
+        env_version = self.baseproduct.upper() + '_VERSION'
+        if env_version not in environ:
+            environ[env_version] = self.baseversion
         self.original_dir = getcwd()
         return self.original_dir
+
+    def get_extra(self):
+        """Download any additional data not included in the code repository.
+
+        This is done here so that :envvar:`WORKING_DIR` is defined.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        """
+        log = logging.getLogger(__name__ + '.DesiInstall.get_extra')
+        extra_script = join(self.working_dir, 'etc',
+                            '{0}_data.sh'.format(self.baseproduct))
+        if exists(extra_script):
+            log.debug("Detected extra script: {0}.".format(extra_script))
+            proc = Popen([extra_script], universal_newlines=True,
+                         stdout=PIPE, stderr=PIPE)
+            out, err = proc.communicate()
+            log.debug(out)
+            if len(err) > 0:
+                message = "Error grabbing extra data: {0}".format(err)
+                log.critical(message)
+                raise DesiInstallException(message)
+        return
 
     def copy_install(self):
         """Simply copying the files from the checkout to the install.
@@ -1072,6 +1103,7 @@ class DesiInstall(object):
             self.module_dependencies()
             self.install_module()
             self.prepare_environment()
+            self.get_extra()
             self.copy_install()
             self.install()
             self.cross_install()
