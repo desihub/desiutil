@@ -815,7 +815,8 @@ class DesiInstall(object):
                 m_command = 'load'
             log.debug("module('{0}', '{1}/{2}')".format(m_command,
                       self.baseproduct, self.baseversion))
-            self.module(m_command, self.baseproduct + '/' + self.baseversion)
+            if not self.options.test:
+                self.module(m_command, self.baseproduct + '/' + self.baseversion)
         env_version = self.baseproduct.upper() + '_VERSION'
         if env_version not in environ:
             environ[env_version] = self.baseversion
