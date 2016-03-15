@@ -2,7 +2,7 @@
 Change Log
 ==========
 
-1.3.5 (unreleased)
+1.3.5 (2015-03-15)
 ------------------
 
 * Ignore some additional MANIFEST.in warnings.
