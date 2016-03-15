@@ -957,7 +957,9 @@ class DesiInstall(object):
                         # MANIFEST.in and not finding directories.  These
                         # can be ignored.
                         #
-                        manifestre = re.compile(r"error:", re.I)
+                        manifestre = re.compile(r"(warning: |)no" +
+                                                r"( previously-included | )" +
+                                                r"(directories|files)", re.I)
                         # manifestre = re.compile(r"no( previously-included| )" +
                         #                         r"( directories| files)" +
                         #                         r"( found| ) " +
