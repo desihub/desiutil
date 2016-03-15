@@ -225,6 +225,7 @@ def default_module(module_keywords, module_dir):
     dot_template = '#%Module1.0\nset ModulesVersion "{version}"\n'
     install_version_file = join(module_dir, module_keywords['name'],
                                 '.version')
+    dot_version = dot_template.format(**module_keywords)
     with open(install_version_file, 'w') as v:
-        v.write(dot_template.format(**module_keywords))
+        v.write(dot_version)
     return dot_version
