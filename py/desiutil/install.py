@@ -819,7 +819,7 @@ class DesiInstall(object):
                 self.module(m_command, self.baseproduct + '/' + self.baseversion)
         env_version = self.baseproduct.upper() + '_VERSION'
         if env_version not in environ:
-            environ[env_version] = self.baseversion
+            environ[env_version] = 'tags/'+self.baseversion
         self.original_dir = getcwd()
         return self.original_dir
 
@@ -847,8 +847,9 @@ class DesiInstall(object):
                 proc = Popen([extra_script], universal_newlines=True,
                              stdout=PIPE, stderr=PIPE)
                 out, err = proc.communicate()
+                status = proc.returncode
                 log.debug(out)
-                if len(err) > 0:
+                if status != 0 and len(err) > 0:
                     message = "Error grabbing extra data: {0}".format(err)
                     log.critical(message)
                     raise DesiInstallException(message)
