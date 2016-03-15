@@ -165,7 +165,9 @@ Download Extra Data
 If desiInstall detects ``etc/product_data.sh``, where ``product`` should be
 replaced by the actual name of the package, it will download extra data
 not bundled with the code, so that it can be installed in
-:envvar:`INSTALL_DIR` in the next stage.
+:envvar:`INSTALL_DIR` in the next stage.  The script should *only* be used
+with desiInstall and Travis tests.  There are other, better ways to
+install and manipulate data that is bundled *with* the package.
 
 Copy All Files
 --------------
