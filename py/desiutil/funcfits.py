@@ -212,3 +212,18 @@ def iter_fit(xarray, yarray, func, order, weights=None, sigma=None,
     yfit = yarray[w]
     fdict = func_fit(xfit, yfit, func, order, xmin=xmin, xmax=xmax, **kwargs)
     return fdict, mask
+
+
+def mk_fit_dict(coeff, order, func, xmin=None, xmax=None, **kwargs):
+    """ Generate a dict for guiding the fits
+    :param coeff:
+    :param order:
+    :param func:
+    :param xmin:
+    :param xmax:
+    :param kwargs:
+    :return: fit_dict: dict
+    """
+    # Finish
+    fit_dict = dict(coeff=coeff, order=order, func=func, xmin=xmin, xmax=xmax, **kwargs)
+    return fit_dict
