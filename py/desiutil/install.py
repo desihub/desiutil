@@ -156,6 +156,8 @@ class DesiInstall(object):
         Holds the value of :envvar:`NERSC_HOST`, or ``None`` if not defined.
     nersc_hosts : tuple
         The list of NERSC hosts names to be used for cross-installs.
+    nersc_module_dir : str
+        The directory that contains Module directories at NERSC.
     options : argparse.Namespace
         The parsed command-line options.
     product_url : str
