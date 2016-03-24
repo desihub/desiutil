@@ -26,7 +26,7 @@ try:
 except ImportError:
     from io import StringIO
 if PY3:
-    from configparser import SafeConfigParser
+    from configparser import ConfigParser as SafeConfigParser
 else:
     from ConfigParser import SafeConfigParser
 from datetime import date

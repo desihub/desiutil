@@ -42,7 +42,13 @@ def init_modules(moduleshome=None, method=False):
     for modpy in ('python', 'python.py'):
         initpy = os.path.join(moduleshome, 'init', modpy)
         if os.path.exists(initpy):
-            execfile(initpy, globals())
+            try:
+                execfile(initpy, globals())
+            except NameError:
+                # no execfile() in Python 3.
+                with open(initpy) as i:
+                    code = compile(i.read(), initpy, 'exec')
+                    exec(code, globals())
             if method:
                 def module_method(self, command, *arguments):
                     """Wrap the module function provided by the Modules
@@ -150,7 +156,10 @@ def configure_module(product, version, working_dir=None, dev=False):
     from os import getcwd
     from os.path import exists, isdir, join
     from sys import version_info
-    from ConfigParser import SafeConfigParser
+    try:
+        from ConfigParser import SafeConfigParser
+    except ImportError:
+        from configparser import ConfigParser as SafeConfigParser
     if working_dir is None:
         working_dir = getcwd()
     module_keywords = {
