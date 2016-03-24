@@ -59,6 +59,7 @@ known_products = {
     'imaginglss': 'https://github.com/desihub/imaginglss',
     'specex': 'https://github.com/desihub/specex',
     'speclite': 'https://github.com/dkirkby/speclite',
+    'specsim': 'https://github.com/desihub/specsim',
     'specter': 'https://github.com/desihub/specter',
     'bbspecsim': 'https://desi.lbl.gov/svn/code/spectro/bbspecsim',
     'desiAdmin': 'https://desi.lbl.gov/svn/code/tools/desiAdmin',
@@ -165,6 +166,7 @@ class DesiInstall(object):
     """
     cross_install_host = 'edison'
     nersc_hosts = ('cori', 'edison', 'datatran', 'scigate')
+    nersc_module_dir = '/project/projectdirs/desi/software/modules'
 
     def __init__(self, test=False):
         """Bare-bones initialization.
@@ -758,9 +760,14 @@ class DesiInstall(object):
             if self.nersc is None:
                 self.options.moduledir = join(self.options.root, 'modulefiles')
             else:
-                # This needs to be replaced with something that isn't
-                # hard-coded.
-                nersc_module = '/project/projectdirs/desi/software/modules'
+                if self.config is not None:
+                    if self.config.has_option("Module Processing",
+                                              'nersc_module_dir'):
+                        nersc_module = self.config.get("Module Processing",
+                                                       'nersc_module_dir')
+                else:
+                    nersc_module = self.nersc_module_dir
+                log.debug("nersc_module_dir set to {0}.".format(nersc_module))
                 self.options.moduledir = join(nersc_module, self.nersc)
             if not self.options.test:
                 if not isdir(self.options.moduledir):

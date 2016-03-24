@@ -41,6 +41,11 @@ file::
     [Known Products]
     my_new_product = https://github.com/me/my_new_product
     desiutil = https://github.com/you/new_path_to_desiutil
+    #
+    # This section can override details of Module file installation.
+    #
+    [Module Processing]
+    nersc_module_dir = /project/projectdirs/desi/test/modules
 
 Stages of the Install
 =====================

@@ -8,6 +8,7 @@ Change Log
 * Include funcfits in the documentation.
 * Improve coverage of funcfits.
 * Try to use a nicer Sphinx theme for documentation.
+* Fix module processing problem for non-DESI Python packages.
 
 1.3.5 (2015-03-15)
 ------------------

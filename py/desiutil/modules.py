@@ -148,8 +148,9 @@ def configure_module(product, version, working_dir=None, dev=False):
         A dictionary containing the module configuration parameters.
     """
     from os import getcwd
-    from os.path import isdir, join
+    from os.path import exists, isdir, join
     from sys import version_info
+    from ConfigParser import SafeConfigParser
     if working_dir is None:
         working_dir = getcwd()
     module_keywords = {
@@ -158,6 +159,7 @@ def configure_module(product, version, working_dir=None, dev=False):
         'needs_bin': '# ',
         'needs_python': '# ',
         'needs_trunk_py': '# ',
+        'trunk_py_dir': '/py',
         'needs_ld_lib': '# ',
         'needs_idl': '# ',
         'pyversion': "python{0:d}.{1:d}".format(*version_info)
@@ -168,11 +170,23 @@ def configure_module(product, version, working_dir=None, dev=False):
         module_keywords['needs_ld_lib'] = ''
     if isdir(join(working_dir, 'pro')):
         module_keywords['needs_idl'] = ''
+    if (exists(join(working_dir, 'setup.py')) and
+        isdir(join(working_dir, product))):
+        if dev:
+            module_keywords['needs_trunk_py'] = ''
+            module_keywords['trunk_py_dir'] = ''
+        else:
+            module_keywords['needs_python'] = ''
     if isdir(join(working_dir, 'py')):
         if dev:
             module_keywords['needs_trunk_py'] = ''
         else:
             module_keywords['needs_python'] = ''
+    if exists(join(working_dir, 'setup.cfg')):
+        conf = SafeConfigParser()
+        conf.read([join(working_dir, 'setup.cfg')])
+        if conf.has_section('entry_points'):
+            module_keywords['needs_bin'] = ''
     return module_keywords
 
 
