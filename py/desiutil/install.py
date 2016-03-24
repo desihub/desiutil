@@ -44,6 +44,7 @@ known_products = {
     'desiBackup': 'https://github.com/desihub/desiBackup',
     'desidatamodel': 'https://github.com/desihub/desidatamodel',
     'desietc': 'https://github.com/desihub/desietc',
+    'desimodel': 'https://github.com/desihub/desimodel',
     'desimodules': 'https://github.com/desihub/desimodules',
     'desisim': 'https://github.com/desihub/desisim',
     'desispec': 'https://github.com/desihub/desispec',
@@ -61,7 +62,6 @@ known_products = {
     'specter': 'https://github.com/desihub/specter',
     'bbspecsim': 'https://desi.lbl.gov/svn/code/spectro/bbspecsim',
     'desiAdmin': 'https://desi.lbl.gov/svn/code/tools/desiAdmin',
-    'desimodel': 'https://desi.lbl.gov/svn/code/desimodel',
     'dspecsim': 'https://desi.lbl.gov/svn/code/spectro/dspecsim',
     'elg_deep2': 'https://desi.lbl.gov/svn/code/targeting/elg_deep2',
     'plate_layout': 'https://desi.lbl.gov/svn/code/focalplane/plate_layout',
@@ -815,9 +815,48 @@ class DesiInstall(object):
                 m_command = 'load'
             log.debug("module('{0}', '{1}/{2}')".format(m_command,
                       self.baseproduct, self.baseversion))
-            self.module(m_command, self.baseproduct + '/' + self.baseversion)
+            if not self.options.test:
+                self.module(m_command, self.baseproduct + '/' + self.baseversion)
+        env_version = self.baseproduct.upper() + '_VERSION'
+        # The current install script expects a version in the form of
+        # branches/test-0.4 or tags/0.4.4 or trunk
+        if env_version not in environ:
+            environ[env_version] = 'tags/'+self.baseversion
         self.original_dir = getcwd()
         return self.original_dir
+
+    def get_extra(self):
+        """Download any additional data not included in the code repository.
+
+        This is done here so that :envvar:`WORKING_DIR` is defined.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        """
+        log = logging.getLogger(__name__ + '.DesiInstall.get_extra')
+        extra_script = join(self.working_dir, 'etc',
+                            '{0}_data.sh'.format(self.baseproduct))
+        if self.options.test:
+            log.debug('Test Mode. Skipping install of extra data.')
+        else:
+            if exists(extra_script):
+                log.debug("Detected extra script: {0}.".format(extra_script))
+                proc = Popen([extra_script], universal_newlines=True,
+                             stdout=PIPE, stderr=PIPE)
+                out, err = proc.communicate()
+                status = proc.returncode
+                log.debug(out)
+                # Temporarily ignore all error messages from script.
+                # if status != 0 and len(err) > 0:
+                #     message = "Error grabbing extra data: {0}".format(err)
+                #     log.critical(message)
+                #     raise DesiInstallException(message)
+        return
 
     def copy_install(self):
         """Simply copying the files from the checkout to the install.
@@ -852,23 +891,26 @@ class DesiInstall(object):
         log = logging.getLogger(__name__ + '.DesiInstall.install')
         if (self.is_trunk or self.is_branch):
             if 'src' in self.build_type:
-                chdir(self.install_dir)
-                command = ['make', '-C', 'src', 'all']
-                log.info('Running "{0}" in {1}.'.format(
-                         ' '.join(command), self.install_dir))
-                proc = Popen(command, universal_newlines=True,
-                             stdout=PIPE, stderr=PIPE)
-                out, err = proc.communicate()
-                log.debug(out)
-                if len(err) > 0:
-                    message = "Error during compile: {0}".format(err)
-                    log.critical(message)
-                    raise DesiInstallException(message)
+                if self.options.test:
+                    log.debug("Test Mode. Skipping 'make'.")
+                else:
+                    chdir(self.install_dir)
+                    command = ['make', '-C', 'src', 'all']
+                    log.info('Running "{0}" in {1}.'.format(
+                             ' '.join(command), self.install_dir))
+                    proc = Popen(command, universal_newlines=True,
+                                 stdout=PIPE, stderr=PIPE)
+                    out, err = proc.communicate()
+                    log.debug(out)
+                    if len(err) > 0:
+                        message = "Error during compile: {0}".format(err)
+                        log.critical(message)
+                        raise DesiInstallException(message)
         else:
             #
             # Run a 'real' install
             #
-            chdir(self.working_dir)
+            # chdir(self.working_dir)
             if 'py' in self.build_type:
                 #
                 # For Python installs, a site-packages directory needs to
@@ -878,7 +920,10 @@ class DesiInstall(object):
                 lib_dir = join(self.install_dir, 'lib',
                                self.module_keywords['pyversion'],
                                'site-packages')
-                if not self.options.test:
+                if self.options.test:
+                    log.debug(("Test Mode.  Skipping creation of " +
+                               "{0}.").format(lib_dir))
+                else:
                     try:
                         makedirs(lib_dir)
                     except OSError as ose:
@@ -898,7 +943,10 @@ class DesiInstall(object):
                 command = [executable, 'setup.py', 'install',
                            '--prefix={0}'.format(self.install_dir)]
                 log.debug(' '.join(command))
-                if not self.options.test:
+                if self.options.test:
+                    log.debug("Test Mode.  Skipping 'python setup.py install'.")
+                else:
+                    chdir(self.working_dir)
                     proc = Popen(command, universal_newlines=True,
                                  stdout=PIPE, stderr=PIPE)
                     out, err = proc.communicate()
@@ -909,9 +957,13 @@ class DesiInstall(object):
                         # MANIFEST.in and not finding directories.  These
                         # can be ignored.
                         #
-                        manifestre = re.compile(r"no (previously-included|) " +
-                                                r"(directories|files) found " +
-                                                r"matching '[^']+'")
+                        manifestre = re.compile(r"(warning: |)no" +
+                                                r"( previously-included | )" +
+                                                r"(directories|files)", re.I)
+                        # manifestre = re.compile(r"no( previously-included| )" +
+                        #                         r"( directories| files)" +
+                        #                         r"( found| ) " +
+                        #                         r"matching '[^']+'")
                         lines = [l for l in err.split('\n') if len(l) > 0 and
                                  manifestre.search(l) is None]
                         if len(lines) > 0:
@@ -926,12 +978,17 @@ class DesiInstall(object):
             #
             if 'make' in self.build_type or 'src' in self.build_type:
                 if 'src' in self.build_type:
-                    chdir(self.install_dir)
                     command = ['make', '-C', 'src', 'all']
                 else:
                     command = ['make', 'install']
                 log.debug(' '.join(command))
-                if not self.options.test:
+                if self.options.test:
+                    log.debug("Test Mode.  Skipping 'make install'.")
+                else:
+                    if 'src' in self.build_type:
+                        chdir(self.install_dir)
+                    else:
+                        chdir(self.working_dir)
                     proc = Popen(command, universal_newlines=True,
                                  stdout=PIPE, stderr=PIPE)
                     out, err = proc.communicate()
@@ -1072,6 +1129,7 @@ class DesiInstall(object):
             self.module_dependencies()
             self.install_module()
             self.prepare_environment()
+            self.get_extra()
             self.copy_install()
             self.install()
             self.cross_install()

@@ -2,12 +2,21 @@
 Change Log
 ==========
 
-1.3.5 (unreleased)
+1.3.6 (unreleased)
+------------------
+
+* Include funcfits in the documentation.
+* Improve coverage of funcfits.
+* Try to use a nicer Sphinx theme for documentation.
+
+1.3.5 (2015-03-15)
 ------------------
 
 * Ignore some additional MANIFEST.in warnings.
 * Allow known_products and cross-install configuration to be overridden
   using an optional configuration file.
+* Allow products to specify a method to download additional data not
+  bundled with the code.
 
 1.3.4 (2016-02-22)
 ------------------

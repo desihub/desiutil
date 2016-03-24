@@ -156,6 +156,18 @@ Load Module
 desiInstall will load the module file just created to set up any environment
 variables needed by the install.  At this point it is also safe to assume that
 the environment variables :envvar:`WORKING_DIR` and :envvar:`INSTALL_DIR` exist.
+It will also set :envvar:`PRODUCT_VERSION`, where ``PRODUCT`` will be replaced
+by the actual name of the package, *e.g.*, :envvar:`DESIMODEL_VERSION`.
+
+Download Extra Data
+-------------------
+
+If desiInstall detects ``etc/product_data.sh``, where ``product`` should be
+replaced by the actual name of the package, it will download extra data
+not bundled with the code, so that it can be installed in
+:envvar:`INSTALL_DIR` in the next stage.  The script should *only* be used
+with desiInstall and Travis tests.  There are other, better ways to
+install and manipulate data that is bundled *with* the package.
 
 Copy All Files
 --------------

@@ -25,42 +25,43 @@ def func_fit(x, y, func, deg, xmin=None, xmax=None, w=None, **kwargs):
 
     Parameters
     ----------
-    x : ndarray
-    y : ndarray
-    func : str
+    x : :class:`~numpy.ndarray`
+        Independent data values.
+    y : :class:`~numpy.ndarray`
+        Dependent data to fit.
+    func : :class:`str`
         Name of the fitting function:  polynomial, legendre, chebyshev.
-    deg : int or dict
+    deg : :class:`int` or :class:`dict`
         Order of the fit.
-    xmin : float, optional
+    xmin : :class:`float`, optional
         Minimum value in the array (or the left limit for a
         legendre/chebyshev polynomial).
-    xmax : float, optional
+    xmax : :class:`float`, optional
         Maximum value in the array (or the left limit for a
         legendre/chebyshev polynomial).
-    w : ndarray, optional
+    w : :class:`~numpy.ndarray`, optional
         Weights to be used in the fitting (weights = 1/sigma).
 
     Returns
     -------
-    dict
-        dict describing the Fit including the coefficients.
+    :class:`dict`
+        Dictionary describing the Fit including the coefficients.
     """
     # Normalize
     if xmin is None or xmax is None:
-        if np.size(x) == 1:
+        if x.size == 1:
             xmin, xmax = -1.0, 1.0
         else:
-            xmin, xmax = np.min(x), np.max(x)
+            xmin, xmax = x.min(), x.max()
     xv = 2.0 * (x-xmin)/(xmax-xmin) - 1.0
     # Fit
-    if func == "polynomial":
-        fit = np.polynomial.polynomial.polyfit(xv, y, deg, w=w)
-    elif func == "legendre":
-        fit = np.polynomial.legendre.legfit(xv, y, deg, w=w)
-    elif func == "chebyshev":
-        fit = np.polynomial.chebyshev.chebfit(xv, y, deg, w=w)
-    else:
-        raise ValueError("Fitting function '{0:s}' is not implemented yet".format(func))
+    fitters = {'polynomial': np.polynomial.polynomial.polyfit,
+               'legendre': np.polynomial.legendre.legfit,
+               'chebyshev': np.polynomial.chebyshev.chebfit}
+    try:
+        fit = fitters[func](xv, y, deg, w=w)
+    except KeyError:
+        raise ValueError("Fitting function '{0:s}' is not implemented yet.".format(func))
     # Finish
     fit_dict = dict(coeff=fit, order=deg, func=func, xmin=xmin, xmax=xmax,
                     **kwargs)
@@ -74,70 +75,71 @@ def func_val(x, fit_dict):
 
     Parameters
     ----------
-    x : ndarray
+    x : :class:`~numpy.ndarray`
+        Evaluate the fit at these coordinates.
 
     Returns
     -------
-    ndarray
+    :class:`~numpy.ndarray`
         Array containing the values.
     """
     xv = 2.0 * (x-fit_dict['xmin'])/(fit_dict['xmax']-fit_dict['xmin']) - 1.0
-    if fit_dict['func'] == "polynomial":
-        return np.polynomial.polynomial.polyval(xv, fit_dict['coeff'])
-    elif fit_dict['func'] == "legendre":
-        return np.polynomial.legendre.legval(xv, fit_dict['coeff'])
-    elif fit_dict['func'] == "chebyshev":
-        return np.polynomial.chebyshev.chebval(xv, fit_dict['coeff'])
-    else:
-        raise ValueError("Fitting function '{0:s}' is not implemented yet".format(fit_dict['func']))
+    values = {'polynomial': np.polynomial.polynomial.polyval,
+              'legendre': np.polynomial.legendre.legval,
+              'chebyshev': np.polynomial.chebyshev.chebval}
+    try:
+        val = values[fit_dict['func']](xv, fit_dict['coeff'])
+    except KeyError:
+        raise ValueError("Fitting function '{0:s}' is not implemented yet.".format(fit_dict['func']))
+    return val
 
 
 def iter_fit(xarray, yarray, func, order, weights=None, sigma=None,
              max_rej=None, maxone=True, sig_rej=3.0, initialmask=None,
              forceimask=False, xmin=None, xmax=None, niter=999, **kwargs):
     """A "robust" fit with iterative rejection is performed to the
-    xarray, yarray pairs.
+    `xarray`, `yarray` pairs.
 
     Modified code originally from Ryan Cooke (PYPIT).
 
     Parameters
     ----------
-    xarray : ndarray
+    xarray : :class:`~numpy.ndarray`
         Independent variable values.
-    yarray : ndarray
+    yarray : :class:`~numpy.ndarray`
         Dependent variable values.
-    func : str
+    func : :class:`str`
         Name of the fitting function:  polynomial, legendre, chebyshev.
-    order : int
+    order : :class:`int`
         The order of the function to be used in the fitting.
-    sigma : ndarray, optional
+    sigma : :class:`~numpy.ndarray`, optional
         Error in the yvalues.  Used only for rejection.
-    weights : ndarray, optional
+    weights : :class:`~numpy.ndarray`, optional
         Weights to be used in the fitting (weights = 1/sigma).
-    maxone : bool, optional [True]
+    maxone : :class:`bool`, optional [True]
         If ``True``, only the most deviant point in a given iteration will
         be removed.
-    sig_rej : float, optional [3.0]
+    sig_rej : :class:`float`, optional [3.0]
         Confidence interval for rejection.
-    max_rej : int, optional [None]
+    max_rej : :class:`int`, optional [None]
         Maximum number of points to reject.
-    initialmask : ndarray
+    initialmask : :class:`~numpy.ndarray`
         A mask can be supplied as input, these values will be masked for
         the first iteration. 1 = value masked.
-    forceimask : bool, optional [False]
+    forceimask : :class:`bool`, optional [False]
         If ``True``, the initialmask will be forced for all iterations.
-    niter : int, optional [999]
+    niter : :class:`int`, optional [999]
         Maximum number of iterations.
-    xmin : float
+    xmin : :class:`float`
         Minimum value in the array (or the left limit for a
         legendre/chebyshev polynomial).
-    xmax : float
+    xmax : :class:`float`
         Maximum value in the array (or the right limit for a
         legendre/chebyshev polynomial).
 
     Returns
     -------
-    tuple
+    :func:`tuple`
         The tuple contains a dict containing the fit and a mask array
         containing masked values.
     """
