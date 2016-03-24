@@ -9,6 +9,7 @@ Change Log
 * Improve coverage of funcfits.
 * Try to use a nicer Sphinx theme for documentation.
 * Fix module processing problem for non-DESI Python packages.
+* Allow NERSC Modules root directory to be overridden in a configuration file.
 
 1.3.5 (2015-03-15)
 ------------------
