@@ -2,14 +2,17 @@
 Change Log
 ==========
 
-1.3.6 (unreleased)
+1.3.7 (unreleased)
 ------------------
 
-* Include funcfits in the documentation.
+1.3.6 (2016-03-25)
+------------------
+
+* Include funcfits in the documentation; added mk_fit_dict.
 * Improve coverage of funcfits.
 * Try to use a nicer Sphinx theme for documentation.
 
-1.3.5 (2015-03-15)
+1.3.5 (2016-03-15)
 ------------------
 
 * Ignore some additional MANIFEST.in warnings.
