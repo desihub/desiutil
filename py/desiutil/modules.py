@@ -28,108 +28,114 @@ def init_modules(moduleshome=None, method=False):
 
     Returns
     -------
-    init_modules : function
+    callable
         A function that wraps the ``module()`` function, and deals with
         setting ``sys.path``.  Returns ``None`` if no Modules infrastructure
         could be found.
     """
     import os
+    import re
     if moduleshome is None:
         try:
             moduleshome = os.environ['MODULESHOME']
         except KeyError:
             return None
-    for modpy in ('python', 'python.py'):
-        initpy = os.path.join(moduleshome, 'init', modpy)
-        if os.path.exists(initpy):
-            try:
-                execfile(initpy, globals())
-            except NameError:
-                # no execfile() in Python 3.
-                with open(initpy) as i:
-                    code = compile(i.read(), initpy, 'exec')
-                    exec(code, globals())
-            if method:
-                def module_method(self, command, *arguments):
-                    """Wrap the module function provided by the Modules
-                    init script.
+    if not os.path.isdir(moduleshome):
+        return None
+    if 'MODULEPATH' not in os.environ:
+        os.environ['MODULEPATH'] = ''
+        dot_modulespath = os.path.join(moduleshome, 'init', '.modulespath')
+        if os.path.exists(dot_modulespath):
+            path = list()
+            with open(dot_modulespath, 'r') as f:
+                for line in f.readlines():
+                    line = re.sub("#.*$", '', line.strip())
+                    if line is not '':
+                        path.append(line)
+            os.environ['MODULEPATH'] = ':'.join(path)
+        modulerc = os.path.join(moduleshome, 'init', 'modulerc')
+        if os.path.exists(dot_modulespath):
+            path = list()
+            with open(dot_modulespath, 'r') as f:
+                for line in f.readlines():
+                    line = re.sub("#.*$", '', line.strip())
+                    if line is not '' and line.startswith('module use'):
+                        p = os.path.expanduser(line.replace('module use ', '').strip())
+                        path.append(p)
+            os.environ['MODULEPATH'] = ':'.join(path)
+    if 'MODULE_VERSION' in os.environ:
+        #
+        # This is probably one of the primary NERSC systems, edison or cori.
+        #
+        modulecmd = ['/opt/modules/{MODULE_VERSION}/bin/modulecmd'.format(**os.environ), 'python']
+        os.environ['MODULE_VERSION_STACK'] = os.environ['MODULE_VERSION']
+    elif os.path.exists(os.path.join(moduleshome, 'modulecmd.tcl')):
+        #
+        # TCL version!
+        #
+        if 'TCLSH' in os.environ:
+            tclsh = os.environ['TCLSH']
+        else:
+            tclsh = '/usr/bin/tclsh'
+        modulecmd = [tclsh, os.path.join(moduleshome, 'modulecmd.tcl'), 'python']
+    else:
+        #
+        # This is the path on NERSC data transfer nodes.
+        #
+        modulecmd = ['/usr/bin/modulecmd', 'python']
+    if 'LOADEDMODULES' not in os.environ:
+        os.environ['LOADEDMODULES'] = ''
+    def desiutil_module(command, *arguments):
+        """Call the Modules command.
 
-                    Parameters
-                    ----------
-                    command : str
-                        Command passed to the base module command.
-                    arguments : list
-                        Arguments passed to the module command.
+        Parameters
+        ----------
+        command : str
+            Command passed to the base module command.
+        arguments : list
+            Arguments passed to the module command.
 
-                    Returns
-                    -------
-                    module_wrapper : None
-                        Just like the module command.
+        Returns
+        -------
+        None
 
-                    Notes
-                    -----
-                    The base module function does not update sys.path to
-                    reflect any additional directories added to
-                    :envvar:`PYTHONPATH`.  The wrapper function takes care
-                    of that (and uses set theory!).
-                    """
-                    from os import environ
-                    from sys import path
-                    try:
-                        old_python_path = set(environ['PYTHONPATH'].split(':'))
-                    except KeyError:
-                        old_python_path = set()
-                    module(command, *arguments)
-                    try:
-                        new_python_path = set(environ['PYTHONPATH'].split(':'))
-                    except KeyError:
-                        new_python_path = set()
-                    add_path = new_python_path - old_python_path
-                    for p in add_path:
-                        path.insert(int(path[0] == ''), p)
-                    return
-                return module_method
-            else:
-                def module_wrapper(command, *arguments):
-                    """Wrap the module function provided by the Modules
-                    init script.
+        Notes
+        -----
+        The base module function does not update sys.path to
+        reflect any additional directories added to
+        :envvar:`PYTHONPATH`.  The wrapper function takes care
+        of that (and uses set theory!).
 
-                    Parameters
-                    ----------
-                    command : str
-                        Command passed to the base module command.
-                    arguments : list
-                        Arguments passed to the module command.
-
-                    Returns
-                    -------
-                    module_wrapper : None
-                        Just like the module command.
-
-                    Notes
-                    -----
-                    The base module function does not update sys.path to
-                    reflect any additional directories added to
-                    :envvar:`PYTHONPATH`.  The wrapper function takes care
-                    of that (and uses set theory!).
-                    """
-                    from os import environ
-                    from sys import path
-                    try:
-                        old_python_path = set(environ['PYTHONPATH'].split(':'))
-                    except KeyError:
-                        old_python_path = set()
-                    module(command, *arguments)
-                    try:
-                        new_python_path = set(environ['PYTHONPATH'].split(':'))
-                    except KeyError:
-                        new_python_path = set()
-                    add_path = new_python_path - old_python_path
-                    for p in add_path:
-                        path.insert(int(path[0] == ''), p)
-                    return
-                return module_wrapper
-    return None
+        This module also avoids potential Python 3 conflicts.
+        """
+        import os
+        import subprocess
+        from sys import path
+        try:
+            old_python_path = set(os.environ['PYTHONPATH'].split(':'))
+        except KeyError:
+            old_python_path = set()
+        cmd = modulecmd + [command] + arguments
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
+        out, err = p.communicate()
+        status = p.returncode
+        # exec out in globals(), locals()
+        exec(out, globals(), locals())
+        try:
+            new_python_path = set(os.environ['PYTHONPATH'].split(':'))
+        except KeyError:
+            new_python_path = set()
+        add_path = new_python_path - old_python_path
+        for p in add_path:
+            path.insert(int(path[0] == ''), p)
+        return
+    if method:
+        def desiutil_module_method(self, command, *arguments):
+            return desiutil_module(command, *arguments)
+        desiutil_module_method.__doc__ = desiutil_module.__doc__
+        return desiutil_module_method
+    return desiutil_module
 
 
 def configure_module(product, version, working_dir=None, dev=False):

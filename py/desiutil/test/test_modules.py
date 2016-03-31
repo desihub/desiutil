@@ -34,8 +34,9 @@ class TestModules(unittest.TestCase):
         self.assertIsNone(wrapper_function)
         wrapper_function = init_modules()
         self.assertTrue(callable(wrapper_function))
-        wrapper_function = init_modules(method=True)
+        wrapper_method = init_modules(method=True)
         self.assertTrue(callable(wrapper_function))
+        self.assertEqual(wrapper_function.__doc__, wrapper_method.__doc__)
 
     def test_configure_module(self):
         """Test detection of directories for module configuration.
