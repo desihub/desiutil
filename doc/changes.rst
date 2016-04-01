@@ -7,6 +7,7 @@ Change Log
 
 * Fix module processing problem for non-DESI Python packages.
 * Allow NERSC Modules root directory to be overridden in a configuration file.
+* Stats module was previously snuck in, but never documented.
 
 1.3.6 (2016-03-25)
 ------------------
