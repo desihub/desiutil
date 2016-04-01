@@ -14,7 +14,7 @@ from __future__ import (absolute_import, division,
 # The line above will help with 2to3 support.
 
 
-def init_modules(moduleshome=None, method=False):
+def init_modules(moduleshome=None, method=False, command=False):
     """Set up the Modules infrastructure.
 
     Parameters
@@ -25,6 +25,9 @@ def init_modules(moduleshome=None, method=False):
     method : bool, optional
         If ``True`` the function returned will be suitable for converting
         into an instance method.
+    command : bool, optional
+        If ``True``, return the command used to call Modules, rather than
+        a function.
 
     Returns
     -------
@@ -54,15 +57,17 @@ def init_modules(moduleshome=None, method=False):
                         path.append(line)
             os.environ['MODULEPATH'] = ':'.join(path)
         modulerc = os.path.join(moduleshome, 'init', 'modulerc')
-        if os.path.exists(dot_modulespath):
+        if os.path.exists(modulerc):
             path = list()
-            with open(dot_modulespath, 'r') as f:
+            with open(modulerc, 'r') as f:
                 for line in f.readlines():
                     line = re.sub("#.*$", '', line.strip())
                     if line is not '' and line.startswith('module use'):
                         p = os.path.expanduser(line.replace('module use ', '').strip())
                         path.append(p)
             os.environ['MODULEPATH'] = ':'.join(path)
+    if 'LOADEDMODULES' not in os.environ:
+        os.environ['LOADEDMODULES'] = ''
     if 'MODULE_VERSION' in os.environ:
         #
         # This is probably one of the primary NERSC systems, edison or cori.
@@ -83,8 +88,8 @@ def init_modules(moduleshome=None, method=False):
         # This is the path on NERSC data transfer nodes.
         #
         modulecmd = ['/usr/bin/modulecmd', 'python']
-    if 'LOADEDMODULES' not in os.environ:
-        os.environ['LOADEDMODULES'] = ''
+    if command:
+        return modulecmd
     def desiutil_module(command, *arguments):
         """Call the Modules command.
 
@@ -115,7 +120,7 @@ def init_modules(moduleshome=None, method=False):
             old_python_path = set(os.environ['PYTHONPATH'].split(':'))
         except KeyError:
             old_python_path = set()
-        cmd = modulecmd + [command] + arguments
+        cmd = modulecmd + [command] + list(arguments)
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE)
         out, err = p.communicate()

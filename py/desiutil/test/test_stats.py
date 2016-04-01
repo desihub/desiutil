@@ -7,8 +7,7 @@ from __future__ import (absolute_import, division,
 # The line above will help with 2to3 support.
 import unittest
 import numpy as np
-import pdb
-from desiutil.stats import perc
+from ..stats import perc
 
 
 class TestStats(unittest.TestCase):

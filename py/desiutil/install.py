@@ -679,12 +679,12 @@ class DesiInstall(object):
         initpy_found = False
         module_method = init_modules(self.options.moduleshome, method=True)
         if module_method is None:
-            message = ("Could not find the Python file in {0}/init!".format(
+            message = ("Could initialize Modules with MODULESHOME={0}!".format(
                        self.options.moduleshome))
             log.critical(message)
             raise DesiInstallException(message)
         else:
-            log.debug("Found Modules init file in {0}.".format(
+            log.debug("Initializing Modules with MODULESHOME={0}.".format(
                       self.options.moduleshome))
             self.module = MethodType(module_method, self)
         return True
