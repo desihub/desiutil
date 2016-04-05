@@ -352,8 +352,8 @@ class TestInstall(unittest.TestCase):
                                                 'desiutil', 'master'])
         with self.assertRaises(DesiInstallException) as cm:
             status = self.desiInstall.start_modules()
-        self.assertEqual(str(cm.exception), ("Could not find the Python " +
-                         "file in {0}/init!").format(
+        self.assertEqual(str(cm.exception), ("Could initialize Modules " +
+                         "with MODULESHOME={0}!").format(
                          '/fake/modules/directory'))
         options = self.desiInstall.get_options(['desiutil', 'master'])
         status = self.desiInstall.start_modules()

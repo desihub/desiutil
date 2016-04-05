@@ -23,5 +23,8 @@ desiutil API
 .. automodule:: desiutil.setup
     :members:
 
+.. automodule:: desiutil.stats
+    :members:
+
 .. automodule:: desiutil.svn
     :members:
