@@ -216,8 +216,8 @@ class DesiInstall(object):
                               'is not set, but this is probably not a ' +
                               'problem at NERSC.')
                 else:
-                    log.warning('The environment variable {0} is not ' +
-                                'set!'.format(e))
+                    log.warning(('The environment variable {0} is not ' +
+                                'set!').format(e))
         parser = ArgumentParser(description="Install DESI software.",
                                 prog=self.executable)
         parser.add_argument('-b', '--bootstrap', action='store_true',

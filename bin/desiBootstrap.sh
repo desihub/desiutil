@@ -63,6 +63,6 @@ fi
 if [[ -z "${py}" ]]; then
     desiInstall -b ${test} ${verbose}
 else
-    ${py} ${DESIUTIL}/bin/desiInstall -b -p ${py} ${test} ${verbose}
+    ${py} ${DESIUTIL}/bin/desiInstall -b ${test} ${verbose}
 fi
 /bin/rm -rf ${DESIUTIL}
