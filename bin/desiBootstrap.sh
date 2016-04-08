@@ -5,10 +5,11 @@
 function usage() {
     local execName=$(basename $0)
     (
-    echo "${execName} [-h] [-m MODULESHOME] [-p PYTHON] [-t] [-v]"
+    echo "${execName} [-c CONFIG] [-h] [-m MODULESHOME] [-p PYTHON] [-t] [-v]"
     echo ""
     echo "Install desiutil on a bare system."
     echo ""
+    echo "    -c = Pass CONFIG to desiInstall."
     echo "    -h = Print this message and exit."
     echo "    -m = Look for the Modules install in MODULESHOME."
     echo "    -p = Use the Python executable PYTHON (e.g. /opt/local/bin/python2.7)."
@@ -23,8 +24,10 @@ test=''
 verbose=''
 modules=''
 py=''
-while getopts hm:p:tv argname; do
+config=''
+while getopts c:hm:p:tv argname; do
     case ${argname} in
+        c) config="-c ${OPTARG}" ;;
         h) usage; exit 0 ;;
         m) modules=${OPTARG} ;;
         p) py=${OPTARG} ;;
@@ -61,8 +64,8 @@ else
     export PYTHONPATH=${DESIUTIL}/py:${PYTHONPATH}
 fi
 if [[ -z "${py}" ]]; then
-    desiInstall -b ${test} ${verbose}
+    desiInstall -b ${config} ${test} ${verbose}
 else
-    ${py} ${DESIUTIL}/bin/desiInstall -b ${test} ${verbose}
+    ${py} ${DESIUTIL}/bin/desiInstall -b ${config} ${test} ${verbose}
 fi
 /bin/rm -rf ${DESIUTIL}
