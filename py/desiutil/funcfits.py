@@ -167,8 +167,12 @@ def iter_fit(xarray, yarray, func, order, weights=None, sigma=None,
         w = np.where(mask == 0)
         xfit = xarray[w]
         yfit = yarray[w]
+        if weights is not None:
+            wfit = weights[w]
+        else:
+            wfit = None
         # Fit
-        dfit = func_fit(xfit, yfit, func, order, xmin=xmin, xmax=xmax,
+        dfit = func_fit(xfit, yfit, func, order, xmin=xmin, xmax=xmax, w=wfit,
                         **kwargs)
         yrng = func_val(xarray, dfit)
         # Reject
@@ -208,8 +212,8 @@ def iter_fit(xarray, yarray, func, order, weights=None, sigma=None,
             if mskcnt-imskcnt > max_rej:
                 break
         mskcnt = np.sum(mask)
-        w = np.where(mask == 0)
     # Final fit
+    w = np.where(mask == 0)
     xfit = xarray[w]
     yfit = yarray[w]
     fdict = func_fit(xfit, yfit, func, order, xmin=xmin, xmax=xmax, **kwargs)
