@@ -218,3 +218,30 @@ def iter_fit(xarray, yarray, func, order, weights=None, sigma=None,
     yfit = yarray[w]
     fdict = func_fit(xfit, yfit, func, order, xmin=xmin, xmax=xmax, **kwargs)
     return fdict, mask
+
+
+def mk_fit_dict(coeff, order, func, xmin=None, xmax=None, **kwargs):
+    """ Generate a dict that is formatted for using func_val
+
+    Parameters
+    ----------
+    coeff: array
+        Coefficients of the fit
+    order : :class:`int`
+        The order of the function to be used in the fitting.
+    func : :class:`str`
+        Name of the fitting function:  polynomial, legendre, chebyshev.
+    xmin : :class:`float`
+        Minimum value in the array (or the left limit for a
+        legendre/chebyshev polynomial).
+    xmax : :class:`float`
+        Maximum value in the array (or the right limit for a
+        legendre/chebyshev polynomial).
+
+    Returns
+    -------
+    fit_dict: dict
+    """
+    # Finish
+    fit_dict = dict(coeff=coeff, order=order, func=func, xmin=xmin, xmax=xmax, **kwargs)
+    return fit_dict

@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
-"""Test desiutil.setup.
+"""Test desiutil.funcfits.
 """
 from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
@@ -8,7 +8,8 @@ from __future__ import (absolute_import, division,
 import unittest
 import numpy as np
 from warnings import catch_warnings, simplefilter
-from ..funcfits import func_fit, func_val, iter_fit
+#import pdb
+from ..funcfits import func_fit, func_val, iter_fit, mk_fit_dict
 
 
 class TestFuncFits(unittest.TestCase):
@@ -22,6 +23,12 @@ class TestFuncFits(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         pass
+
+    def test_mk_fit_dict(self):
+        """Test fit dict
+        """
+        fdict = mk_fit_dict(np.arange(10), 5, 'legendre', xmin=0., xmax=5000.)
+        assert isinstance(fdict,dict)
 
     def test_poly_fit(self):
         """Test polynomial fit.

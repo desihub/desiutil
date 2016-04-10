@@ -14,7 +14,7 @@ from __future__ import (absolute_import, division,
 # The line above will help with 2to3 support.
 
 
-def init_modules(moduleshome=None, method=False):
+def init_modules(moduleshome=None, method=False, command=False):
     """Set up the Modules infrastructure.
 
     Parameters
@@ -25,105 +25,122 @@ def init_modules(moduleshome=None, method=False):
     method : bool, optional
         If ``True`` the function returned will be suitable for converting
         into an instance method.
+    command : bool, optional
+        If ``True``, return the command used to call Modules, rather than
+        a function.
 
     Returns
     -------
-    init_modules : function
+    callable
         A function that wraps the ``module()`` function, and deals with
         setting ``sys.path``.  Returns ``None`` if no Modules infrastructure
         could be found.
     """
     import os
+    import re
     if moduleshome is None:
         try:
             moduleshome = os.environ['MODULESHOME']
         except KeyError:
             return None
-    for modpy in ('python', 'python.py'):
-        initpy = os.path.join(moduleshome, 'init', modpy)
-        if os.path.exists(initpy):
-            execfile(initpy, globals())
-            if method:
-                def module_method(self, command, *arguments):
-                    """Wrap the module function provided by the Modules
-                    init script.
+    if not os.path.isdir(moduleshome):
+        return None
+    if 'MODULEPATH' not in os.environ:
+        os.environ['MODULEPATH'] = ''
+        dot_modulespath = os.path.join(moduleshome, 'init', '.modulespath')
+        if os.path.exists(dot_modulespath):
+            path = list()
+            with open(dot_modulespath, 'r') as f:
+                for line in f.readlines():
+                    line = re.sub("#.*$", '', line.strip())
+                    if line is not '':
+                        path.append(line)
+            os.environ['MODULEPATH'] = ':'.join(path)
+        modulerc = os.path.join(moduleshome, 'init', 'modulerc')
+        if os.path.exists(modulerc):
+            path = list()
+            with open(modulerc, 'r') as f:
+                for line in f.readlines():
+                    line = re.sub("#.*$", '', line.strip())
+                    if line is not '' and line.startswith('module use'):
+                        p = os.path.expanduser(line.replace('module use ', '').strip())
+                        path.append(p)
+            os.environ['MODULEPATH'] = ':'.join(path)
+    if 'LOADEDMODULES' not in os.environ:
+        os.environ['LOADEDMODULES'] = ''
+    if 'MODULE_VERSION' in os.environ:
+        #
+        # This is probably one of the primary NERSC systems, edison or cori.
+        #
+        modulecmd = ['/opt/modules/{MODULE_VERSION}/bin/modulecmd'.format(**os.environ), 'python']
+        os.environ['MODULE_VERSION_STACK'] = os.environ['MODULE_VERSION']
+    elif os.path.exists(os.path.join(moduleshome, 'modulecmd.tcl')):
+        #
+        # TCL version!
+        #
+        if 'TCLSH' in os.environ:
+            tclsh = os.environ['TCLSH']
+        else:
+            tclsh = '/usr/bin/tclsh'
+        modulecmd = [tclsh, os.path.join(moduleshome, 'modulecmd.tcl'), 'python']
+    else:
+        #
+        # This is the path on NERSC data transfer nodes.
+        #
+        modulecmd = ['/usr/bin/modulecmd', 'python']
+    if command:
+        return modulecmd
+    def desiutil_module(command, *arguments):
+        """Call the Modules command.
 
-                    Parameters
-                    ----------
-                    command : str
-                        Command passed to the base module command.
-                    arguments : list
-                        Arguments passed to the module command.
+        Parameters
+        ----------
+        command : str
+            Command passed to the base module command.
+        arguments : list
+            Arguments passed to the module command.
 
-                    Returns
-                    -------
-                    module_wrapper : None
-                        Just like the module command.
+        Returns
+        -------
+        None
 
-                    Notes
-                    -----
-                    The base module function does not update sys.path to
-                    reflect any additional directories added to
-                    :envvar:`PYTHONPATH`.  The wrapper function takes care
-                    of that (and uses set theory!).
-                    """
-                    from os import environ
-                    from sys import path
-                    try:
-                        old_python_path = set(environ['PYTHONPATH'].split(':'))
-                    except KeyError:
-                        old_python_path = set()
-                    module(command, *arguments)
-                    try:
-                        new_python_path = set(environ['PYTHONPATH'].split(':'))
-                    except KeyError:
-                        new_python_path = set()
-                    add_path = new_python_path - old_python_path
-                    for p in add_path:
-                        path.insert(int(path[0] == ''), p)
-                    return
-                return module_method
-            else:
-                def module_wrapper(command, *arguments):
-                    """Wrap the module function provided by the Modules
-                    init script.
+        Notes
+        -----
+        The base module function does not update sys.path to
+        reflect any additional directories added to
+        :envvar:`PYTHONPATH`.  The wrapper function takes care
+        of that (and uses set theory!).
 
-                    Parameters
-                    ----------
-                    command : str
-                        Command passed to the base module command.
-                    arguments : list
-                        Arguments passed to the module command.
-
-                    Returns
-                    -------
-                    module_wrapper : None
-                        Just like the module command.
-
-                    Notes
-                    -----
-                    The base module function does not update sys.path to
-                    reflect any additional directories added to
-                    :envvar:`PYTHONPATH`.  The wrapper function takes care
-                    of that (and uses set theory!).
-                    """
-                    from os import environ
-                    from sys import path
-                    try:
-                        old_python_path = set(environ['PYTHONPATH'].split(':'))
-                    except KeyError:
-                        old_python_path = set()
-                    module(command, *arguments)
-                    try:
-                        new_python_path = set(environ['PYTHONPATH'].split(':'))
-                    except KeyError:
-                        new_python_path = set()
-                    add_path = new_python_path - old_python_path
-                    for p in add_path:
-                        path.insert(int(path[0] == ''), p)
-                    return
-                return module_wrapper
-    return None
+        This module also avoids potential Python 3 conflicts.
+        """
+        import os
+        import subprocess
+        from sys import path
+        try:
+            old_python_path = set(os.environ['PYTHONPATH'].split(':'))
+        except KeyError:
+            old_python_path = set()
+        cmd = modulecmd + [command] + list(arguments)
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
+        out, err = p.communicate()
+        status = p.returncode
+        # exec out in globals(), locals()
+        exec(out, globals(), locals())
+        try:
+            new_python_path = set(os.environ['PYTHONPATH'].split(':'))
+        except KeyError:
+            new_python_path = set()
+        add_path = new_python_path - old_python_path
+        for p in add_path:
+            path.insert(int(path[0] == ''), p)
+        return
+    if method:
+        def desiutil_module_method(self, command, *arguments):
+            return desiutil_module(command, *arguments)
+        desiutil_module_method.__doc__ = desiutil_module.__doc__
+        return desiutil_module_method
+    return desiutil_module
 
 
 def configure_module(product, version, working_dir=None, dev=False):
@@ -148,8 +165,12 @@ def configure_module(product, version, working_dir=None, dev=False):
         A dictionary containing the module configuration parameters.
     """
     from os import getcwd
-    from os.path import isdir, join
+    from os.path import exists, isdir, join
     from sys import version_info
+    try:
+        from ConfigParser import SafeConfigParser
+    except ImportError:
+        from configparser import ConfigParser as SafeConfigParser
     if working_dir is None:
         working_dir = getcwd()
     module_keywords = {
@@ -158,6 +179,7 @@ def configure_module(product, version, working_dir=None, dev=False):
         'needs_bin': '# ',
         'needs_python': '# ',
         'needs_trunk_py': '# ',
+        'trunk_py_dir': '/py',
         'needs_ld_lib': '# ',
         'needs_idl': '# ',
         'pyversion': "python{0:d}.{1:d}".format(*version_info)
@@ -168,11 +190,23 @@ def configure_module(product, version, working_dir=None, dev=False):
         module_keywords['needs_ld_lib'] = ''
     if isdir(join(working_dir, 'pro')):
         module_keywords['needs_idl'] = ''
+    if (exists(join(working_dir, 'setup.py')) and
+        isdir(join(working_dir, product))):
+        if dev:
+            module_keywords['needs_trunk_py'] = ''
+            module_keywords['trunk_py_dir'] = ''
+        else:
+            module_keywords['needs_python'] = ''
     if isdir(join(working_dir, 'py')):
         if dev:
             module_keywords['needs_trunk_py'] = ''
         else:
             module_keywords['needs_python'] = ''
+    if exists(join(working_dir, 'setup.cfg')):
+        conf = SafeConfigParser()
+        conf.read([join(working_dir, 'setup.cfg')])
+        if conf.has_section('entry_points'):
+            module_keywords['needs_bin'] = ''
     return module_keywords
 
 

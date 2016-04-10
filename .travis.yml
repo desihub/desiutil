@@ -62,7 +62,7 @@ matrix:
         # Coverage test, pass the results to coveralls.
         - os: linux
           python: 2.7
-          env: SETUP_CMD='test --coverage'
+          env: MAIN_CMD='coverage' SETUP_CMD='run py/desiutil/test/desiutil_test_suite.py'
 
         # PEP 8 compliance.
 #         - os: linux
@@ -72,11 +72,11 @@ matrix:
 install:
     - if [[ $MAIN_CMD == 'pep8' ]]; then pip install pep8; fi
     - if [[ $SETUP_CMD == 'build_sphinx' ]]; then pip install Sphinx; fi
-    - if [[ $SETUP_CMD == 'test --coverage' ]]; then pip install coverage coveralls; fi
+    - if [[ $MAIN_CMD == 'coverage' ]]; then pip install coverage coveralls; fi
     - pip install -r requirements.txt
 
 script:
     - $MAIN_CMD $SETUP_CMD
 
 after_success:
-    - if [[ $SETUP_CMD == 'test --coverage' ]]; then coveralls; fi
+    - if [[ $MAIN_CMD == 'coverage' ]]; then coveralls; fi
