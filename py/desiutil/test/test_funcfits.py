@@ -118,7 +118,7 @@ class TestFuncFits(unittest.TestCase):
         y2 = func_val(x2, dfit)
         np.testing.assert_allclose(y2[50], 0.99941444872371643)
 
-    def test_iterfit(self):
+    def test_iterfit2(self):
         """Test iter fit with some special cases.
         """
         # Generate data
