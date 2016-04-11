@@ -7,15 +7,17 @@ Change Log
 
 * Fix module processing problem for non-DESI Python packages.
 * Allow NERSC Modules root directory to be overridden in a configuration file.
-* Stats module was previously snuck in, but never documented.
+* :mod:`desiutil.stats` module was previously snuck in, but never documented.
 * Minor fixes for desiInstall bootstrap mode.
-* PR #30: Enable use of weights in func_fits.iter_fit()
+* `PR #30`_: Enable use of weights in :func:`~desiutil.funcfits.iter_fit`.
+
+.. _`PR #30`: https://github.com/desihub/desiutil/pull/30
 
 1.3.6 (2016-03-25)
 ------------------
 
-* Include funcfits in the documentation; added mk_fit_dict.
-* Improve coverage of funcfits.
+* Include :mod:`~desiutil.funcfits` in the documentation; added :func:`~desiutil.funcfits.mk_fit_dict`.
+* Improve coverage of :mod:`~desiutil.funcfits`.
 * Try to use a nicer Sphinx theme for documentation.
 
 1.3.5 (2016-03-15)
@@ -58,12 +60,12 @@ Change Log
 ------------------
 
 * Updated docstrings for bitmasks.
-* Added :mod:`~desuitil.funcfits` module.
+* Added :mod:`~desiutil.funcfits` module.
 
 1.2.0 (2015-11-24)
 ------------------
 
-* Added bitmask processing code.
+* Added bitmask processing code, :mod:`desiutil.bitmask`.
 * Fixed a minor variable name bug.
 * Ignore warnings produced by processing MANIFEST.in.
 * Fixed return value in cross_install.
