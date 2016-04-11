@@ -9,6 +9,7 @@ Change Log
 * Allow NERSC Modules root directory to be overridden in a configuration file.
 * Stats module was previously snuck in, but never documented.
 * Minor fixes for desiInstall bootstrap mode.
+* PR #30: Enable use of weights in func_fits.iter_fit()
 
 1.3.6 (2016-03-25)
 ------------------
