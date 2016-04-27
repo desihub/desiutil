@@ -6,6 +6,7 @@ from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 # The line above will help with 2to3 support.
 import unittest
+import sys
 import numpy as np
 from warnings import catch_warnings, simplefilter
 import pdb
@@ -31,7 +32,10 @@ class TestIO(unittest.TestCase):
                      'num2':np.int64(4), 'bool':np.bool(True), 'lst':['tst2', np.int16(2)],
                      'tup':(1,3), 'dct':{'a':'tst3', 'b':np.float32(6.)}}
         assert isinstance(fdict,dict)
-        assert not isinstance(fdict['name'], str)
+        if sys.version_info >= (3,0,0):
+            assert isinstance(fdict['name'], bytes)
+        else:
+            assert isinstance(fdict['name'], unicode)
         assert isinstance(fdict['flt32'], np.float32)
         # Run
         ydict = yamlify(fdict)
