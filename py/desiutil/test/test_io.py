@@ -8,8 +8,7 @@ from __future__ import (absolute_import, division,
 import unittest
 import sys
 import numpy as np
-from warnings import catch_warnings, simplefilter
-import pdb
+#import pdb
 from ..io import yamlify
 
 
@@ -30,16 +29,15 @@ class TestIO(unittest.TestCase):
         """
         fdict = {'name':'test', 'num':np.int32(3), 'flt32':np.float32(3.), 'flt64':np.float64(2.),
                      'num2':np.int64(4), 'bool':np.bool(True), 'lst':['tst2', np.int16(2)],
-                     'tup':(1,3), 'dct':{'a':'tst3', 'b':np.float32(6.)}}
-        assert isinstance(fdict,dict)
+                     'tup':(1,3), 'dct':{'a':'tst3', 'b':np.float32(6.)}, 'array': np.zeros(10)}
         if sys.version_info >= (3,0,0):
-            assert isinstance(fdict['name'], str)
+            self.assertIsInstance(fdict['name'], str)
         else:
-            assert isinstance(fdict['name'], unicode)
-        assert isinstance(fdict['flt32'], np.float32)
+            self.assertIsInstance(fdict['name'], unicode)
         # Run
         ydict = yamlify(fdict)
-        assert isinstance(ydict['flt32'], float)
+        self.assertIsInstance(ydict['flt32'], float)
+        self.assertIsInstance(ydict['array'], list)
         for key in ydict.keys():
-            assert isinstance(key,str)
+            self.assertIsInstance(key, str)
 

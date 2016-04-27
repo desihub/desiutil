@@ -29,10 +29,9 @@ def yamlify(obj, debug=False):
 
     Returns
     -------
-    obj - the same obj is yaml_friendly format
-      (arrays turned to lists, np.int64 converted to int, np.float64 to float,
-      basestring to str, etc.).
-
+    obj
+       An object suitable for yaml serialization.  For example :class:`numpy.ndarray` is converted to :class:`list`,
+       :class:`numpy.int64` is converted to :class:`int`, etc.
     """
     if isinstance(obj, (np.float64,np.float32)):
         obj = float(obj)
@@ -44,8 +43,8 @@ def yamlify(obj, debug=False):
         obj = str(obj)
     #elif isinstance(obj, Quantity):
     #    obj = dict(value=obj.value, unit=obj.unit.to_string())
-    #elif isinstance(obj, np.ndarray):  # Must come after Quantity
-    #    obj = obj.tolist()
+    elif isinstance(obj, np.ndarray):  # Must come after Quantity
+        obj = obj.tolist()
     elif isinstance(obj, dict):
         # First convert keys
         obj = {str(key):value for key,value in obj.items()}
