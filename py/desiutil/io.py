@@ -30,6 +30,8 @@ def yamlify(obj, debug=False):
       basestring to str, etc.).
 
     """
+    from six import string_types
+
     if isinstance(obj, np.float64):
         obj = float(obj)
     elif isinstance(obj, np.float32):
@@ -42,7 +44,7 @@ def yamlify(obj, debug=False):
         obj = int(obj)
     elif isinstance(obj, np.bool_):
         obj = bool(obj)
-    elif isinstance(obj, (np.string_,basestring)):
+    elif isinstance(obj, (np.string_,string_types)):
         obj = str(obj)
     #elif isinstance(obj, Quantity):
     #    obj = dict(value=obj.value, unit=obj.unit.to_string())
