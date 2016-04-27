@@ -34,15 +34,9 @@ def yamlify(obj, debug=False):
       basestring to str, etc.).
 
     """
-    if isinstance(obj, np.float64):
+    if isinstance(obj, (np.float64,np.float32)):
         obj = float(obj)
-    elif isinstance(obj, np.float32):
-        obj = float(obj)
-    elif isinstance(obj, np.int32):
-        obj = int(obj)
-    elif isinstance(obj, np.int64):
-        obj = int(obj)
-    elif isinstance(obj, np.int16):
+    elif isinstance(obj, (np.int32, np.int64, np.int16)):
         obj = int(obj)
     elif isinstance(obj, np.bool_):
         obj = bool(obj)
