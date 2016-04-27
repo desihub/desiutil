@@ -11,6 +11,10 @@ from __future__ import (print_function, absolute_import, division,
                         unicode_literals)
 import numpy as np
 
+try:
+    basestring
+except NameError:  # For Python 3
+    basestring = str
 
 def yamlify(obj, debug=False):
     """ Recursively process an object so it can be serialised for yaml
@@ -30,8 +34,6 @@ def yamlify(obj, debug=False):
       basestring to str, etc.).
 
     """
-    from six import string_types
-
     if isinstance(obj, np.float64):
         obj = float(obj)
     elif isinstance(obj, np.float32):
@@ -44,7 +46,7 @@ def yamlify(obj, debug=False):
         obj = int(obj)
     elif isinstance(obj, np.bool_):
         obj = bool(obj)
-    elif isinstance(obj, (np.string_,string_types)):
+    elif isinstance(obj, (np.string_,basestring)):
         obj = str(obj)
     #elif isinstance(obj, Quantity):
     #    obj = dict(value=obj.value, unit=obj.unit.to_string())
