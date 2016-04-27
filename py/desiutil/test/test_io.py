@@ -33,7 +33,7 @@ class TestIO(unittest.TestCase):
                      'tup':(1,3), 'dct':{'a':'tst3', 'b':np.float32(6.)}}
         assert isinstance(fdict,dict)
         if sys.version_info >= (3,0,0):
-            assert isinstance(fdict['name'], bytes)
+            assert isinstance(fdict['name'], str)
         else:
             assert isinstance(fdict['name'], unicode)
         assert isinstance(fdict['flt32'], np.float32)
