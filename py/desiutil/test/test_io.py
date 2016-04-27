@@ -31,7 +31,7 @@ class TestIO(unittest.TestCase):
                      'num2':np.int64(4), 'bool':np.bool(True), 'lst':['tst2', np.int16(2)],
                      'tup':(1,3), 'dct':{'a':'tst3', 'b':np.float32(6.)}}
         assert isinstance(fdict,dict)
-        assert isinstance(fdict['name'], unicode)
+        assert not isinstance(fdict['name'], str)
         assert isinstance(fdict['flt32'], np.float32)
         # Run
         ydict = yamlify(fdict)
