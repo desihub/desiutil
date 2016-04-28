@@ -2,7 +2,10 @@
 Change Log
 ==========
 
-1.3.7 (unreleased)
+1.4.1 (unreleased)
+------------------
+
+1.4.0 (2016-04-28)
 ------------------
 
 * Fix module processing problem for non-DESI Python packages.
