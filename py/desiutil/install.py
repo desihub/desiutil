@@ -974,7 +974,8 @@ class DesiInstall(object):
                         #                         r"( found| ) " +
                         #                         r"matching '[^']+'")
                         lines = [l for l in err.split('\n') if len(l) > 0 and
-                                 manifestre.search(l) is None]
+                                 manifestre.search(l) is None and
+                                 'astropy_helpers' not in l]
                         if len(lines) > 0:
                             message = ("Error during installation: " +
                                        "{0}".format("\n".join(lines)))

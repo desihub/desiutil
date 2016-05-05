@@ -5,6 +5,8 @@ Change Log
 1.4.1 (unreleased)
 ------------------
 
+* Don't consider warning messages about astropy_helpers to be errors.
+
 1.4.0 (2016-04-28)
 ------------------
 
