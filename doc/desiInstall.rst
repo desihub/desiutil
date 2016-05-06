@@ -16,7 +16,7 @@ desiInstall has many options, which are best viewed by typing
 In addition, it is possible to override certain internal settings of
 the :class:`~desiutil.install.DesiInstall` object using an
 INI-style configuration file, supplying the name of the file with the
-``--configuration`` option.  Here is an example of the contents of such
+``--configuration`` option.  Here is an example of the contents of such a
 file::
 
     #
@@ -46,6 +46,62 @@ file::
     #
     [Module Processing]
     nersc_module_dir = /project/projectdirs/desi/test/modules
+
+Finally, desiInstall both reads and sets several environment variables.
+
+Environment variables that strongly affect the behavior of desiInstall.
+
+:envvar:`DESI_PRODUCT_ROOT`
+    This variable is used to determine the path to DESI software when
+    desiInstall is *not* run at NERSC.
+:envvar:`DESIUTIL`
+    This variable contains the path to the installed version of desiutil_.
+    It is needed to find the ``etc/desiutil.module`` file.
+:envvar:`NERSC_HOST`
+    This will automatically be set on NERSC systems.  Although it is fine
+    to manipulate this variable during unit tests, for general user and
+    production purposes, it should be considered strictly read-only.
+
+Environment variables that are *set* by desiInstall for use by
+``python setup.py`` or ``make``.
+
+:envvar:`INSTALL_DIR`
+    This variable is *set* by desiInstall to the directory that will contain
+    the final, installed version of the software package.
+:envvar:`PRODUCT_VERSION`
+    This variable is *set* by desiInstall, with ``PRODUCT`` replaced by the
+    actual name of the software being installed, *e.g.*,
+    :envvar:`DESISPEC_VERSION`.
+:envvar:`WORKING_DIR`
+    This variable is *set* by desiInstall to the path containing a downloaded,
+    expanded software package.
+
+Environment variables related to the Modules infrastructure that may be
+manipulated by setting up Modules, or loading Module files.
+
+:envvar:`LOADEDMODULES`
+    This variable contains a list of the Module files currently loaded.  It
+    may be manipulated by :mod:`desiutil.modules`.
+:envvar:`MODULE_VERSION`
+    This variable is set on some NERSC systems and is needed to determine the
+    full path to :command:`modulecmd`.
+:envvar:`MODULE_VERSION_STACK`
+    This variable is set on some NERSC systems may be set by
+    :mod:`desiutil.modules` for compatibility.
+:envvar:`MODULEPATH`
+    This variable contains a list of directories containing Module files.
+    It may be manipulated by :mod:`desiutil.modules`.
+:envvar:`MODULESHOME`
+    This variable points to the Modules infrastructure.  If it is not set,
+    it typically means that the system has no Modules infrastructure.
+:envvar:`PYTHONPATH`
+    Obviously this is important for any Python package!  :envvar:`PYTHONPATH`
+    may be manipulated by :mod:`desiutil.modules`.
+:envvar:`TCLSH`
+    May be used to determine the full path to :command:`modulecmd.tcl` on
+    systems with a pure-TCL Modules infrastructure.
+
+.. _desiutil: https://github.com/desihub/desiutil
 
 Stages of the Install
 =====================
@@ -127,15 +183,16 @@ install directory.
 Module Infrastructure
 ---------------------
 
-desiInstall sets up the Modules infrastructure by running ``execfile()`` on
-the Python init file supplied by the Modules install.
+desiInstall sets up the Modules infrastructure by running code in
+:mod:`desiutil.modules` that is *based on* the Python init file supplied by
+the Modules infrastructure, but updated to be both Python 2 and Python 3 compatible.
 
 Find Module File
 ----------------
 
 desiInstall will search for a module file in ``$WORKING_DIR/etc``.  If that
 module file is not found, desiInstall will use the file that comes with
-desiutil (*i.e.*, this product's own module file).
+desiutil_ (*i.e.*, this product's own module file).
 
 Load Dependencies
 -----------------

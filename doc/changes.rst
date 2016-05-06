@@ -6,6 +6,8 @@ Change Log
 ------------------
 
 * Don't consider warning messages about astropy_helpers to be errors.
+* Update desiInstall documentation, adding information about environment
+  variables.
 
 1.4.0 (2016-04-28)
 ------------------
