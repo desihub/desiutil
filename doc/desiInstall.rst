@@ -61,6 +61,9 @@ Environment variables that strongly affect the behavior of desiInstall.
     This will automatically be set on NERSC systems.  Although it is fine
     to manipulate this variable during unit tests, for general user and
     production purposes, it should be considered strictly read-only.
+:envvar:`USER`
+    This variable is read to determine the username to pass to, *e.g.*,
+    :command:`svn`.
 
 Environment variables that are *set* by desiInstall for use by
 ``python setup.py`` or ``make``.
