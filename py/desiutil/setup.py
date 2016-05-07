@@ -201,15 +201,13 @@ def find_version_directory(productname):
     return version_dir
 
 
-def get_version(productname, debug=False):
+def get_version(productname):
     """Get the value of ``__version__`` without having to import the module.
 
     Parameters
     ----------
     productname : str
         The name of the package.
-    debug : bool, optional
-        Print extra debug information.
 
     Returns
     -------
@@ -223,9 +221,7 @@ def get_version(productname, debug=False):
         return ver
     version_file = join(version_dir, '_version.py')
     if not isfile(version_file):
-        if debug:
-            print('Creating initial version file.')
-        update_version(productname, debug=debug)
+        update_version(productname)
     with open(version_file, "r") as f:
         for line in f.readlines():
             mo = re.match("__version__ = '(.*)'", line)
@@ -234,7 +230,7 @@ def get_version(productname, debug=False):
     return ver
 
 
-def update_version(productname, tag=None, debug=False):
+def update_version(productname, tag=None):
     """Update the _version.py file.
 
     Parameters
@@ -243,8 +239,6 @@ def update_version(productname, tag=None, debug=False):
         The name of the package.
     tag : str, optional
         Set the version to this string, unconditionally.
-    debug : bool, optional
-        Print extra debug information.
 
     Returns
     -------
@@ -264,6 +258,4 @@ def update_version(productname, tag=None, debug=False):
     version_file = join(version_dir, '_version.py')
     with open(version_file, "w") as f:
         f.write("__version__ = '{}'\n".format(ver))
-    if debug:
-        print("Set {0} to {1}".format(version_file, ver))
     return
