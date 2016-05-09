@@ -178,12 +178,12 @@ def find_version_directory(productname):
 
     Parameters
     ----------
-    productname : str
+    productname : :class:`str`
         The name of the package.
 
     Returns
     -------
-    find_version_directory : str
+    :class:`str`
         Name of a directory that can or does contain version information.
 
     Raises
@@ -206,12 +206,12 @@ def get_version(productname):
 
     Parameters
     ----------
-    productname : str
+    productname : :class:`str`
         The name of the package.
 
     Returns
     -------
-    get_version : str
+    :class:`str`
         The value of ``__version__``.
     """
     ver = 'unknown'
@@ -235,14 +235,15 @@ def update_version(productname, tag=None):
 
     Parameters
     ----------
-    productname : str
+    productname : :class:`str`
         The name of the package.
-    tag : str, optional
+    tag : :class:`str`, optional
         Set the version to this string, unconditionally.
 
-    Returns
-    -------
-    None
+    Raises
+    ------
+    IOError
+        If the repository type could not be determined.
     """
     version_dir = find_version_directory(productname)
     if tag is not None:
@@ -253,8 +254,7 @@ def update_version(productname, tag=None):
         elif isdir(".git"):
             ver = git_version()
         else:
-            print("Could not determine repository type.")
-            return
+            raise IOError("Could not determine repository type.")
     version_file = join(version_dir, '_version.py')
     with open(version_file, "w") as f:
         f.write("__version__ = '{}'\n".format(ver))
