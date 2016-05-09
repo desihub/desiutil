@@ -11,7 +11,7 @@ Change Log
 * Use :class:`distutils.command.sdist.sdist` to ensure that ``MANIFEST.in``
   is respected.
 * Add some test coverage in :mod:`desiutil.setup`.
-* Cleaned up documentation of :mod:`desiutil.io`.
+* Cleaned up documentation of :mod:`desiutil.io` and several other modules.
 
 1.4.0 (2016-04-28)
 ------------------

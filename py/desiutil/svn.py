@@ -15,9 +15,14 @@ from __future__ import (absolute_import, division,
 def last_revision(product):
     """Get the svn revision number.
 
+    Parameters
+    ----------
+    product : :class:`str`
+        The name of the package.
+
     Returns
     -------
-    last_revision : str
+    :class:`str`
         The latest svn revision number.  A revision number of 0 indicates
         an error of some kind.
 
@@ -46,14 +51,14 @@ def last_tag(tags, username=None):
 
     Parameters
     ----------
-    tags : str
+    tags : :class:`str`
         A URL pointing to an SVN tags directory.
-    username : str, optional
+    username : :class:`str`, optional
         If set, pass the value to SVN's ``--username`` option.
 
     Returns
     -------
-    last_tag : str
+    :class:`str`
         The most recent tag found in ``tags``.
     """
     from distutils.version import StrictVersion as V
@@ -77,24 +82,21 @@ def version(productname, url=None):
 
     Parameters
     ----------
-    productname : str
+    productname : :class:`str`
         The name of the package.
+    url : :class:`str`, optional
+        If the product is not defined in the known_products file, the URL
+        can be set this way.
 
     Returns
     -------
-    version : str
-        A PEP 386-compatible version string.
-    url : str, optional
-        If the product is not defined in the known_products file, the url
-        can be set this way.
+    :class:`str`
+        A :pep:`386`-compatible version string.
 
     Notes
     -----
-    The version string should be compatible with `PEP 386`_ and
-    `PEP 440`_.
-
-    .. _`PEP 386`: http://legacy.python.org/dev/peps/pep-0386/
-    .. _`PEP 440`: http://legacy.python.org/dev/peps/pep-0440/
+    The version string should be compatible with :pep:`386` and
+    :pep:`440`.
     """
     from .install import known_products
     if productname in known_products:

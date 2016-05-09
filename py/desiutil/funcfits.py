@@ -221,11 +221,11 @@ def iter_fit(xarray, yarray, func, order, weights=None, sigma=None,
 
 
 def mk_fit_dict(coeff, order, func, xmin=None, xmax=None, **kwargs):
-    """ Generate a dict that is formatted for using func_val
+    """Generate a dict that is formatted for using func_val.
 
     Parameters
     ----------
-    coeff: array
+    coeff : array
         Coefficients of the fit
     order : :class:`int`
         The order of the function to be used in the fitting.
@@ -240,7 +240,8 @@ def mk_fit_dict(coeff, order, func, xmin=None, xmax=None, **kwargs):
 
     Returns
     -------
-    fit_dict: dict
+    :class:`dict`
+        The formatted dictionary.
     """
     # Finish
     fit_dict = dict(coeff=coeff, order=order, func=func, xmin=xmin, xmax=xmax, **kwargs)

@@ -17,14 +17,14 @@ def last_tag(owner, repo):
 
     Parameters
     ----------
-    owner : str
+    owner : :class:`str`
         The owner or group in GitHub
-    repo : str
+    repo : :class:`str`
         Name of the product.
 
     Returns
     -------
-    last_tag : str
+    :class:`str`
         The most recent tag found on GitHub.
     """
     from os.path import basename
@@ -43,21 +43,18 @@ def version(git='git'):
 
     Parameters
     ----------
-    git : str, optional
+    git : :class:`str`, optional
         Path to the git executable, if not in :envvar:`PATH`.
 
     Returns
     -------
-    version : str
-        A PEP 386-compatible version string.
+    :class:`str`
+        A :pep:`386`-compatible version string.
 
     Notes
     -----
-    The version string should be compatible with `PEP 386`_ and
-    `PEP 440`_.
-
-    .. _`PEP 386`: http://legacy.python.org/dev/peps/pep-0386/
-    .. _`PEP 440`: http://legacy.python.org/dev/peps/pep-0440/
+    The version string should be compatible with :pep:`386` and
+    :pep:`440`.
     """
     from subprocess import Popen, PIPE
     myversion = '0.0.1.dev0'

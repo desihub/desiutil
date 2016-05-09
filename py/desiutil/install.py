@@ -77,12 +77,12 @@ def dependencies(modulefile):
 
     Parameters
     ----------
-    modulefile : str
+    modulefile : :class:`str`
         Name of the module file containing dependencies.
 
     Returns
     -------
-    dependencies : list
+    :class:`list`
         Returns the list of dependencies.  If the module file
         is not found or there are no dependencies, the list will be empty.
 
@@ -125,45 +125,45 @@ class DesiInstall(object):
 
     Parameters
     ----------
-    test : bool, optional
+    test : :class:`bool`, optional
         If ``True`` log messages will be supressed for testing purposes.
 
     Attributes
     ----------
-    baseproduct : str
+    baseproduct : :class:`str`
         The bare name of the product, *e.g.* "desiutil".
-    baseversion : str
+    baseversion : :class:`str`
         The bare version, without any ``branches/`` qualifiers.
-    config : SafeConfigParser
+    config : :class:`~ConfigParser.SafeConfigParser`
         If an *optional* configuration file is specified on the command-line,
         this holds the object that reads it.
-    cross_install_host : str
+    cross_install_host : :class:`str`
         The NERSC host on which to perform cross-installs.
-    executable : str
+    executable : :class:`str`
         The command used to invoke the script.
-    fullproduct : str
+    fullproduct : :class:`str`
         The path to the product including its URL, *e.g.*,
         "https://github.com/desihub/desiutil".
-    github : bool
+    github : :class:`bool`
         ``True`` if the selected product lives on GitHub.
-    is_branch : bool
+    is_branch : :class:`bool`
         ``True`` if a branch has been selected.
-    is_trunk : bool
+    is_trunk : :class:`bool`
         ``True`` if trunk or the master branch has been selected.
-    ll : int
+    ll : :class:`int`
         The log level.
-    nersc : str
+    nersc : :class:`str`
         Holds the value of :envvar:`NERSC_HOST`, or ``None`` if not defined.
-    nersc_hosts : tuple
+    nersc_hosts : :func:`tuple`
         The list of NERSC hosts names to be used for cross-installs.
-    nersc_module_dir : str
+    nersc_module_dir : :class:`str`
         The directory that contains Module directories at NERSC.
-    options : argparse.Namespace
+    options : :class:`argparse.Namespace`
         The parsed command-line options.
-    product_url : str
+    product_url : :class:`str`
         The URL that will be used to download the code.  This differs from
         `fullproduct` in that it includes the tag or branch name.
-    test : bool
+    test : :class:`bool`
         Captures the value of the `test` argument passed to the constructor.
     """
     cross_install_host = 'edison'
@@ -192,13 +192,14 @@ class DesiInstall(object):
 
         Parameters
         ----------
-        test_args : list
-            Normally, this method is called without arguments, and ``sys.argv``
-            is parsed.  Arguments should only be passed for testing purposes.
+        test_args : :class:`list`
+            Normally, this method is called without arguments, and
+            :data:`sys.argv` is parsed.  Arguments should only be passed for
+            testing purposes.
 
         Returns
         -------
-        get_options : argparse.Namespace
+        :class:`argparse.Namespace`
             A simple object containing the parsed options.  Also, the
             attribute `options` is set.
         """
@@ -310,13 +311,9 @@ class DesiInstall(object):
     def sanity_check(self):
         """Sanity check the options.
 
-        Parameters
-        ----------
-        None
-
         Returns
         -------
-        sanity_check : bool
+        :class:`bool`
             ``True`` if there were no problems.
 
         Raises
@@ -347,13 +344,9 @@ class DesiInstall(object):
     def get_product_version(self):
         """Determine the base product and version information.
 
-        Parameters
-        ----------
-        None
-
         Returns
         -------
-        get_product_version : tuple
+        :func:`tuple`
             A tuple containing the base product name and version.
 
         Raises
@@ -389,13 +382,9 @@ class DesiInstall(object):
         """If this is not a tag install, determine whether this is a trunk
         or branch install.
 
-        Parameters
-        ----------
-        None
-
         Returns
         -------
-        identify_branch : str
+        :class:`str`
             The full path to the branch/tag/trunk/master code.
         """
         log = logging.getLogger(__name__ + '.DesiInstall.identify_branch')
@@ -425,12 +414,12 @@ class DesiInstall(object):
 
         Parameters
         ----------
-        svn : str, optional
+        svn : :class:`str`, optional
             The path to the subversion command.
 
         Returns
         -------
-        verify_url : bool
+        :class:`bool`
             ``True`` if everything checked out OK.
 
         Raises
@@ -469,13 +458,10 @@ class DesiInstall(object):
         Following the standard order of execution, this is the first method
         that might actually modify the system (by downloading code).
 
-        Parameters
-        ----------
-        None
-
-        Returns
-        -------
-        None
+        Raises
+        ------
+        DesiInstallException
+            If any download errors are detected.
         """
         log = logging.getLogger(__name__ + '.DesiInstall.get_code')
         self.working_dir = join(abspath('.'), '{0}-{1}'.format(
@@ -595,13 +581,9 @@ class DesiInstall(object):
     def build_type(self):
         """Determine the build type.
 
-        Parameters
-        ----------
-        None
-
         Returns
         -------
-        build_type : set
+        :class:`set`
             A set containing the detected build types.
         """
         log = logging.getLogger(__name__ + '.DesiInstall.build_type')
@@ -625,13 +607,9 @@ class DesiInstall(object):
     def set_install_dir(self):
         """Decide on an install directory.
 
-        Parameters
-        ----------
-        None
-
         Returns
         -------
-        set_install_dir : str
+        :class:`str`
             The directory selected for installation.
         """
         log = logging.getLogger(__name__ + '.DesiInstall.set_install_dir')
@@ -665,13 +643,9 @@ class DesiInstall(object):
     def start_modules(self):
         """Set up the modules infrastructure.
 
-        Parameters
-        ----------
-        None
-
         Returns
         -------
-        start_modules : bool
+        :class:`bool`
             ``True`` if the modules infrastructure was initialized
             successfully.
         """
@@ -692,13 +666,9 @@ class DesiInstall(object):
     def module_dependencies(self):
         """Figure out the dependencies and load them.
 
-        Parameters
-        ----------
-        None
-
         Returns
         -------
-        module_dependencies : list
+        :class:`list`
             The list of dependencies.
         """
         log = logging.getLogger(__name__ + '.DesiInstall.module_dependencies')
@@ -731,13 +701,9 @@ class DesiInstall(object):
     def install_module(self):
         """Process the module file.
 
-        Parameters
-        ----------
-        None
-
         Returns
         -------
-        process_module : str
+        :class:`str`
             The text of the processed module file.
         """
         log = logging.getLogger(__name__ + '.DesiInstall.process_module')
@@ -803,13 +769,9 @@ class DesiInstall(object):
     def prepare_environment(self):
         """Prepare the environment for the install.
 
-        Parameters
-        ----------
-        None
-
         Returns
         -------
-        prepare_environment : str
+        :class:`str`
             The current working directory.  Because we're about to change it.
         """
         log = logging.getLogger(__name__ + '.DesiInstall.prepare_environment')
@@ -838,14 +800,6 @@ class DesiInstall(object):
         """Download any additional data not included in the code repository.
 
         This is done here so that :envvar:`WORKING_DIR` is defined.
-
-        Parameters
-        ----------
-        None
-
-        Returns
-        -------
-        None
         """
         log = logging.getLogger(__name__ + '.DesiInstall.get_extra')
         extra_script = join(self.working_dir, 'etc',
@@ -870,13 +824,9 @@ class DesiInstall(object):
     def copy_install(self):
         """Simply copying the files from the checkout to the install.
 
-        Parameters
-        ----------
-        None
-
         Returns
         -------
-        copy_install : bool
+        :class:`bool`
             Returns ``True``.
         """
         log = logging.getLogger(__name__ + '.DesiInstall.copy_install')
@@ -888,14 +838,6 @@ class DesiInstall(object):
 
     def install(self):
         """Run setup.py, etc.
-
-        Parameters
-        ----------
-        None
-
-        Returns
-        -------
-        None
         """
         log = logging.getLogger(__name__ + '.DesiInstall.install')
         if (self.is_trunk or self.is_branch):
@@ -1012,13 +954,9 @@ class DesiInstall(object):
     def cross_install(self):
         """Make package available on multiple hosts.
 
-        Parameters
-        ----------
-        None
-
         Returns
         -------
-        cross_install : list
+        :class:`list`
             A list of the symlinks created.
         """
         log = logging.getLogger(__name__ + '.DesiInstall.cross_install')
@@ -1066,13 +1004,9 @@ class DesiInstall(object):
     def permissions(self):
         """Fix possible install permission errors.
 
-        Parameters
-        ----------
-        None
-
         Returns
         -------
-        int
+        :class:`int`
             Status code returned by fix_permissions.sh script.
         """
         log = logging.getLogger(__name__+'.DesiInstall.permissions')
@@ -1093,13 +1027,9 @@ class DesiInstall(object):
     def cleanup(self):
         """Clean up after the install.
 
-        Parameters
-        ----------
-        None
-
         Returns
         -------
-        cleanup : bool
+        :class:`bool`
             Returns ``True``
         """
         log = logging.getLogger(__name__+'.DesiInstall.cleanup')
@@ -1115,14 +1045,10 @@ class DesiInstall(object):
     def run(self):  # pragma: no cover
         """This method wraps all the standard steps of the desiInstall script.
 
-        Parameters
-        ----------
-        None
-
         Returns
         -------
-        run : int
-            An integer suitable for passing to sys.exit.
+        :class:`int`
+            An integer suitable for passing to :func:`sys.exit`.
         """
         log = logging.getLogger(__name__ + '.DesiInstall.run')
         log.debug('Commencing run().')
@@ -1154,14 +1080,10 @@ class DesiInstall(object):
 def main():
     """Entry point for the desiInstall script.
 
-    Parameters
-    ----------
-    None
-
     Returns
     -------
-    main : int
-        Exit status that will be passed to ``sys.exit()``.
+    :class:`int`
+        Exit status that will be passed to :func:`sys.exit`.
     """
     di = DesiInstall()
     status = di.run()

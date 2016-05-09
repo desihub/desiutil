@@ -64,18 +64,18 @@ Users would then access this mask with:
 class _MaskBit(int):
     """A single mask bit.
 
-    Subclasses int to act like an int, but allows the ability to extend with
-    blat.name, blat.comment, blat.mask, blat.bitnum.
+    Subclasses :class:`int` to act like an :class:`int`, but allows the
+    ability to extend with blat.name, blat.comment, blat.mask, blat.bitnum.
 
     Attributes
     ----------
-    name : str
+    name : :class:`str`
         The name of the bit.
-    bitnum : int
+    bitnum : :class:`int`
         The number of the bit.  The value of the bit is ``2**bitnum``.
-    mask : int
+    mask : :class:`int`
         The value of the bit, ``2**bitnum``.
-    comment : str
+    comment : :class:`str`
         A comment explaining the meaning of the bit.
     """
     def __new__(cls, name, bitnum, comment, extra=dict()):
@@ -111,9 +111,9 @@ class BitMask(object):
 
     Parameters
     ----------
-    name : str
+    name : :class:`str`
         Name of this mask, must be key in `bitdefs`.
-    bitdefs : dict
+    bitdefs : :class:`dict`
         Dictionary of different mask bit definitions;
         each value is a list of ``[bitname, bitnum, comment]``.
         A 4th entry is optional, which must be a dictionary.
@@ -143,21 +143,61 @@ class BitMask(object):
 
     def bitnum(self, bitname):
         """Return bit number (int) for bitname (string).
+
+        Parameters
+        ----------
+        bitname : :class:`str`
+            The bit name.
+
+        Returns
+        -------
+        :class:`int`
+            The bit value.
         """
         return self._bits[bitname].bitnum
 
     def bitname(self, bitnum):
         """Return bit name (string) for this bitnum (integer).
+
+        Parameters
+        ----------
+        bitnum : :class:`int`
+            The number of the bit.
+
+        Returns
+        -------
+        :class:`str`
+            The name of the bit.
         """
         return self._bits[bitnum].name
 
     def comment(self, bitname_or_num):
         """Return comment for this bit name or bit number.
+
+        Parameters
+        ----------
+        bitname_or_num : :class:`int` or :class:`str`
+            Name of number of the mask.
+
+        Returns
+        -------
+        :class:`str`
+            The comment string.
         """
         return self._bits[bitname_or_num].comment
 
     def mask(self, name_or_num):
         """Return mask value.
+
+        Parameters
+        ----------
+        name_or_num : :class:`int` or :class:`str`
+            Name of number of the mask.
+
+        Returns
+        -------
+        :class:`int`
+            The value of the mask.
 
         Examples
         --------
@@ -180,13 +220,13 @@ class BitMask(object):
 
         Parameters
         ----------
-        mask : int, optional
+        mask : :class:`int`, optional
             The mask integer to convert to names. If not supplied,
             return names of all known bits.
 
         Returns
         -------
-        names : list
+        :class:`list`
             The list of names contained in the mask.
         """
         names = list()

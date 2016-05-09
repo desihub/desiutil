@@ -19,9 +19,9 @@ except NameError:  # For Python 3
 
 def yamlify(obj, debug=False):
     """Recursively process an object so it can be serialised for yaml.
-    Based on jsonify in linetools.
+    Based on jsonify in `linetools <https://pypi.python.org/pypi/linetools>`_.
 
-    Note: All keys in :class:`dict`s are converted to :class:`str`.
+    Note: All keys in :class:`dict` s are converted to :class:`str`.
 
     Parameters
     ----------

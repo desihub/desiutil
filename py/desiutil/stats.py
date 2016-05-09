@@ -5,7 +5,7 @@
 desiutils.stats
 ===============
 
-Just contains a dead-simple wrapper on numpy.percentile.
+Just contains a dead-simple wrapper on :func:`numpy.percentile`.
 """
 from __future__ import (print_function, absolute_import, division,
                         unicode_literals)
@@ -22,15 +22,15 @@ def perc(x, per=68.2):
 
     Parameters
     ----------
-    x : float
+    x : :class:`numpy.ndarray`
         numpy array of values
-    per : float, optional
-        Percentile for the calculation [0-100]
+    per : :class:`float`, optional
+        Percentile for the calculation [0-100].
 
     Returns
     -------
-    array
-        Value at lower, value at upper
+    :class:`numpy.ndarray`
+        Value at lower, value at upper.
     """
     #
     return np.percentile(x, [50-per/2.0, 50+per/2.0])

@@ -19,13 +19,13 @@ def init_modules(moduleshome=None, method=False, command=False):
 
     Parameters
     ----------
-    moduleshome : str, optional
+    moduleshome : :class:`str`, optional
         The path containing the Modules init code.  If not provided,
         :envvar:`MODULESHOME` will be used.
-    method : bool, optional
+    method : :class:`bool`, optional
         If ``True`` the function returned will be suitable for converting
         into an instance method.
-    command : bool, optional
+    command : :class:`bool`, optional
         If ``True``, return the command used to call Modules, rather than
         a function.
 
@@ -33,7 +33,7 @@ def init_modules(moduleshome=None, method=False, command=False):
     -------
     callable
         A function that wraps the ``module()`` function, and deals with
-        setting ``sys.path``.  Returns ``None`` if no Modules infrastructure
+        setting :data:`sys.path`.  Returns ``None`` if no Modules infrastructure
         could be found.
     """
     import os
@@ -95,9 +95,9 @@ def init_modules(moduleshome=None, method=False, command=False):
 
         Parameters
         ----------
-        command : str
+        command : :class:`str`
             Command passed to the base module command.
-        arguments : list
+        arguments : :class:`list`
             Arguments passed to the module command.
 
         Returns
@@ -106,7 +106,7 @@ def init_modules(moduleshome=None, method=False, command=False):
 
         Notes
         -----
-        The base module function does not update sys.path to
+        The base module function does not update :data:`sys.path` to
         reflect any additional directories added to
         :envvar:`PYTHONPATH`.  The wrapper function takes care
         of that (and uses set theory!).
@@ -148,20 +148,20 @@ def configure_module(product, version, working_dir=None, dev=False):
 
     Parameters
     ----------
-    product : str
+    product : :class:`str`
         Name of the product.
-    version : str
+    version : :class:`str`
         Version of the product.
-    working_dir : str, optional
+    working_dir : :class:`str`, optional
         The directory to examine.  If not set, the current working directory
         will be used.
-    dev : bool, optional
+    dev : :class:`bool`, optional
         If ``True``, interpret the directory as a 'development' install,
         *e.g.* a trunk or branch install.
 
     Returns
     -------
-    configure_module : dict
+    :class:`dict`
         A dictionary containing the module configuration parameters.
     """
     from os import getcwd
@@ -215,16 +215,16 @@ def process_module(module_file, module_keywords, module_dir):
 
     Parameters
     ----------
-    module_file : str
+    module_file : :class:`str`
         A template Module file to process.
-    module_keywords : dict
+    module_keywords : :class:`dict`
         The parameters to use for Module file processing.
-    module_dir : str
+    module_dir : :class:`str`
         The directory where the Module file should be installed.
 
     Returns
     -------
-    process_module : str
+    :class:`str`
         The text of the processed Module file.
     """
     from os import makedirs
@@ -245,14 +245,14 @@ def default_module(module_keywords, module_dir):
 
     Parameters
     ----------
-    module_keywords : dict
+    module_keywords : :class:`dict`
         The parameters to use for Module file processing.
-    module_dir : str
+    module_dir : :class:`str`
         The directory where the Module file should be installed.
 
     Returns
     -------
-    default_module : str
+    :class:`str`
         The text of the processed .version file.
     """
     from os.path import join
