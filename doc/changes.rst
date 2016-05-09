@@ -11,6 +11,7 @@ Change Log
 * Use :class:`distutils.command.sdist.sdist` to ensure that ``MANIFEST.in``
   is respected.
 * Add some test coverage in :mod:`desiutil.setup`.
+* Cleaned up documentation of :mod:`desiutil.io`.
 
 1.4.0 (2016-04-28)
 ------------------
@@ -20,7 +21,8 @@ Change Log
 * :mod:`desiutil.stats` module was previously snuck in, but never documented.
 * Minor fixes for desiInstall bootstrap mode.
 * `PR #30`_: Enable use of weights in :func:`~desiutil.funcfits.iter_fit`.
-* Add a method for connverting Python objects to yaml-ready format.  Includes unicode -> str
+* Add a method for connverting Python objects to yaml-ready format.
+  Includes :class:`unicode` to :class:`str` conversion.
 
 .. _`PR #30`: https://github.com/desihub/desiutil/pull/30
 

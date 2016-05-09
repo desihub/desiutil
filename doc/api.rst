@@ -11,10 +11,13 @@ desiutil API
 .. automodule:: desiutil.funcfits
     :members:
 
+.. automodule:: desiutil.git
+    :members:
+
 .. automodule:: desiutil.install
     :members:
 
-.. automodule:: desiutil.git
+.. automodule:: desiutil.io
     :members:
 
 .. automodule:: desiutil.modules
