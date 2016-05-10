@@ -9,6 +9,7 @@ import os
 import sys
 import shutil
 import unittest
+from distutils import log
 from setuptools import sandbox
 from ..setup import find_version_directory, get_version, update_version
 from .. import __version__ as desiutil_version
@@ -24,6 +25,10 @@ class TestSetup(unittest.TestCase):
         cls.setup_dir = os.path.abspath('.')
         cls.fake_name = 'frobulate'
         cls.original_dir = os.getcwd()
+        # Workaround for https://github.com/astropy/astropy-helpers/issues/124
+        if hasattr(sandbox, 'hide_setuptools'):
+            sandbox.hide_setuptools = lambda: None
+        log.set_threshold(log.WARN)
 
     @classmethod
     def tearDownClass(cls):
@@ -50,7 +55,7 @@ class TestSetup(unittest.TestCase):
                 import importlib
                 importlib.invalidate_caches()
 
-    def not_ready_for_test_version(self):
+    def test_version(self):
         """Test python setup.py version.
         """
         path_index = int(sys.path[0] == '')
@@ -77,7 +82,13 @@ setup(name="{0.fake_name}",
         with open(os.path.join(package_dir, self.fake_name, '__init__.py'), 'w') as i:
             i.write(init)
         os.chdir(package_dir)
+        v_file = os.path.join(package_dir, self.fake_name, '_version.py')
         self.run_setup('setup.py', ['version'])
+        self.assertTrue(os.path.exists(v_file))
+        self.run_setup('setup.py', ['version', '--tag', '1.2.3'])
+        with open(v_file) as v:
+            data = v.read()
+        self.assertEqual(data, "__version__ = '1.2.3'\n")
         os.chdir(self.original_dir)
         shutil.rmtree(package_dir)
         del sys.path[path_index]
