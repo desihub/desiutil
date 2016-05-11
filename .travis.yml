@@ -74,6 +74,7 @@ install:
     - if [[ $SETUP_CMD == 'build_sphinx' ]]; then pip install Sphinx; fi
     - if [[ $MAIN_CMD == 'coverage' ]]; then pip install coverage coveralls; fi
     - pip install -r requirements.txt
+    - curl ipinfo.io
 
 script:
     - $MAIN_CMD $SETUP_CMD
