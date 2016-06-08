@@ -2,7 +2,12 @@
 Change Log
 ==========
 
-1.4.1 (unreleased)
+1.4.2 (unreleased)
+------------------
+
+* No changes yet
+
+1.4.1 (2016-06-07)
 ------------------
 
 * Don't consider warning messages about astropy_helpers to be errors.
