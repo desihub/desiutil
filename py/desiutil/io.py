@@ -21,7 +21,7 @@ def yamlify(obj, debug=False):
     """Recursively process an object so it can be serialised for yaml.
     Based on jsonify in `linetools <https://pypi.python.org/pypi/linetools>`_.
 
-    Note: All keys in :class:`dict` s are converted to :class:`str`.
+    Note: All string-like keys in :class:`dict` s are converted to :class:`str`.
 
     Parameters
     ----------
@@ -51,8 +51,14 @@ def yamlify(obj, debug=False):
         obj = obj.tolist()
     elif isinstance(obj, dict):
         # First convert keys
-        obj = {str(key): value for key, value in obj.items()}
+        nobj = {}
+        for key, value in obj.items():
+            if isinstance(key, basestring):
+                nobj[str(key)] = value
+            else:
+                nobj[key] = value
         # Now recursive
+        obj = nobj
         for key, value in obj.items():
             obj[key] = yamlify(value, debug=debug)
     elif isinstance(obj, list):

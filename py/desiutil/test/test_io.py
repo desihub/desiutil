@@ -11,6 +11,10 @@ import numpy as np
 #import pdb
 from ..io import yamlify
 
+try:
+    basestring
+except NameError:  # For Python 3
+    basestring = str
 
 class TestIO(unittest.TestCase):
     """Test desiutil.io
@@ -27,7 +31,7 @@ class TestIO(unittest.TestCase):
     def test_yamlify(self):
         """Test yamlify
         """
-        fdict = {'name':'test', 'num':np.int32(3), 'flt32':np.float32(3.), 'flt64':np.float64(2.),
+        fdict = {'name':'test', 'num':np.int32(3), 1: 'expid', 'flt32':np.float32(3.), 'flt64':np.float64(2.),
                      'num2':np.int64(4), 'bool':np.bool(True), 'lst':['tst2', np.int16(2)],
                      'tup':(1,3), 'dct':{'a':'tst3', 'b':np.float32(6.)}, 'array': np.zeros(10)}
         if sys.version_info >= (3,0,0):
@@ -39,5 +43,5 @@ class TestIO(unittest.TestCase):
         self.assertIsInstance(ydict['flt32'], float)
         self.assertIsInstance(ydict['array'], list)
         for key in ydict.keys():
-            self.assertIsInstance(key, str)
-
+            if isinstance(key, basestring):
+                self.assertIsInstance(key, str)
