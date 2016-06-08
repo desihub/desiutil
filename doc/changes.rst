@@ -13,6 +13,7 @@ Change Log
 * Add some test coverage in :mod:`desiutil.setup`.
 * Cleaned up documentation of :mod:`desiutil.io` and several other modules.
 * Modified conversion of keys to string in :mod:`desituil.io.yamlify`
+* Log IP address in Travis Tests.
 
 1.4.0 (2016-04-28)
 ------------------
