@@ -5,7 +5,8 @@ Change Log
 1.4.2 (unreleased)
 ------------------
 
-* No changes yet
+* Fixed bug affecting people with the C version of Modules installed on
+  laptops.
 
 1.4.1 (2016-06-07)
 ------------------

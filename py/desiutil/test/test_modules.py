@@ -101,6 +101,7 @@ class TestModules(unittest.TestCase):
         #
         # Base Module command
         #
+        self.cache_env(('MODULE_VERSION', 'MODULE_VERSION_STACK', 'TCLSH'))
         modulecmd = init_modules(command=True)
         self.assertListEqual(modulecmd, ['/usr/bin/modulecmd', 'python'])
         tclfile = join(self.data_dir, 'modulecmd.tcl')
@@ -108,7 +109,6 @@ class TestModules(unittest.TestCase):
             tcl.write('#!/usr/bin/tclsh\nputs "foo"\n')
         modulecmd = init_modules(command=True)
         self.assertListEqual(modulecmd, ['/usr/bin/tclsh', tclfile, 'python'])
-        self.cache_env(('TCLSH',))
         environ['TCLSH'] = '/opt/local/bin/tclsh'
         modulecmd = init_modules(command=True)
         self.assertListEqual(modulecmd, ['/opt/local/bin/tclsh', tclfile,
@@ -116,7 +116,6 @@ class TestModules(unittest.TestCase):
         del environ['TCLSH']
         self.restore_env(('TCLSH',))
         remove(tclfile)
-        self.cache_env(('MODULE_VERSION', 'MODULE_VERSION_STACK'))
         environ['MODULE_VERSION'] = '1.2.3.4'
         modulecmd = init_modules(command=True)
         self.assertListEqual(modulecmd, ['/opt/modules/1.2.3.4/bin/modulecmd',
