@@ -1,15 +1,19 @@
-#!/usr/bin/env python
-
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+# -*- coding: utf-8 -*-
 """
+===============
+desiutil.depend
+===============
+
 Utilities for working with code dependencies stored in FITS headers.
 
 The code name and the code version are stored in pairs of keywords, similar
-to how table columns are defined.  e.g.
+to how table columns are defined. *e.g.*::
 
-DEPNAM00 = 'numpy'
-DEPVER00 = '1.11'
-DEPNAM01 = 'desiutil'
-DEPVER01 = '1.4.1'
+    DEPNAM00 = 'numpy'
+    DEPVER00 = '1.11'
+    DEPNAM01 = 'desiutil'
+    DEPVER01 = '1.4.1'
 
 The functions and Dependencies class provided here provide convenience
 wrappers to loop over they keywords looking for a particular dependency
@@ -21,7 +25,7 @@ Examples:
 >>> from desiutil import depend
 >>> import astropy
 >>> from astropy.io import fits
->>> 
+>>>
 >>> hdr = fits.Header()
 >>> depend.setdep(hdr, 'desiutil', desiutil.__version__)
 >>> depend.setdep(hdr, 'astropy', astropy.__version__)
@@ -44,7 +48,7 @@ so that it can be used in subsequent I/O
 >>> codever['foo'] = '3.4'
 >>> for codename, version in codever.items():
 ...     print(codename, version)
-... 
+...
 ('desiutil', '1.4.1.dev316')
 ('astropy', u'1.1.1')
 ('blat', '1.2')
@@ -54,7 +58,7 @@ so that it can be used in subsequent I/O
 
 def setdep(header, name, version):
     '''
-    set dependency version for code name
+    Set dependency version for code name.
 
     Args:
         header : dict-like object to store dependencies
@@ -68,19 +72,17 @@ def setdep(header, name, version):
             if header[namekey] == name:
                 header[verkey] = version
                 return
-            else:
-                continue
-
-        header[namekey] = name
-        header[verkey] = version
-        return
+        else:
+            header[namekey] = name
+            header[verkey] = version
+            return
 
     #- if we got this far, we ran out of numbers
-    raise IndexError
+    raise IndexError("Too many versions to track!")
 
 def getdep(header, name):
     '''
-    get dependency version for code name
+    Get dependency version for code name.
 
     Args:
         header : dict-like object to store dependencies
@@ -88,7 +90,7 @@ def getdep(header, name):
 
     Returns version string for name
 
-    raises KeyError if name not tracked in header
+    Raises KeyError if name not tracked in header
     '''
     for i in range(100):
         namekey = 'DEPNAM{:02d}'.format(i)
@@ -96,8 +98,6 @@ def getdep(header, name):
         if namekey in header:
             if header[namekey] == name:
                 return header[verkey]
-            else:
-                continue
         elif i == 0:
             continue    #- ok if DEPNAM00 is missing; continue to DEPNAME01
         else:
@@ -105,7 +105,7 @@ def getdep(header, name):
 
 def hasdep(header, name):
     '''
-    returns True if version for name is tracked in header, otherwise False
+    Returns ``True`` if version for name is tracked in header, otherwise ``False``.
     '''
     try:
         version = getdep(header, name)
@@ -114,10 +114,19 @@ def hasdep(header, name):
         return False
 
 class Dependencies(object):
+    """Dictionary-like object to track dependencies.
+
+    Parameters
+    ----------
+    header : dict-like, optional
+        A dict-like object.  If not provided, a :class:`~collections.OrderedDict`
+        will be used.
+    """
+
     def __init__(self, header=None):
-        '''Initialize Dependencies with dict-like header object
-        
-        if header is None, use a empty OrderedDict
+        '''Initialize Dependencies with dict-like header object.
+
+        If header is None, use a empty :class:`~collections.OrderedDict`.
         '''
         if header is None:
             from collections import OrderedDict
@@ -126,15 +135,15 @@ class Dependencies(object):
             self.header = header
 
     def __setitem__(self, name, version):
-        '''sets version of name'''
+        '''Sets version of `name`.'''
         setdep(self.header, name, version)
 
     def __getitem__(self, name):
-        '''returns version of name'''
+        '''Returns version of `name`.'''
         return getdep(self.header, name)
 
     def __iter__(self):
-        '''returns iterator over name'''
+        '''Returns iterator over name.'''
         for i in range(100):
             namekey = 'DEPNAM{:02d}'.format(i)
             verkey = 'DEPVER{:02d}'.format(i)
@@ -147,6 +156,6 @@ class Dependencies(object):
         raise StopIteration
 
     def items(self):
-        '''returns iterator over (name, version)'''
+        '''Returns iterator over (name, version).'''
         for name in self:
             yield name, self[name]
