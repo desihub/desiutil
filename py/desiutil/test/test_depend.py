@@ -41,9 +41,21 @@ class TestDepend(unittest.TestCase):
         depend.setdep(hdr, 'blat', '1.2.3')
         self.assertEqual(depend.getdep(hdr, 'blat'), '1.2.3')
         self.assertTrue(depend.hasdep(hdr, 'blat'))
+        self.assertFalse(depend.hasdep(hdr, 'zoom'))
         
         with self.assertRaises(KeyError):
             depend.getdep(hdr, 'foo')
+
+    def test_update(self):
+        hdr = dict()
+        depend.setdep(hdr, 'blat', '1.0')
+        self.assertEqual(depend.getdep(hdr, 'blat'), '1.0')
+        depend.setdep(hdr, 'blat', '2.0')
+        self.assertEqual(depend.getdep(hdr, 'blat'), '2.0')
+        self.assertNotIn('DEPNAM01', hdr)
+        depend.setdep(hdr, 'foo', '3.0')
+        self.assertEqual(hdr['DEPNAM01'], 'foo')
+        self.assertEqual(hdr['DEPVER01'], '3.0')
 
     def test_class(self):
         hdr = dict()

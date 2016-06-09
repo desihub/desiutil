@@ -66,7 +66,7 @@ def setdep(header, name, version):
         verkey = 'DEPVER{:02d}'.format(i)
         if namekey in header:
             if header[namekey] == name:
-                header[namekey] = version
+                header[verkey] = version
                 return
             else:
                 continue
