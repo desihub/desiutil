@@ -7,7 +7,7 @@ from __future__ import (absolute_import, division,
 
 import unittest
 from collections import OrderedDict
-from ..depend import setdep, getdep, hasdep, Dependencies
+from ..depend import setdep, getdep, hasdep, iterdep, Dependencies
 
 try:
     from astropy.io import fits
@@ -105,6 +105,23 @@ class TestDepend(unittest.TestCase):
         self.assertEqual(hdr['DEPNAM01'], 'foo')
         self.assertEqual(hdr['DEPVER01'], '3.0')
 
+    def test_iter(self):
+        """Test iteration methods.
+        """
+        hdr = dict()
+        for i in range(100):
+            hdr["DEPNAM{0:02d}".format(i)] = "test{0:03d}".format(i)
+            hdr["DEPVER{0:02d}".format(i)] = "v{0:d}.0.1".format(i)
+        y = Dependencies(hdr)
+        for name in y:
+            self.assertEqual(y[name], getdep(hdr, name))
+
+        for name, version in y.items():
+            self.assertEqual(version, getdep(hdr, name))
+
+        for name, version in iterdep(hdr):
+            self.assertEqual(version, getdep(hdr, name))
+
     def test_class(self):
         """Test the Dependencies object.
         """
@@ -122,13 +139,6 @@ class TestDepend(unittest.TestCase):
         for name in x:
             self.assertEqual(x[name], getdep(hdr, name))
 
-        hdr = dict()
-        for i in range(100):
-            hdr["DEPNAM{0:02d}".format(i)] = "test{0:03d}".format(i)
-            hdr["DEPVER{0:02d}".format(i)] = "v{0:d}.0.1".format(i)
-        y = Dependencies(hdr)
-        for name in y:
-            self.assertEqual(y[name], getdep(hdr, name))
 
 
 if __name__ == '__main__':

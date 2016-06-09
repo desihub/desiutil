@@ -113,6 +113,19 @@ def hasdep(header, name):
     except KeyError:
         return False
 
+def iterdep(header):
+    '''Returns iterator over (codename, version) tuples'''
+    for i in range(100):
+        namekey = 'DEPNAM{:02d}'.format(i)
+        verkey = 'DEPVER{:02d}'.format(i)
+        if namekey not in header and i==0: continue
+        if namekey in header:
+            yield (header[namekey], header[verkey])
+        else:
+            raise StopIteration
+
+    raise StopIteration
+
 class Dependencies(object):
     """Dictionary-like object to track dependencies.
 
@@ -144,18 +157,9 @@ class Dependencies(object):
 
     def __iter__(self):
         '''Returns iterator over name.'''
-        for i in range(100):
-            namekey = 'DEPNAM{:02d}'.format(i)
-            verkey = 'DEPVER{:02d}'.format(i)
-            if namekey not in self.header and i==0: continue
-            if namekey in self.header:
-                yield self.header[namekey]
-            else:
-                raise StopIteration
-
-        raise StopIteration
+        for name, version in iterdep(self.header):
+            yield name
 
     def items(self):
         '''Returns iterator over (name, version).'''
-        for name in self:
-            yield name, self[name]
+        return iterdep(self.header)
