@@ -8,6 +8,9 @@ desiutil API
 .. automodule:: desiutil.bitmask
     :members:
 
+.. automodule:: desiutil.depend
+    :members:
+
 .. automodule:: desiutil.funcfits
     :members:
 

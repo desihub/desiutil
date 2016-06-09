@@ -2,11 +2,13 @@
 Change Log
 ==========
 
-1.4.2 (unreleased)
+1.5.0 (unreleased)
 ------------------
 
 * Fixed bug affecting people with the C version of Modules installed on
   laptops.
+* Added :mod:`desiutil.depend` tools for manipulating DEPNAMnn and DEPVERnn
+  keywords in FITS headers
 
 1.4.1 (2016-06-07)
 ------------------
