@@ -1,12 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
-"""Test desiutil.git.
+"""Test desiutil.depend.
 """
 from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 
 import unittest
-from desiutil import depend
+from collections import OrderedDict
+from ..depend import setdep, getdep, hasdep, Dependencies
 
 try:
     from astropy.io import fits
@@ -26,37 +27,94 @@ class TestDepend(unittest.TestCase):
     def tearDownClass(cls):
         pass
 
-    def test_functions(self):
+    def test_setdep(self):
+        """Test function that sets dependency keywords.
+        """
         hdr = dict()
-        depend.setdep(hdr, 'blat', '1.2.3')
-        self.assertEqual(depend.getdep(hdr, 'blat'), '1.2.3')
-        self.assertTrue(depend.hasdep(hdr, 'blat'))
-        
+        setdep(hdr, 'blat', '1.2.3')
+        self.assertEqual(hdr['DEPNAM00'], 'blat')
+        self.assertEqual(hdr['DEPVER00'], '1.2.3')
+        setdep(hdr, 'foo', '2.3.4')
+        self.assertEqual(hdr['DEPNAM01'], 'foo')
+        self.assertEqual(hdr['DEPVER01'], '2.3.4')
+        setdep(hdr, 'blat', '3.4.5')
+        self.assertEqual(hdr['DEPNAM00'], 'blat')
+        self.assertEqual(hdr['DEPVER00'], '3.4.5')
+        setdep(hdr, 'bar', '7.8.9')
+        setdep(hdr, 'baz', '9.8.7')
+        setdep(hdr, 'foo', '4.3.2')
+        self.assertEqual(hdr['DEPNAM01'], 'foo')
+        self.assertEqual(hdr['DEPVER01'], '4.3.2')
+        hdr = dict()
+        with self.assertRaises(IndexError):
+            for i in range(101):
+                setdep(hdr, 'test{0:03d}'.format(i), "v{0:d}.0.1".format(i))
+
+    def test_getdep(self):
+        """Test function that gets dependency values.
+        """
+        hdr = dict()
+        for i in range(10):
+            setdep(hdr, 'test{0:03d}'.format(i), "v{0:d}.0.1".format(i))
+        self.assertEqual(hdr['DEPNAM00'], 'test000')
+        self.assertEqual(hdr['DEPVER00'], 'v0.0.1')
+        self.assertEqual(getdep(hdr, 'test005'), 'v5.0.1')
+        hdr = dict()
+        for i in range(10):
+            hdr["DEPNAM{0:02d}".format(i+1)] = "test{0:03d}".format(i+1)
+            hdr["DEPVER{0:02d}".format(i+1)] = "v{0:d}.0.1".format(i+1)
+        self.assertEqual(getdep(hdr, 'test005'), 'v5.0.1')
         with self.assertRaises(KeyError):
-            depend.getdep(hdr, 'foo')
-            
+            foo = getdep(hdr, 'test100')
+
+    def test_hasdep(self):
+        """Test function that checks for the existence of a dependency.
+        """
+        hdr = dict()
+        for i in range(10):
+            hdr["DEPNAM{0:02d}".format(i+1)] = "test{0:03d}".format(i+1)
+            hdr["DEPVER{0:02d}".format(i+1)] = "v{0:d}.0.1".format(i+1)
+        self.assertTrue(hasdep(hdr, 'test001'))
+        self.assertTrue(hasdep(hdr, 'test010'))
+        self.assertFalse(hasdep(hdr, 'test020'))
+
     @unittest.skipUnless(test_fits_header, 'requires astropy.io.fits')
     def test_fits_header(self):
+        """Test dependency functions with an actual FITS header.
+        """
         hdr = fits.Header()
-        depend.setdep(hdr, 'blat', '1.2.3')
-        self.assertEqual(depend.getdep(hdr, 'blat'), '1.2.3')
-        self.assertTrue(depend.hasdep(hdr, 'blat'))
-        
+        setdep(hdr, 'blat', '1.2.3')
+        self.assertEqual(getdep(hdr, 'blat'), '1.2.3')
+        self.assertTrue(hasdep(hdr, 'blat'))
+
         with self.assertRaises(KeyError):
-            depend.getdep(hdr, 'foo')
+            getdep(hdr, 'foo')
 
     def test_class(self):
+        """Test the Dependencies object.
+        """
+        d = Dependencies()
+        self.assertTrue(isinstance(d.header, OrderedDict))
         hdr = dict()
-        x = depend.Dependencies(hdr)
+        x = Dependencies(hdr)
         x['blat'] = '1.2.3'
         x['foo'] = '0.1'
         self.assertEqual(x['blat'], hdr['DEPVER00'])
         self.assertEqual(x['foo'], hdr['DEPVER01'])
         for name, version in x.items():
             self.assertEqual(version, x[name])
-            
+
         for name in x:
-            self.assertEqual(x[name], depend.getdep(hdr, name))
+            self.assertEqual(x[name], getdep(hdr, name))
+
+        hdr = dict()
+        for i in range(100):
+            hdr["DEPNAM{0:02d}".format(i)] = "test{0:03d}".format(i)
+            hdr["DEPVER{0:02d}".format(i)] = "v{0:d}.0.1".format(i)
+        y = Dependencies(hdr)
+        for name in y:
+            self.assertEqual(y[name], getdep(hdr, name))
+
 
 if __name__ == '__main__':
     unittest.main()
