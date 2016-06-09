@@ -2,7 +2,7 @@
 Change Log
 ==========
 
-1.5.0 (unreleased)
+1.5.0 (2016-06-09)
 ------------------
 
 * Fixed bug affecting people with the C version of Modules installed on
