@@ -15,8 +15,8 @@ to how table columns are defined. *e.g.*::
     DEPNAM01 = 'desiutil'
     DEPVER01 = '1.4.1'
 
-The functions and Dependencies class provided here provide convenience
-wrappers to loop over they keywords looking for a particular dependency
+The functions and Dependencies class provide convenience wrappers
+to loop over they keywords looking for a particular dependency
 and adding a new dependency version to next available DEPNAMnn/DEPVERnn.
 
 Examples:
@@ -125,6 +125,53 @@ def iterdep(header):
             raise StopIteration
 
     raise StopIteration
+
+#- default possible dependencies to check in add_dependencies()
+possible_dependencies = [
+    'numpy', 'scipy', 'astropy', 'yaml', 'matplotlib',
+    'requests', 'fitsio', 'h5py', 'mpi4py', 'psycopg2',
+    'desiutil', 'desispec', 'desitarget', 'desimodel', 'desisim',
+    'redmonster', 'specter', 'speclite', 'specsim',
+    ]
+
+def add_dependencies(header, module_names=None):
+    '''Adds DEPNAMnn, DEPVERnn keywords to header for imported modules
+    
+    Args:
+        header : dict-like object, e.g. astropy.io.fits.Header
+    
+    Options:
+        module_names : list of module names to check
+            if None, checks desiutil.depend.possible_dependencies
+        
+    Only adds the dependency keywords if the module has already been
+    previously loaded in this python session.  Uses module.__version__
+    if available, otherwise "unknown (/path/to/module/)".
+    '''
+    import sys
+    import importlib
+    
+    setdep(header, 'python', sys.version.replace('\n', ' '))
+    
+    if module_names is None:
+        module_names = possible_dependencies
+
+    #- Set version strings only for modules that have already been loaded
+    for module in module_names:
+        if module in sys.modules:
+            #- already loaded, but we need a reference to the module object
+            x = importlib.import_module(module)
+            if hasattr(x, '__version__'):
+                version = x.__version__
+            elif hasattr(x, '__path__'):
+                #- e.g. redmonster doesn't set __version__
+                version = 'unknown ({})'.format(x.__path__[0])
+            elif hasattr(x, '__file__'):
+                version = 'unknown ({})'.format(x.__file__)
+            else:
+                version = 'unknown'
+                
+            setdep(header, module, version)
 
 class Dependencies(object):
     """Dictionary-like object to track dependencies.

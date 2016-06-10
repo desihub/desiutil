@@ -7,7 +7,8 @@ from __future__ import (absolute_import, division,
 
 import unittest
 from collections import OrderedDict
-from ..depend import setdep, getdep, hasdep, iterdep, Dependencies
+from ..depend import setdep, getdep, hasdep, iterdep
+from ..depend import Dependencies, add_dependencies
 
 try:
     from astropy.io import fits
@@ -139,6 +140,27 @@ class TestDepend(unittest.TestCase):
         for name in x:
             self.assertEqual(x[name], getdep(hdr, name))
 
+    def test_add_dependencies(self):
+        """Test add_dependencies function."""
+        import desiutil
+        hdr = OrderedDict()
+        add_dependencies(hdr)
+        self.assertEqual(getdep(hdr, 'desiutil'), desiutil.__version__)
+        import numpy
+        add_dependencies(hdr)
+        self.assertEqual(getdep(hdr, 'numpy'), numpy.__version__)
+        #- ok, but no action
+        add_dependencies(hdr, ['blatbar', 'quatlarm'])
+        self.assertFalse(hasdep(hdr, 'blatbar'))
+        self.assertFalse(hasdep(hdr, 'quatlarm'))
+        
+        #- no .__version__
+        add_dependencies(hdr, ['os.path', 'sys'])
+        self.assertTrue(hasdep(hdr, 'os.path'))
+        self.assertTrue(getdep(hdr, 'os.path').startswith('unknown'))
+        self.assertTrue(hasdep(hdr, 'sys'))
+        self.assertTrue(getdep(hdr, 'sys').startswith('unknown'))
+        
 
 
 if __name__ == '__main__':
