@@ -126,6 +126,14 @@ def iterdep(header):
 
     raise StopIteration
 
+#- default possible dependencies to check in add_dependencies()
+possible_dependencies = [
+    'numpy', 'scipy', 'astropy', 'yaml', 'matplotlib',
+    'requests', 'fitsio', 'h5py', 'mpi4py', 'psycopg2',
+    'desiutil', 'desispec', 'desitarget', 'desimodel', 'desisim',
+    'redmonster', 'specter', 'speclite', 'specsim',
+    ]
+
 def add_dependencies(header, module_names=None):
     '''Adds DEPNAMnn, DEPVERnn keywords to header for imported modules
     
@@ -134,7 +142,7 @@ def add_dependencies(header, module_names=None):
     
     Options:
         module_names : list of module names to check
-            if None, check a list of known potential DESI dependencies
+            if None, checks desiutil.depend.possible_dependencies
         
     Only adds the dependency keywords if the module has already been
     previously loaded in this python session.  Uses module.__version__
@@ -146,25 +154,22 @@ def add_dependencies(header, module_names=None):
     setdep(header, 'python', sys.version.replace('\n', ' '))
     
     if module_names is None:
-        module_names = [
-            'numpy', 'scipy', 'astropy', 'yaml', 'matplotlib',
-            'requests', 'fitsio', 'h5py', 'mpi4py', 'psycopg2',
-            'desiutil', 'desispec', 'desitarget', 'desimodel', 'desisim',
-            'redmonster',
-            'specter', 'speclite', 'specsim',
-            ]
-        
+        module_names = possible_dependencies
 
     #- Set version strings only for modules that have already been loaded
     for module in module_names:
         if module in sys.modules:
             #- already loaded, but we need a reference to the module object
             x = importlib.import_module(module)
-            try:
+            if hasattr(x, '__version__'):
                 version = x.__version__
-            except AttributeError:
+            elif hasattr(x, '__path__'):
                 #- e.g. redmonster doesn't set __version__
                 version = 'unknown ({})'.format(x.__path__[0])
+            elif hasattr(x, '__file__'):
+                version = 'unknown ({})'.format(x.__file__)
+            else:
+                version = 'unknown'
                 
             setdep(header, module, version)
 
