@@ -9,7 +9,6 @@ Module for I/O related code.
 """
 from __future__ import (print_function, absolute_import, division,
                         unicode_literals)
-import numpy as np
 
 try:
     basestring
@@ -21,7 +20,8 @@ def yamlify(obj, debug=False):
     """Recursively process an object so it can be serialised for yaml.
     Based on jsonify in `linetools <https://pypi.python.org/pypi/linetools>`_.
 
-    Note: All string-like keys in :class:`dict` s are converted to :class:`str`.
+    Note: All string-like keys in :class:`dict` s are converted to
+    :class:`str`.
 
     Parameters
     ----------
@@ -37,6 +37,7 @@ def yamlify(obj, debug=False):
        :class:`numpy.ndarray` is converted to :class:`list`,
        :class:`numpy.int64` is converted to :class:`int`, etc.
     """
+    import numpy as np
     if isinstance(obj, (np.float64, np.float32)):
         obj = float(obj)
     elif isinstance(obj, (np.int32, np.int64, np.int16)):

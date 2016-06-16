@@ -10,8 +10,6 @@ Just contains a dead-simple wrapper on :func:`numpy.percentile`.
 from __future__ import (print_function, absolute_import, division,
                         unicode_literals)
 
-import numpy as np
-
 
 def perc(x, per=68.2):
     """Calculate the percentile bounds of a distribution,
@@ -32,5 +30,5 @@ def perc(x, per=68.2):
     :class:`numpy.ndarray`
         Value at lower, value at upper.
     """
-    #
-    return np.percentile(x, [50-per/2.0, 50+per/2.0])
+    from numpy import percentile
+    return percentile(x, [50-per/2.0, 50+per/2.0])

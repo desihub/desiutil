@@ -2,10 +2,10 @@
 Change Log
 ==========
 
-1.5.0 (unreleased)
+1.5.1 (unreleased)
 ------------------
 
-* No changes yet
+* Fixed some import statements so documentation will build on readthedocs.
 
 1.5.0 (2016-06-09)
 ------------------
