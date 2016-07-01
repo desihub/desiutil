@@ -153,14 +153,13 @@ class TestDepend(unittest.TestCase):
         add_dependencies(hdr, ['blatbar', 'quatlarm'])
         self.assertFalse(hasdep(hdr, 'blatbar'))
         self.assertFalse(hasdep(hdr, 'quatlarm'))
-        
+
         #- no .__version__
         add_dependencies(hdr, ['os.path', 'sys'])
         self.assertTrue(hasdep(hdr, 'os.path'))
         self.assertTrue(getdep(hdr, 'os.path').startswith('unknown'))
         self.assertTrue(hasdep(hdr, 'sys'))
         self.assertTrue(getdep(hdr, 'sys').startswith('unknown'))
-        
 
 
 if __name__ == '__main__':

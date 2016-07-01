@@ -136,23 +136,23 @@ possible_dependencies = [
 
 def add_dependencies(header, module_names=None):
     '''Adds DEPNAMnn, DEPVERnn keywords to header for imported modules
-    
+
     Args:
         header : dict-like object, e.g. astropy.io.fits.Header
-    
+
     Options:
         module_names : list of module names to check
             if None, checks desiutil.depend.possible_dependencies
-        
+
     Only adds the dependency keywords if the module has already been
     previously loaded in this python session.  Uses module.__version__
     if available, otherwise "unknown (/path/to/module/)".
     '''
     import sys
     import importlib
-    
+
     setdep(header, 'python', sys.version.replace('\n', ' '))
-    
+
     if module_names is None:
         module_names = possible_dependencies
 
@@ -170,7 +170,7 @@ def add_dependencies(header, module_names=None):
                 version = 'unknown ({})'.format(x.__file__)
             else:
                 version = 'unknown'
-                
+
             setdep(header, module, version)
 
 class Dependencies(object):
