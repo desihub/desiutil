@@ -49,26 +49,40 @@ class TestIO(unittest.TestCase):
     def test_combinedicts(self):
         """ Test combining dicts
         """
+        # Merge two dicts with a common key
         dict1 = {'a': {'b':2, 'c': 3}}
         dict2 = {'a': {'d': 4}}
         dict3 = combine_dicts(dict1, dict2)
-        self.assertIn('b',dict3['a'].keys())
-        self.assertEqual(dict3['a']['d'], 4)
-        # Second
+        self.assertEqual(dict3, {'a': {'b':2, 'c':3, 'd':4}})
+        # Shouldn't modify originals
+        self.assertEqual(dict1, {'a': {'b':2, 'c': 3}})
+        self.assertEqual(dict2, {'a': {'d': 4}})
+        # Merge two dicts with different keys
         dict1 = {'a': 2}
         dict2 = {'b': 4}
         dict3 = combine_dicts(dict1, dict2)
-        self.assertEqual(dict3['b'], 4)
-        # Overlapping leafs that are scalars
+        self.assertEqual(dict3, {'a':2, 'b':4})
+        self.assertEqual(dict1, {'a': 2})
+        self.assertEqual(dict2, {'b': 4})
+        # Overlapping leafs that are scalars should raise an error
         dict1 = {'a': 2}
         dict2 = {'a': 4}
         with self.assertRaises(ValueError):
             dict3 = combine_dicts(dict1, dict2)
-        # Overlapping leafs with a mix
-        dict1 = {'a': {'b': 3}}
+        # Overlapping leafs with a scalar/dict mix raise an error
+        dict1 = {'a': {'b':3}}
         dict2 = {'a': {'b':2, 'c': 3}}
         with self.assertRaises(ValueError):
             combine_dicts(dict1, dict2)
+        with self.assertRaises(ValueError):
+            combine_dicts(dict2, dict1)
+        # Deep merge
+        dict1 = {'a': {'b': {'x':1, 'y':2}}}
+        dict2 = {'a': {'b': {'p':3, 'q':4}}}
+        dict3 = combine_dicts(dict1, dict2)
+        self.assertEqual(dict3, {'a': {'b': {'x':1, 'y':2, 'p':3, 'q':4}}})
+        self.assertEqual(dict1, {'a': {'b': {'x':1, 'y':2}}})
+        self.assertEqual(dict2, {'a': {'b': {'p':3, 'q':4}}})
 
 if __name__ == '__main__':
     unittest.main()
