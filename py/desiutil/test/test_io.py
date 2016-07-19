@@ -9,7 +9,7 @@ import unittest
 import sys
 import numpy as np
 #import pdb
-from desiutil.io import yamlify, combineDicts
+from desiutil.io import yamlify, combine_dicts
 
 try:
     basestring
@@ -49,13 +49,21 @@ class TestIO(unittest.TestCase):
     def test_combinedicts(self):
         """ Test combining dicts
         """
-        import pdb
         dict1 = {'a': {'b':2, 'c': 3}}
         dict2 = {'a': {'d': 4}}
-        #
-        dict3 = combineDicts(dict1, dict2)
-        #pdb.set_trace()
+        dict3 = combine_dicts(dict1, dict2)
         self.assertIn('b',dict3['a'].keys())
+        self.assertEqual(dict3['a']['d'], 4)
+        # Second dict over-rides first
+        dict1 = {'a': 2}
+        dict2 = {'a': 4}
+        dict3 = combine_dicts(dict1, dict2)
+        self.assertEqual(dict3['a'], 4)
+        # Second dict over-rides first
+        dict1 = {'a': 4}
+        dict2 = {'a': {'b':2, 'c': 3}}
+        with self.assertRaises(KeyError):
+            combine_dicts(dict1, dict2)
 
 if __name__ == '__main__':
     unittest.main()

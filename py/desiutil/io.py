@@ -15,8 +15,12 @@ try:
 except NameError:  # For Python 3
     basestring = str
 
-def combineDicts(dictionary1, dictionary2):
+
+def combine_dicts(dict1, dict2):
     """ Combine two dicts into one, respecting common keys
+    If dict1 and dict2 both have key a, then x[a] and y[a] must both
+    be dictionaries to recursively merge.
+
     Args:
         dictionary1 : dict
         dictionary2 : dict
@@ -24,13 +28,19 @@ def combineDicts(dictionary1, dictionary2):
         output : dict
     """
     output = {}
-    for item, value in dictionary1.items():
-        if item in dictionary2:
-            if isinstance(dictionary2[item], dict):
-                output[item] = combineDicts(value, dictionary2.pop(item))
+    cdict2 = dict2.copy()
+    for item, value in dict1.items():
+        if item in cdict2:
+            if isinstance(cdict2[item], dict):
+                if not isinstance(dict1[item], dict):
+                    raise KeyError("Overlapping leafs must both be dicts")
+                try:
+                    output[item] = combine_dicts(value, cdict2.pop(item))
+                except AttributeError:
+                    raise AttributeError("Cannot mix dicts with scalar and dict on the same key")
         else:
             output[item] = value
-    for item, value in dictionary2.items():
+    for item, value in cdict2.items():
          output[item] = value
     # Return
     return output
