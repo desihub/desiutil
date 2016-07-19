@@ -25,7 +25,7 @@ def combineDicts(dictionary1, dictionary2):
     """
     output = {}
     for item, value in dictionary1.items():
-        if dictionary2.has_key(item):
+        if item in dictionary2:
             if isinstance(dictionary2[item], dict):
                 output[item] = combineDicts(value, dictionary2.pop(item))
         else:
