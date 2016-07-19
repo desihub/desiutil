@@ -9,7 +9,7 @@ import unittest
 import sys
 import numpy as np
 #import pdb
-from ..io import yamlify
+from desiutil.io import yamlify, combineDicts
 
 try:
     basestring
@@ -45,3 +45,17 @@ class TestIO(unittest.TestCase):
         for key in ydict.keys():
             if isinstance(key, basestring):
                 self.assertIsInstance(key, str)
+
+    def test_combinedicts(self):
+        """ Test combining dicts
+        """
+        import pdb
+        dict1 = {'a': {'b':2, 'c': 3}}
+        dict2 = {'a': {'d': 4}}
+        #
+        dict3 = combineDicts(dict1, dict2)
+        #pdb.set_trace()
+        self.assertIn('b',dict3['a'].keys())
+
+if __name__ == '__main__':
+    unittest.main()

@@ -15,6 +15,26 @@ try:
 except NameError:  # For Python 3
     basestring = str
 
+def combineDicts(dictionary1, dictionary2):
+    """ Combine two dicts into one, respecting common keys
+    Args:
+        dictionary1 : dict
+        dictionary2 : dict
+    Returns:
+        output : dict
+    """
+    output = {}
+    for item, value in dictionary1.iteritems():
+        if dictionary2.has_key(item):
+            if isinstance(dictionary2[item], dict):
+                output[item] = combineDicts(value, dictionary2.pop(item))
+        else:
+            output[item] = value
+    for item, value in dictionary2.iteritems():
+         output[item] = value
+    # Return
+    return output
+
 
 def yamlify(obj, debug=False):
     """Recursively process an object so it can be serialised for yaml.
