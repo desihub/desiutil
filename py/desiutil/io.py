@@ -31,13 +31,12 @@ def combine_dicts(dict1, dict2):
     cdict2 = dict2.copy()
     for item, value in dict1.items():
         if item in cdict2:
-            if isinstance(cdict2[item], dict):
-                if not isinstance(dict1[item], dict):
-                    raise KeyError("Overlapping leafs must both be dicts")
-                try:
-                    output[item] = combine_dicts(value, cdict2.pop(item))
-                except AttributeError:
-                    raise AttributeError("Cannot mix dicts with scalar and dict on the same key")
+            if (not isinstance(cdict2[item], dict)) or (not isinstance(dict1[item], dict)):
+                    raise ValueError("Overlapping leafs must both be dicts")
+            try:
+                output[item] = combine_dicts(value, cdict2.pop(item))
+            except AttributeError:
+                raise AttributeError("Cannot mix dicts with scalar and dict on the same key")
         else:
             output[item] = value
     for item, value in cdict2.items():

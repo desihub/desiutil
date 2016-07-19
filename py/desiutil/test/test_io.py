@@ -54,15 +54,20 @@ class TestIO(unittest.TestCase):
         dict3 = combine_dicts(dict1, dict2)
         self.assertIn('b',dict3['a'].keys())
         self.assertEqual(dict3['a']['d'], 4)
-        # Second dict over-rides first
+        # Second
+        dict1 = {'a': 2}
+        dict2 = {'b': 4}
+        dict3 = combine_dicts(dict1, dict2)
+        self.assertEqual(dict3['b'], 4)
+        # Overlapping leafs that are scalars
         dict1 = {'a': 2}
         dict2 = {'a': 4}
-        dict3 = combine_dicts(dict1, dict2)
-        self.assertEqual(dict3['a'], 4)
-        # Second dict over-rides first
-        dict1 = {'a': 4}
+        with self.assertRaises(ValueError):
+            dict3 = combine_dicts(dict1, dict2)
+        # Overlapping leafs with a mix
+        dict1 = {'a': {'b': 3}}
         dict2 = {'a': {'b':2, 'c': 3}}
-        with self.assertRaises(KeyError):
+        with self.assertRaises(ValueError):
             combine_dicts(dict1, dict2)
 
 if __name__ == '__main__':
