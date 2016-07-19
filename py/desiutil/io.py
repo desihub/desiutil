@@ -24,13 +24,13 @@ def combineDicts(dictionary1, dictionary2):
         output : dict
     """
     output = {}
-    for item, value in dictionary1.iteritems():
+    for item, value in dictionary1.items():
         if dictionary2.has_key(item):
             if isinstance(dictionary2[item], dict):
                 output[item] = combineDicts(value, dictionary2.pop(item))
         else:
             output[item] = value
-    for item, value in dictionary2.iteritems():
+    for item, value in dictionary2.items():
          output[item] = value
     # Return
     return output
