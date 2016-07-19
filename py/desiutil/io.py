@@ -16,6 +16,35 @@ except NameError:  # For Python 3
     basestring = str
 
 
+def combine_dicts(dict1, dict2):
+    """ Combine two dicts into one, respecting common keys
+    If dict1 and dict2 both have key a, then x[a] and y[a] must both
+    be dictionaries to recursively merge.
+
+    Args:
+        dictionary1 : dict
+        dictionary2 : dict
+    Returns:
+        output : dict
+    """
+    output = {}
+    cdict2 = dict2.copy()
+    for item, value in dict1.items():
+        if item in cdict2:
+            if (not isinstance(cdict2[item], dict)) or (not isinstance(dict1[item], dict)):
+                    raise ValueError("Overlapping leafs must both be dicts")
+            try:
+                output[item] = combine_dicts(value, cdict2.pop(item))
+            except AttributeError:
+                raise AttributeError("Cannot mix dicts with scalar and dict on the same key")
+        else:
+            output[item] = value
+    for item, value in cdict2.items():
+         output[item] = value
+    # Return
+    return output
+
+
 def yamlify(obj, debug=False):
     """Recursively process an object so it can be serialised for yaml.
     Based on jsonify in `linetools <https://pypi.python.org/pypi/linetools>`_.

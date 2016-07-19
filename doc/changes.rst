@@ -12,6 +12,7 @@ Change Log
 
 * Fixed some import statements so documentation will build on readthedocs.
 * depend.add_dependencies() to add DEPNAM/DEPVER for common DESI dependencies
+* Added combineDicts method
 
 1.5.0 (2016-06-09)
 ------------------
