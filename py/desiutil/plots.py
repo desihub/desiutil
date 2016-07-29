@@ -59,7 +59,7 @@ def plot_slices(x, y, x_lo, x_hi, y_cut, num_slices=5, min_count=100, axis=None)
     x_i = np.digitize(x, x_bins) - 1
     limits = []
     counts = []
-    for s in xrange(num_slices):
+    for s in range(num_slices):
         # Calculate percentile statistics for ok fits.
         y_slice = y[(x_i == s)]
         counts.append(len(y_slice))
@@ -82,7 +82,7 @@ def plot_slices(x, y, x_lo, x_hi, y_cut, num_slices=5, min_count=100, axis=None)
     y_p1 = stepify(limits[:, 3])
     y_p2 = stepify(limits[:, 4])
     xstack = stepify(x_bins)[1:-1]
-    for i in xrange(num_slices):
+    for i in range(num_slices):
         s = slice(2 * i, 2 * i + 2)
         if counts[i] >= min_count:
             axis.fill_between(
