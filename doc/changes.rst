@@ -2,18 +2,17 @@
 Change Log
 ==========
 
-1.6.0 (unreleased)
+1.6.1 (unreleased)
 ------------------
 
-* No changes yet
+* Added combineDicts method
+* Added plots.py module including plot_slices
 
-1.6.0 (2016-07-29)
+1.6.0 (2016-07-01)
 ------------------
 
 * Fixed some import statements so documentation will build on readthedocs.
 * depend.add_dependencies() to add DEPNAM/DEPVER for common DESI dependencies
-* Added combineDicts method
-* Added plots.py module including plot_slices
 
 1.5.0 (2016-06-09)
 ------------------
