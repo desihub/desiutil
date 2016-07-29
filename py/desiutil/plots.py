@@ -20,7 +20,7 @@ except NameError:  # For Python 3
 
 def plot_slices(x, y, x_lo, x_hi, y_cut, num_slices=5, min_count=100, axis=None):
     """Scatter plot with 68, 95 percentiles superimposed in slices.
-    Modified from code written D. Kirkby
+    Modified from code written by D. Kirkby
 
     Requires that the matplotlib package is installed.
 
