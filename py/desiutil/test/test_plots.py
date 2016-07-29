@@ -10,6 +10,9 @@ import sys
 import numpy as np
 #import pdb
 
+# Set non-interactive backend for Travis
+import matplotlib
+matplotlib.use('agg')
 import matplotlib.pyplot as plt
 
 from desiutil.plots import plot_slices
@@ -20,7 +23,7 @@ except NameError:  # For Python 3
     basestring = str
 
 class TestPlots(unittest.TestCase):
-    """Test desiutil.io
+    """Test desiutil.plots
     """
 
     @classmethod
