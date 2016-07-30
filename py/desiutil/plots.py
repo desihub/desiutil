@@ -85,7 +85,7 @@ def plot_slices(x, y, x_lo, x_hi, y_cut, num_slices=5, min_count=100, axis=None,
     y_p1 = stepify(limits[:, 3])
     y_p2 = stepify(limits[:, 4])
     xstack = stepify(x_bins)[1:-1]
-    max_yr, max_p2, min_m2 = 0., 0., 0.
+    max_yr, max_p2, min_m2 = 0., -1e9, 1e9
     for i in range(num_slices):
         s = slice(2 * i, 2 * i + 2)
         if counts[i] >= min_count:
@@ -100,11 +100,12 @@ def plot_slices(x, y, x_lo, x_hi, y_cut, num_slices=5, min_count=100, axis=None,
             min_m2 = min(min_m2, np.min(y_m2[s]))
 
     # xlim
-    axis.set_xlim(np.min(x), np.max(x))
+    xmin,xmax = np.min(x), np.max(x)
+    axis.set_xlim(np.min(x)-(xmax-xmin)*0.02, np.max(x)+(xmax-xmin)*0.02)
 
     # ylim
     if set_ylim_from_stats:
-        axis.set_ylim(min_m2-max_yr, max_p2+max_yr)
+        axis.set_ylim(min_m2-max_yr/2., max_p2+max_yr/2.)
 
     # Plot cut lines.
     axis.axhline(+y_cut, ls=':', color='k')
