@@ -2,7 +2,12 @@
 Change Log
 ==========
 
-1.6.1 (unreleased)
+1.7.1 (unreleased)
+------------------
+
+* No changes yet
+
+1.7.0 (2016-08-18)
 ------------------
 
 * Added combineDicts method
