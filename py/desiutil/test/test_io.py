@@ -88,6 +88,22 @@ class TestIO(unittest.TestCase):
         tx = io.decode_table(data, native=True)
         self.assertIsInstance(tx['x'][0], str)
 
+        #- Test roundtype with 2D array and unsigned ints
+        data = np.zeros(4, dtype=[(str('x'), ('U8', 3)), (str('y'), 'u8')])
+        data['y'] = np.arange(len(data))
+        data['x'][0] = ['a', 'bb', 'c']
+        data['x'][1] = ['x', 'yy', 'z']
+        t1 = io.encode_table(data)
+        self.assertEqual(t1['x'].dtype.kind, 'S')
+        self.assertEqual(t1['y'].dtype.kind, data['y'].dtype.kind)
+        self.assertTrue(np.all(t1['y'] == data['y']))
+        t2 = io.decode_table(t1, native=False)
+        self.assertEqual(t2['x'].dtype.kind, 'U')
+        self.assertEqual(t2['x'].dtype, data['x'].dtype)
+        self.assertEqual(t2['y'].dtype.kind, data['y'].dtype.kind)
+        self.assertTrue(np.all(t2['x'] == data['x']))
+        self.assertTrue(np.all(t2['y'] == data['y']))        
+
     def test_yamlify(self):
         """Test yamlify
         """
