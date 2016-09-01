@@ -2,3 +2,4 @@ setuptools
 requests
 pyyaml
 matplotlib
+astropy
