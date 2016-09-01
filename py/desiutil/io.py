@@ -106,3 +106,87 @@ def yamlify(obj, debug=False):
     if debug:
         print(type(obj))
     return obj
+
+def _dtype_size(dtype):
+    '''
+    Parse dtype like '<Un' into int(n)
+    Note that this is different from dtype.itemsize, which is number of bytes
+    '''
+    i = dtype.str.find(dtype.kind)
+    n = int(dtype.str[i+1:])
+    return int(n)
+
+def encode_table(data, encoding='ascii'):
+    '''
+    Encode unicode strings in a table into bytes using numpy.char.encode
+
+    Args:
+        data : numpy structured array or astropy Table
+
+    Options:
+        encoding : encoding to use for converting unicode to bytes.
+            Default 'ascii' (FITS and HDF5 friendly), but if None,
+            use ENCODING from table metadata if available
+
+    Returns astropy Table with unicode columns converted to bytes
+
+    Raises:
+        UnicodeEncodeError if any input strings cannot be encoded using
+            the specified encoding
+        UnicodeError if no encoding is given as argument or in table metadata
+
+    Note: `encoding` option overides data.meta['ENCODING'];
+        use encoding=None to use data.meta['ENCODING']
+    '''
+    from astropy.table import Table
+    import numpy as np
+    table = Table(data, copy=False)
+
+    if encoding is None:
+        if 'ENCODING' in table.meta:
+            encoding = table.meta['ENCODING']
+        else:
+            raise UnicodeError('No encoding given as argument or in table')
+
+    for col in table.colnames:
+        dtype = table[col].dtype
+        if dtype.kind == 'U':
+            Sn = 'S{}'.format(_dtype_size(dtype))
+            table.replace_column(col, np.char.encode(table[col], encoding=encoding).astype(Sn))
+            # table.replace_column(col, np.char.encode(table[col], encoding=encoding))
+    table.meta['ENCODING'] = encoding
+    return table
+
+def decode_table(data, encoding='ascii', native=True):
+    '''
+    Decode byte strings in a table into unicode strings
+
+    Args:
+        data : numpy structured array or astropy Table
+
+    Options:
+        encoding : encoding to use for converting bytes into unicode
+        native : if True (default), only decode if native str type is unicode
+            (i.e. python3 but not python2)
+    '''
+    from astropy.table import Table
+    import numpy as np
+    table = Table(data, copy=False)
+
+    #- Check if native str type is bytes
+    if native and np.str_('a').dtype.kind == 'S':
+        return table
+
+    if encoding is None:
+        if 'ENCODING' in table.meta:
+            encoding = table.meta['ENCODING']
+        else:
+            raise UnicodeError('No encoding given as argument or in table')
+
+    for col in table.colnames:
+        dtype = table[col].dtype
+        if dtype.kind == 'S':
+            Un = 'U{}'.format(_dtype_size(dtype))
+            table.replace_column(col, np.char.decode(table[col], encoding=encoding).astype(Un))
+
+    return table
