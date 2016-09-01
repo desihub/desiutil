@@ -80,6 +80,20 @@ class TestIO(unittest.TestCase):
         with self.assertRaises(UnicodeDecodeError):
             tx = desiutil.io.decode_table(t1, encoding='ascii', native=False)
 
+        #- Table can specify encoding if option encoding=None
+        data['x'][0] = 'p'
+        data.meta['ENCODING'] = 'utf-8'
+        t1 = desiutil.io.encode_table(data, encoding=None)
+        self.assertEqual(t1.meta['ENCODING'], 'utf-8')
+        t2 = desiutil.io.decode_table(t1, native=False, encoding=None)
+        self.assertEqual(t2.meta['ENCODING'], 'utf-8')
+
+        #- conflicting encodings print warning but still proceed
+        t1 = desiutil.io.encode_table(data, encoding='ascii')
+        self.assertEqual(t1.meta['ENCODING'], 'ascii')
+        t2 = desiutil.io.decode_table(t1, encoding='utf-8', native=False)
+        self.assertEqual(t2.meta['ENCODING'], 'utf-8')
+
         #- native=True should retain native str type
         data = Table()
         data['x'] = np.asarray(['a', 'bb', 'ccc'], dtype='S')
