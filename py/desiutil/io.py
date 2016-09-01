@@ -113,8 +113,7 @@ def _dtype_size(dtype):
     Note that this is different from dtype.itemsize, which is number of bytes
     '''
     i = dtype.str.find(dtype.kind)
-    n = int(dtype.str[i+1:])
-    return int(n)
+    return int(dtype.str[i+1:])
 
 def encode_table(data, encoding='ascii'):
     '''
