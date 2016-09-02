@@ -2,10 +2,11 @@
 Change Log
 ==========
 
-1.7.1 (unreleased)
+1.8.0 (unreleased)
 ------------------
 
-* No changes yet
+* Added :func:`~desiutil.io.encode_table` and :func:`~desiutil.io.decode_table`
+  for converting string columns in tables between unicode and bytes (PR #41).
 
 1.7.0 (2016-08-18)
 ------------------
