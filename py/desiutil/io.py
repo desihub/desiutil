@@ -164,7 +164,12 @@ def encode_table(data, encoding='ascii'):
     '''
     from astropy.table import Table
     import numpy as np
-    table = Table(data, copy=False)
+
+    try:
+        table = Table(data, copy=False)
+    except ValueError:  #- https://github.com/astropy/astropy/issues/5298
+        table = Table(data, copy=True)
+
     encoding = _pick_encoding(table, encoding)
 
     for col in table.colnames:
@@ -194,7 +199,10 @@ def decode_table(data, encoding='ascii', native=True):
     '''
     from astropy.table import Table
     import numpy as np
-    table = Table(data, copy=False)
+    try:
+        table = Table(data, copy=False)
+    except ValueError:  #- https://github.com/astropy/astropy/issues/5298
+        table = Table(data, copy=True)
 
     #- Check if native str type is bytes
     if native and np.str_('a').dtype.kind == 'S':
