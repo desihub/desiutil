@@ -30,13 +30,14 @@ function run() {
 # Get options
 #
 apache=''
+apache_uid=48
 test=False
 verbose=False
 group=desi
 acl=True
 while getopts ag:htv argname; do
     case ${argname} in
-        a) apache='u:apache:rX' ;;
+        a) apache="u:${apache_uid}:rX" ;;
         g) group=${OPTARG} ;;
         h) usage; exit 0 ;;
         t) test=True; verbose=True ;;
