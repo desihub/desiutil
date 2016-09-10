@@ -2,11 +2,14 @@
 Change Log
 ==========
 
-1.8.0 (unreleased)
+1.8.0 (2016-09-10)
 ------------------
 
 * Added :func:`~desiutil.io.encode_table` and :func:`~desiutil.io.decode_table`
-  for converting string columns in tables between unicode and bytes (PR #41).
+  for converting string columns in tables between unicode and bytes (`PR #41`_).
+* Set apache permissions by number instead of by name.
+
+.. _`PR #41`: https://github.com/desihub/desiutil/pull/41
 
 1.7.0 (2016-08-18)
 ------------------
@@ -18,7 +21,8 @@ Change Log
 ------------------
 
 * Fixed some import statements so documentation will build on readthedocs.
-* depend.add_dependencies() to add DEPNAM/DEPVER for common DESI dependencies
+* :func:`~desiutil.depend.add_dependencies` to add DEPNAM/DEPVER for
+  common DESI dependencies
 
 1.5.0 (2016-06-09)
 ------------------
