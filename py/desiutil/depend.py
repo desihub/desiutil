@@ -134,15 +134,18 @@ possible_dependencies = [
     'redmonster', 'specter', 'speclite', 'specsim',
     ]
 
-def add_dependencies(header, module_names=None):
+def add_dependencies(header, module_names=None, long_python=False):
     '''Adds DEPNAMnn, DEPVERnn keywords to header for imported modules
 
     Args:
-        header : dict-like object, e.g. astropy.io.fits.Header
+        header : dict-like object, *e.g.* :class:`astropy.io.fits.Header`.
 
     Options:
         module_names : list of module names to check
             if None, checks desiutil.depend.possible_dependencies
+        long_python : If ``True`` use the full, verbose ``sys.version``
+            string for the Python version.  Otherwise, use a short
+            version, *e.g.*, ``3.5.2``.
 
     Only adds the dependency keywords if the module has already been
     previously loaded in this python session.  Uses module.__version__
@@ -151,7 +154,10 @@ def add_dependencies(header, module_names=None):
     import sys
     import importlib
 
-    setdep(header, 'python', sys.version.replace('\n', ' '))
+    py_version = ".".join(map(str, sys.version_info[0:3]))
+    if long_python:
+        py_version = sys.version.replace('\n', ' ')
+    setdep(header, 'python', py_version)
 
     if module_names is None:
         module_names = possible_dependencies

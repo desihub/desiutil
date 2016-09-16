@@ -5,7 +5,7 @@ Change Log
 1.9.0 (unreleased)
 ------------------
 
-* No changes yet.
+* Shorten Python version printed in dependency headers.
 
 1.8.0 (2016-09-10)
 ------------------
