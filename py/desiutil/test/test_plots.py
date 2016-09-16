@@ -6,21 +6,21 @@ from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 # The line above will help with 2to3 support.
 import unittest
-import sys
+import os
 import numpy as np
-#import pdb
 
 # Set non-interactive backend for Travis
 import matplotlib
 matplotlib.use('agg')
 import matplotlib.pyplot as plt
 
-from desiutil.plots import plot_slices
+from ..plots import plot_slices
 
 try:
     basestring
 except NameError:  # For Python 3
     basestring = str
+
 
 class TestPlots(unittest.TestCase):
     """Test desiutil.plots
@@ -28,11 +28,12 @@ class TestPlots(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        pass
+        cls.plot_file = 'test.png'
 
     @classmethod
     def tearDownClass(cls):
-        pass
+        if os.path.exists(cls.plot_file):
+            os.remove(cls.plot_file)
 
     def test_slices(self):
         """Test plot_slices
@@ -44,7 +45,7 @@ class TestPlots(unittest.TestCase):
         ax = plot_slices(x,y,0.,1.,0.)
         ax.set_ylabel('N sigma')
         ax.set_xlabel('x')
-        plt.savefig('test.png')
+        plt.savefig(self.plot_file)
 
 
 if __name__ == '__main__':

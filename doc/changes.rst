@@ -6,6 +6,7 @@ Change Log
 ------------------
 
 * Shorten Python version printed in dependency headers.
+* :mod:`desiutil.test.test_plots` was not cleaning up after itself.
 
 1.8.0 (2016-09-10)
 ------------------

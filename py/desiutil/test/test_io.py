@@ -9,13 +9,13 @@ import unittest
 import sys
 import numpy as np
 from astropy.table import Table
-#import pdb
-import desiutil.io
+from ..io import combine_dicts, decode_table, encode_table, yamlify
 
 try:
     basestring
 except NameError:  # For Python 3
     basestring = str
+
 
 class TestIO(unittest.TestCase):
     """Test desiutil.io
@@ -30,15 +30,16 @@ class TestIO(unittest.TestCase):
         pass
 
     def test_endecode_table(self):
-        #- Test encoding / decoding round-trip with numpy structured array
+        """Test encoding / decoding round-trip with numpy structured array.
+        """
         data = np.zeros(4, dtype=[(str('x'), 'U4'), (str('y'), 'f8')])
         data['x'] = 'ab'  #- purposefully have fewer characters than width
         data['y'] = np.arange(len(data))
-        t1 = desiutil.io.encode_table(data)
+        t1 = encode_table(data)
         self.assertEqual(t1['x'].dtype.kind, 'S')
         self.assertEqual(t1['y'].dtype.kind, data['y'].dtype.kind)
         self.assertTrue(np.all(t1['y'] == data['y']))
-        t2 = desiutil.io.decode_table(t1, native=False)
+        t2 = decode_table(t1, native=False)
         self.assertEqual(t2['x'].dtype.kind, 'U')
         self.assertEqual(t2['x'].dtype, data['x'].dtype)
         self.assertEqual(t2['y'].dtype.kind, data['y'].dtype.kind)
@@ -47,22 +48,22 @@ class TestIO(unittest.TestCase):
 
         #- have to give an encoding
         with self.assertRaises(UnicodeError):
-            tx = desiutil.io.encode_table(data, encoding=None)
+            tx = encode_table(data, encoding=None)
 
         del t1.meta['ENCODING']
         with self.assertRaises(UnicodeError):
-            tx = desiutil.io.decode_table(t1, encoding=None, native=False)
+            tx = decode_table(t1, encoding=None, native=False)
 
         #- Test encoding / decoding round-trip with Table
         data = Table()
         data['x'] = np.asarray(['a', 'bb', 'ccc'], dtype='U')
         data['y'] = np.arange(len(data['x']))
 
-        t1 = desiutil.io.encode_table(data)
+        t1 = encode_table(data)
         self.assertEqual(t1['x'].dtype.kind, 'S')
         self.assertEqual(t1['y'].dtype.kind, data['y'].dtype.kind)
         self.assertTrue(np.all(t1['y'] == data['y']))
-        t2 = desiutil.io.decode_table(t1, native=False)
+        t2 = decode_table(t1, native=False)
         self.assertEqual(t2['x'].dtype.kind, 'U')
         self.assertEqual(t2['y'].dtype.kind, data['y'].dtype.kind)
         self.assertTrue(np.all(t2['x'] == data['x']))
@@ -70,28 +71,28 @@ class TestIO(unittest.TestCase):
 
         #- Non-default encoding with non-ascii unicode
         data['x'][0] = 'µ'
-        t1 = desiutil.io.encode_table(data, encoding='utf-8')
+        t1 = encode_table(data, encoding='utf-8')
         self.assertEqual(t1.meta['ENCODING'], 'utf-8')
-        t2 = desiutil.io.decode_table(t1, encoding=None, native=False)
+        t2 = decode_table(t1, encoding=None, native=False)
         self.assertEqual(t2.meta['ENCODING'], 'utf-8')
         self.assertTrue(np.all(t2['x'] == data['x']))
         with self.assertRaises(UnicodeEncodeError):
-            tx = desiutil.io.encode_table(data, encoding='ascii')
+            tx = encode_table(data, encoding='ascii')
         with self.assertRaises(UnicodeDecodeError):
-            tx = desiutil.io.decode_table(t1, encoding='ascii', native=False)
+            tx = decode_table(t1, encoding='ascii', native=False)
 
         #- Table can specify encoding if option encoding=None
         data['x'][0] = 'p'
         data.meta['ENCODING'] = 'utf-8'
-        t1 = desiutil.io.encode_table(data, encoding=None)
+        t1 = encode_table(data, encoding=None)
         self.assertEqual(t1.meta['ENCODING'], 'utf-8')
-        t2 = desiutil.io.decode_table(t1, native=False, encoding=None)
+        t2 = decode_table(t1, native=False, encoding=None)
         self.assertEqual(t2.meta['ENCODING'], 'utf-8')
 
         #- conflicting encodings print warning but still proceed
-        t1 = desiutil.io.encode_table(data, encoding='ascii')
+        t1 = encode_table(data, encoding='ascii')
         self.assertEqual(t1.meta['ENCODING'], 'ascii')
-        t2 = desiutil.io.decode_table(t1, encoding='utf-8', native=False)
+        t2 = decode_table(t1, encoding='utf-8', native=False)
         self.assertEqual(t2.meta['ENCODING'], 'utf-8')
 
         #- native=True should retain native str type
@@ -99,7 +100,7 @@ class TestIO(unittest.TestCase):
         data['x'] = np.asarray(['a', 'bb', 'ccc'], dtype='S')
         data['y'] = np.arange(len(data['x']))
         native_str_kind = np.str_('a').dtype.kind
-        tx = desiutil.io.decode_table(data, native=True)
+        tx = decode_table(data, native=True)
         self.assertIsInstance(tx['x'][0], str)
 
         #- Test roundtype with 2D array and unsigned ints
@@ -107,16 +108,16 @@ class TestIO(unittest.TestCase):
         data['y'] = np.arange(len(data))
         data['x'][0] = ['a', 'bb', 'c']
         data['x'][1] = ['x', 'yy', 'z']
-        t1 = desiutil.io.encode_table(data)
+        t1 = encode_table(data)
         self.assertEqual(t1['x'].dtype.kind, 'S')
         self.assertEqual(t1['y'].dtype.kind, data['y'].dtype.kind)
         self.assertTrue(np.all(t1['y'] == data['y']))
-        t2 = desiutil.io.decode_table(t1, native=False)
+        t2 = decode_table(t1, native=False)
         self.assertEqual(t2['x'].dtype.kind, 'U')
         self.assertEqual(t2['x'].dtype, data['x'].dtype)
         self.assertEqual(t2['y'].dtype.kind, data['y'].dtype.kind)
         self.assertTrue(np.all(t2['x'] == data['x']))
-        self.assertTrue(np.all(t2['y'] == data['y']))        
+        self.assertTrue(np.all(t2['y'] == data['y']))
 
     def test_yamlify(self):
         """Test yamlify
@@ -129,7 +130,7 @@ class TestIO(unittest.TestCase):
         else:
             self.assertIsInstance(fdict['name'], unicode)
         # Run
-        ydict = desiutil.io.yamlify(fdict)
+        ydict = yamlify(fdict)
         self.assertIsInstance(ydict['flt32'], float)
         self.assertIsInstance(ydict['array'], list)
         for key in ydict.keys():
@@ -137,12 +138,12 @@ class TestIO(unittest.TestCase):
                 self.assertIsInstance(key, str)
 
     def test_combinedicts(self):
-        """ Test combining dicts
+        """Test combining dicts
         """
         # Merge two dicts with a common key
         dict1 = {'a': {'b':2, 'c': 3}}
         dict2 = {'a': {'d': 4}}
-        dict3 = desiutil.io.combine_dicts(dict1, dict2)
+        dict3 = combine_dicts(dict1, dict2)
         self.assertEqual(dict3, {'a': {'b':2, 'c':3, 'd':4}})
         # Shouldn't modify originals
         self.assertEqual(dict1, {'a': {'b':2, 'c': 3}})
@@ -150,7 +151,7 @@ class TestIO(unittest.TestCase):
         # Merge two dicts with different keys
         dict1 = {'a': 2}
         dict2 = {'b': 4}
-        dict3 = desiutil.io.combine_dicts(dict1, dict2)
+        dict3 = combine_dicts(dict1, dict2)
         self.assertEqual(dict3, {'a':2, 'b':4})
         self.assertEqual(dict1, {'a': 2})
         self.assertEqual(dict2, {'b': 4})
@@ -158,21 +159,22 @@ class TestIO(unittest.TestCase):
         dict1 = {'a': 2}
         dict2 = {'a': 4}
         with self.assertRaises(ValueError):
-            dict3 = desiutil.io.combine_dicts(dict1, dict2)
+            dict3 = combine_dicts(dict1, dict2)
         # Overlapping leafs with a scalar/dict mix raise an error
         dict1 = {'a': {'b':3}}
         dict2 = {'a': {'b':2, 'c': 3}}
         with self.assertRaises(ValueError):
-            desiutil.io.combine_dicts(dict1, dict2)
+            combine_dicts(dict1, dict2)
         with self.assertRaises(ValueError):
-            desiutil.io.combine_dicts(dict2, dict1)
+            combine_dicts(dict2, dict1)
         # Deep merge
         dict1 = {'a': {'b': {'x':1, 'y':2}}}
         dict2 = {'a': {'b': {'p':3, 'q':4}}}
-        dict3 = desiutil.io.combine_dicts(dict1, dict2)
+        dict3 = combine_dicts(dict1, dict2)
         self.assertEqual(dict3, {'a': {'b': {'x':1, 'y':2, 'p':3, 'q':4}}})
         self.assertEqual(dict1, {'a': {'b': {'x':1, 'y':2}}})
         self.assertEqual(dict2, {'a': {'b': {'p':3, 'q':4}}})
+
 
 if __name__ == '__main__':
     unittest.main()
