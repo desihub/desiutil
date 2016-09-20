@@ -139,6 +139,8 @@ class DesiInstall(object):
         this holds the object that reads it.
     cross_install_host : :class:`str`
         The NERSC host on which to perform cross-installs.
+    default_module_dir : :class:`dict`
+        The default Modules install directory for every NERSC host.
     executable : :class:`str`
         The command used to invoke the script.
     fullproduct : :class:`str`
@@ -155,9 +157,7 @@ class DesiInstall(object):
     nersc : :class:`str`
         Holds the value of :envvar:`NERSC_HOST`, or ``None`` if not defined.
     nersc_hosts : :func:`tuple`
-        The list of NERSC hosts names to be used for cross-installs.
-    nersc_module_dir : :class:`str`
-        The directory that contains Module directories at NERSC.
+        The list of NERSC host names to be used for cross-installs.
     options : :class:`argparse.Namespace`
         The parsed command-line options.
     product_url : :class:`str`
@@ -168,8 +168,11 @@ class DesiInstall(object):
     """
     cross_install_host = 'edison'
     nersc_hosts = ('cori', 'edison', 'datatran', 'scigate')
-    nersc_module_dir = '/project/projectdirs/desi/software/modules'
-
+    # nersc_module_dir = '/project/projectdirs/desi/software/modules'
+    default_module_dir = {'edison': '/global/common/edison/contrib/desi/modulefiles',
+                          'cori': '/global/common/cori/contrib/desi/modulefiles',
+                          'datatran': '/global/project/projectdirs/desi/software/datatran/modulefiles',
+                          'scigate': '/global/project/projectdirs/desi/software/datatran/modulefiles'}
     def __init__(self, test=False):
         """Bare-bones initialization.
 
@@ -698,6 +701,25 @@ class DesiInstall(object):
                 self.module(m_command, d)
         return self.deps
 
+    @property
+    def nersc_module_dir(self):
+        """The directory that contains Module directories at NERSC.
+        """
+        if self.nersc is None:
+            return None
+        else:
+            nersc_module = self.default_module_dir[self.nersc]
+        if self.config is not None:
+            if self.config.has_option("Module Processing",
+                                      'nersc_module_dir'):
+                nersc_module = self.config.get("Module Processing",
+                                               'nersc_module_dir')
+            if self.config.has_option("Module Processing",
+                                        '{0}_module_dir'.format(self.nersc)):
+                nersc_module = self.config.get("Module Processing",
+                                               '{0}_module_dir'.format(self.nersc))
+        return nersc_module
+
     def install_module(self):
         """Process the module file.
 
@@ -706,7 +728,7 @@ class DesiInstall(object):
         :class:`str`
             The text of the processed module file.
         """
-        log = logging.getLogger(__name__ + '.DesiInstall.process_module')
+        log = logging.getLogger(__name__ + '.DesiInstall.install_module')
         dev = False
         if 'py' in self.build_type:
             if self.is_trunk or self.is_branch:
@@ -728,15 +750,8 @@ class DesiInstall(object):
             if self.nersc is None:
                 self.options.moduledir = join(self.options.root, 'modulefiles')
             else:
-                if self.config is not None:
-                    if self.config.has_option("Module Processing",
-                                              'nersc_module_dir'):
-                        nersc_module = self.config.get("Module Processing",
-                                                       'nersc_module_dir')
-                else:
-                    nersc_module = self.nersc_module_dir
-                log.debug("nersc_module_dir set to {0}.".format(nersc_module))
-                self.options.moduledir = join(nersc_module, self.nersc)
+                self.options.moduledir = self.nersc_module_dir
+                log.debug("nersc_module_dir set to {0}.".format(self.options.moduledir))
             if not self.options.test:
                 if not isdir(self.options.moduledir):
                     log.info("Creating Modules directory {0}.".format(

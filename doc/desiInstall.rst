@@ -45,7 +45,16 @@ file::
     # This section can override details of Module file installation.
     #
     [Module Processing]
+    #
+    # nersc_module_dir overrides the Module file install directory for
+    # ALL NERSC hosts.
+    #
     nersc_module_dir = /project/projectdirs/desi/test/modules
+    #
+    # cori_module_dir overrides the Module file install directory only
+    # on cori.
+    #
+    cori_module_dir = /global/common/cori/contrib/desi/test/modules
 
 Finally, desiInstall both reads and sets several environment variables.
 
