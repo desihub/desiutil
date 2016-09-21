@@ -24,7 +24,7 @@ from subprocess import Popen, PIPE
 try:
     from cStringIO import StringIO
 except ImportError:
-    from io import StringIO
+    from io import BytesIO as StringIO
 if PY3:
     from configparser import ConfigParser as SafeConfigParser
 else:
