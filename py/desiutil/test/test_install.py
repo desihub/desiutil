@@ -328,12 +328,12 @@ class TestInstall(unittest.TestCase):
             del environ['DESI_PRODUCT_ROOT']
         except KeyError:
             old_root = None
-        environ['NERSC_HOST'] = 'FAKE'
+        environ['NERSC_HOST'] = 'edison'
         options = self.desiInstall.get_options(['desiutil', 'master'])
         self.desiInstall.get_product_version()
         install_dir = self.desiInstall.set_install_dir()
         self.assertEqual(install_dir, join(
-                         '/project/projectdirs/desi/software/FAKE',
+                         self.desiInstall.default_nersc_dir['edison'], 'code',
                          'desiutil', 'master'))
         if old_root is not None:
             environ['DESI_PRODUCT_ROOT'] = old_root
@@ -358,6 +358,28 @@ class TestInstall(unittest.TestCase):
         options = self.desiInstall.get_options(['desiutil', 'master'])
         status = self.desiInstall.start_modules()
         self.assertTrue(callable(self.desiInstall.module))
+
+    def test_nersc_module_dir(self):
+        """Test the nersc_module_dir property.
+        """
+        self.assertIsNone(self.desiInstall.nersc_module_dir)
+        self.desiInstall.nersc = None
+        self.assertIsNone(self.desiInstall.nersc_module_dir)
+        for n in ('edison', 'cori', 'datatran', 'scigate'):
+            self.desiInstall.nersc = n
+            self.assertEqual(self.desiInstall.nersc_module_dir,
+                             join(self.desiInstall.default_nersc_dir[n],
+                                  "modulefiles"))
+        options = self.desiInstall.get_options(['--configuration',
+                                                join(self.data_dir,
+                                                     'desiInstall_configuration.ini'),
+                                                'my_new_product', '1.2.3'])
+        self.desiInstall.nersc = 'edison'
+        self.assertEqual(self.desiInstall.nersc_module_dir,
+                         '/project/projectdirs/desi/test/modules')
+        self.desiInstall.nersc = 'cori'
+        self.assertEqual(self.desiInstall.nersc_module_dir,
+                         '/global/common/cori/contrib/desi/test/modules')
 
     def test_cleanup(self):
         """Test the cleanup stage of the install.
