@@ -745,6 +745,7 @@ class DesiInstall(object):
                   self.working_dir, dev))
         self.module_keywords = configure_module(self.baseproduct,
                                                 self.baseversion,
+                                                self.options.root,
                                                 working_dir=self.working_dir,
                                                 dev=dev)
         if self.options.moduledir == '':
