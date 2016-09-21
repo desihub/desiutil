@@ -105,7 +105,8 @@ manipulated by setting up Modules, or loading Module files.
     It may be manipulated by :mod:`desiutil.modules`.
 :envvar:`MODULESHOME`
     This variable points to the Modules infrastructure.  If it is not set,
-    it typically means that the system has no Modules infrastructure.
+    it typically means that the system has no Modules infrastructure. This
+    is needed to find the executable program that reads Module files.
 :envvar:`PYTHONPATH`
     Obviously this is important for any Python package!  :envvar:`PYTHONPATH`
     may be manipulated by :mod:`desiutil.modules`.
@@ -114,6 +115,61 @@ manipulated by setting up Modules, or loading Module files.
     systems with a pure-TCL Modules infrastructure.
 
 .. _desiutil: https://github.com/desihub/desiutil
+
+Directory Structure Assumed by the Install
+==========================================
+
+desiInstall is primarily intended to run in a production environment that
+supports Module files.  In practice, this means NERSC, though it can also
+install on any other system that has a Modules infrastructure installed.
+
+*desiInstall does not install a Modules infrastructure for you.* You have to
+do this yourself, if your system does not already have this.
+
+For the purposes of this section, we define ``$product_root`` as the
+directory that desiInstall will be writing to.  This directory could be the
+same as :envvar:`DESI_PRODUCT_ROOT`, but for standard NERSC installs it
+defaults to a pre-defined value. ``$product_root`` may contain the following
+directories:
+
+code/
+    This contains the installed code, the result of :command:`python setup.py install`
+    or :command:`make install`.  The code is always placed in a ``product/version``
+    directory.  So for example, the full path to desiInstall might be
+    ``$product_root/code/desiutil/1.8.0/bin/desiInstall``.
+conda/
+    At NERSC, this contains the Anaconda_ infrastructure.  desiInstall does
+    not manipulate this directory in any way, though it may *use* the
+    :command:`python` executable installed here.
+    **Note**: currently we have ``conda/conda_version``.  Do we want
+    ``conda/desi-conda-{base,extra}/version`` to match the Module files?
+modulefiles/
+    This contains the the Module files installed by desiInstall.  A Module
+    file is almost always named ``product/version``.  For example, the
+    Module file for desiutil might be ``$product_root/modulefiles/desiutil/1.8.0``.
+
+.. _Anaconda: https://www.continuum.io
+
+Within a ``$product_root/code/product/version`` directory, you might see the
+following:
+
+bin/
+    Contains command-line executables, including Python or Shell scripts.
+data/
+    Rarely, packages need data files that cannot be incorporated into the
+    package structure itself, so it will be installed here.  desimodel_ is
+    an example of this.
+etc/
+    Miscellaneous metadata and configuration.  In most packages this only
+    contains a template Module file.
+lib/pythonX.Y/site-packages/
+    Contains installed Python code.  ``X.Y`` would be ``2.7`` or ``3.5``.
+py/
+    Sometimes we need to install a git checkout rather than an installed package.
+    If so, the Python code will live in *this* directory not the ``lib/``
+    directory, and the product's Module file will be adjusted accordingly.
+
+.. _desimodel: https://github.com/desihub/desimodel
 
 Stages of the Install
 =====================
@@ -257,8 +313,6 @@ install and manipulate data that is bundled *with* the package.
 
 Copy All Files
 --------------
-
-**I am proposing to ONLY perform this copy for trunk/branch/master installs.**
 
 The entire contents of :envvar:`WORKING_DIR` will be copied to :envvar:`INSTALL_DIR`.
 If this is a trunk or branch install and a src/ directory is detected,

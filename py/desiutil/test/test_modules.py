@@ -150,6 +150,7 @@ class TestModules(unittest.TestCase):
         results = {
             'name': 'foo',
             'version': 'bar',
+            'product_root': '/my/product/root',
             'needs_bin': '',
             'needs_python': '',
             'needs_trunk_py': '# ',
@@ -160,7 +161,8 @@ class TestModules(unittest.TestCase):
             }
         for t in test_dirs:
             mkdir(join(self.data_dir, t))
-        conf = configure_module('foo', 'bar', working_dir=self.data_dir)
+        conf = configure_module('foo', 'bar', '/my/product/root',
+                                working_dir=self.data_dir)
         for key in results:
             self.assertEqual(conf[key], results[key])
         #
@@ -168,7 +170,8 @@ class TestModules(unittest.TestCase):
         #
         results['needs_python'] = '# '
         results['needs_trunk_py'] = ''
-        conf = configure_module('foo', 'bar', working_dir=self.data_dir,
+        conf = configure_module('foo', 'bar', '/my/product/root',
+                                working_dir=self.data_dir,
                                 dev=True)
         for key in results:
             self.assertEqual(conf[key], results[key])
@@ -190,11 +193,13 @@ class TestModules(unittest.TestCase):
         results['needs_trunk_py'] = '# '
         results['needs_ld_lib'] = '# '
         results['needs_idl'] = '# '
-        conf = configure_module('foo', 'bar', working_dir=self.data_dir)
+        conf = configure_module('foo', 'bar', '/my/product/root',
+                                working_dir=self.data_dir)
         results['needs_python'] = '# '
         results['needs_trunk_py'] = ''
         results['trunk_py_dir'] = ''
-        conf = configure_module('foo', 'bar', working_dir=self.data_dir,
+        conf = configure_module('foo', 'bar', '/my/product/root',
+                                working_dir=self.data_dir,
                                 dev=True)
         for key in results:
             self.assertEqual(conf[key], results[key])

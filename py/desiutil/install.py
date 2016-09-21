@@ -628,7 +628,7 @@ class DesiInstall(object):
                 message = "DESI_PRODUCT_ROOT is missing or not set."
                 log.critical(message)
                 raise DesiInstallException(message)
-        self.install_dir = join(self.options.root, self.baseproduct,
+        self.install_dir = join(self.options.root, 'code', self.baseproduct,
                                 self.baseversion)
         if isdir(self.install_dir) and not self.options.test:
             if self.options.force:
