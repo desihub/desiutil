@@ -299,12 +299,13 @@ class TestInstall(unittest.TestCase):
                                                 'desiutil', 'master'])
         self.desiInstall.get_product_version()
         install_dir = self.desiInstall.set_install_dir()
-        self.assertEqual(install_dir, join(self.data_dir, 'desiutil',
+        self.assertEqual(install_dir, join(self.data_dir, 'code', 'desiutil',
                          'master'))
         # Test for presence of existing directory.
-        tmpdir = join(self.data_dir, 'desiutil')
+        tmpdir = join(self.data_dir, 'code')
         mkdir(tmpdir)
-        mkdir(join(tmpdir, 'master'))
+        mkdir(join(tmpdir, 'desiutil'))
+        mkdir(join(tmpdir, 'desiutil', 'master'))
         options = self.desiInstall.get_options(['--root', self.data_dir,
                                                 'desiutil', 'master'])
         self.desiInstall.get_product_version()
@@ -312,14 +313,14 @@ class TestInstall(unittest.TestCase):
             install_dir = self.desiInstall.set_install_dir()
         self.assertEqual(str(cm.exception),
                          "Install directory, {0}, already exists!".format(
-                         join(tmpdir, 'master')))
+                         join(tmpdir, 'desiutil', 'master')))
         options = self.desiInstall.get_options(['--root', self.data_dir,
                                                 '--force', 'desiutil',
                                                 'master'])
         self.assertTrue(self.desiInstall.options.force)
         self.desiInstall.get_product_version()
         install_dir = self.desiInstall.set_install_dir()
-        self.assertFalse(isdir(join(tmpdir, 'master')))
+        self.assertFalse(isdir(join(tmpdir, 'desiutil', 'master')))
         if isdir(tmpdir):
             rmtree(tmpdir)
         # Test NERSC installs.  Unset DESI_PRODUCT_ROOT for this to work.

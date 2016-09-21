@@ -622,8 +622,7 @@ class DesiInstall(object):
             self.nersc = None
         if self.options.root is None or not isdir(self.options.root):
             if self.nersc is not None:
-                self.options.root = join(self.default_nersc_dir[self.nersc],
-                                         'code')
+                self.options.root = self.default_nersc_dir[self.nersc]
             else:
                 message = "DESI_PRODUCT_ROOT is missing or not set."
                 log.critical(message)
