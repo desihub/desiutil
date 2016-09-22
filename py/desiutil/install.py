@@ -210,7 +210,8 @@ class DesiInstall(object):
         log = logging.getLogger(__name__ + '.DesiInstall.get_options')
         check_env = {'MODULESHOME': None,
                      'DESI_PRODUCT_ROOT': None,
-                     'USER': None}
+                     'USER': None,
+                     'LANG': None}
         for e in check_env:
             try:
                 check_env[e] = environ[e]
