@@ -57,6 +57,7 @@ known_products = {
     'fiberassign': 'https://github.com/desihub/fiberassign',
     'fiberassign_sqlite': 'https://github.com/desihub/fiberassign_sqlite',
     'imaginglss': 'https://github.com/desihub/imaginglss',
+    'redmonster': 'https://github.com/desihub/redmonster',
     'specex': 'https://github.com/desihub/specex',
     'speclite': 'https://github.com/dkirkby/speclite',
     'specsim': 'https://github.com/desihub/specsim',
