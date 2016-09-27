@@ -7,6 +7,10 @@ Change Log
 
 * Shorten Python version printed in dependency headers.
 * :mod:`desiutil.test.test_plots` was not cleaning up after itself.
+* Support new DESI+Anaconda software stack infrastructure (`PR #43`_).
+
+.. _`PR #43`: https://github.com/desihub/desiutil/pull/43
+
 
 1.8.0 (2016-09-10)
 ------------------
