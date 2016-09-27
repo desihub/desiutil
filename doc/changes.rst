@@ -5,7 +5,10 @@ Change Log
 1.9.0 (unreleased)
 ------------------
 
-* No changes yet.
+* fixes BitMask.names(mask) when mask is a np.uint64 (`desitarget #79`_)
+* BitMask.names much faster
+
+.. _`desitarget #79`: https://github.com/desihub/desiutil/pull/41
 
 1.8.0 (2016-09-10)
 ------------------
