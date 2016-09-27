@@ -24,7 +24,7 @@ from subprocess import Popen, PIPE
 try:
     from cStringIO import StringIO
 except ImportError:
-    from io import StringIO
+    from io import BytesIO as StringIO
 if PY3:
     from configparser import ConfigParser as SafeConfigParser
 else:
@@ -57,6 +57,7 @@ known_products = {
     'fiberassign': 'https://github.com/desihub/fiberassign',
     'fiberassign_sqlite': 'https://github.com/desihub/fiberassign_sqlite',
     'imaginglss': 'https://github.com/desihub/imaginglss',
+    'redmonster': 'https://github.com/desihub/redmonster',
     'specex': 'https://github.com/desihub/specex',
     'speclite': 'https://github.com/dkirkby/speclite',
     'specsim': 'https://github.com/desihub/specsim',
@@ -139,6 +140,8 @@ class DesiInstall(object):
         this holds the object that reads it.
     cross_install_host : :class:`str`
         The NERSC host on which to perform cross-installs.
+    default_nersc_dir : :class:`dict`
+        The default code and Modules install directory for every NERSC host.
     executable : :class:`str`
         The command used to invoke the script.
     fullproduct : :class:`str`
@@ -155,9 +158,7 @@ class DesiInstall(object):
     nersc : :class:`str`
         Holds the value of :envvar:`NERSC_HOST`, or ``None`` if not defined.
     nersc_hosts : :func:`tuple`
-        The list of NERSC hosts names to be used for cross-installs.
-    nersc_module_dir : :class:`str`
-        The directory that contains Module directories at NERSC.
+        The list of NERSC host names to be used for cross-installs.
     options : :class:`argparse.Namespace`
         The parsed command-line options.
     product_url : :class:`str`
@@ -168,7 +169,10 @@ class DesiInstall(object):
     """
     cross_install_host = 'edison'
     nersc_hosts = ('cori', 'edison', 'datatran', 'scigate')
-    nersc_module_dir = '/project/projectdirs/desi/software/modules'
+    default_nersc_dir = {'edison': '/global/common/edison/contrib/desi',
+                         'cori': '/global/common/cori/contrib/desi',
+                         'datatran': '/global/project/projectdirs/desi/software/datatran',
+                         'scigate': '/global/project/projectdirs/desi/software/scigate'}
 
     def __init__(self, test=False):
         """Bare-bones initialization.
@@ -207,7 +211,8 @@ class DesiInstall(object):
         log = logging.getLogger(__name__ + '.DesiInstall.get_options')
         check_env = {'MODULESHOME': None,
                      'DESI_PRODUCT_ROOT': None,
-                     'USER': None}
+                     'USER': None,
+                     'LANG': None}
         for e in check_env:
             try:
                 check_env[e] = environ[e]
@@ -613,20 +618,18 @@ class DesiInstall(object):
             The directory selected for installation.
         """
         log = logging.getLogger(__name__ + '.DesiInstall.set_install_dir')
-        self.nersc = None
         try:
             self.nersc = environ['NERSC_HOST']
         except KeyError:
-            pass
+            self.nersc = None
         if self.options.root is None or not isdir(self.options.root):
             if self.nersc is not None:
-                self.options.root = join('/project/projectdirs/desi/software',
-                                         self.nersc)
+                self.options.root = self.default_nersc_dir[self.nersc]
             else:
                 message = "DESI_PRODUCT_ROOT is missing or not set."
                 log.critical(message)
                 raise DesiInstallException(message)
-        self.install_dir = join(self.options.root, self.baseproduct,
+        self.install_dir = join(self.options.root, 'code', self.baseproduct,
                                 self.baseversion)
         if isdir(self.install_dir) and not self.options.test:
             if self.options.force:
@@ -698,6 +701,30 @@ class DesiInstall(object):
                 self.module(m_command, d)
         return self.deps
 
+    @property
+    def nersc_module_dir(self):
+        """The directory that contains Module directories at NERSC.
+        """
+        if not hasattr(self, 'nersc'):
+            return None
+        if self.nersc is None:
+            return None
+        else:
+            nersc_module = join(self.default_nersc_dir[self.nersc],
+                                'modulefiles')
+        if not hasattr(self, 'config'):
+            return nersc_module
+        if self.config is not None:
+            if self.config.has_option("Module Processing",
+                                      'nersc_module_dir'):
+                nersc_module = self.config.get("Module Processing",
+                                               'nersc_module_dir')
+            if self.config.has_option("Module Processing",
+                                        '{0}_module_dir'.format(self.nersc)):
+                nersc_module = self.config.get("Module Processing",
+                                               '{0}_module_dir'.format(self.nersc))
+        return nersc_module
+
     def install_module(self):
         """Process the module file.
 
@@ -706,7 +733,7 @@ class DesiInstall(object):
         :class:`str`
             The text of the processed module file.
         """
-        log = logging.getLogger(__name__ + '.DesiInstall.process_module')
+        log = logging.getLogger(__name__ + '.DesiInstall.install_module')
         dev = False
         if 'py' in self.build_type:
             if self.is_trunk or self.is_branch:
@@ -719,6 +746,7 @@ class DesiInstall(object):
                   self.working_dir, dev))
         self.module_keywords = configure_module(self.baseproduct,
                                                 self.baseversion,
+                                                join(self.options.root, 'code'),
                                                 working_dir=self.working_dir,
                                                 dev=dev)
         if self.options.moduledir == '':
@@ -728,15 +756,8 @@ class DesiInstall(object):
             if self.nersc is None:
                 self.options.moduledir = join(self.options.root, 'modulefiles')
             else:
-                if self.config is not None:
-                    if self.config.has_option("Module Processing",
-                                              'nersc_module_dir'):
-                        nersc_module = self.config.get("Module Processing",
-                                                       'nersc_module_dir')
-                else:
-                    nersc_module = self.nersc_module_dir
-                log.debug("nersc_module_dir set to {0}.".format(nersc_module))
-                self.options.moduledir = join(nersc_module, self.nersc)
+                self.options.moduledir = self.nersc_module_dir
+                log.debug("nersc_module_dir set to {0}.".format(self.options.moduledir))
             if not self.options.test:
                 if not isdir(self.options.moduledir):
                     log.info("Creating Modules directory {0}.".format(
@@ -917,7 +938,8 @@ class DesiInstall(object):
                         #                         r"matching '[^']+'")
                         lines = [l for l in err.split('\n') if len(l) > 0 and
                                  manifestre.search(l) is None and
-                                 'astropy_helpers' not in l]
+                                 'astropy_helpers' not in l and
+                                 'astropy-helpers' not in l]
                         if len(lines) > 0:
                             message = ("Error during installation: " +
                                        "{0}".format("\n".join(lines)))
@@ -983,14 +1005,14 @@ class DesiInstall(object):
                 for nh in nersc_hosts:
                     if nh == cross_install_host:
                         continue
-                    dst = join('/project/projectdirs/desi/software', nh,
+                    dst = join(self.default_nersc_dir[nh], 'code',
                                self.baseproduct)
                     if not islink(dst):
                         src = join('..', cross_install_host,
                                    self.baseproduct)
                         links.append((src, dst))
-                    dst = join('/project/projectdirs/desi/software/modules',
-                               nh, self.baseproduct)
+                    dst = join(self.default_nersc_dir[nh], 'modulefiles',
+                               self.baseproduct)
                     if not islink(dst):
                         src = join('..', cross_install_host,
                                    self.baseproduct)
