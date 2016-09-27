@@ -141,8 +141,6 @@ conda/
     At NERSC, this contains the Anaconda_ infrastructure.  desiInstall does
     not manipulate this directory in any way, though it may *use* the
     :command:`python` executable installed here.
-    **Note**: currently we have ``conda/conda_version``.  Do we want
-    ``conda/desi-conda-{base,extra}/version`` to match the Module files?
 modulefiles/
     This contains the the Module files installed by desiInstall.  A Module
     file is almost always named ``product/version``.  For example, the
