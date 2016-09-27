@@ -6,8 +6,9 @@ from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 # The line above will help with 2to3 support.
 import unittest
-from ..bitmask import BitMask, _MaskBit
+from desiutil.bitmask import BitMask, _MaskBit
 import yaml
+import numpy as np
 
 _bitdefyaml = """\
 ccdmask:
@@ -104,6 +105,29 @@ class TestBitMask(unittest.TestCase):
             self.assertEqual(bitmask[name].comment, self.ccdmask[name].comment)
             self.assertEqual(bitmask[name].bitnum, self.ccdmask[name].bitnum)
             self.assertEqual(bitmask[name]._extra, self.ccdmask[name]._extra)
+
+    def test_uint64(self):
+        _bitdefs = dict(ccdmask=list())
+        _bitdefs['ccdmask'].append( ['BAD',   0, "badness"] )
+        _bitdefs['ccdmask'].append( ['HOT',   1, "hothot"] )
+        _bitdefs['ccdmask'].append( ['TEST', 16, "testing"] )
+
+        mask = BitMask('ccdmask', _bitdefs)
+
+        self.assertEqual(mask.names(1), ['BAD'])
+        self.assertEqual(mask.names(2), ['HOT'])
+        self.assertEqual(mask.names(3), ['BAD', 'HOT'])
+        self.assertEqual(mask.names(4), ['UNKNOWN2'])
+        self.assertEqual(mask.names(2**16), ['TEST'])
+
+        for i in range(64):
+            names = mask.names(2**i)
+            names = mask.names(np.int(2**i))
+            names = mask.names(np.uint64(2**i))
+            #- Also happens to work with length-1 arrays; maybe it shouldn't
+            names = mask.names(np.array([2**i], dtype=np.uint64))
+            if i<63:
+                names = mask.names(np.array([2**i], dtype=np.int64))
 
     def test_print(self):
         """Test string representations.
