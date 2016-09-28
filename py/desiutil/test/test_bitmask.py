@@ -5,8 +5,9 @@
 from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 # The line above will help with 2to3 support.
+import sys
 import unittest
-from desiutil.bitmask import BitMask, _MaskBit
+from ..bitmask import BitMask, _MaskBit
 import yaml
 import numpy as np
 
@@ -106,16 +107,14 @@ class TestBitMask(unittest.TestCase):
             self.assertEqual(bitmask[name].bitnum, self.ccdmask[name].bitnum)
             self.assertEqual(bitmask[name]._extra, self.ccdmask[name]._extra)
 
-    # We actually do want the highest mask bit to be useable; that currently
-    # works under python 3.5 but not 2.7.
-    # Add a unittest as a placeholder for future debugging
-    # def test_highbit(self):
-    #     _bitdefs = dict(ccdmask=list())
-    #     _bitdefs['ccdmask'].append( ['LOWEST',   0, "bit 0"] )
-    #     _bitdefs['ccdmask'].append( ['HIGHEST', 63, "bit 63"] )
-    #     mask = BitMask('ccdmask', _bitdefs)
-    #     self.assertEqual(mask.names(1), ['LOWEST'])
-    #     self.assertEqual(mask.names(2**63), ['HIGHEST'])
+    @unittest.skipIf(sys.version_info.major == 2, "Known issue: highest mask bits don't work under python 2")
+    def test_highbit(self):
+        _bitdefs = dict(ccdmask=list())
+        _bitdefs['ccdmask'].append( ['LOWEST',   0, "bit 0"] )
+        _bitdefs['ccdmask'].append( ['HIGHEST', 63, "bit 63"] )
+        mask = BitMask('ccdmask', _bitdefs)
+        self.assertEqual(mask.names(1), ['LOWEST'])
+        self.assertEqual(mask.names(2**63), ['HIGHEST'])
 
     def test_uint64(self):
         _bitdefs = dict(ccdmask=list())
