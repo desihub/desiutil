@@ -48,5 +48,9 @@ class TestPlots(unittest.TestCase):
         plt.savefig(self.plot_file)
 
 
-if __name__ == '__main__':
-    unittest.main()
+def test_suite():
+    """Allows testing of only this module with the command::
+
+        python setup.py test -m <modulename>
+    """
+    return unittest.defaultTestLoader.loadTestsFromName(__name__)

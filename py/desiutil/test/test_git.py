@@ -30,3 +30,11 @@ class TestGit(unittest.TestCase):
         self.assertEqual(v, '0.0.1.dev0')
         v = version('echo')
         self.assertEqual(v, 'describe .devrev-list --count HEAD')
+
+
+def test_suite():
+    """Allows testing of only this module with the command::
+
+        python setup.py test -m <modulename>
+    """
+    return unittest.defaultTestLoader.loadTestsFromName(__name__)

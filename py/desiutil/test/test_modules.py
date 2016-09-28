@@ -240,3 +240,11 @@ class TestModules(unittest.TestCase):
         #
         remove(join(self.data_dir, 'foo', '.version'))
         rmdir(join(self.data_dir, 'foo'))
+
+
+def test_suite():
+    """Allows testing of only this module with the command::
+
+        python setup.py test -m <modulename>
+    """
+    return unittest.defaultTestLoader.loadTestsFromName(__name__)
