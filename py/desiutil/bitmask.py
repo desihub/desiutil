@@ -60,7 +60,6 @@ Users would then access this mask with:
 .. _desispec: http://desispec.readthedocs.org
 """
 
-
 class _MaskBit(int):
     """A single mask bit.
 
@@ -236,8 +235,9 @@ class BitMask(object):
             for bitnum in sorted(bitnums):
                 names.append(self._bits[bitnum].name)
         else:
+            mask = int(mask)    #- workaround numpy issue #2955 for uint64
             bitnum = 0
-            while bitnum**2 <= mask:
+            while 2**bitnum <= mask:
                 if (2**bitnum & mask):
                     if bitnum in self._bits.keys():
                         names.append(self._bits[bitnum].name)

@@ -121,3 +121,11 @@ class TestSvn(unittest.TestCase):
         #     self.assertEqual(v,'0.2.1.dev2')
         #     v = version('svn_test',url=self.svn_url)
         #     self.assertEqual(v,'0.2.1.dev2')
+
+
+def test_suite():
+    """Allows testing of only this module with the command::
+
+        python setup.py test -m <modulename>
+    """
+    return unittest.defaultTestLoader.loadTestsFromName(__name__)

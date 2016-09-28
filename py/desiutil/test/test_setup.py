@@ -159,3 +159,11 @@ setup(name="{0.fake_name}",
         os.chdir(self.original_dir)
         os.rmdir(p2)
         os.rmdir(p)
+
+
+def test_suite():
+    """Allows testing of only this module with the command::
+
+        python setup.py test -m <modulename>
+    """
+    return unittest.defaultTestLoader.loadTestsFromName(__name__)

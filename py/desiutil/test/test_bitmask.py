@@ -5,9 +5,11 @@
 from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 # The line above will help with 2to3 support.
+import sys
 import unittest
 from ..bitmask import BitMask, _MaskBit
 import yaml
+import numpy as np
 
 _bitdefyaml = """\
 ccdmask:
@@ -105,6 +107,47 @@ class TestBitMask(unittest.TestCase):
             self.assertEqual(bitmask[name].bitnum, self.ccdmask[name].bitnum)
             self.assertEqual(bitmask[name]._extra, self.ccdmask[name]._extra)
 
+    @unittest.skipIf(sys.version_info.major == 2, "Known issue: highest mask bits don't work under python 2")
+    def test_highbit(self):
+        _bitdefs = dict(ccdmask=list())
+        _bitdefs['ccdmask'].append( ['LOWEST',   0, "bit 0"] )
+        _bitdefs['ccdmask'].append( ['HIGHEST', 63, "bit 63"] )
+        mask = BitMask('ccdmask', _bitdefs)
+        self.assertEqual(mask.names(1), ['LOWEST'])
+        self.assertEqual(mask.names(2**63), ['HIGHEST'])
+
+    def test_uint64(self):
+        _bitdefs = dict(ccdmask=list())
+        _bitdefs['ccdmask'].append( ['BAD',   0, "badness"] )
+        _bitdefs['ccdmask'].append( ['HOT',   1, "hothot"] )
+        _bitdefs['ccdmask'].append( ['TEST', 16, "testing"] )
+        _bitdefs['ccdmask'].append( ['BIG31', 31, "blat31..."] )
+        _bitdefs['ccdmask'].append( ['BIGGER32', 32, "blat32..."] )
+        _bitdefs['ccdmask'].append( ['WOW62', 62, "blat62..."] )
+        # _bitdefs['ccdmask'].append( ['BIGGEST63', 63, "blat63..."] )
+
+        mask = BitMask('ccdmask', _bitdefs)
+
+        self.assertEqual(mask.names(1), ['BAD'])
+        self.assertEqual(mask.names(2), ['HOT'])
+        self.assertEqual(mask.names(3), ['BAD', 'HOT'])
+        self.assertEqual(mask.names(4), ['UNKNOWN2'])
+        self.assertEqual(mask.names(8), ['UNKNOWN3'])
+        self.assertEqual(mask.names(2**16), ['TEST'])
+        self.assertEqual(mask.names(2**31), ['BIG31'])
+        self.assertEqual(mask.names(2**32), ['BIGGER32'])
+        self.assertEqual(mask.names(2**62), ['WOW62'])
+        # self.assertEqual(mask.names(2**63), ['BIGGEST63'])
+
+        for i in range(64):
+            names = mask.names(2**i)
+            names = mask.names(np.int(2**i))
+            names = mask.names(np.uint64(2**i))
+            #- Also happens to work with length-1 arrays; maybe it shouldn't
+            names = mask.names(np.array([2**i], dtype=np.uint64))
+            if i<63:
+                names = mask.names(np.array([2**i], dtype=np.int64))
+
     def test_print(self):
         """Test string representations.
         """
@@ -128,5 +171,10 @@ class TestBitMask(unittest.TestCase):
             self.assertEqual(str(self.ccdmask[name]), bit_str[i])
             self.assertEqual(repr(self.ccdmask[name]), bit_repr[i])
 
-if __name__ == '__main__':
-    unittest.main()
+
+def test_suite():
+    """Allows testing of only this module with the command::
+
+        python setup.py test -m <modulename>
+    """
+    return unittest.defaultTestLoader.loadTestsFromName(__name__)
