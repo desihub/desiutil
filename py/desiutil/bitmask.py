@@ -60,7 +60,6 @@ Users would then access this mask with:
 .. _desispec: http://desispec.readthedocs.org
 """
 
-
 class _MaskBit(int):
     """A single mask bit.
 
