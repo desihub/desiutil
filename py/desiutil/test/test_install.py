@@ -299,12 +299,13 @@ class TestInstall(unittest.TestCase):
                                                 'desiutil', 'master'])
         self.desiInstall.get_product_version()
         install_dir = self.desiInstall.set_install_dir()
-        self.assertEqual(install_dir, join(self.data_dir, 'desiutil',
+        self.assertEqual(install_dir, join(self.data_dir, 'code', 'desiutil',
                          'master'))
         # Test for presence of existing directory.
-        tmpdir = join(self.data_dir, 'desiutil')
+        tmpdir = join(self.data_dir, 'code')
         mkdir(tmpdir)
-        mkdir(join(tmpdir, 'master'))
+        mkdir(join(tmpdir, 'desiutil'))
+        mkdir(join(tmpdir, 'desiutil', 'master'))
         options = self.desiInstall.get_options(['--root', self.data_dir,
                                                 'desiutil', 'master'])
         self.desiInstall.get_product_version()
@@ -312,14 +313,14 @@ class TestInstall(unittest.TestCase):
             install_dir = self.desiInstall.set_install_dir()
         self.assertEqual(str(cm.exception),
                          "Install directory, {0}, already exists!".format(
-                         join(tmpdir, 'master')))
+                         join(tmpdir, 'desiutil', 'master')))
         options = self.desiInstall.get_options(['--root', self.data_dir,
                                                 '--force', 'desiutil',
                                                 'master'])
         self.assertTrue(self.desiInstall.options.force)
         self.desiInstall.get_product_version()
         install_dir = self.desiInstall.set_install_dir()
-        self.assertFalse(isdir(join(tmpdir, 'master')))
+        self.assertFalse(isdir(join(tmpdir, 'desiutil', 'master')))
         if isdir(tmpdir):
             rmtree(tmpdir)
         # Test NERSC installs.  Unset DESI_PRODUCT_ROOT for this to work.
@@ -328,12 +329,12 @@ class TestInstall(unittest.TestCase):
             del environ['DESI_PRODUCT_ROOT']
         except KeyError:
             old_root = None
-        environ['NERSC_HOST'] = 'FAKE'
+        environ['NERSC_HOST'] = 'edison'
         options = self.desiInstall.get_options(['desiutil', 'master'])
         self.desiInstall.get_product_version()
         install_dir = self.desiInstall.set_install_dir()
         self.assertEqual(install_dir, join(
-                         '/project/projectdirs/desi/software/FAKE',
+                         self.desiInstall.default_nersc_dir['edison'], 'code',
                          'desiutil', 'master'))
         if old_root is not None:
             environ['DESI_PRODUCT_ROOT'] = old_root
@@ -358,6 +359,28 @@ class TestInstall(unittest.TestCase):
         options = self.desiInstall.get_options(['desiutil', 'master'])
         status = self.desiInstall.start_modules()
         self.assertTrue(callable(self.desiInstall.module))
+
+    def test_nersc_module_dir(self):
+        """Test the nersc_module_dir property.
+        """
+        self.assertIsNone(self.desiInstall.nersc_module_dir)
+        self.desiInstall.nersc = None
+        self.assertIsNone(self.desiInstall.nersc_module_dir)
+        for n in ('edison', 'cori', 'datatran', 'scigate'):
+            self.desiInstall.nersc = n
+            self.assertEqual(self.desiInstall.nersc_module_dir,
+                             join(self.desiInstall.default_nersc_dir[n],
+                                  "modulefiles"))
+        options = self.desiInstall.get_options(['--configuration',
+                                                join(self.data_dir,
+                                                     'desiInstall_configuration.ini'),
+                                                'my_new_product', '1.2.3'])
+        self.desiInstall.nersc = 'edison'
+        self.assertEqual(self.desiInstall.nersc_module_dir,
+                         '/project/projectdirs/desi/test/modules')
+        self.desiInstall.nersc = 'cori'
+        self.assertEqual(self.desiInstall.nersc_module_dir,
+                         '/global/common/cori/contrib/desi/test/modules')
 
     def test_cleanup(self):
         """Test the cleanup stage of the install.

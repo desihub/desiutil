@@ -6,15 +6,18 @@ from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 
 import unittest
+import sys
 from collections import OrderedDict
-from ..depend import setdep, getdep, hasdep, iterdep
-from ..depend import Dependencies, add_dependencies
+from ..depend import (setdep, getdep, hasdep, iterdep, Dependencies,
+                      add_dependencies)
+from .. import __version__ as desiutil_version
 
 try:
     from astropy.io import fits
     test_fits_header = True
 except ImportError:
     test_fits_header = False
+
 
 class TestDepend(unittest.TestCase):
     """Test desiutil.depend
@@ -96,6 +99,8 @@ class TestDepend(unittest.TestCase):
             getdep(hdr, 'foo')
 
     def test_update(self):
+        """Test updates of dependencies.
+        """
         hdr = dict()
         setdep(hdr, 'blat', '1.0')
         self.assertEqual(getdep(hdr, 'blat'), '1.0')
@@ -141,11 +146,17 @@ class TestDepend(unittest.TestCase):
             self.assertEqual(x[name], getdep(hdr, name))
 
     def test_add_dependencies(self):
-        """Test add_dependencies function."""
-        import desiutil
+        """Test add_dependencies function.
+        """
+        hdr = OrderedDict()
+        add_dependencies(hdr, long_python=True)
+        self.assertEqual(getdep(hdr, 'python'),
+                         sys.version.replace('\n', ' '))
         hdr = OrderedDict()
         add_dependencies(hdr)
-        self.assertEqual(getdep(hdr, 'desiutil'), desiutil.__version__)
+        self.assertEqual(getdep(hdr, 'python'),
+                         ".".join(map(str, sys.version_info[0:3])))
+        self.assertEqual(getdep(hdr, 'desiutil'), desiutil_version)
         import numpy
         add_dependencies(hdr)
         self.assertEqual(getdep(hdr, 'numpy'), numpy.__version__)

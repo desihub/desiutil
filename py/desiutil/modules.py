@@ -143,7 +143,7 @@ def init_modules(moduleshome=None, method=False, command=False):
     return desiutil_module
 
 
-def configure_module(product, version, working_dir=None, dev=False):
+def configure_module(product, version, product_root, working_dir=None, dev=False):
     """Decide what needs to go in the Module file.
 
     Parameters
@@ -152,6 +152,8 @@ def configure_module(product, version, working_dir=None, dev=False):
         Name of the product.
     version : :class:`str`
         Version of the product.
+    product_root : :class:`str`
+        Directory that contains the installed code.
     working_dir : :class:`str`, optional
         The directory to examine.  If not set, the current working directory
         will be used.
@@ -176,6 +178,7 @@ def configure_module(product, version, working_dir=None, dev=False):
     module_keywords = {
         'name': product,
         'version': version,
+        'product_root': product_root,
         'needs_bin': '# ',
         'needs_python': '# ',
         'needs_trunk_py': '# ',
