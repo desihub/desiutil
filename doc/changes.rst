@@ -2,14 +2,15 @@
 Change Log
 ==========
 
-1.9.0 (unreleased)
+1.9.0 (2016-10-12)
 ------------------
 
 * Shorten Python version printed in dependency headers.
 * :mod:`desiutil.test.test_plots` was not cleaning up after itself.
 * Support new DESI+Anaconda software stack infrastructure (`PR #43`_).
-* fixes :meth:`~desiutil.bitmask.BitMask.names` when mask is a :class:`numpy.uint64` (`desitarget #79`_).
+* Fixes :meth:`~desiutil.bitmask.BitMask.names` when mask is a :class:`numpy.uint64` (`desitarget #79`_).
 * :meth:`~desiutil.bitmask.BitMask.names` is much faster.
+* Fixed problem opening tar files in Python 3.
 
 .. _`PR #43`: https://github.com/desihub/desiutil/pull/43
 .. _`desitarget #79`: https://github.com/desihub/desiutil/pull/41
