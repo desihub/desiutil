@@ -208,7 +208,7 @@ def configure_module(product, version, product_root, working_dir=None, dev=False
     if isdir(join(working_dir, 'python')):
         if dev:
             module_keywords['needs_trunk_py'] = ''
-            module-keywrods['trunk_py_dir'] = '/python'
+            module_keywords['trunk_py_dir'] = '/python'
         else:
             module_keywords['needs_python'] = ''
     if exists(join(working_dir, 'setup.cfg')):
