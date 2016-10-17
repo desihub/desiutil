@@ -5,7 +5,10 @@ Change Log
 1.9.1 (unreleased)
 ------------------
 
-* No changes yet.
+* Allow top-level ``/python`` directories to be detected (not just ``/py``)
+  to support redmonster_.
+
+.. _redmonster: https://github.com/desihub/redmonster
 
 1.9.0 (2016-10-12)
 ------------------
