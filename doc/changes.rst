@@ -2,7 +2,7 @@
 Change Log
 ==========
 
-1.9.1 (unreleased)
+1.9.1 (2016-10-17)
 ------------------
 
 * Allow top-level ``/python`` directories to be detected (not just ``/py``)
