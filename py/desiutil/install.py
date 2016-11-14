@@ -377,6 +377,8 @@ class DesiInstall(object):
                 self.baseproduct = self.options.product
                 log.warning('guessing {0} is at {1}'.format(
                     self.baseproduct, self.fullproduct))
+                log.warning('Add location to desiutil.install.known_products '+
+                            'if that is incorrect')
         self.baseversion = basename(self.options.product_version)
         self.github = False
         if 'github.com' in self.fullproduct:
