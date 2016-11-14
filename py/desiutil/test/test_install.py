@@ -166,10 +166,9 @@ class TestInstall(unittest.TestCase):
         """Test resolution of product/version input.
         """
         options = self.desiInstall.get_options(['foo', 'bar'])
-        with self.assertRaises(DesiInstallException) as cm:
-            out = self.desiInstall.get_product_version()
-        self.assertEqual(str(cm.exception),
-                         "Could not determine the exact location of foo!")
+        out = self.desiInstall.get_product_version()
+        self.assertEqual(out, (u'https://github.com/desihub/foo',
+                         'foo', 'bar'))
         options = self.desiInstall.get_options(['desiutil', '1.0.0'])
         out = self.desiInstall.get_product_version()
         self.assertEqual(out, (u'https://github.com/desihub/desiutil',
