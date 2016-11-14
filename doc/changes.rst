@@ -5,7 +5,8 @@ Change Log
 1.9.2 (unreleased)
 ------------------
 
-* No changes yet.
+* enables desiInstall of desihub packages even if they aren't in the
+  known_products list yet
 
 1.9.1 (2016-10-17)
 ------------------

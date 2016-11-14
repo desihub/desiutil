@@ -372,10 +372,11 @@ class DesiInstall(object):
                 self.fullproduct = known_products[self.options.product]
                 self.baseproduct = self.options.product
             except KeyError:
-                message = ("Could not determine the exact location of " +
-                           "{0}!").format(self.options.product)
-                log.critical(message)
-                raise DesiInstallException(message)
+                self.fullproduct = 'https://github.com/desihub/{}'.format(
+                        self.options.product)
+                self.baseproduct = self.options.product
+                log.warning('guessing {0} is at {1}'.format(
+                    self.baseproduct, self.fullproduct))
         self.baseversion = basename(self.options.product_version)
         self.github = False
         if 'github.com' in self.fullproduct:
