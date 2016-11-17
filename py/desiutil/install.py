@@ -366,19 +366,17 @@ class DesiInstall(object):
                     known_products[name] = value
         if '/' in self.options.product:
             self.baseproduct = basename(self.options.product)
-            self.fullproduct = known_products[self.baseproduct]
         else:
-            try:
-                self.fullproduct = known_products[self.options.product]
-                self.baseproduct = self.options.product
-            except KeyError:
-                self.fullproduct = 'https://github.com/desihub/{}'.format(
-                        self.options.product)
-                self.baseproduct = self.options.product
-                log.warning('guessing {0} is at {1}'.format(
-                    self.baseproduct, self.fullproduct))
-                log.warning('Add location to desiutil.install.known_products '+
-                            'if that is incorrect')
+            self.baseproduct = self.options.product
+        try:
+            self.fullproduct = known_products[self.baseproduct]
+        except KeyError:
+            self.fullproduct = 'https://github.com/desihub/{}'.format(
+                    self.baseproduct)
+            log.warning('Guessing {0} is at {1}.'.format(
+                self.baseproduct, self.fullproduct))
+            log.warning('Add location to desiutil.install.known_products '+
+                        'if that is incorrect.')
         self.baseversion = basename(self.options.product_version)
         self.github = False
         if 'github.com' in self.fullproduct:
