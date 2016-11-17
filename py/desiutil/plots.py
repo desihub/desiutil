@@ -1,9 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
 """
-============
+===============
 desiutils.plots
-============
+===============
 
 Module for code plots.
 """
@@ -27,31 +27,36 @@ def plot_slices(x, y, x_lo, x_hi, y_cut, num_slices=5, min_count=100, axis=None,
 
     Parameters
     ----------
-    x : array of float
+    x : array of :class:`float`
         X-coordinates to scatter plot.  Points outside [x_lo, x_hi] are
         not displayed.
-    y : array of float
+    y : array of :class:`float`
         Y-coordinates to scatter plot.  Y values are assumed to be roughly
         symmetric about zero.
-    x_lo : float
-        Minimum value of x to plot.
-    x_hi : float
-        Maximum value of x to plot.
-    y_cut : float
-        The target maximum value of |y|.  A dashed line at this value is
-        added to the plot, and the vertical axis is clipped at
-        |y| = 1.25 * y_cut (but values outside this range are included in
-        the percentile statistics).
-    num_slices : int
+    x_lo : :class:`float`
+        Minimum value of `x` to plot.
+    x_hi : :class:`float`
+        Maximum value of `x` to plot.
+    y_cut : :class:`float`
+        The target maximum value of :math:`|y|`.  A dashed line at this value
+        is added to the plot, and the vertical axis is clipped at
+        :math:`|y|` = 1.25 * `y_cut` (but values outside this range are
+        included in the percentile statistics).
+    num_slices : :class:`int`, optional
         Number of equally spaced slices to divide the interval [x_lo, x_hi]
         into.
-    min_count : int
+    min_count : :class:`int`, optional
         Do not use slices with fewer points for superimposed percentile
         statistics.
-    axis : matplotlib axis object or None
-        Uses the current axis if this is None.
-    set_ylim_from_stats : bool, optional
-        Set ylim of plot from 95% stat
+    axis : :class:`matplotlib.axes.Axes`, optional
+        Uses the current axis if this is not set.
+    set_ylim_from_stats : :class:`bool`, optional
+        Set ylim of plot from 95% stat.
+
+    Returns
+    -------
+    :class:`matplotlib.axes.Axes`
+        The Axes object used in the plot.
     """
     import matplotlib.pyplot as plt
 

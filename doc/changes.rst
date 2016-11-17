@@ -5,7 +5,11 @@ Change Log
 1.9.2 (unreleased)
 ------------------
 
-* No changes yet.
+* Enables desiInstall of desihub_ packages even if they aren't in the
+  ``desiutil.install.known_products`` list yet.
+* Include :mod:`desiutil.plots` in documentation.
+
+.. _desihub: https://github.com/desihub
 
 1.9.1 (2016-10-17)
 ------------------
@@ -40,8 +44,8 @@ Change Log
 1.7.0 (2016-08-18)
 ------------------
 
-* Added combineDicts method
-* Added plots.py module including plot_slices
+* Added :func:`~desiutil.io.combine_dicts` function.
+* Added :mod:`desiutil.plots` module including :func:`~desiutil.plots.plot_slices`.
 
 1.6.0 (2016-07-01)
 ------------------
@@ -56,7 +60,7 @@ Change Log
 * Fixed bug affecting people with the C version of Modules installed on
   laptops.
 * Added :mod:`desiutil.depend` tools for manipulating DEPNAMnn and DEPVERnn
-  keywords in FITS headers
+  keywords in FITS headers.
 
 1.4.1 (2016-06-07)
 ------------------

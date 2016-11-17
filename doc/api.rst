@@ -26,6 +26,9 @@ desiutil API
 .. automodule:: desiutil.modules
     :members:
 
+.. automodule:: desiutil.plots
+    :members:
+
 .. automodule:: desiutil.setup
     :members:
 
