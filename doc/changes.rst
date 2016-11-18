@@ -2,7 +2,7 @@
 Change Log
 ==========
 
-1.9.2 (unreleased)
+1.9.2 (2016-11-18)
 ------------------
 
 * Enables desiInstall of desihub_ packages even if they aren't in the
