@@ -15,7 +15,7 @@ matplotlib.use('agg')
 import matplotlib.pyplot as plt
 
 from ..plots import plot_slices
-#from ..plots import plot_sky
+from ..plots import plot_sky
 
 try:
     basestring
