@@ -53,8 +53,8 @@ class TestPlots(unittest.TestCase):
         """Test plot_sky
         """
    
-        x = 360*np.random.rand(100)*u.degree
-        y = 360*np.random.rand(100)*u.degree
+        x = 360*np.random.rand(100)
+        y = 360*np.random.rand(100)
         plot_sky(x,y,discrete_colors=False,test_travis=True)
         plt.savefig(self.plot_file2)
 
