@@ -54,7 +54,7 @@ class TestPlots(unittest.TestCase):
         """ 
         ra = 360.*np.random.rand(200)
         dec = 360.*np.random.rand(200)
-        ax = plot_sky(ra,dec,discrete_colors=False,test_travis=True)
+        ax = plot_sky(ra,dec,discrete_colors=False,test_travis=True,pix_shape='square')
         plt.savefig(self.plot_file2)
 
 def test_suite():
