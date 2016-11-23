@@ -119,56 +119,69 @@ def plot_slices(x, y, x_lo, x_hi, y_cut, num_slices=5, min_count=100, axis=None,
 
     return axis
 
-def plot_sky(ra, dec, data=None, pix_shape='ellipse', nside=16, label='', projection='eck4', cmap='jet', hide_galactic_plane=False, discrete_colors=True, center_longitude=0, radius=2., epsi=0.2, alpha_tile=0.5, min_color=1, max_color=5, nsteps=5):
+def plot_sky(ra, dec, data=None, pix_shape='ellipse', nside=16, label='', projection='eck4', cmap='jet', hide_galactic_plane=False, discrete_colors=True, center_longitude=0, radius=2., epsi=0.2, alpha_tile=0.5, min_color=1, max_color=5, nsteps=5,test_travis=False):
     """
-    Routine that reads ra and dec with the proper units (requires astropy units) and makes an all-sky plot of the desired
-    data.
-    Requires Basemap installed and astropy.units
+    Routine that reads ra and dec (in degrees) and makes an all-sky plot
+    of the data.
+     Requires matplotlib/basemap and healpy if pix_shape='healpix'.
     
     Parameters
     ----------
 
-        ra : array of :class: `astropy.angle`
-             Right ascension with units.
-        dec : array of :class: `astropy.angle`
-             Declination with units.
-        data : array of :class: `float or int`
-             Weights to use (for example the tile-pass or values of E(B-V)).
-        pix_shape : :class: `string`
-             Desired shape of the pixels on the plot. It can take the values 'ellipse', 'healpix', and 'square'
-             nside : int, it controls the number of pixels with healpix and square pixels. For healpix the whole celestial sphere is
-             divided into 12*nside**2 pixels, for square pixels it is divided into 16*nside**2.
-        label : :class: `string`, optional
-             label for the colorbar.
-        projection : :class: `string`, optional
-             projection scheme used to show the map. 'eck4', 'kav7', and 'moll' recommended for full sky maps: Default 'eck4'.
-        cmap : :class: `string`, optional
-             name of the matplotlib colormap to use. Default 'jet'.
-        hide_galactic_plane : :class: `bool`, optional
-             if True it hides the galactic plane in the plot, if False it shows it. Default False.
-        discrete_colors : :class: `bool`, optional
-             if True it uses the data to create a linear discrete color-scale.
-        center_longitude : :class: `float`, optional
-             center longitude for the plot in degrees. Default 0.
-        radius : :class: `float`, optional
-             radius of the circle in degrees. Default 2.
-        epsi : :class: `float`, optional
-             it prevents ellipses to wrap around the edges. Only ellipses with |ra-180-center_longitude|>radius+epsi are plotted. If
-             you want to plot all the ellipses set epsi to -radius (some ellipses may wrap around the edges). Default 0.2
-        alpha_tile : :class: `float`, optional
-             value between 0 and 1 of transparency for the ellipses. 1 Opaque, 0 transparent.
-        min_color : :class: `float`, optional
-             minimum value of the color scale if discrete_colors=True. Default 1
-        max_color : :class: `float`, optional
-             maximum value of the color scale if discrete_colors=True. Default 5
-        nsteps : :class: `int`, optional
-             number of intervals on the color scale if discrete_colors=True. Default 5
-
-    Returns
+    ra : array of :class: `float`
+        Right ascension in degrees.
+    dec : array of :class: `float`
+        Declination in degrees.
+    data : array of :class: `float or int`
+        Weights to use (for example the tile-pass or values of E(B-V)).
+    pix_shape : :class: `string`
+        Shape of the pixels on the plot. It can take the values 'ellipse',
+        'healpix', or 'square'.
+    nside : :class: `int`
+        It controls the number of pixels with healpix and square pixels.
+        For healpix the celestial sphere is divided into 12*nside**2 pixels,
+        and into 16*nside**2 for square pixels.
+    label : :class: `string`, optional
+        label for the colorbar.
+    projection : :class: `string`, optional
+        projection scheme used to show the map.
+        'eck4', 'kav7', or 'moll' recommended. Default 'eck4'.
+    cmap : :class: `string`, optional
+        name of the matplotlib colormap to use. Default 'jet'.
+    hide_galactic_plane : :class: `bool`, optional
+        if True it hides the galactic plane in the plot, 
+        if False it shows it. Default False.
+    discrete_colors : :class: `bool`, optional
+        if True it uses the data to create a linear discrete color-scale.
+    center_longitude : :class: `float`, optional
+        center longitude for the plot in degrees. Default 0.
+    radius : :class: `float`, optional
+        radius of the circle in degrees. Default 2.
+    epsi : :class: `float`, optional
+        it prevents ellipses to wrap around the edges. Only ellipses with 
+        |ra-180-center_longitude|>radius+epsi are plotted. If you want to
+        plot all the ellipses set epsi to -radius (ellipses will wrap around
+        the edges). Default 0.2
+   alpha_tile : :class: `float`, optional
+        Transparency for the ellipses. 1 Opaque, 0 transparent. Default 0.5.
+   min_color : :class: `float`, optional
+        minimum value of the color scale if discrete_colors=True. Default 1
+   max_color : :class: `float`, optional
+        maximum value of the color scale if discrete_colors=True. Default 5
+   nsteps : :class: `int`, optional
+        number of intervals on the color scale if 
+        discrete_colors=True. Default 5
+   test_travis : :class: `bool`, optional
+        If True sets up matplotlib to 'agg' to work with non-X11 environments.
+        Default False
+   Returns
     -------
-    :class:`matplotlib.axes.Axes` 
-        The Axes object for the plot. It creates a figure if there was no previous figure and if data is not provided it returns counts per square-degree if healpix
-            or square pixels are created. If you choose the option ellipse it plots as many ellipses as ra,dec points provided (it may be slow).
+   :class:`matplotlib.axes.Axes` 
+       The Axes object for the plot. It creates a figure if
+       there was no previous figure and if data is not provided
+       it returns counts per square-degree if healpix
+       or square pixels are created. If you choose the option ellipse
+       it plots as many ellipses as ra,dec points provided (it may be slow).
     """
     from matplotlib.collections import PolyCollection
     from astropy.coordinates import SkyCoord
@@ -180,6 +193,8 @@ def plot_sky(ra, dec, data=None, pix_shape='ellipse', nside=16, label='', projec
     from mpl_toolkits.basemap import pyproj
     from mpl_toolkits.basemap import Basemap
     import matplotlib
+    if test_travis:
+        matplotlib.use('agg')
     #---------
     # Add ellipses to Basemap
     #--------
@@ -229,9 +244,7 @@ def plot_sky(ra, dec, data=None, pix_shape='ellipse', nside=16, label='', projec
         self.set_axes_limits(ax=ax)
 
         return poly
-      
-    ra=ra.to(u.deg).value
-    dec=dec.to(u.deg).value
+
     if pix_shape not in ['ellipse','healpix','square']:
         print('Pixel shape invalid, try ellipse, healpix or square')
     if discrete_colors:
