@@ -30,13 +30,13 @@ class TestPlots(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.plot_file = 'test.png'
-        #cls.plot_file2 = 'test_sky.png'
+        cls.plot_file2 = 'test_sky.png'
     @classmethod
     def tearDownClass(cls):
         if os.path.exists(cls.plot_file):
             os.remove(cls.plot_file)
-        #if os.path.exists(cls.plot_file2):
-        #    os.remove(cls.plot_file2)
+        if os.path.exists(cls.plot_file2):
+            os.remove(cls.plot_file2)
 
     def test_slices(self):
         """Test plot_slices
@@ -53,8 +53,8 @@ class TestPlots(unittest.TestCase):
         """Test plot_sky
         """
    
-        x = 360*np.random.rand(100)
-        y = 360*np.random.rand(100)
+        x = 360*np.random.rand(20)
+        y = 360*np.random.rand(20)
         plot_sky(x,y,discrete_colors=False,test_travis=True)
         plt.savefig(self.plot_file2)
 
