@@ -51,11 +51,10 @@ class TestPlots(unittest.TestCase):
         plt.savefig(self.plot_file)
     def test_plotsky(self):
         """Test plot_sky
-        """
-   
-        x = 360*np.random.rand(20)
-        y = 360*np.random.rand(20)
-        plot_sky(x,y,discrete_colors=False,test_travis=True)
+        """ 
+        ra = 360.*np.random.rand(20)
+        dec = 360.*np.random.rand(20)
+        ax = plot_sky(ra,dec,discrete_colors=False,test_travis=True)
         plt.savefig(self.plot_file2)
 
 def test_suite():
