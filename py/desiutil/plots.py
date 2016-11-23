@@ -179,7 +179,7 @@ def plot_sky(ra, dec, data=None, pix_shape='ellipse', nside=16, label='', projec
     from matplotlib.patches import Polygon
     from mpl_toolkits.basemap import pyproj
     from mpl_toolkits.basemap import Basemap
-    import matplotlib as mpl
+    import matplotlib
     #---------
     # Add ellipses to Basemap
     #--------
@@ -244,7 +244,7 @@ def plot_sky(ra, dec, data=None, pix_shape='ellipse', nside=16, label='', projec
             cmap = cmap.from_list('Custom cmap', cmaplist, cmap.N)
             # define the bins and normalize
             bounds = np.linspace(min_color,max_color,nsteps)
-            norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
+            norm = matplotlib.colors.BoundaryNorm(bounds, cmap.N)
     else:
         cmap = plt.get_cmap(cmap)
         norm = None

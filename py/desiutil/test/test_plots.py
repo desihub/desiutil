@@ -35,6 +35,8 @@ class TestPlots(unittest.TestCase):
     def tearDownClass(cls):
         if os.path.exists(cls.plot_file):
             os.remove(cls.plot_file)
+        if os.path.exists(cls.plot_file2):
+            os.remove(cls.plot_file2)
 
     def test_slices(self):
         """Test plot_slices
