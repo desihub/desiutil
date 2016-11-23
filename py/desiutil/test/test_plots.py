@@ -49,11 +49,11 @@ class TestPlots(unittest.TestCase):
         ax.set_ylabel('N sigma')
         ax.set_xlabel('x')
         plt.savefig(self.plot_file)
-    def test_plotsky(self):
+    def test_plot_sky(self):
         """Test plot_sky
         """ 
-        ra = 360.*np.random.rand(20)
-        dec = 360.*np.random.rand(20)
+        ra = 360.*np.random.rand(200)
+        dec = 360.*np.random.rand(200)
         ax = plot_sky(ra,dec,discrete_colors=False,test_travis=True)
         plt.savefig(self.plot_file2)
 

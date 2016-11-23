@@ -183,6 +183,9 @@ def plot_sky(ra, dec, data=None, pix_shape='ellipse', nside=16, label='', projec
        or square pixels are created. If you choose the option ellipse
        it plots as many ellipses as ra,dec points provided (it may be slow).
     """
+    import matplotlib
+    if test_travis:
+        matplotlib.use('agg')
     from matplotlib.collections import PolyCollection
     from astropy.coordinates import SkyCoord
     import matplotlib.pyplot as plt
@@ -192,9 +195,9 @@ def plot_sky(ra, dec, data=None, pix_shape='ellipse', nside=16, label='', projec
     from matplotlib.patches import Polygon
     from mpl_toolkits.basemap import pyproj
     from mpl_toolkits.basemap import Basemap
-    import matplotlib
-    if test_travis:
-        matplotlib.use('agg')
+    
+    
+   
     #---------
     # Add ellipses to Basemap
     #--------
