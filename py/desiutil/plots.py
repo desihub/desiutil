@@ -175,15 +175,68 @@ def plot_sky(ra, dec, data=None, pix_shape='ellipse', nside=16, label='', projec
     import matplotlib.pyplot as plt
     import astropy.units as u
     import matplotlib.cm as cm
-    import basemap
     import numpy as np
+    from matplotlib.patches import Polygon
+    from mpl_toolkits.basemap import pyproj
+    from mpl_toolkits.basemap import Basemap
+    import matplotlib as mpl
+    #---------
+    # Add ellipses to Basemap
+    #--------
+
+    class Basemap(Basemap):
+        #Code from http://stackoverflow.com/questions/8161144/drawing-ellipses-on-matplotlib-basemap-projections
+        #It adds ellipses to the class Basemap to use in plotsky. This is only used in plotsky and includes the basemap
+        #dependencies.
+     def ellipse(self, x0, y0, a, b, n, ax=None, **kwargs):
+        ax = kwargs.pop('ax', None) or self._check_ax()
+        g = pyproj.Geod(a=self.rmajor, b=self.rminor)
+        azf, azb, dist = g.inv([x0, x0],[y0, y0],[x0+a, x0],[y0, y0+b])
+        tsid = dist[0] * dist[1] # a * b
+        seg = [self(x0+a, y0)]
+        AZ = np.linspace(azf[0], 360. + azf[0], n)
+        for i, az in enumerate(AZ):
+            # Skips segments along equator (Geod can't handle equatorial arcs).
+            if np.allclose(0., y0) and (np.allclose(90., az) or
+                np.allclose(270., az)):
+                continue
+
+            # In polar coordinates, with the origin at the center of the
+            # ellipse and with the angular coordinate ``az`` measured from the
+            # major axis, the ellipse's equation  is [1]:
+            #
+            #                           a * b
+            # r(az) = ------------------------------------------
+            #         ((b * cos(az))**2 + (a * sin(az))**2)**0.5
+            #
+            # Azymuth angle in radial coordinates and corrected for reference
+            # angle.
+            azr = 2. * np.pi / 360. * (az + 90.)
+            A = dist[0] * np.sin(azr)
+            B = dist[1] * np.cos(azr)
+            r = tsid / (B**2. + A**2.)**0.5
+            lon, lat, azb = g.fwd(x0, y0, az, r)
+            x, y = self(lon, lat)
+
+            # Add segment if it is in the map projection region.
+            if x < 1e20 and y < 1e20:
+                seg.append((x, y))
+
+        poly = Polygon(seg, **kwargs)
+        ax.add_patch(poly)
+
+        # Set axes limits to fit map region.
+        self.set_axes_limits(ax=ax)
+
+        return poly
+      
     ra=ra.to(u.deg).value
     dec=dec.to(u.deg).value
     if pix_shape not in ['ellipse','healpix','square']:
-        print 'Pixel shape invalid, try ellipse, healpix or square'
+        print('Pixel shape invalid, try ellipse, healpix or square')
     if discrete_colors:
         if(data is None):
-            print 'Error discrete_colors expects data!=None'
+            print('Error discrete_colors expects data!=None')
         else:
             # define the colormap
             cmap = plt.get_cmap(cmap)
@@ -223,7 +276,7 @@ def plot_sky(ra, dec, data=None, pix_shape='ellipse', nside=16, label='', projec
         corner_theta, corner_phi = hp.vec2ang(corners.transpose(0,2,1))
         corner_ra, corner_dec = np.degrees(corner_phi), np.degrees(np.pi/2-corner_theta)
         # set up basemap
-        m = basemap.Basemap(projection=projection, lon_0=center_longitude, resolution='c', celestial=True)
+        m = Basemap(projection=projection, lon_0=center_longitude, resolution='c', celestial=True)
         m.drawmeridians(np.arange(0, 360, 60), labels=[0,0,1,0], labelstyle='+/-')
         m.drawparallels(np.arange(-90, 90, 15), labels=[1,0,0,0], labelstyle='+/-')
         m.drawmapboundary()
@@ -256,7 +309,7 @@ def plot_sky(ra, dec, data=None, pix_shape='ellipse', nside=16, label='', projec
             weights=data
         density, _, _ = np.histogram2d(ra, np.sin(dec*np.pi/180.), [ra_bins, cth_bins], weights=weights)
         ra_bins_2d, cth_bins_2d = np.meshgrid(ra_bins, cth_bins)
-        m = basemap.Basemap(projection=projection, lon_0=center_longitude, resolution='l', celestial=True)
+        m = Basemap(projection=projection, lon_0=center_longitude, resolution='l', celestial=True)
         m.drawmeridians(np.arange(0, 360, 60), labels=[0,0,1,0], labelstyle='+/-')
         m.drawparallels(np.arange(-90, 90, 15), labels=[1,0,0,0], labelstyle='+/-')
         m.drawmapboundary()
@@ -272,7 +325,7 @@ def plot_sky(ra, dec, data=None, pix_shape='ellipse', nside=16, label='', projec
             galactic_x, galactic_y = m(galactic_plane.ra.degree, galactic_plane.dec.degree)
             m.scatter(galactic_x, galactic_y, marker='.', s=2, c='k')
     if(pix_shape=='ellipse'):
-        m = basemap.Basemap(projection=projection, lon_0=center_longitude, resolution='l', celestial=True)
+        m = Basemap(projection=projection, lon_0=center_longitude, resolution='l', celestial=True)
         m.drawmeridians(np.arange(0, 360, 60), labels=[0,0,1,0], labelstyle='+/-')
         m.drawparallels(np.arange(-90, 90, 15), labels=[1,0,0,0], labelstyle='+/-')
         m.drawmapboundary()
@@ -294,8 +347,6 @@ def plot_sky(ra, dec, data=None, pix_shape='ellipse', nside=16, label='', projec
             if(np.fabs(ra[i]-180-center_longitude)>radius+epsi and np.fabs(ra[i]+180-center_longitude)>radius+epsi):
                 poly = m.ellipse(ra[i], dec[i], radius, radius, 8, facecolor=color_array[i], zorder=10,alpha=alpha_tile)
         plt.colorbar(plt.imshow(np.array([(1,2),(3,4),(0,6)]),cmap=cmap, norm=norm),orientation='horizontal',cmap=cmap, norm=norm, spacing='proportional', pad=0.04, label=label)
-     axis = plt.gca()
-     return axis
-
-
-
+    axis = plt.gca()
+    return axis
+ 
