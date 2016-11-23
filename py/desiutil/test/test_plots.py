@@ -15,6 +15,7 @@ matplotlib.use('agg')
 import matplotlib.pyplot as plt
 
 from ..plots import plot_slices
+from ..plots import plot_sky
 
 try:
     basestring
@@ -29,7 +30,7 @@ class TestPlots(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.plot_file = 'test.png'
-
+        cls.plot_file2 = 'test_sky.png'
     @classmethod
     def tearDownClass(cls):
         if os.path.exists(cls.plot_file):
@@ -46,7 +47,14 @@ class TestPlots(unittest.TestCase):
         ax.set_ylabel('N sigma')
         ax.set_xlabel('x')
         plt.savefig(self.plot_file)
-
+    def test_plotsky(self):
+        """Test plot_sky
+        """
+        import astropy.units as u
+        x = 360*np.random.rand(100)*u.degree
+        y = 360*np.random.rand(100)*u.degree
+        plot_sky(x,y,discrete_colors=False)
+        plt.savefig(self.plot_file2)
 
 def test_suite():
     """Allows testing of only this module with the command::
