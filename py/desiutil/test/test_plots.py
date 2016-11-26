@@ -8,7 +8,7 @@ from __future__ import (absolute_import, division,
 import unittest
 import os
 import numpy as np
-
+import sys
 # Set non-interactive backend for Travis
 import matplotlib
 matplotlib.use('agg')
@@ -49,13 +49,14 @@ class TestPlots(unittest.TestCase):
         ax.set_ylabel('N sigma')
         ax.set_xlabel('x')
         plt.savefig(self.plot_file)
-    #def test_plot_sky(self):
-    #    """Test plot_sky
-    #    """ 
-    #    ra = 360.*np.random.rand(200)
-    #    dec = 360.*np.random.rand(200)
-    #    ax = plot_sky(ra,dec,discrete_colors=False,test_travis=True,pix_shape='square')
-    #    plt.savefig(self.plot_file2)
+    @unittest.skipIf('mpl_toolkits.basemap' not in sys.modules or 'TRAVIS_JOB_ID' in os.environ, 'Skipping tests of plot_sky that require basemap and conflict with Travis')
+    def test_plot_sky(self):
+        """Test plot_sky
+        """ 
+        ra = 360.*np.random.rand(200)
+        dec = 360.*np.random.rand(200)
+        ax = plot_sky(ra,dec,discrete_colors=False,test_travis=True,pix_shape='square')
+        plt.savefig(self.plot_file2)
 
 def test_suite():
     """Allows testing of only this module with the command::
