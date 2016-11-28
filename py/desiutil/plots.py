@@ -189,14 +189,11 @@ def plot_sky(ra, dec, data=None, pix_shape='ellipse', nside=16, label='', projec
     from astropy.coordinates import SkyCoord
     import matplotlib.pyplot as plt
     import astropy.units as u
-    import matplotlib.cm as cm
-    import numpy as np
+    import matplotlib.cm as cm 
     from matplotlib.patches import Polygon
     from mpl_toolkits.basemap import pyproj
     from mpl_toolkits.basemap import Basemap
     
-    
-   
     #---------
     # Add ellipses to Basemap
     #--------

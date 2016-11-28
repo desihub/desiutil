@@ -49,7 +49,7 @@ class TestPlots(unittest.TestCase):
         ax.set_ylabel('N sigma')
         ax.set_xlabel('x')
         plt.savefig(self.plot_file)
-    #@unittest.skipIf('TRAVIS_JOB_ID' in os.environ, 'Skipping tests of plot_sky on Travis')
+    
     def test_plot_sky(self):
         """Test plot_sky
         """ 
