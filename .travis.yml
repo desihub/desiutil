@@ -72,9 +72,9 @@ before_install:
     - curl ipinfo.io
     # setup fake X11 server; QA tests may need this
     # see https://docs.travis-ci.com/user/gui-and-headless-browsers/
-    #- "export DISPLAY=:99.0"
-    #- "sh -e /etc/init.d/xvfb start"
-    #- sleep 3  # give xvfb some time to start
+    - "export DISPLAY=:99.0"
+    - "sh -e /etc/init.d/xvfb start"
+    - sleep 3  # give xvfb some time to start
 
 install:
     - if [[ $MAIN_CMD == 'pep8' ]]; then pip install pep8; fi

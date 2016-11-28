@@ -188,7 +188,6 @@ def plot_sky(ra, dec, data=None, pix_shape='ellipse', nside=16, label='', projec
     import os
     import matplotlib
     if 'TRAVIS_JOB_ID' in os.environ:
-        print('Working on Travis, using agg')
         matplotlib.use('agg')
     from matplotlib.collections import PolyCollection
     from astropy.coordinates import SkyCoord
