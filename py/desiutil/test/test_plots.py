@@ -9,9 +9,6 @@ import unittest
 import os
 import numpy as np
 import sys
-# Set non-interactive backend for Travis
-import matplotlib
-matplotlib.use('agg')
 import matplotlib.pyplot as plt
 
 from ..plots import plot_slices
@@ -42,9 +39,13 @@ class TestPlots(unittest.TestCase):
         """Test plot_slices
         """
         # Random data
-        x = np.random.rand(10000)
-        y = np.random.randn(10000)
+        x = np.random.rand(1000)
+        y = np.random.randn(1000)
         # Run
+        # Set non-interactive backend for Travis
+        if 'TRAVIS_JOB_ID' in os.environ:
+            import matplotlib
+            matplotlib.use('agg')
         ax = plot_slices(x,y,0.,1.,0.)
         ax.set_ylabel('N sigma')
         ax.set_xlabel('x')
