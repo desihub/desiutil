@@ -119,15 +119,15 @@ def plot_slices(x, y, x_lo, x_hi, y_cut, num_slices=5, min_count=100, axis=None,
 
     return axis
 
-def plot_sky(ra, dec, data=None, pix_shape='ellipse', nside=16, label='', projection='eck4', cmap='jet', hide_galactic_plane=False, discrete_colors=True, center_longitude=0, radius=2., epsi=0.2, alpha_tile=0.5, min_color=1, max_color=5, nsteps=5,test_travis=False):
+def plot_sky(ra, dec, data=None, pix_shape='ellipse', nside=16, label='', projection='eck4', cmap='jet', hide_galactic_plane=False, discrete_colors=True, center_longitude=0, radius=2., epsi=0.2, alpha_tile=0.5, min_color=1, max_color=5, nsteps=5):
     """
     Routine that reads ra and dec (in degrees) and makes an all-sky plot
     of the data.
-     Requires matplotlib/basemap and healpy if pix_shape='healpix'.
+    
+    Requires matplotlib/basemap and healpy if pix_shape='healpix'.
     
     Parameters
     ----------
-
     ra : array of :class: `float`
         Right ascension in degrees.
     dec : array of :class: `float`
@@ -159,32 +159,31 @@ def plot_sky(ra, dec, data=None, pix_shape='ellipse', nside=16, label='', projec
         radius of the circle in degrees. Default 2.
     epsi : :class: `float`, optional
         it prevents ellipses to wrap around the edges. Only ellipses with 
-        |ra-180-center_longitude|>radius+epsi are plotted. If you want to
+        abs(ra-180-center_longitude)>radius+epsi are plotted. If you want to
         plot all the ellipses set epsi to -radius (ellipses will wrap around
         the edges). Default 0.2
-   alpha_tile : :class: `float`, optional
+    alpha_tile : :class: `float`, optional
         Transparency for the ellipses. 1 Opaque, 0 transparent. Default 0.5.
-   min_color : :class: `float`, optional
+    min_color : :class: `float`, optional
         minimum value of the color scale if discrete_colors=True. Default 1
-   max_color : :class: `float`, optional
+    max_color : :class: `float`, optional
         maximum value of the color scale if discrete_colors=True. Default 5
-   nsteps : :class: `int`, optional
+    nsteps : :class: `int`, optional
         number of intervals on the color scale if 
         discrete_colors=True. Default 5
-   test_travis : :class: `bool`, optional
-        If True sets up matplotlib to 'agg' to work with non-X11 environments.
-        Default False
-   Returns
+     
+    Returns
     -------
-   :class:`matplotlib.axes.Axes` 
+    :class:`matplotlib.axes.Axes` 
        The Axes object for the plot. It creates a figure if
        there was no previous figure and if data is not provided
        it returns counts per square-degree if healpix
        or square pixels are created. If you choose the option ellipse
        it plots as many ellipses as ra,dec points provided (it may be slow).
     """
+    import os
     import matplotlib
-    if test_travis:
+    if 'TRAVIS_JOB_ID' in os.environ:
         matplotlib.use('agg')
     from matplotlib.collections import PolyCollection
     from astropy.coordinates import SkyCoord
@@ -249,10 +248,10 @@ def plot_sky(ra, dec, data=None, pix_shape='ellipse', nside=16, label='', projec
         return poly
 
     if pix_shape not in ['ellipse','healpix','square']:
-        print('Pixel shape invalid, try ellipse, healpix or square')
+        raise KeyError('%s shape invalid, try ellipse, healpix or square'%pix_shape)
     if discrete_colors:
-        if(data is None):
-            print('Error discrete_colors expects data!=None')
+        if data is None:
+            raise ValueError('Error discrete_colors expects data!=None')
         else:
             # define the colormap
             cmap = plt.get_cmap(cmap)
@@ -264,12 +263,13 @@ def plot_sky(ra, dec, data=None, pix_shape='ellipse', nside=16, label='', projec
     else:
         cmap = plt.get_cmap(cmap)
         norm = None
-    if(pix_shape=='healpix'):
+    if pix_shape=='healpix':
         import healpy as hp
         # get pixel area in degrees
         pixel_area = hp.pixelfunc.nside2pixarea(nside, degrees=True)
         #avoid pixels which may cause polygons to wrap around workaround
-        drawing_mask = np.logical_and(np.fabs(ra-180-center_longitude)>2*np.sqrt(pixel_area)+epsi,np.fabs(ra+180-center_longitude)>2*np.sqrt(pixel_area)+epsi)
+        drawing_mask = np.logical_and(np.fabs(ra-180-center_longitude)>2*np.sqrt(pixel_area)+epsi \
+        ,np.fabs(ra+180-center_longitude)>2*np.sqrt(pixel_area)+epsi)
         ra=ra[drawing_mask]
         dec=dec[drawing_mask]
         if data!=None:
@@ -313,7 +313,7 @@ def plot_sky(ra, dec, data=None, pix_shape='ellipse', nside=16, label='', projec
             m.scatter(galactic_x, galactic_y, marker='.', s=2, c='k')
         # Add a colorbar for the PolyCollection
         plt.colorbar(coll, orientation='horizontal',cmap=cmap, norm=norm, spacing='proportional', pad=0.01, aspect=40, label=label)
-    if(pix_shape=='square'):
+    if pix_shape=='square':
         nx, ny = 4*nside, 4*nside
 
         ra_bins = np.linspace(-180+center_longitude, 180+center_longitude, nx+1)
@@ -340,7 +340,7 @@ def plot_sky(ra, dec, data=None, pix_shape='ellipse', nside=16, label='', projec
             # project to map coordinates
             galactic_x, galactic_y = m(galactic_plane.ra.degree, galactic_plane.dec.degree)
             m.scatter(galactic_x, galactic_y, marker='.', s=2, c='k')
-    if(pix_shape=='ellipse'):
+    if pix_shape=='ellipse':
         m = Basemap(projection=projection, lon_0=center_longitude, resolution='l', celestial=True)
         m.drawmeridians(np.arange(0, 360, 60), labels=[0,0,1,0], labelstyle='+/-')
         m.drawparallels(np.arange(-90, 90, 15), labels=[1,0,0,0], labelstyle='+/-')

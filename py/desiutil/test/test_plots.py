@@ -15,7 +15,7 @@ matplotlib.use('agg')
 import matplotlib.pyplot as plt
 
 from ..plots import plot_slices
-#from ..plots import plot_sky
+from ..plots import plot_sky
 
 try:
     basestring
@@ -30,13 +30,13 @@ class TestPlots(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.plot_file = 'test.png'
-    #    cls.plot_file2 = 'test_sky.png'
+        cls.plot_file2 = 'test_sky.png'
     @classmethod
     def tearDownClass(cls):
         if os.path.exists(cls.plot_file):
             os.remove(cls.plot_file)
-    #    if os.path.exists(cls.plot_file2):
-    #        os.remove(cls.plot_file2)
+        if os.path.exists(cls.plot_file2):
+            os.remove(cls.plot_file2)
 
     def test_slices(self):
         """Test plot_slices
@@ -49,13 +49,13 @@ class TestPlots(unittest.TestCase):
         ax.set_ylabel('N sigma')
         ax.set_xlabel('x')
         plt.savefig(self.plot_file)
-    @unittest.skipIf('mpl_toolkits.basemap' not in sys.modules or 'TRAVIS_JOB_ID' in os.environ, 'Skipping tests of plot_sky that require basemap and conflict with Travis')
+    #@unittest.skipIf('TRAVIS_JOB_ID' in os.environ, 'Skipping tests of plot_sky on Travis')
     def test_plot_sky(self):
         """Test plot_sky
         """ 
         ra = 360.*np.random.rand(200)
         dec = 360.*np.random.rand(200)
-        ax = plot_sky(ra,dec,discrete_colors=False,test_travis=True,pix_shape='square')
+        ax = plot_sky(ra,dec,discrete_colors=False,pix_shape='square')
         plt.savefig(self.plot_file2)
 
 def test_suite():

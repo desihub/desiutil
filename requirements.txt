@@ -3,4 +3,5 @@ requests
 pyyaml
 astropy
 healpy
+matplotlib
 git+https://github.com/matplotlib/basemap.git
