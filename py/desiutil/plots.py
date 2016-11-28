@@ -58,6 +58,7 @@ def plot_slices(x, y, x_lo, x_hi, y_cut, num_slices=5, min_count=100, axis=None,
     :class:`matplotlib.axes.Axes`
         The Axes object used in the plot.
     """
+    import os
     if 'TRAVIS_JOB_ID' in os.environ:
         import matplotlib
         matplotlib.use('agg')
@@ -187,6 +188,7 @@ def plot_sky(ra, dec, data=None, pix_shape='ellipse', nside=16, label='', projec
     import os
     import matplotlib
     if 'TRAVIS_JOB_ID' in os.environ:
+        print('Working on Travis, using agg')
         matplotlib.use('agg')
     from matplotlib.collections import PolyCollection
     from astropy.coordinates import SkyCoord
