@@ -45,9 +45,7 @@ class TestPlots(unittest.TestCase):
         ax_slices = plot_slices(x,y,0.,1.,0.) 
         ax_slices.set_ylabel('N sigma')
         ax_slices.set_xlabel('x')
-        if 'TRAVIS_JOB_ID' in os.environ:
-            plt.savefig(sys.stdout)
-        else:
+        if 'TRAVIS_JOB_ID' not in os.environ:
             plt.savefig(self.plot_file)
        
     def test_plot_sky(self):
@@ -58,9 +56,7 @@ class TestPlots(unittest.TestCase):
         dec = 360.*np.random.rand(200)
         #Run
         ax = plot_sky(ra,dec,discrete_colors=False,pix_shape='square')
-        if 'TRAVIS_JOB_ID' in os.environ:
-            plt.savefig(sys.stdout)
-        else:
+        if 'TRAVIS_JOB_ID' not in os.environ:
             plt.savefig(self.plot_file2)
 
 def test_suite():
