@@ -58,10 +58,7 @@ def plot_slices(x, y, x_lo, x_hi, y_cut, num_slices=5, min_count=100, axis=None,
     :class:`matplotlib.axes.Axes`
         The Axes object used in the plot.
     """
-    import os
-    if 'TRAVIS_JOB_ID' in os.environ:
-        import matplotlib
-        matplotlib.use('agg')
+     
     import matplotlib.pyplot as plt
 
     if axis is None:

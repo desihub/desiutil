@@ -10,9 +10,8 @@ import os
 import numpy as np
 import sys
 #Set non-interactive backend for Travis
-if 'TRAVIS_JOB_ID' in os.environ:
-    import matplotlib
-    matplotlib.use('agg')
+import matplotlib
+matplotlib.use('agg')
 
 import matplotlib.pyplot as plt
 
@@ -39,7 +38,7 @@ class TestPlots(unittest.TestCase):
             os.remove(cls.plot_file)
         if os.path.exists(cls.plot_file2):
             os.remove(cls.plot_file2)
-
+    @unittest.skipIf('TRAVIS_JOB_ID' in os.environ, 'Skipping test of plot_slices Travis')
     def test_slices(self):
         """Test plot_slices
         """
@@ -47,9 +46,9 @@ class TestPlots(unittest.TestCase):
         x = np.random.rand(1000)
         y = np.random.randn(1000)
         # Run 
-        ax = plot_slices(x,y,0.,1.,0.)
-        ax.set_ylabel('N sigma')
-        ax.set_xlabel('x')
+        ax_slices = plot_slices(x,y,0.,1.,0.)
+        ax_slices.set_ylabel('N sigma')
+        ax_slices.set_xlabel('x')
         plt.savefig(self.plot_file)
     
     def test_plot_sky(self):
@@ -57,6 +56,7 @@ class TestPlots(unittest.TestCase):
         """ 
         ra = 360.*np.random.rand(200)
         dec = 360.*np.random.rand(200)
+        #Run
         ax = plot_sky(ra,dec,discrete_colors=False,pix_shape='square')
         plt.savefig(self.plot_file2)
 
