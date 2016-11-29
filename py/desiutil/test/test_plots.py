@@ -21,7 +21,7 @@ try:
 except NameError:  # For Python 3
     basestring = str
 
-class TestPlotSlices(unittest.TestCase):
+class TestPlots(unittest.TestCase):
     """Test desiutil.plots
     """
 
@@ -29,7 +29,7 @@ class TestPlotSlices(unittest.TestCase):
     def setUpClass(self):
         self.test_dir = tempfile.mkdtemp()
         self.plot_file = os.path.join(self.test_dir,'test_slices.png')
-   
+        self.plot_file2 = os.path.join(self.test_dir,'test_sky.png')
     @classmethod
     def tearDownClass(self):
         shutil.rmtree(self.test_dir)       
@@ -45,19 +45,8 @@ class TestPlotSlices(unittest.TestCase):
         ax_slices = plot_slices(x,y,0.,1.,0.) 
         ax_slices.set_ylabel('N sigma')
         ax_slices.set_xlabel('x')
-        fig = plt.gcf()
-        fig.savefig(self.plot_file)
-        print('Saved file')
-class TestPlotSky(unittest.TestCase):    
-    @classmethod
-    def setUpClass(self):
-        self.test_dir = tempfile.mkdtemp()
-        self.plot_file = os.path.join(self.test_dir,'test_sky.png')
-   
-    @classmethod
-    def tearDownClass(self):
-        shutil.rmtree(self.test_dir)    
-
+        plt.savefig(self.plot_file)
+       
     def test_plot_sky(self):
         """Test plot_sky
         """ 
@@ -66,7 +55,7 @@ class TestPlotSky(unittest.TestCase):
         dec = 360.*np.random.rand(200)
         #Run
         ax = plot_sky(ra,dec,discrete_colors=False,pix_shape='square')
-        plt.savefig(self.plot_file)
+        plt.savefig(self.plot_file2)
 
 def test_suite():
     """Allows testing of only this module with the command::
