@@ -47,7 +47,12 @@ class TestPlots(unittest.TestCase):
         ax_slices.set_xlabel('x')
         if 'TRAVIS_JOB_ID' not in os.environ:
             plt.savefig(self.plot_file)
-       
+    try:
+        import mpl_toolkits.basemap
+        have_basemap = True
+    except ImportError:
+        have_basemap = False
+    @unittest.skipIf(have_basemap == False, 'Skipping tests of plot_sky that require basemap to be installed first')
     def test_plot_sky(self):
         """Test plot_sky
         """ 
