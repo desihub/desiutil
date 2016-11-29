@@ -20,7 +20,6 @@ try:
 except NameError:  # For Python 3
     basestring = str
 
-
 class TestPlotSlices(unittest.TestCase):
     """Test desiutil.plots
     """
@@ -43,10 +42,12 @@ class TestPlotSlices(unittest.TestCase):
         y = np.random.randn(1000)
         # Run 
         ax_slices = plot_slices(x,y,0.,1.,0.)
+        print('Created plot_slices')
         ax_slices.set_ylabel('N sigma')
         ax_slices.set_xlabel('x')
+        print('Changed labels')
         plt.savefig(self.plot_file)
-
+        print('Saved file')
 class TestPlotSky(unittest.TestCase):    
     @classmethod
     def setUpClass(cls):
