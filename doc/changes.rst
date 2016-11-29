@@ -2,10 +2,21 @@
 Change Log
 ==========
 
-1.9.3 (unreleased)
+1.9.4 (unreleased)
+-----------------
+
+*
+
+
+1.9.3 (2016-11-29)
 ------------------
 
-* No changes yet.
+* Added :func:`desiutil.plots.plot_sky` utility, to make all-sky plots
+  test of this function and an example notebook for using it in docs/nb.
+* Include :func:`desiutil.plots.plot_sky` in documentation.
+* Include :func:`desiutil.plots.plot_sky` in tests.
+* Changed requirements for Travis-CI.
+* Avoid output png files while testing in Travis.
 
 1.9.2 (2016-11-18)
 ------------------
