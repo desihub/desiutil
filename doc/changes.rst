@@ -5,8 +5,7 @@ Change Log
 1.9.3 (unreleased)
 ------------------
 
-* Added :func:`desiutil.plots.plot_sky` to make all-sky plots. This function
-  requires `basemap` (`PR #52`_).
+* Added :func:`desiutil.plots.plot_sky` to make all-sky plots (`PR #52`_).
  
 .. _`PR #52`: https://github.com/desihub/desiutil/pull/52
 
