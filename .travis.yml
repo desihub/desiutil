@@ -69,7 +69,7 @@ matrix:
 #           env: MAIN_CMD='pep8' SETUP_CMD='--count py/desiutil'
 
 before_install:
-    - curl ipinfo.io 
+    - curl ipinfo.io
 
 install:
     - if [[ $MAIN_CMD == 'pep8' ]]; then pip install pep8; fi

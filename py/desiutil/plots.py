@@ -200,10 +200,31 @@ def plot_sky(ra, dec, data=None, pix_shape='ellipse', nside=16, label='', projec
     #--------
 
     class Basemap(Basemap):
-        #Code from http://stackoverflow.com/questions/8161144/drawing-ellipses-on-matplotlib-basemap-projections
-        #It adds ellipses to the class Basemap to use in plotsky. This is only used in plotsky and includes the basemap
-        #dependencies.
-     def ellipse(self, x0, y0, a, b, n, ax=None, **kwargs):
+        """Code from http://stackoverflow.com/questions/8161144/drawing-ellipses-on-matplotlib-basemap-projections
+        It adds ellipses to the class Basemap to use in plotsky. 
+        This is only used in plotsky and includes the basemap dependencies.
+        """
+    def ellipse(self, x0, y0, a, b, n, ax=None, **kwargs):
+        """Extension to Basemap class from `basemap` to draw ellipses.
+        
+        Parameters
+        ----------
+        x0 : :class: `float`
+            Centroid of the ellipse in the X axis.
+        y0 : :class: `float`
+            Centroid of the ellipse in the Y axis.
+        a : :class: `float`
+            Semi-major axis of the ellipse.
+        b : :class: `float`
+            Semi-minor axis of the ellipse. 
+        n : :class: `int`
+            Number of points to draw the ellipse.
+
+        Returns
+        -------
+        :class: `Basemap`
+            It returns one Basemap ellipse at a time.
+        """
         ax = kwargs.pop('ax', None) or self._check_ax()
         g = pyproj.Geod(a=self.rmajor, b=self.rminor)
         azf, azb, dist = g.inv([x0, x0],[y0, y0],[x0+a, x0],[y0, y0+b])
