@@ -58,7 +58,7 @@ def plot_slices(x, y, x_lo, x_hi, y_cut, num_slices=5, min_count=100, axis=None,
     :class:`matplotlib.axes.Axes`
         The Axes object used in the plot.
     """
-     
+
     import matplotlib.pyplot as plt
 
     if axis is None:
@@ -120,13 +120,17 @@ def plot_slices(x, y, x_lo, x_hi, y_cut, num_slices=5, min_count=100, axis=None,
 
     return axis
 
-def plot_sky(ra, dec, data=None, pix_shape='ellipse', nside=16, label='', projection='eck4', cmap='jet', hide_galactic_plane=False, discrete_colors=True, center_longitude=0, radius=2., epsi=0.2, alpha_tile=0.5, min_color=1, max_color=5, nsteps=5):
+
+def plot_sky(ra, dec, data=None, pix_shape='ellipse', nside=16, label='',
+             projection='eck4', cmap='jet', hide_galactic_plane=False,
+             discrete_colors=True, center_longitude=0, radius=2., epsi=0.2,
+             alpha_tile=0.5, min_color=1, max_color=5, nsteps=5):
     """
     Routine that reads ra and dec (in degrees) and makes an all-sky plot
     of the data.
-    
+
     Requires matplotlib/basemap and healpy if pix_shape='healpix'.
-    
+
     Parameters
     ----------
     ra : array of :class: `float`
@@ -150,7 +154,7 @@ def plot_sky(ra, dec, data=None, pix_shape='ellipse', nside=16, label='', projec
     cmap : :class: `string`, optional
         name of the matplotlib colormap to use. Default 'jet'.
     hide_galactic_plane : :class: `bool`, optional
-        if True it hides the galactic plane in the plot, 
+        if True it hides the galactic plane in the plot,
         if False it shows it. Default False.
     discrete_colors : :class: `bool`, optional
         if True it uses the data to create a linear discrete color-scale.
@@ -159,7 +163,7 @@ def plot_sky(ra, dec, data=None, pix_shape='ellipse', nside=16, label='', projec
     radius : :class: `float`, optional
         radius of the circle in degrees. Default 2.
     epsi : :class: `float`, optional
-        it prevents ellipses to wrap around the edges. Only ellipses with 
+        it prevents ellipses to wrap around the edges. Only ellipses with
         abs(ra-180-center_longitude)>radius+epsi are plotted. If you want to
         plot all the ellipses set epsi to -radius (ellipses will wrap around
         the edges). Default 0.2
@@ -170,12 +174,12 @@ def plot_sky(ra, dec, data=None, pix_shape='ellipse', nside=16, label='', projec
     max_color : :class: `float`, optional
         maximum value of the color scale if discrete_colors=True. Default 5
     nsteps : :class: `int`, optional
-        number of intervals on the color scale if 
+        number of intervals on the color scale if
         discrete_colors=True. Default 5
-     
+
     Returns
     -------
-    :class:`matplotlib.axes.Axes` 
+    :class:`matplotlib.axes.Axes`
        The Axes object for the plot. It creates a figure if
        there was no previous figure and if data is not provided
        it returns counts per square-degree if healpix
@@ -190,23 +194,24 @@ def plot_sky(ra, dec, data=None, pix_shape='ellipse', nside=16, label='', projec
     from astropy.coordinates import SkyCoord
     import matplotlib.pyplot as plt
     import astropy.units as u
-    import matplotlib.cm as cm 
+    import matplotlib.cm as cm
     from matplotlib.patches import Polygon
     from mpl_toolkits.basemap import pyproj
     from mpl_toolkits.basemap import Basemap
-    
+
     #---------
     # Add ellipses to Basemap
     #--------
 
     class Basemap(Basemap):
-        """Code from http://stackoverflow.com/questions/8161144/drawing-ellipses-on-matplotlib-basemap-projections
-        It adds ellipses to the class Basemap to use in plotsky. 
+        """Code from http://stackoverflow.com/questions/8161144/
+        drawing-ellipses-on-matplotlib-basemap-projections
+        It adds ellipses to the class Basemap to use in plotsky.
         This is only used in plotsky and includes the basemap dependencies.
         """
     def ellipse(self, x0, y0, a, b, n, ax=None, **kwargs):
         """Extension to Basemap class from `basemap` to draw ellipses.
-        
+
         Parameters
         ----------
         x0 : :class: `float`
@@ -216,7 +221,7 @@ def plot_sky(ra, dec, data=None, pix_shape='ellipse', nside=16, label='', projec
         a : :class: `float`
             Semi-major axis of the ellipse.
         b : :class: `float`
-            Semi-minor axis of the ellipse. 
+            Semi-minor axis of the ellipse.
         n : :class: `int`
             Number of points to draw the ellipse.
 
@@ -267,7 +272,8 @@ def plot_sky(ra, dec, data=None, pix_shape='ellipse', nside=16, label='', projec
         return poly
 
     if pix_shape not in ['ellipse','healpix','square']:
-        raise KeyError('%s shape invalid, try ellipse, healpix or square'%pix_shape)
+        raise KeyError(
+            '%s shape invalid, try ellipse, healpix or square'%pix_shape)
     if discrete_colors:
         if data is None:
             raise ValueError('Error discrete_colors expects data!=None')
@@ -287,8 +293,9 @@ def plot_sky(ra, dec, data=None, pix_shape='ellipse', nside=16, label='', projec
         # get pixel area in degrees
         pixel_area = hp.pixelfunc.nside2pixarea(nside, degrees=True)
         #avoid pixels which may cause polygons to wrap around workaround
-        drawing_mask = np.logical_and(np.fabs(ra-180-center_longitude)>2*np.sqrt(pixel_area)+epsi \
-        ,np.fabs(ra+180-center_longitude)>2*np.sqrt(pixel_area)+epsi)
+        drawing_mask = np.logical_and(
+            np.fabs(ra-180-center_longitude)>2*np.sqrt(pixel_area)+epsi,
+            np.fabs(ra+180-center_longitude)>2*np.sqrt(pixel_area)+epsi)
         ra=ra[drawing_mask]
         dec=dec[drawing_mask]
         if data!=None:
@@ -309,29 +316,40 @@ def plot_sky(ra, dec, data=None, pix_shape='ellipse', nside=16, label='', projec
         # find pixel boundaries
         corners = hp.boundaries(nside, unique_pixels, step=1)
         corner_theta, corner_phi = hp.vec2ang(corners.transpose(0,2,1))
-        corner_ra, corner_dec = np.degrees(corner_phi), np.degrees(np.pi/2-corner_theta)
+        corner_ra, corner_dec = (
+            np.degrees(corner_phi), np.degrees(np.pi/2-corner_theta)
         # set up basemap
-        m = Basemap(projection=projection, lon_0=center_longitude, resolution='c', celestial=True)
-        m.drawmeridians(np.arange(0, 360, 60), labels=[0,0,1,0], labelstyle='+/-')
-        m.drawparallels(np.arange(-90, 90, 15), labels=[1,0,0,0], labelstyle='+/-')
+        m = Basemap(projection=projection, lon_0=center_longitude,
+                    resolution='c', celestial=True)
+        m.drawmeridians(
+            np.arange(0, 360, 60), labels=[0,0,1,0], labelstyle='+/-')
+        m.drawparallels(
+            np.arange(-90, 90, 15), labels=[1,0,0,0], labelstyle='+/-')
         m.drawmapboundary()
-        # convert sky coords to map coords 
+        # convert sky coords to map coords
         x,y = m(corner_ra, corner_dec)
         # regroup into pixel corners
         verts = np.array([x.reshape(-1,4), y.reshape(-1,4)]).transpose(1,2,0)
         # Make the collection and add it to the plot.
-        coll = PolyCollection(verts, array=values, cmap=cmap, norm=norm, edgecolors='none')
+        coll = PolyCollection(
+            verts, array=values, cmap=cmap, norm=norm, edgecolors='none')
         plt.gca().add_collection(coll)
         plt.gca().autoscale_view()
         if not hide_galactic_plane:
-            # generate vector in galactic coordinates and convert to equatorial coordinates
+            # generate vector in galactic coordinates and convert to
+            # equatorial coordinates
             galactic_l = np.linspace(0, 2*np.pi, 1000)
-            galactic_plane = SkyCoord(l=galactic_l*u.radian, b=np.zeros_like(galactic_l)*u.radian, frame='galactic').fk5
+            galactic_plane = SkyCoord(
+                l=galactic_l*u.radian, b=np.zeros_like(galactic_l)*u.radian,
+                frame='galactic').fk5
             # project to map coordinates
-            galactic_x, galactic_y = m(galactic_plane.ra.degree, galactic_plane.dec.degree)
+            galactic_x, galactic_y = m(galactic_plane.ra.degree,
+                                       galactic_plane.dec.degree)
             m.scatter(galactic_x, galactic_y, marker='.', s=2, c='k')
         # Add a colorbar for the PolyCollection
-        plt.colorbar(coll, orientation='horizontal',cmap=cmap, norm=norm, spacing='proportional', pad=0.01, aspect=40, label=label)
+        plt.colorbar(
+            coll, orientation='horizontal', cmap=cmap, norm=norm,
+            spacing='proportional', pad=0.01, aspect=40, label=label)
     if pix_shape=='square':
         nx, ny = 4*nside, 4*nside
 
@@ -342,34 +360,50 @@ def plot_sky(ra, dec, data=None, pix_shape='ellipse', nside=16, label='', projec
             weights=np.ones(len(ra))
         else:
             weights=data
-        density, _, _ = np.histogram2d(ra, np.sin(dec*np.pi/180.), [ra_bins, cth_bins], weights=weights)
+        density, _, _ = np.histogram2d(
+            ra, np.sin(dec*np.pi/180.), [ra_bins, cth_bins], weights=weights)
         ra_bins_2d, cth_bins_2d = np.meshgrid(ra_bins, cth_bins)
-        m = Basemap(projection=projection, lon_0=center_longitude, resolution='l', celestial=True)
-        m.drawmeridians(np.arange(0, 360, 60), labels=[0,0,1,0], labelstyle='+/-')
-        m.drawparallels(np.arange(-90, 90, 15), labels=[1,0,0,0], labelstyle='+/-')
+        m = Basemap(projection=projection, lon_0=center_longitude,
+                    resolution='l', celestial=True)
+        m.drawmeridians(
+            np.arange(0, 360, 60), labels=[0,0,1,0], labelstyle='+/-')
+        m.drawparallels(
+            np.arange(-90, 90, 15), labels=[1,0,0,0], labelstyle='+/-')
         m.drawmapboundary()
         xs, ys = m(ra_bins_2d, np.arcsin(cth_bins_2d)*180/np.pi)
         new_density = np.ma.masked_where(density==0,density).T
         pcm = plt.pcolormesh(xs, ys, new_density,cmap=cmap, norm=norm)
-        plt.colorbar(pcm,orientation='horizontal',cmap=cmap, norm=norm, spacing='proportional', pad=0.04, label=label)
+        plt.colorbar(pcm,orientation='horizontal',cmap=cmap, norm=norm,
+                     spacing='proportional', pad=0.04, label=label)
         if not hide_galactic_plane:
-            # generate vector in galactic coordinates and convert to equatorial coordinates
+            # generate vector in galactic coordinates and convert to
+            # equatorial coordinates
             galactic_l = np.linspace(0, 2*np.pi, 1000)
-            galactic_plane = SkyCoord(l=galactic_l*u.radian, b=np.zeros_like(galactic_l)*u.radian, frame='galactic').fk5
+            galactic_plane = SkyCoord(
+                l=galactic_l*u.radian, b=np.zeros_like(galactic_l)*u.radian,
+                frame='galactic').fk5
             # project to map coordinates
-            galactic_x, galactic_y = m(galactic_plane.ra.degree, galactic_plane.dec.degree)
+            galactic_x, galactic_y = m(
+                galactic_plane.ra.degree, galactic_plane.dec.degree)
             m.scatter(galactic_x, galactic_y, marker='.', s=2, c='k')
     if pix_shape=='ellipse':
-        m = Basemap(projection=projection, lon_0=center_longitude, resolution='l', celestial=True)
-        m.drawmeridians(np.arange(0, 360, 60), labels=[0,0,1,0], labelstyle='+/-')
-        m.drawparallels(np.arange(-90, 90, 15), labels=[1,0,0,0], labelstyle='+/-')
+        m = Basemap(projection=projection, lon_0=center_longitude,
+                    resolution='l', celestial=True)
+        m.drawmeridians(
+            np.arange(0, 360, 60), labels=[0,0,1,0], labelstyle='+/-')
+        m.drawparallels(
+            np.arange(-90, 90, 15), labels=[1,0,0,0], labelstyle='+/-')
         m.drawmapboundary()
         if not hide_galactic_plane:
-            # generate vector in galactic coordinates and convert to equatorial coordinates
+            # generate vector in galactic coordinates and convert to
+            # equatorial coordinates
             galactic_l = np.linspace(0, 2*np.pi, 1000)
-            galactic_plane = SkyCoord(l=galactic_l*u.radian, b=np.zeros_like(galactic_l)*u.radian, frame='galactic').fk5
+            galactic_plane = SkyCoord(
+                l=galactic_l*u.radian, b=np.zeros_like(galactic_l)*u.radian,
+                frame='galactic').fk5
             # project to map coordinates
-            galactic_x, galactic_y = m(galactic_plane.ra.degree, galactic_plane.dec.degree)
+            galactic_x, galactic_y = m(
+                galactic_plane.ra.degree, galactic_plane.dec.degree)
             m.scatter(galactic_x, galactic_y, marker='.', s=2, c='k')
         if data==None:
             weights=np.ones(len(ra))
@@ -379,9 +413,14 @@ def plot_sky(ra, dec, data=None, pix_shape='ellipse', nside=16, label='', projec
         cmm = cm.ScalarMappable(norm=norm, cmap=cmap)
         color_array = cmm.to_rgba(weights)
         for i in range(0,len(ra)):
-            if(np.fabs(ra[i]-180-center_longitude)>radius+epsi and np.fabs(ra[i]+180-center_longitude)>radius+epsi):
-                poly = m.ellipse(ra[i], dec[i], radius, radius, 8, facecolor=color_array[i], zorder=10,alpha=alpha_tile)
-        plt.colorbar(plt.imshow(np.array([(1,2),(3,4),(0,6)]),cmap=cmap, norm=norm),orientation='horizontal',cmap=cmap, norm=norm, spacing='proportional', pad=0.04, label=label)
+            if(np.fabs(ra[i]-180-center_longitude)>radius+epsi and
+               np.fabs(ra[i]+180-center_longitude)>radius+epsi):
+                poly = m.ellipse(
+                    ra[i], dec[i], radius, radius, 8, facecolor=color_array[i],
+                    zorder=10,alpha=alpha_tile)
+        plt.colorbar(plt.imshow(
+            np.array([(1,2),(3,4),(0,6)]),cmap=cmap, norm=norm),
+            orientation='horizontal',cmap=cmap, norm=norm,
+            spacing='proportional', pad=0.04, label=label)
     axis = plt.gca()
     return axis
- 
