@@ -130,6 +130,8 @@ def init_sky(projection='eck4', center_longitude=60, galactic_plane=True):
     support drawing ellipses or circles on the sky, which is useful for
     representing DESI tiles.
 
+    Requires that matplotlib and basemap are installed.
+
     Parameters
     ----------
     projection : :class: `string`, optional
@@ -254,7 +256,7 @@ def init_sky(projection='eck4', center_longitude=60, galactic_plane=True):
     return m
 
 
-def plot_sky(ra, dec, data=None, pix_shape='ellipse', nside=16, label='',
+def plot_sky(ra, dec, data=None, pix_shape='circle', nside=16, label='',
              projection='eck4', cmap='jet', galactic_plane=True,
              discrete_colors=True, center_longitude=60, radius=2., epsi=0.2,
              alpha_tile=0.5, min_color=1, max_color=5, nsteps=5):
@@ -262,7 +264,8 @@ def plot_sky(ra, dec, data=None, pix_shape='ellipse', nside=16, label='',
     Routine that reads ra and dec (in degrees) and makes an all-sky plot
     of the data.
 
-    Requires matplotlib/basemap and healpy if pix_shape='healpix'.
+    Requires that matplotlib and basemap are installed. Also requires healpy
+    when pix_shape is 'healpix'.
 
     Parameters
     ----------
@@ -273,7 +276,7 @@ def plot_sky(ra, dec, data=None, pix_shape='ellipse', nside=16, label='',
     data : array of :class: `float or int`
         Weights to use (for example the tile-pass or values of E(B-V)).
     pix_shape : :class: `string`
-        Shape of the pixels on the plot. It can take the values 'ellipse',
+        Shape of the pixels on the plot. It can take the values 'circle',
         'healpix', or 'square'.
     nside : :class: `int`
         It controls the number of pixels with healpix and square pixels.
@@ -292,12 +295,13 @@ def plot_sky(ra, dec, data=None, pix_shape='ellipse', nside=16, label='',
     center_longitude : :class: `float`, optional
         See :func:`init_sky`.
     radius : :class: `float`, optional
-        radius of the circle in degrees. Default 2.
+        Opening-angle radius in degrees to use when pix_shape is `circle`.
+        Default 2.
     epsi : :class: `float`, optional
         it prevents ellipses to wrap around the edges. Only ellipses with
         abs(ra-180-center_longitude)>radius+epsi are plotted. If you want to
         plot all the ellipses set epsi to -radius (ellipses will wrap around
-        the edges). Default 0.2
+        the edges). Units are degrees. Default 0.2
     alpha_tile : :class: `float`, optional
         Transparency for the ellipses. 1 Opaque, 0 transparent. Default 0.5.
     min_color : :class: `float`, optional
@@ -321,9 +325,9 @@ def plot_sky(ra, dec, data=None, pix_shape='ellipse', nside=16, label='',
     # Initialize the basemap to use.
     m = init_sky(projection, center_longitude, galactic_plane)
 
-    if pix_shape not in ['ellipse','healpix','square']:
+    if pix_shape not in ['circle','healpix','square']:
         raise KeyError(
-            '%s shape invalid, try ellipse, healpix or square'%pix_shape)
+            '%s shape invalid, try circle, healpix or square'%pix_shape)
     if discrete_colors:
         if data is None:
             raise ValueError('Error discrete_colors expects data!=None')
@@ -402,7 +406,7 @@ def plot_sky(ra, dec, data=None, pix_shape='ellipse', nside=16, label='',
         plt.colorbar(pcm,orientation='horizontal',cmap=cmap, norm=norm,
                      spacing='proportional', pad=0.04, label=label)
 
-    elif pix_shape=='ellipse':
+    elif pix_shape=='circle':
         if data==None:
             weights=np.ones(len(ra))
         else:
