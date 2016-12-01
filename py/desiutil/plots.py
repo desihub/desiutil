@@ -179,12 +179,9 @@ def plot_sky(ra, dec, data=None, pix_shape='ellipse', nside=16, label='',
 
     Returns
     -------
-    :class:`matplotlib.axes.Axes`
-       The Axes object for the plot. It creates a figure if
-       there was no previous figure and if data is not provided
-       it returns counts per square-degree if healpix
-       or square pixels are created. If you choose the option ellipse
-       it plots as many ellipses as ra,dec points provided (it may be slow).
+    :class:`mpl_toolkits.basemap.Basemap`
+       The Basemap object created for this plot, which can be used for
+       additional projection and plotting operations.
     """
     import os
     import matplotlib
@@ -317,7 +314,7 @@ def plot_sky(ra, dec, data=None, pix_shape='ellipse', nside=16, label='',
         corners = hp.boundaries(nside, unique_pixels, step=1)
         corner_theta, corner_phi = hp.vec2ang(corners.transpose(0,2,1))
         corner_ra, corner_dec = (
-            np.degrees(corner_phi), np.degrees(np.pi/2-corner_theta)
+            np.degrees(corner_phi), np.degrees(np.pi/2-corner_theta))
         # set up basemap
         m = Basemap(projection=projection, lon_0=center_longitude,
                     resolution='c', celestial=True)
@@ -422,5 +419,5 @@ def plot_sky(ra, dec, data=None, pix_shape='ellipse', nside=16, label='',
             np.array([(1,2),(3,4),(0,6)]),cmap=cmap, norm=norm),
             orientation='horizontal',cmap=cmap, norm=norm,
             spacing='proportional', pad=0.04, label=label)
-    axis = plt.gca()
-    return axis
+
+    return m
