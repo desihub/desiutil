@@ -13,6 +13,7 @@ from __future__ import (print_function, absolute_import, division,
 import os
 
 import numpy as np
+import numpy.ma
 
 try:
     basestring
@@ -123,17 +124,18 @@ def plot_slices(x, y, x_lo, x_hi, y_cut, num_slices=5, min_count=100, axis=None,
     return axis
 
 
-def assign_colors(data, mask=None, clip_lo='1%', clip_hi='99%', cmap='viridis'):
-    """Assign colors to each value in a 1D data vector.
+def prepare_data(data, mask=None, clip_lo='1%', clip_hi='99%'):
+    """Prepare array data for color mapping.
 
-    Requires that the matplotlib package is installed.
+    Data is clipped and masked to be suitable for passing to matplotlib
+    routines that automatically assign colors based on input values.
 
     Parameters
     ----------
     data : array or masked array
-        1D array of data values to assign colors for.
+        Array of data values to assign colors for.
     mask : array of bool or None
-        1D array of bools with same shape as data, where True values indicate
+        Array of bools with same shape as data, where True values indicate
         values that should be ignored when assigning colors.  When None, the
         mask of a masked array will be used or all values of an unmasked
         array will be used.
@@ -145,31 +147,22 @@ def assign_colors(data, mask=None, clip_lo='1%', clip_hi='99%', cmap='viridis'):
         Data values above clip_hi will be clipped to the maximum color. If
         clip_hi is a string, it should end with "%" and specify a percentile
         of un-masked data to clip above.
-    cmap : colormap name or object
-        Colormap that should be used to map un-masked values in the range
-        [clip_lo, clip_hi].
 
     Returns
     -------
-    tuple
-        Tuple (colors, mask, clipped) where clipped is an array of shape
-        (ndata, 4) giving RGBA values for each data value, mask is an array of
-        bools with shape (ndata,) and clipped is an array of shape (ndata,)
-        where the un-masked data is clipped to [clip_lo, clip_hi].
+    masked array
+        Masked numpy array with the same shape as the input data, with any
+        input mask applied (or copied from an input masked array) and values
+        clipped to [clip_lo, clip_hi].
     """
-    import matplotlib.pyplot as plt
-
-    cmap = plt.get_cmap(cmap)
     data = np.asanyarray(data)
-    if len(data.shape) != 1:
-        raise ValueError('Expected 1D data.')
     if mask is None:
         try:
             # Use the mask associated with a MaskedArray.
             mask = data.mask
         except AttributeError:
             # Nothing is masked by default.
-            mask = np.zeros(len(data), dtype=bool)
+            mask = np.zeros_like(data, dtype=bool)
     else:
         mask = np.asarray(mask)
         if mask.shape != data.shape:
@@ -194,13 +187,11 @@ def assign_colors(data, mask=None, clip_lo='1%', clip_hi='99%', cmap='viridis'):
     clip_lo = get_clip(clip_lo)
     clip_hi = get_clip(clip_hi)
 
-    colors = np.zeros((len(data), 4))
-    clipped = np.zeros_like(data)
+    clipped = numpy.ma.zeros(data.shape)
+    clipped.mask = mask
     clipped[~mask] = np.clip(unmasked_data, clip_lo, clip_hi)
-    normalized = (clipped[~mask] - clip_lo) / (clip_hi - clip_lo)
-    colors[~mask] = cmap(normalized)
 
-    return colors, mask, clipped
+    return clipped
 
 
 def init_sky(projection='eck4', center_longitude=60,
@@ -366,7 +357,7 @@ def plot_healpix_map(data, mask=None, clip_lo='1%', clip_hi='99%',
     clip_hi : float or str
         See :func:`assign_colors`.
     cmap : colormap name or object
-        See :func:`assign_colors`.
+        Matplotlib colormap to use for mapping data values to colors.
     colorbar : bool
         Draw a colorbar below the map when True.
     label : str or None
@@ -384,11 +375,11 @@ def plot_healpix_map(data, mask=None, clip_lo='1%', clip_hi='99%',
     import healpy as hp
     import matplotlib.pyplot as plt
     from matplotlib.collections import PolyCollection
-    from matplotlib.path import Path
-    from matplotlib.patches import PathPatch
 
-    colors, mask, clipped = assign_colors(data, mask, clip_lo, clip_hi, cmap)
-    nside = hp.npix2nside(len(data))
+    clipped = prepare_data(data, mask, clip_lo, clip_hi)
+    if len(clipped.shape) != 1:
+        raise ValueError('Invalid data array, should be 1D.')
+    nside = hp.npix2nside(len(clipped))
 
     if basemap is None:
         basemap = init_sky()
@@ -412,12 +403,11 @@ def plot_healpix_map(data, mask=None, clip_lo='1%', clip_hi='99%',
     wrapped1 = hp.ang2pix(nside, theta_edge, phi_edge - eps)
     wrapped2 = hp.ang2pix(nside, theta_edge, phi_edge + eps)
     wrapped = np.unique(np.hstack((wrapped1, wrapped2)))
-    mask[wrapped] = True
+    clipped.mask[wrapped] = True
 
     # Make the collection and add it to the plot.
     collection = PolyCollection(
-        verts[~mask], array=clipped[~mask],
-        facecolors=colors[~mask], edgecolors='none')
+        verts, array=clipped, cmap=cmap, edgecolors='none')
 
     plt.gca().add_collection(collection)
     plt.gca().autoscale_view()
@@ -433,7 +423,7 @@ def plot_healpix_map(data, mask=None, clip_lo='1%', clip_hi='99%',
 
 
 def plot_sky(ra, dec, data=None, pix_shape='circle', nside=16, label='',
-             projection='eck4', cmap='jet', galactic_plane_color='black',
+             projection='eck4', cmap='viridis', galactic_plane_color='black',
              discrete_colors=True, center_longitude=60, radius=2., epsi=0.2,
              alpha_tile=0.5, min_color=1, max_color=5, nsteps=5):
     """
