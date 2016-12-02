@@ -203,7 +203,8 @@ def assign_colors(data, mask=None, clip_lo='1%', clip_hi='99%', cmap='viridis'):
     return colors, mask, clipped
 
 
-def init_sky(projection='eck4', center_longitude=60, galactic_plane=True):
+def init_sky(projection='eck4', center_longitude=60,
+             galactic_plane_color='black'):
     """Initialize a basemap projection of the full sky.
 
     The returned Basemap object is augmented with an ``ellipse()`` method to
@@ -228,8 +229,9 @@ def init_sky(projection='eck4', center_longitude=60, galactic_plane=True):
     center_longitude : :class: `float`, optional
         Center longitude for the plot in degrees. Default is +60, which
         avoids splitting the DESI northern and southern regions.
-    galactic_plane : :class: `bool`, optional
-        Draw a line representing the galactic plane if True.
+    galactic_plane_color : color name or None
+        Draw a line representing the galactic plane using the specified
+        color, or do nothing when None.
 
     Returns
     -------
@@ -325,7 +327,7 @@ def init_sky(projection='eck4', center_longitude=60, galactic_plane=True):
     m.drawmapboundary()
 
     # Draw the optional galactic plane.
-    if galactic_plane:
+    if galactic_plane_color is not None:
         # Generate coordinates of a line in galactic coordinates and convert
         # to equatorial coordinates.
         galactic_l = np.linspace(0, 2 * np.pi, 1000)
@@ -336,7 +338,12 @@ def init_sky(projection='eck4', center_longitude=60, galactic_plane=True):
         # avoid wrap-around complications.
         galactic_x, galactic_y = m(galactic_plane.ra.degree,
                                    galactic_plane.dec.degree)
-        m.scatter(galactic_x, galactic_y, marker='.', s=2, c='k')
+
+        paths = m.scatter(
+            galactic_x, galactic_y, marker='.', s=20, lw=0, alpha=0.75,
+            c=galactic_plane_color)
+        # Make sure the galactic plane stays above other displayed objects.
+        paths.set_zorder(20)
 
     return m
 
@@ -426,7 +433,7 @@ def plot_healpix_map(data, mask=None, clip_lo='1%', clip_hi='99%',
 
 
 def plot_sky(ra, dec, data=None, pix_shape='circle', nside=16, label='',
-             projection='eck4', cmap='jet', galactic_plane=True,
+             projection='eck4', cmap='jet', galactic_plane_color='black',
              discrete_colors=True, center_longitude=60, radius=2., epsi=0.2,
              alpha_tile=0.5, min_color=1, max_color=5, nsteps=5):
     """
@@ -492,7 +499,7 @@ def plot_sky(ra, dec, data=None, pix_shape='circle', nside=16, label='',
     from matplotlib.collections import PolyCollection
 
     # Initialize the basemap to use.
-    m = init_sky(projection, center_longitude, galactic_plane)
+    m = init_sky(projection, center_longitude, galactic_plane_color)
 
     if pix_shape not in ['circle','healpix','square']:
         raise KeyError(
