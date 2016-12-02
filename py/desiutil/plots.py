@@ -123,6 +123,86 @@ def plot_slices(x, y, x_lo, x_hi, y_cut, num_slices=5, min_count=100, axis=None,
     return axis
 
 
+def assign_colors(data, mask=None, clip_lo='1%', clip_hi='99%', cmap='viridis'):
+    """Assign colors to each value in a 1D data vector.
+
+    Requires that the matplotlib package is installed.
+
+    Parameters
+    ----------
+    data : array or masked array
+        1D array of data values to assign colors for.
+    mask : array of bool or None
+        1D array of bools with same shape as data, where True values indicate
+        values that should be ignored when assigning colors.  When None, the
+        mask of a masked array will be used or all values of an unmasked
+        array will be used.
+    clip_lo : float or str
+        Data values below clip_lo will be clipped to the minimum color. If
+        clip_lo is a string, it should end with "%" and specify a percentile
+        of un-masked data to clip below.
+    clip_hi : float or str
+        Data values above clip_hi will be clipped to the maximum color. If
+        clip_hi is a string, it should end with "%" and specify a percentile
+        of un-masked data to clip above.
+    cmap : colormap name or object
+        Colormap that should be used to map un-masked values in the range
+        [clip_lo, clip_hi].
+
+    Returns
+    -------
+    tuple
+        Tuple (colors, mask, clipped) where clipped is an array of shape
+        (ndata, 4) giving RGBA values for each data value, mask is an array of
+        bools with shape (ndata,) and clipped is an array of shape (ndata,)
+        where the un-masked data is clipped to [clip_lo, clip_hi].
+    """
+    import matplotlib.pyplot as plt
+
+    cmap = plt.get_cmap(cmap)
+    data = np.asanyarray(data)
+    if len(data.shape) != 1:
+        raise ValueError('Expected 1D data.')
+    if mask is None:
+        try:
+            # Use the mask associated with a MaskedArray.
+            mask = data.mask
+        except AttributeError:
+            # Nothing is masked by default.
+            mask = np.zeros(len(data), dtype=bool)
+    else:
+        mask = np.asarray(mask)
+        if mask.shape != data.shape:
+            raise ValueError('Invalid mask shape.')
+    unmasked_data = data[~mask]
+
+    if clip_lo is None:
+        clip_lo = np.min(unmasked_data)
+    if clip_hi is None:
+        clip_hi = np.max(unmasked_data)
+
+    # Convert percentile clip values to absolute values.
+    def get_clip(value):
+        try:
+            if value.endswith('%'):
+                return np.percentile(unmasked_data, float(value[:-1]))
+            else:
+                raise ValueError('Invalid clip parameter: {0}'.format(value))
+        except AttributeError:
+            return float(value)
+
+    clip_lo = get_clip(clip_lo)
+    clip_hi = get_clip(clip_hi)
+
+    colors = np.zeros((len(data), 4))
+    clipped = np.zeros_like(data)
+    clipped[~mask] = np.clip(unmasked_data, clip_lo, clip_hi)
+    normalized = (clipped[~mask] - clip_lo) / (clip_hi - clip_lo)
+    colors[~mask] = cmap(normalized)
+
+    return colors, mask, clipped
+
+
 def init_sky(projection='eck4', center_longitude=60, galactic_plane=True):
     """Initialize a basemap projection of the full sky.
 
