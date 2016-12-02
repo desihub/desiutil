@@ -130,6 +130,11 @@ def init_sky(projection='eck4', center_longitude=60, galactic_plane=True):
     support drawing ellipses or circles on the sky, which is useful for
     representing DESI tiles.
 
+    Note that the projection uses the geographic convention that RA increases
+    from left to right rather than the opposite celestial convention because
+    otherwise RA labels are drawn incorrectly (see
+    https://github.com/matplotlib/basemap/issues/283 for details).
+
     Requires that matplotlib and basemap are installed.
 
     Parameters
@@ -232,11 +237,11 @@ def init_sky(projection='eck4', center_longitude=60, galactic_plane=True):
     # Create an instance of our custom Basemap.
     m = BasemapWithEllipse(
         projection=projection, lon_0=center_longitude,
-        resolution='c', celestial=True)
+        resolution='c', celestial=False)
     m.drawmeridians(
         np.arange(0, 360, 60), labels=[0,0,1,0], labelstyle='+/-')
     m.drawparallels(
-        np.arange(-90, 90, 15), labels=[1,0,0,0], labelstyle='+/-')
+        np.arange(-90, 90, 30), labels=[1,1,0,0], labelstyle='+/-')
     m.drawmapboundary()
 
     # Draw the optional galactic plane.
