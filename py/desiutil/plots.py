@@ -341,6 +341,90 @@ def init_sky(projection='eck4', center_longitude=60, galactic_plane=True):
     return m
 
 
+def plot_healpix_map(data, mask=None, clip_lo='1%', clip_hi='99%',
+                     cmap='viridis', colorbar=True, label=None, basemap=None):
+    """Plot a healpix map using a basemap projection.
+
+    Requires that matplotlib, basemap, and healpy are installed.
+
+    Parameters
+    ----------
+    data : array
+        1D array of data associated with each healpix.  Must have a size that
+        exactly matches the number of pixels for some NSIDE value.
+    mask : array or None
+        See :func:`assign_colors`.
+    clip_lo : float or str
+        See :func:`assign_colors`.
+    clip_hi : float or str
+        See :func:`assign_colors`.
+    cmap : colormap name or object
+        See :func:`assign_colors`.
+    colorbar : bool
+        Draw a colorbar below the map when True.
+    label : str or None
+        Label to display under the plot.
+    basemap : Basemap object or None
+        Use the specified basemap or create a default basemap using
+        :func:`init_sky` when None.
+
+    Returns
+    -------
+    basemap
+        The basemap used for the plot, which will match the input basemap
+        provided, or be a newly created basemap if None was provided.
+    """
+    import healpy as hp
+    import matplotlib.pyplot as plt
+    from matplotlib.collections import PolyCollection
+    from matplotlib.path import Path
+    from matplotlib.patches import PathPatch
+
+    colors, mask, clipped = assign_colors(data, mask, clip_lo, clip_hi, cmap)
+    nside = hp.npix2nside(len(data))
+
+    if basemap is None:
+        basemap = init_sky()
+
+    # Get pixel boundaries as quadrilaterals.
+    corners = hp.boundaries(nside, np.arange(len(data)), step=1)
+    corner_theta, corner_phi = hp.vec2ang(corners.transpose(0,2,1))
+    corner_ra, corner_dec = (
+        np.degrees(corner_phi), np.degrees(np.pi/2-corner_theta))
+    # Convert sky coords to map coords.
+    x, y = basemap(corner_ra, corner_dec)
+    # Regroup into pixel corners.
+    verts = np.array([x.reshape(-1,4), y.reshape(-1,4)]).transpose(1,2,0)
+
+    # Find and mask any pixels that wrap around in RA.
+    uv_verts = np.array([corner_phi.reshape(-1,4),
+                         corner_theta.reshape(-1,4)]).transpose(1,2,0)
+    theta_edge = np.unique(uv_verts[:, :, 1])
+    phi_edge = np.radians(basemap.lonmax)
+    eps = 0.1 * np.sqrt(hp.nside2pixarea(nside))
+    wrapped1 = hp.ang2pix(nside, theta_edge, phi_edge - eps)
+    wrapped2 = hp.ang2pix(nside, theta_edge, phi_edge + eps)
+    wrapped = np.unique(np.hstack((wrapped1, wrapped2)))
+    mask[wrapped] = True
+
+    # Make the collection and add it to the plot.
+    collection = PolyCollection(
+        verts[~mask], array=clipped[~mask],
+        facecolors=colors[~mask], edgecolors='none')
+
+    plt.gca().add_collection(collection)
+    plt.gca().autoscale_view()
+
+    if colorbar:
+        bar = plt.colorbar(
+            collection, orientation='horizontal',
+            spacing='proportional', pad=0.01, aspect=50)
+        if label:
+            bar.set_label(label)
+
+    return basemap
+
+
 def plot_sky(ra, dec, data=None, pix_shape='circle', nside=16, label='',
              projection='eck4', cmap='jet', galactic_plane=True,
              discrete_colors=True, center_longitude=60, radius=2., epsi=0.2,
