@@ -345,23 +345,27 @@ def plot_healpix_map(data, mask=None, clip_lo='1%', clip_hi='99%',
 
     Requires that matplotlib, basemap, and healpy are installed.
 
+    This function is similar to :func:`plot_grid_map` but is generally slower
+    at high resolution and has less elegant handling of pixels that wrap around
+    in RA, which are not drawn.
+
     Parameters
     ----------
-    data : array
+    data : array or masked array
         1D array of data associated with each healpix.  Must have a size that
         exactly matches the number of pixels for some NSIDE value.
     mask : array or None
-        See :func:`assign_colors`.
+        See :func:`prepare_data`.
     clip_lo : float or str
-        See :func:`assign_colors`.
+        See :func:`prepare_data`.
     clip_hi : float or str
-        See :func:`assign_colors`.
+        See :func:`prepare_data`.
     cmap : colormap name or object
         Matplotlib colormap to use for mapping data values to colors.
     colorbar : bool
         Draw a colorbar below the map when True.
     label : str or None
-        Label to display under the plot.
+        Label to display under the colorbar.  Ignored unless colorbar is True.
     basemap : Basemap object or None
         Use the specified basemap or create a default basemap using
         :func:`init_sky` when None.
@@ -415,6 +419,116 @@ def plot_healpix_map(data, mask=None, clip_lo='1%', clip_hi='99%',
     if colorbar:
         bar = plt.colorbar(
             collection, orientation='horizontal',
+            spacing='proportional', pad=0.01, aspect=50)
+        if label:
+            bar.set_label(label)
+
+    return basemap
+
+
+def plot_grid_map(data, ra_edges, dec_edges, mask=None, clip_lo='1%',
+                  clip_hi='99%', cmap='viridis', colorbar=True, label=None,
+                  basemap=None):
+    """Plot an array of 2D values on a grid of (RA, DEC).
+
+    Requires that matplotlib and basemap are installed.
+
+    This function is similar to :func:`plot_healpix_map` but is generally faster
+    and has better handling of RA wrap around artifacts.
+
+    Parameters
+    ----------
+    data : array or masked array
+        2D array of data associated with each grid cell, with shape
+        (n_ra, n_dec).
+    ra_edges : array
+        1D array of n_ra+1 RA grid edge values in degrees, which must span the
+        full circle, i.e., ra_edges[0] == ra_edges[-1] - 360. The RA grid
+        does not need to match the edges of the basemap projection, in which
+        case any wrap-around cells will be duplicated on both edges.
+    dec_edges : array
+        1D array of n_dec+1 DEC grid edge values in degrees.  Values are not
+        required to span the full range [-90, +90].
+    mask : array or None
+        See :func:`prepare_data`.
+    clip_lo : float or str
+        See :func:`prepare_data`.
+    clip_hi : float or str
+        See :func:`prepare_data`.
+    cmap : colormap name or object
+        Matplotlib colormap to use for mapping data values to colors.
+    colorbar : bool
+        Draw a colorbar below the map when True.
+    label : str or None
+        Label to display under the colorbar.  Ignored unless colorbar is True.
+    basemap : Basemap object or None
+        Use the specified basemap or create a default basemap using
+        :func:`init_sky` when None.
+
+    Returns
+    -------
+    basemap
+        The basemap used for the plot, which will match the input basemap
+        provided, or be a newly created basemap if None was provided.
+    """
+    import matplotlib.pyplot as plt
+
+    data = np.asanyarray(data)
+    if len(data.shape) != 2:
+        raise ValueError('Expected 2D data array.')
+    n_dec, n_ra = data.shape
+
+    # Silently flatten, sort, and remove duplicates from the edges arrays.
+    ra_edges = np.unique(ra_edges)
+    dec_edges = np.unique(dec_edges)
+    if len(ra_edges) != n_ra + 1:
+        raise ValueError('Invalid ra_edges.')
+    if len(dec_edges) != n_dec + 1:
+        raise ValueError('Invalid dec_edges.')
+
+    if ra_edges[0] != ra_edges[-1] - 360:
+        raise ValueError('Invalid ra_edges, do not span 360 degrees.')
+
+    clipped = prepare_data(data, mask, clip_lo, clip_hi)
+
+    if basemap is None:
+        basemap = init_sky()
+
+    if basemap.lonmin + 360 != basemap.lonmax:
+        raise RuntimeError('Can only handle all-sky projections for now.')
+
+    # Shift RA gridlines so they overlap the map's left-edge RA.
+    while ra_edges[0] > basemap.lonmin:
+        ra_edges -= 360
+    while ra_edges[0] <= basemap.lonmin - 360:
+        ra_edges += 360
+
+    # Find the first RA gridline that fits within the map's left edge.
+    first = np.where(ra_edges >= basemap.lonmin)[0][0]
+
+    if first > 0:
+        # Wrap the data beyond the left edge around to the right edge.
+        if ra_edges[first] > basemap.lonmin:
+            # Split a wrap-around column into separate left and right columns.
+            ra_edges = np.hstack(([basemap.lonmin], ra_edges[first:],
+                                  ra_edges[:first] + 360, [basemap.lonmax]))
+            clipped = np.hstack(
+                (clipped[:, first:first + 1], clipped[:, first:],
+                 clipped[:, :first], clipped[:, first:first + 1]))
+        else:
+            ra_edges = np.hstack((ra_edges[first:], ra_edges[:first + 1] + 360))
+            clipped = np.hstack((clipped[:, first:], clipped[:, :first + 1]))
+
+    # Build a 2D array of grid line intersections.
+    grid_ra, grid_dec = np.meshgrid(ra_edges, dec_edges)
+
+    mesh = basemap.pcolormesh(
+        grid_ra, grid_dec, clipped, cmap=cmap, edgecolor='none',
+        lw=0, latlon=True)
+
+    if colorbar:
+        bar = plt.colorbar(
+            mesh, orientation='horizontal',
             spacing='proportional', pad=0.01, aspect=50)
         if label:
             bar.set_label(label)
