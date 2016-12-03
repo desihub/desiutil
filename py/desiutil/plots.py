@@ -219,7 +219,7 @@ def prepare_data(data, mask=None, clip_lo=None, clip_hi=None):
 
 
 def init_sky(projection='eck4', center_longitude=60,
-             galactic_plane_color='black'):
+             galactic_plane_color='red'):
     """Initialize a basemap projection of the full sky.
 
     The returned Basemap object is augmented with an ``ellipse()`` method to
@@ -561,7 +561,7 @@ def plot_grid_map(data, ra_edges, dec_edges, mask=None, clip_lo=None,
 
 
 def plot_sky(ra, dec, data=None, pix_shape='circle', nside=16, label='',
-             projection='eck4', cmap='viridis', galactic_plane_color='black',
+             projection='eck4', cmap='viridis', galactic_plane_color='red',
              discrete_colors=True, center_longitude=60, radius=2., epsi=0.2,
              alpha_tile=0.5, min_color=1, max_color=5, nsteps=5):
     """
