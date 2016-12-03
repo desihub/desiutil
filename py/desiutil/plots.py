@@ -133,7 +133,7 @@ def prepare_data(data, mask=None, clip_lo=None, clip_hi=None):
     If no optional parameters are specified, the input data is returned
     with an empty mask:
 
-    >>> data = np.arange(5)
+    >>> data = np.arange(5.)
     >>> prepare_data(data)
     masked_array(data = [0.0 1.0 2.0 3.0 4.0],
                  mask = [False False False False False],
@@ -152,6 +152,14 @@ def prepare_data(data, mask=None, clip_lo=None, clip_hi=None):
     >>> prepare_data(data, clip_lo='25%', clip_hi=3.5)
     masked_array(data = [1.0 1.0 2.0 3.0 3.5],
                  mask = [False False False False False],
+           fill_value = 1e+20)
+
+    Clipped values are also masked when the clip value or percentile
+    is prefixed with "!":
+
+    >>> prepare_data(data, clip_lo='!25%', clip_hi=3.5)
+    masked_array(data = [-- 1.0 2.0 3.0 3.5],
+                 mask = [ True False False False False],
            fill_value = 1e+20)
 
     An input masked array is passed through without any copying unless
@@ -203,27 +211,31 @@ def prepare_data(data, mask=None, clip_lo=None, clip_hi=None):
             raise ValueError('Invalid mask shape.')
     unmasked_data = data[~mask]
 
-    if clip_lo is None:
-        clip_lo = np.min(unmasked_data)
-    if clip_hi is None:
-        clip_hi = np.max(unmasked_data)
-
     # Convert percentile clip values to absolute values.
     def get_clip(value):
-        try:
+        clip_mask = False
+        if isinstance(value, basestring):
+            if value.startswith('!'):
+                clip_mask = True
+                value = value[1:]
             if value.endswith('%'):
-                return np.percentile(unmasked_data, float(value[:-1]))
-            else:
-                raise ValueError('Invalid clip parameter: {0}'.format(value))
-        except AttributeError:
-            return float(value)
+                value = np.percentile(unmasked_data, float(value[:-1]))
+        return float(value), clip_mask
 
-    clip_lo = get_clip(clip_lo)
-    clip_hi = get_clip(clip_hi)
+    if clip_lo is None:
+        clip_lo, mask_lo = np.min(unmasked_data), False
+    else:
+        clip_lo, mask_lo = get_clip(clip_lo)
+    if clip_hi is None:
+        clip_hi, mask_hi = np.max(unmasked_data), False
+    else:
+        clip_hi, mask_hi = get_clip(clip_hi)
 
-    clipped = numpy.ma.zeros(data.shape)
-    clipped.mask = mask
-    clipped[~mask] = np.clip(unmasked_data, clip_lo, clip_hi)
+    clipped = numpy.ma.MaskedArray(np.clip(data, clip_lo, clip_hi), mask=mask)
+    if mask_lo:
+        clipped.mask[data < clip_lo] = True
+    if mask_hi:
+        clipped.mask[data > clip_hi] = True
 
     return clipped
 
