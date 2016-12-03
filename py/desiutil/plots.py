@@ -378,7 +378,7 @@ def init_sky(projection='eck4', ra_center=120, galactic_plane_color='red'):
 
 def plot_healpix_map(data, cmap='viridis', colorbar=True, label=None,
                      basemap=None):
-    """Plot a healpix map using a basemap projection.
+    """Plot a healpix map using an all-sky projection.
 
     Pass the data array through :func:`prepare_data` to select a subset to plot
     and clip the color map to specified values or percentiles.
@@ -464,7 +464,7 @@ def plot_healpix_map(data, cmap='viridis', colorbar=True, label=None,
 
 def plot_grid_map(data, ra_edges, dec_edges, cmap='viridis', colorbar=True,
                   label=None, basemap=None):
-    """Plot an array of 2D values on a grid of (RA, DEC).
+    """Plot an array of 2D values using an all-sky projection.
 
     Pass the data array through :func:`prepare_data` to select a subset to plot
     and clip the color map to specified values or percentiles.
@@ -563,6 +563,103 @@ def plot_grid_map(data, ra_edges, dec_edges, cmap='viridis', colorbar=True,
             spacing='proportional', pad=0.01, aspect=50)
         if label:
             bar.set_label(label)
+
+    return basemap
+
+
+def plot_sky_circles(ra_center, dec_center, field_of_view=3.2, data=None,
+                     cmap='viridis', facecolors='skyblue', edgecolor='none',
+                     basemap=None):
+    """Plot circles on an all-sky projection.
+
+    Pass the optional data array through :func:`prepare_data` to select a
+    subset to plot and clip the color map to specified values or percentiles.
+
+    Requires that matplotlib and basemap are installed.
+
+    Parameters
+    ----------
+    ra_center : array
+        1D array of RA in degrees at the centers of each circle to plot.
+    dec_center : array
+        1D array of DEC in degrees at the centers of each circle to plot.
+    field_of_view : array
+        Full sky openning angle in degrees of the circles to plot. The default
+        is appropriate for a DESI tile.
+    data : array or None
+        1D array of data associated with each circle, used to set its facecolor.
+    cmap : colormap name or object
+        Matplotlib colormap to use for mapping data values to colors. Ignored
+        unless data is specified.
+    facecolors : matplotlib color or array of colors
+        Ignored when data is specified. An array must have one entry per circle
+        or a single value is used for all circles.
+    edgecolor : matplotlib color
+        The edge color used for all circles.  Use 'none' to hide edges.
+    basemap : BasemapWithEllipse or None
+        An instance of the BasemapWithEllipse class, normally obtained by
+        calling :func:`init_sky`.  Create a default basemap when None.
+
+    Returns
+    -------
+    basemap
+        The basemap used for the plot, which will match the input basemap
+        provided, or be a newly created basemap if None was provided.
+    """
+    import matplotlib.colors
+    import matplotlib.cm
+
+    ra_center = np.asarray(ra_center)
+    dec_center = np.asarray(dec_center)
+    if len(ra_center.shape) != 1:
+        raise ValueError('Invalid ra_center, must be a 1D array.')
+    if len(dec_center.shape) != 1:
+        raise ValueError('Invalid dec_center, must be a 1D array.')
+    if len(ra_center) != len(dec_center):
+        raise ValueError('Arrays ra_center, dec_center must have same size.')
+
+    if data is not None:
+        data = prepare_data(data)
+        # Facecolors are determined by the data, when specified.
+        if data.shape != ra_center.shape:
+            raise ValueError('Invalid data shape, must match ra_center.')
+        # Colors associated with masked values in data will be ignored later.
+        norm = matplotlib.colors.Normalize(vmin=data.min(), vmax=data.max())
+        cmapper = matplotlib.cm.ScalarMappable(norm, cmap)
+        facecolors = cmapper.to_rgba(data)
+    else:
+        # Try to repeat a single fixed color for all circles.
+        try:
+            facecolors = np.tile(
+                [matplotlib.colors.colorConverter.to_rgba(facecolors)],
+                (len(ra_center), 1))
+        except ValueError:
+            # Assume that facecolor is already an array.
+            facecolors = np.asarray(facecolors)
+
+    if len(facecolors) != len(ra_center):
+        raise ValueError('Invalid facecolor array.')
+
+    if basemap is None:
+        basemap = init_sky()
+
+    if basemap.lonmin + 360 != basemap.lonmax:
+        raise RuntimeError('Can only handle all-sky projections for now.')
+
+    # Identify circles that wrap around the map edges in RA.
+    radius = 0.5 * field_of_view
+    dra = np.fmod(ra_center - basemap.lonmin, 360)
+    wrapped = np.minimum(dra, 360 - dra) < 1.05 * radius
+
+    # Set the number of vertices for approximating the ellipse based
+    # on the sky opening angle.
+    n_pt = max(8, int(np.ceil(2 * radius)))
+
+    # Loop over non-wrapped circles.
+    for ra, dec, fc in zip(
+        ra_center[~wrapped], dec_center[~wrapped], facecolors[~wrapped]):
+        basemap.ellipse(ra, dec, radius, radius, n_pt, facecolor=fc,
+                        edgecolor=edgecolor)
 
     return basemap
 
