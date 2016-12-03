@@ -376,27 +376,26 @@ def init_sky(projection='eck4', ra_center=120, galactic_plane_color='red'):
     return m
 
 
-def plot_healpix_map(data, mask=None, clip_lo=None, clip_hi=None,
-                     cmap='viridis', colorbar=True, label=None, basemap=None):
+def plot_healpix_map(data, cmap='viridis', colorbar=True, label=None,
+                     basemap=None):
     """Plot a healpix map using a basemap projection.
 
-    Requires that matplotlib, basemap, and healpy are installed.
+    Pass the data array through :func:`prepare_data` to select a subset to plot
+    and clip the color map to specified values or percentiles.
 
     This function is similar to :func:`plot_grid_map` but is generally slower
     at high resolution and has less elegant handling of pixels that wrap around
     in RA, which are not drawn.
 
+    Requires that matplotlib, basemap, and healpy are installed.
+
     Parameters
     ----------
     data : array or masked array
         1D array of data associated with each healpix.  Must have a size that
-        exactly matches the number of pixels for some NSIDE value.
-    mask : array or None
-        See :func:`prepare_data`.
-    clip_lo : float or str
-        See :func:`prepare_data`.
-    clip_hi : float or str
-        See :func:`prepare_data`.
+        exactly matches the number of pixels for some NSIDE value. Use the
+        output of :func:`prepare_data` as a convenient way to specify
+        data cuts and color map clipping.
     cmap : colormap name or object
         Matplotlib colormap to use for mapping data values to colors.
     colorbar : bool
@@ -417,10 +416,10 @@ def plot_healpix_map(data, mask=None, clip_lo=None, clip_hi=None,
     import matplotlib.pyplot as plt
     from matplotlib.collections import PolyCollection
 
-    clipped = prepare_data(data, mask, clip_lo, clip_hi)
-    if len(clipped.shape) != 1:
+    data = prepare_data(data)
+    if len(data.shape) != 1:
         raise ValueError('Invalid data array, should be 1D.')
-    nside = hp.npix2nside(len(clipped))
+    nside = hp.npix2nside(len(data))
 
     if basemap is None:
         basemap = init_sky()
@@ -444,11 +443,11 @@ def plot_healpix_map(data, mask=None, clip_lo=None, clip_hi=None,
     wrapped1 = hp.ang2pix(nside, theta_edge, phi_edge - eps)
     wrapped2 = hp.ang2pix(nside, theta_edge, phi_edge + eps)
     wrapped = np.unique(np.hstack((wrapped1, wrapped2)))
-    clipped.mask[wrapped] = True
+    data.mask[wrapped] = True
 
     # Make the collection and add it to the plot.
     collection = PolyCollection(
-        verts, array=clipped, cmap=cmap, edgecolors='none')
+        verts, array=data, cmap=cmap, edgecolors='none')
 
     plt.gca().add_collection(collection)
     plt.gca().autoscale_view()
@@ -463,21 +462,24 @@ def plot_healpix_map(data, mask=None, clip_lo=None, clip_hi=None,
     return basemap
 
 
-def plot_grid_map(data, ra_edges, dec_edges, mask=None, clip_lo=None,
-                  clip_hi=None, cmap='viridis', colorbar=True, label=None,
-                  basemap=None):
+def plot_grid_map(data, ra_edges, dec_edges, cmap='viridis', colorbar=True,
+                  label=None, basemap=None):
     """Plot an array of 2D values on a grid of (RA, DEC).
 
-    Requires that matplotlib and basemap are installed.
+    Pass the data array through :func:`prepare_data` to select a subset to plot
+    and clip the color map to specified values or percentiles.
 
     This function is similar to :func:`plot_healpix_map` but is generally faster
     and has better handling of RA wrap around artifacts.
+
+    Requires that matplotlib and basemap are installed.
 
     Parameters
     ----------
     data : array or masked array
         2D array of data associated with each grid cell, with shape
-        (n_ra, n_dec).
+        (n_ra, n_dec). Use the output of :func:`prepare_data` as a convenient
+        way to specify data cuts and color map clipping.
     ra_edges : array
         1D array of n_ra+1 RA grid edge values in degrees, which must span the
         full circle, i.e., ra_edges[0] == ra_edges[-1] - 360. The RA grid
@@ -486,12 +488,6 @@ def plot_grid_map(data, ra_edges, dec_edges, mask=None, clip_lo=None,
     dec_edges : array
         1D array of n_dec+1 DEC grid edge values in degrees.  Values are not
         required to span the full range [-90, +90].
-    mask : array or None
-        See :func:`prepare_data`.
-    clip_lo : float or str
-        See :func:`prepare_data`.
-    clip_hi : float or str
-        See :func:`prepare_data`.
     cmap : colormap name or object
         Matplotlib colormap to use for mapping data values to colors.
     colorbar : bool
@@ -510,7 +506,7 @@ def plot_grid_map(data, ra_edges, dec_edges, mask=None, clip_lo=None,
     """
     import matplotlib.pyplot as plt
 
-    data = np.asanyarray(data)
+    data = prepare_data(data)
     if len(data.shape) != 2:
         raise ValueError('Expected 2D data array.')
     n_dec, n_ra = data.shape
@@ -525,8 +521,6 @@ def plot_grid_map(data, ra_edges, dec_edges, mask=None, clip_lo=None,
 
     if ra_edges[0] != ra_edges[-1] - 360:
         raise ValueError('Invalid ra_edges, do not span 360 degrees.')
-
-    clipped = prepare_data(data, mask, clip_lo, clip_hi)
 
     if basemap is None:
         basemap = init_sky()
@@ -549,18 +543,18 @@ def plot_grid_map(data, ra_edges, dec_edges, mask=None, clip_lo=None,
             # Split a wrap-around column into separate left and right columns.
             ra_edges = np.hstack(([basemap.lonmin], ra_edges[first:],
                                   ra_edges[:first] + 360, [basemap.lonmax]))
-            clipped = np.hstack(
-                (clipped[:, first:first + 1], clipped[:, first:],
-                 clipped[:, :first], clipped[:, first:first + 1]))
+            data = np.hstack(
+                (data[:, first:first + 1], data[:, first:],
+                 data[:, :first], data[:, first:first + 1]))
         else:
             ra_edges = np.hstack((ra_edges[first:], ra_edges[:first + 1] + 360))
-            clipped = np.hstack((clipped[:, first:], clipped[:, :first + 1]))
+            data = np.hstack((data[:, first:], data[:, :first + 1]))
 
     # Build a 2D array of grid line intersections.
     grid_ra, grid_dec = np.meshgrid(ra_edges, dec_edges)
 
     mesh = basemap.pcolormesh(
-        grid_ra, grid_dec, clipped, cmap=cmap, edgecolor='none',
+        grid_ra, grid_dec, data, cmap=cmap, edgecolor='none',
         lw=0, latlon=True)
 
     if colorbar:
