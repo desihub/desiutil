@@ -139,7 +139,7 @@ def prepare_data(data, mask=None, clip_lo=None, clip_hi=None):
                  mask = [False False False False False],
            fill_value = 1e+20)
 
-    A mask selection is propagated to the output:
+    Any mask selection is propagated to the output:
 
     >>> prepare_data(data, data == 2)
     masked_array(data = [0.0 1.0 -- 3.0 4.0],
@@ -153,6 +153,13 @@ def prepare_data(data, mask=None, clip_lo=None, clip_hi=None):
     masked_array(data = [1.0 1.0 2.0 3.0 3.5],
                  mask = [False False False False False],
            fill_value = 1e+20)
+
+    An input masked array is passed through without any copying unless
+    clipping is requested:
+
+    >>> masked = numpy.ma.arange(5)
+    >>> masked is prepare_data(masked)
+    True
 
     Parameters
     ----------
@@ -184,6 +191,9 @@ def prepare_data(data, mask=None, clip_lo=None, clip_hi=None):
         try:
             # Use the mask associated with a MaskedArray.
             mask = data.mask
+            # If no clipping is requested, pass the input through.
+            if clip_lo is None and clip_hi is None:
+                return data
         except AttributeError:
             # Nothing is masked by default.
             mask = np.zeros_like(data, dtype=bool)
