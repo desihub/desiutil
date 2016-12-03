@@ -582,7 +582,7 @@ def plot_grid_map(data, ra_edges, dec_edges, cmap='viridis', colorbar=True,
 
 def plot_sky_circles(ra_center, dec_center, field_of_view=3.2, data=None,
                      cmap='viridis', facecolors='skyblue', edgecolor='none',
-                     basemap=None):
+                     colorbar=True, label=None, basemap=None):
     """Plot circles on an all-sky projection.
 
     Pass the optional data array through :func:`prepare_data` to select a
@@ -609,6 +609,11 @@ def plot_sky_circles(ra_center, dec_center, field_of_view=3.2, data=None,
         or a single value is used for all circles.
     edgecolor : matplotlib color
         The edge color used for all circles.  Use 'none' to hide edges.
+    colorbar : bool
+        Draw a colorbar below the map when True and data is provided.
+    label : str or None
+        Label to display under the colorbar.  Ignored unless a colorbar is
+        displayed.
     basemap : BasemapWithEllipse or None
         An instance of the BasemapWithEllipse class, normally obtained by
         calling :func:`init_sky`.  Create a default basemap when None.
@@ -619,6 +624,7 @@ def plot_sky_circles(ra_center, dec_center, field_of_view=3.2, data=None,
         The basemap used for the plot, which will match the input basemap
         provided, or be a newly created basemap if None was provided.
     """
+    import matplotlib.pyplot as plt
     import matplotlib.colors
     import matplotlib.cm
 
@@ -641,6 +647,7 @@ def plot_sky_circles(ra_center, dec_center, field_of_view=3.2, data=None,
         cmapper = matplotlib.cm.ScalarMappable(norm, cmap)
         facecolors = cmapper.to_rgba(data)
     else:
+        colorbar = False
         # Try to repeat a single fixed color for all circles.
         try:
             facecolors = np.tile(
@@ -673,6 +680,14 @@ def plot_sky_circles(ra_center, dec_center, field_of_view=3.2, data=None,
         ra_center[~wrapped], dec_center[~wrapped], facecolors[~wrapped]):
         basemap.ellipse(ra, dec, radius, radius, n_pt, facecolor=fc,
                         edgecolor=edgecolor)
+
+    if colorbar:
+        bar = plt.colorbar(
+            plt.imshow([(1,1)],cmap=cmap, norm=norm),
+            orientation='horizontal', spacing='proportional', pad=0.01,
+            aspect=50)
+        if label:
+            bar.set_label(label)
 
     return basemap
 
