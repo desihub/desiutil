@@ -551,16 +551,17 @@ def plot_grid_map(data, ra_edges, dec_edges, cmap='viridis', colorbar=True,
 
     if first > 0:
         # Wrap the data beyond the left edge around to the right edge.
+        # Remember to use numpy.ma.hstack for the data to preserve the mask.
         if ra_edges[first] > basemap.lonmin:
             # Split a wrap-around column into separate left and right columns.
             ra_edges = np.hstack(([basemap.lonmin], ra_edges[first:],
                                   ra_edges[:first] + 360, [basemap.lonmax]))
-            data = np.hstack(
+            data = numpy.ma.hstack(
                 (data[:, first:first + 1], data[:, first:],
                  data[:, :first], data[:, first:first + 1]))
         else:
             ra_edges = np.hstack((ra_edges[first:], ra_edges[:first + 1] + 360))
-            data = np.hstack((data[:, first:], data[:, :first + 1]))
+            data = numpy.ma.hstack((data[:, first:], data[:, :first + 1]))
 
     # Build a 2D array of grid line intersections.
     grid_ra, grid_dec = np.meshgrid(ra_edges, dec_edges)
