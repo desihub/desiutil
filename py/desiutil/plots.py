@@ -124,11 +124,35 @@ def plot_slices(x, y, x_lo, x_hi, y_cut, num_slices=5, min_count=100, axis=None,
     return axis
 
 
-def prepare_data(data, mask=None, clip_lo='1%', clip_hi='99%'):
+def prepare_data(data, mask=None, clip_lo=None, clip_hi=None):
     """Prepare array data for color mapping.
 
     Data is clipped and masked to be suitable for passing to matplotlib
     routines that automatically assign colors based on input values.
+
+    If no optional parameters are specified, the input data is returned
+    with an empty mask:
+
+    >>> data = np.arange(5)
+    >>> prepare_data(data)
+    masked_array(data = [0.0 1.0 2.0 3.0 4.0],
+                 mask = [False False False False False],
+           fill_value = 1e+20)
+
+    A mask selection is propagated to the output:
+
+    >>> prepare_data(data, data == 2)
+    masked_array(data = [0.0 1.0 -- 3.0 4.0],
+                 mask = [False False  True False False],
+           fill_value = 1e+20)
+
+    Values can be clipped by specifying any combination of percentiles
+    (specified as strings ending with "%") and numeric values:
+
+    >>> prepare_data(data, clip_lo='25%', clip_hi=3.5)
+    masked_array(data = [1.0 1.0 2.0 3.0 3.5],
+                 mask = [False False False False False],
+           fill_value = 1e+20)
 
     Parameters
     ----------
@@ -339,7 +363,7 @@ def init_sky(projection='eck4', center_longitude=60,
     return m
 
 
-def plot_healpix_map(data, mask=None, clip_lo='1%', clip_hi='99%',
+def plot_healpix_map(data, mask=None, clip_lo=None, clip_hi=None,
                      cmap='viridis', colorbar=True, label=None, basemap=None):
     """Plot a healpix map using a basemap projection.
 
@@ -426,8 +450,8 @@ def plot_healpix_map(data, mask=None, clip_lo='1%', clip_hi='99%',
     return basemap
 
 
-def plot_grid_map(data, ra_edges, dec_edges, mask=None, clip_lo='1%',
-                  clip_hi='99%', cmap='viridis', colorbar=True, label=None,
+def plot_grid_map(data, ra_edges, dec_edges, mask=None, clip_lo=None,
+                  clip_hi=None, cmap='viridis', colorbar=True, label=None,
                   basemap=None):
     """Plot an array of 2D values on a grid of (RA, DEC).
 
