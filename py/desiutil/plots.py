@@ -218,8 +218,7 @@ def prepare_data(data, mask=None, clip_lo=None, clip_hi=None):
     return clipped
 
 
-def init_sky(projection='eck4', center_longitude=60,
-             galactic_plane_color='red'):
+def init_sky(projection='eck4', ra_center=120, galactic_plane_color='red'):
     """Initialize a basemap projection of the full sky.
 
     The returned Basemap object is augmented with an ``ellipse()`` method to
@@ -231,6 +230,10 @@ def init_sky(projection='eck4', center_longitude=60,
     otherwise RA labels are drawn incorrectly (see
     https://github.com/matplotlib/basemap/issues/283 for details).
 
+    The DESI footprint would look better with a projection centered at DEC ~ 15,
+    which should be possible with basemap but is not current working (see
+    https://github.com/matplotlib/basemap/issues/192).
+
     Requires that matplotlib and basemap are installed.
 
     Parameters
@@ -241,8 +244,8 @@ def init_sky(projection='eck4', center_longitude=60,
         <http://usersguidetotheuniverse.com/index.php/2011/03/03/
         whats-the-best-map-projection/>`__.  Other good choices are
         kav7' and 'moll'.
-    center_longitude : :class: `float`, optional
-        Center longitude for the plot in degrees. Default is +60, which
+    ra_center : float
+        Map is centered at this RA in degrees. Default is +120, which
         avoids splitting the DESI northern and southern regions.
     galactic_plane_color : color name or None
         Draw a line representing the galactic plane using the specified
@@ -333,8 +336,8 @@ def init_sky(projection='eck4', center_longitude=60,
 
     # Create an instance of our custom Basemap.
     m = BasemapWithEllipse(
-        projection=projection, lon_0=center_longitude,
-        resolution='c', celestial=False)
+        projection=projection, lon_0=ra_center, resolution=None,
+        celestial=False)
     m.drawmeridians(
         np.arange(0, 360, 60), labels=[0,0,1,0], labelstyle='+/-')
     m.drawparallels(
@@ -562,8 +565,8 @@ def plot_grid_map(data, ra_edges, dec_edges, mask=None, clip_lo=None,
 
 def plot_sky(ra, dec, data=None, pix_shape='circle', nside=16, label='',
              projection='eck4', cmap='viridis', galactic_plane_color='red',
-             discrete_colors=True, center_longitude=60, radius=2., epsi=0.2,
-             alpha_tile=0.5, min_color=1, max_color=5, nsteps=5):
+             discrete_colors=True, ra_center=120, radius=2.,
+             epsi=0.2, alpha_tile=0.5, min_color=1, max_color=5, nsteps=5):
     """
     Routine that reads ra and dec (in degrees) and makes an all-sky plot
     of the data.
@@ -596,14 +599,14 @@ def plot_sky(ra, dec, data=None, pix_shape='circle', nside=16, label='',
         See :func:`init_sky`.
     discrete_colors : :class: `bool`, optional
         if True it uses the data to create a linear discrete color-scale.
-    center_longitude : :class: `float`, optional
+    ra_center : float
         See :func:`init_sky`.
     radius : :class: `float`, optional
         Opening-angle radius in degrees to use when pix_shape is `circle`.
         Default 2.
     epsi : :class: `float`, optional
         it prevents ellipses to wrap around the edges. Only ellipses with
-        abs(ra-180-center_longitude)>radius+epsi are plotted. If you want to
+        abs(ra-180-ra_center)>radius+epsi are plotted. If you want to
         plot all the ellipses set epsi to -radius (ellipses will wrap around
         the edges). Units are degrees. Default 0.2
     alpha_tile : :class: `float`, optional
@@ -627,7 +630,7 @@ def plot_sky(ra, dec, data=None, pix_shape='circle', nside=16, label='',
     from matplotlib.collections import PolyCollection
 
     # Initialize the basemap to use.
-    m = init_sky(projection, center_longitude, galactic_plane_color)
+    m = init_sky(projection, ra_center, galactic_plane_color)
 
     if pix_shape not in ['circle','healpix','square']:
         raise KeyError(
@@ -653,8 +656,8 @@ def plot_sky(ra, dec, data=None, pix_shape='circle', nside=16, label='',
         pixel_area = hp.pixelfunc.nside2pixarea(nside, degrees=True)
         #avoid pixels which may cause polygons to wrap around workaround
         drawing_mask = np.logical_and(
-            np.fabs(ra-180-center_longitude)>2*np.sqrt(pixel_area)+epsi,
-            np.fabs(ra+180-center_longitude)>2*np.sqrt(pixel_area)+epsi)
+            np.fabs(ra-180-ra_center)>2*np.sqrt(pixel_area)+epsi,
+            np.fabs(ra+180-ra_center)>2*np.sqrt(pixel_area)+epsi)
         ra=ra[drawing_mask]
         dec=dec[drawing_mask]
         if data!=None:
@@ -694,9 +697,9 @@ def plot_sky(ra, dec, data=None, pix_shape='circle', nside=16, label='',
     elif pix_shape=='square':
         nx, ny = 4*nside, 4*nside
 
-        ra_bins = np.linspace(-180+center_longitude, 180+center_longitude, nx+1)
+        ra_bins = np.linspace(-180+ra_center, 180+ra_center, nx+1)
         cth_bins = np.linspace(-1., 1., ny+1)
-        ra[ra>180+center_longitude]=ra[ra>180+center_longitude]-360
+        ra[ra>180+ra_center]=ra[ra>180+ra_center]-360
         if data==None:
             weights=np.ones(len(ra))
         else:
@@ -722,8 +725,8 @@ def plot_sky(ra, dec, data=None, pix_shape='circle', nside=16, label='',
         # on the sky opening angle.
         n_pt = max(8, np.ceil(2 * radius))
         for i in range(0,len(ra)):
-            if(np.fabs(ra[i]-180-center_longitude)>radius+epsi and
-               np.fabs(ra[i]+180-center_longitude)>radius+epsi):
+            if(np.fabs(ra[i]-180-ra_center)>radius+epsi and
+               np.fabs(ra[i]+180-ra_center)>radius+epsi):
                 poly = m.ellipse(
                     ra[i], dec[i], radius, radius, n_pt,
                     facecolor=color_array[i], zorder=10,alpha=alpha_tile)
