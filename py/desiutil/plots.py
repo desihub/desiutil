@@ -692,6 +692,137 @@ def plot_sky_circles(ra_center, dec_center, field_of_view=3.2, data=None,
     return basemap
 
 
+def plot_sky_binned(ra, dec, weights=None, data=None, plot_type='grid',
+                    max_bin_area=5, clip_lo=None, clip_hi=None,
+                    cmap='viridis', colorbar=True, label=None, basemap=None):
+    """Show objects on the sky using a binned plot.
+
+    Bin values either show object counts per unit sky area or, if an array
+    of associated data values is provided, mean data values within each bin.
+    Objects can have associated weights.
+
+    Requires that matplotlib and basemap are installed. When plot_type is
+    "healpix", healpy must also be installed.
+
+    Parameters
+    ----------
+    ra : array
+        Array of object RA values in degrees. Must have the same shape as
+        dec and will be flattened if necessary.
+    dec : array
+        Array of object DEC values in degrees. Must have the same shape as
+        ra and will be flattened if necessary.
+    weights : array or None
+        Optional of weights associated with each object.  All objects are
+        assumed to have equal weight when this is None.
+    data : array or None
+        Optional array of scalar values associated with each object. The
+        resulting plot shows the mean data value per bin when data is
+        specified.  Otherwise, the plot shows counts per unit sky area.
+    plot_type : str
+        Must be either 'grid' or 'healpix', and selects whether data in
+        binned in healpix or in (sin(DEC), RA).
+    max_bin_area : float
+        The bin size will be chosen automatically to be as close as
+        possible to this value but not exceeding it.
+    clip_lo : float or str
+        Clipping is applied to the plot data calculated as counts / area
+        or the mean data value per bin. See :func:`prepare_data` for
+        details.
+    clip_hi : float or str
+        Clipping is applied to the plot data calculated as counts / area
+        or the mean data value per bin. See :func:`prepare_data` for
+        details.
+    cmap : colormap name or object
+        Matplotlib colormap to use for mapping data values to colors.
+    colorbar : bool
+        Draw a colorbar below the map when True.
+    label : str or None
+        Label to display under the colorbar.  Ignored unless colorbar is True.
+    basemap : Basemap object or None
+        Use the specified basemap or create a default basemap using
+        :func:`init_sky` when None.
+
+    Returns
+    -------
+    basemap
+        The basemap used for the plot, which will match the input basemap
+        provided, or be a newly created basemap if None was provided.
+    """
+    ra = np.asarray(ra).reshape(-1)
+    dec = np.asarray(dec).reshape(-1)
+    if len(ra) != len(dec):
+        raise ValueError('Arrays ra,dec must have same size.')
+
+    plot_types = ('grid', 'healpix',)
+    if plot_type not in plot_types:
+        raise ValueError(
+            'Invalid plot_type, should be one of {0}.'
+            .format(', '.join(plot_types)))
+
+    if plot_type == 'grid':
+        # Convert the maximum pixel area to steradians.
+        max_bin_area = max_bin_area * (np.pi / 180.) ** 2
+
+        # Pick the number of bins in cos(DEC) and RA to use.
+        n_cos_dec = int(np.ceil(2 / np.sqrt(max_bin_area)))
+        n_ra = int(np.ceil(4 * np.pi / max_bin_area / n_cos_dec))
+        # Calculate the actual pixel area in sq. degrees.
+        bin_area = 360 ** 2 / np.pi / (n_cos_dec * n_ra)
+
+        # Calculate the bin edges in degrees.
+        ra_edges = np.linspace(-180., +180., n_ra + 1)
+        dec_edges = np.degrees(np.arcsin(np.linspace(-1., +1., n_cos_dec + 1)))
+
+        # Put RA values in the range [-180, 180).
+        ra = np.fmod(ra, 360.)
+        ra[ra >= 180.] -= 360.
+
+        # Histogram the input coordinates.
+        counts, _, _ = np.histogram2d(
+            dec, ra, [dec_edges, ra_edges], weights=weights)
+
+        if data is None:
+            grid_data = counts / bin_area
+        else:
+            sums, _, _ = np.histogram2d(
+                dec, ra, [dec_edges, ra_edges], weights=weights * data)
+            grid_data = sums / counts
+
+        grid_data = prepare_data(grid_data, clip_lo=clip_lo, clip_hi=clip_hi)
+
+        basemap = plot_grid_map(
+            grid_data, ra_edges, dec_edges, cmap, colorbar, label, basemap)
+
+    elif plot_type == 'healpix':
+
+        import healpy as hp
+
+        for n in range(1, 25):
+            nside = 2 ** n
+            bin_area = hp.nside2pixarea(nside, degrees=True)
+            if bin_area <= max_bin_area:
+                break
+        npix = hp.nside2npix(nside)
+
+        pixels = hp.ang2pix(nside, np.radians(90 - dec), np.radians(ra))
+        counts = np.bincount(pixels, weights=weights, minlength=npix)
+        if data is None:
+            grid_data = counts / bin_area
+        else:
+            sums = np.bincount(pixels, weights=weights * data, minlength=npix)
+            grid_data = np.zeros_like(sums, dtype=float)
+            nonzero = counts > 0
+            grid_data[nonzero] = sums[nonzero] / counts[nonzero]
+
+        grid_data = prepare_data(grid_data, clip_lo=clip_lo, clip_hi=clip_hi)
+
+        basemap = plot_healpix_map(
+            grid_data, cmap, colorbar, label, basemap)
+
+    return basemap
+
+
 def plot_sky(ra, dec, data=None, pix_shape='circle', nside=16, label='',
              projection='eck4', cmap='viridis', galactic_plane_color='red',
              discrete_colors=True, ra_center=120, radius=2.,
