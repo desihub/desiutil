@@ -666,19 +666,23 @@ def plot_sky_circles(ra_center, dec_center, field_of_view=3.2, data=None,
     if basemap.lonmin + 360 != basemap.lonmax:
         raise RuntimeError('Can only handle all-sky projections for now.')
 
+    # Convert field-of-view angle into dDEC, dRA.
+    dDEC = 0.5 * field_of_view
+    dRA = dDEC / np.cos(np.radians(dec_center))
+
     # Identify circles that wrap around the map edges in RA.
-    radius = 0.5 * field_of_view
-    dra = np.fmod(ra_center - basemap.lonmin, 360)
-    wrapped = np.minimum(dra, 360 - dra) < 1.05 * radius
+    edge_dist = np.fmod(ra_center - basemap.lonmin, 360)
+    wrapped = np.minimum(edge_dist, 360 - edge_dist) < 1.05 * dRA
 
     # Set the number of vertices for approximating the ellipse based
-    # on the sky opening angle.
-    n_pt = max(8, int(np.ceil(2 * radius)))
+    # on the field of view.
+    n_pt = max(8, int(np.ceil(field_of_view)))
 
     # Loop over non-wrapped circles.
-    for ra, dec, fc in zip(
-        ra_center[~wrapped], dec_center[~wrapped], facecolors[~wrapped]):
-        basemap.ellipse(ra, dec, radius, radius, n_pt, facecolor=fc,
+    for ra, dec, dra, fc in zip(
+        ra_center[~wrapped], dec_center[~wrapped],
+        dRA[~wrapped], facecolors[~wrapped]):
+        basemap.ellipse(ra, dec, dra, dDEC, n_pt, facecolor=fc,
                         edgecolor=edgecolor)
 
     if colorbar:
