@@ -678,6 +678,9 @@ def plot_sky_circles(ra_center, dec_center, field_of_view=3.2, data=None,
     if basemap.lonmin + 360 != basemap.lonmax:
         raise RuntimeError('Can only handle all-sky projections for now.')
 
+    if len(ra_center) == 0:
+        return
+
     # Convert field-of-view angle into dDEC, dRA.
     dDEC = 0.5 * field_of_view
     dRA = dDEC / np.cos(np.radians(dec_center))
@@ -698,10 +701,11 @@ def plot_sky_circles(ra_center, dec_center, field_of_view=3.2, data=None,
                         edgecolor=edgecolor)
 
     if colorbar:
+        mappable = matplotlib.cm.ScalarMappable(norm=norm, cmap=cmap)
+        mappable.set_array(data)
         bar = plt.colorbar(
-            plt.imshow([(1,1)],cmap=cmap, norm=norm),
-            orientation='horizontal', spacing='proportional', pad=0.01,
-            aspect=50)
+            mappable, ax=basemap.ax, orientation='horizontal',
+            spacing='proportional', pad=0.01, aspect=50)
         if label:
             bar.set_label(label)
 
