@@ -240,7 +240,9 @@ def prepare_data(data, mask=None, clip_lo=None, clip_hi=None):
     return clipped
 
 
-def init_sky(projection='eck4', ra_center=120, galactic_plane_color='red'):
+def init_sky(projection='eck4', ra_center=120, galactic_plane_color='red',
+             ra_labels=np.arange(-60, 90, 30),
+             dec_labels=np.arange(0, 360, 60) ,ax=None):
     """Initialize a basemap projection of the full sky.
 
     The returned Basemap object is augmented with an ``ellipse()`` method to
@@ -272,6 +274,14 @@ def init_sky(projection='eck4', ra_center=120, galactic_plane_color='red'):
     galactic_plane_color : color name or None
         Draw a line representing the galactic plane using the specified
         color, or do nothing when None.
+    ra_labels : iterable or None
+        List of RA values in degrees that will be labeled on the map.
+        If None, there will be no RA labels or grid lines.
+    dec_labels : iterable or None
+        List of DEC values in degrees that will be labeled on the map.
+        If None, there will be no DEC labels or grid lines.
+    ax : matplotlib axis objet or None
+        Axes to use for drawing this map, or use current axes if None.
 
     Returns
     -------
@@ -359,11 +369,13 @@ def init_sky(projection='eck4', ra_center=120, galactic_plane_color='red'):
     # Create an instance of our custom Basemap.
     m = BasemapWithEllipse(
         projection=projection, lon_0=ra_center, resolution=None,
-        celestial=False)
-    m.drawmeridians(
-        np.arange(0, 360, 60), labels=[0,0,1,0], labelstyle='+/-')
-    m.drawparallels(
-        np.arange(-90, 90, 30), labels=[1,1,0,0], labelstyle='+/-')
+        celestial=False, ax=ax)
+    if dec_labels is not None:
+        m.drawmeridians(
+            dec_labels, labels=[0,0,1,0], labelstyle='+/-')
+    if ra_labels is not None:
+        m.drawparallels(
+            ra_labels, labels=[1,1,0,0], labelstyle='+/-')
     m.drawmapboundary()
 
     # Draw the optional galactic plane.
