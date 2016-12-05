@@ -124,7 +124,31 @@ def plot_slices(x, y, x_lo, x_hi, y_cut, num_slices=5, min_count=100, axis=None,
     return axis
 
 
-def prepare_data(data, mask=None, clip_lo=None, clip_hi=None):
+class MaskedArrayWithLimits(numpy.ma.MaskedArray):
+    """Masked array with additional vmin, vmax attributes.
+
+    Based on https://docs.scipy.org/doc/numpy/user/
+    basics.subclassing.html#simple-example-adding-an-extra-attribute-to-ndarray
+
+    This is not a general-purpose subclass and is only intended to simplify
+    passing vmin, vmax limits from prepare_data() to the plotting utility
+    methods defined in this module.
+    """
+    def __new__(cls, data, mask, dtype=None, order=None, vmin=None, vmax=None):
+        obj = numpy.ma.MaskedArray.__new__(cls, data, mask)
+        obj.vmin = vmin
+        obj.vmax = vmax
+        return obj
+
+    def __array_finalize__(self, obj):
+        if obj is None: return
+        numpy.ma.MaskedArray.__array_finalize__(self, obj)
+        self.vmin = getattr(obj, 'vmin', None)
+        self.vmax = getattr(obj, 'vmax', None)
+
+
+def prepare_data(data, mask=None, clip_lo=None, clip_hi=None,
+                 save_limits=False):
     """Prepare array data for color mapping.
 
     Data is clipped and masked to be suitable for passing to matplotlib
@@ -169,6 +193,16 @@ def prepare_data(data, mask=None, clip_lo=None, clip_hi=None):
     >>> masked is prepare_data(masked)
     True
 
+    Use the save_limits option to store the clipping limits as vmin, vmax
+    attributes of the returned object:
+
+    >>> d = prepare_data(data, clip_lo=1, clip_hi=10, save_limits=True)
+    >>> d.vmin, d.vmax
+    (1.0, 10.0)
+
+    These attributes can then be used by plotting routines to fix the input
+    range used for colormapping, independently of the actual range of data.
+
     Parameters
     ----------
     data : array or masked array
@@ -186,6 +220,11 @@ def prepare_data(data, mask=None, clip_lo=None, clip_hi=None):
         Data values above clip_hi will be clipped to the maximum color. If
         clip_hi is a string, it should end with "%" and specify a percentile
         of un-masked data to clip above.
+    save_limits : bool
+        Save the calculated lo/hi clip values as attributes vmin, vmax of
+        the returned masked array.  Use this flag to indicate that plotting
+        functions should use these vmin, vmax values when mapping the
+        returned data to colors.
 
     Returns
     -------
@@ -231,7 +270,12 @@ def prepare_data(data, mask=None, clip_lo=None, clip_hi=None):
     else:
         clip_hi, mask_hi = get_clip(clip_hi)
 
-    clipped = numpy.ma.MaskedArray(np.clip(data, clip_lo, clip_hi), mask=mask)
+    if save_limits:
+        clipped = MaskedArrayWithLimits(
+            np.clip(data, clip_lo, clip_hi), mask, vmin=clip_lo, vmax=clip_hi)
+    else:
+        clipped = numpy.ma.MaskedArray(
+            np.clip(data, clip_lo, clip_hi), mask)
     if mask_lo:
         clipped.mask[data < clip_lo] = True
     if mask_hi:
@@ -438,6 +482,7 @@ def plot_healpix_map(data, cmap='viridis', colorbar=True, label=None,
     """
     import healpy as hp
     import matplotlib.pyplot as plt
+    import matplotlib.colors
     from matplotlib.collections import PolyCollection
 
     data = prepare_data(data)
@@ -469,9 +514,15 @@ def plot_healpix_map(data, cmap='viridis', colorbar=True, label=None,
     wrapped = np.unique(np.hstack((wrapped1, wrapped2)))
     data.mask[wrapped] = True
 
+    # Normalize the data using its vmin, vmax attributes, if present.
+    try:
+        norm = matplotlib.colors.Normalize(vmin=data.vmin, vmax=data.vmax)
+    except AttributeError:
+        norm = None
+
     # Make the collection and add it to the plot.
     collection = PolyCollection(
-        verts, array=data, cmap=cmap, edgecolors='none')
+        verts, array=data, cmap=cmap, norm=norm, edgecolors='none')
 
     plt.gca().add_collection(collection)
     plt.gca().autoscale_view()
@@ -529,11 +580,19 @@ def plot_grid_map(data, ra_edges, dec_edges, cmap='viridis', colorbar=True,
         provided, or be a newly created basemap if None was provided.
     """
     import matplotlib.pyplot as plt
+    import matplotlib.colors
 
     data = prepare_data(data)
     if len(data.shape) != 2:
         raise ValueError('Expected 2D data array.')
     n_dec, n_ra = data.shape
+
+    # Normalize the data using its vmin, vmax attributes, if present.
+    # Need to do this before hstack-ing below, which drops vmin, vmax.
+    try:
+        norm = matplotlib.colors.Normalize(vmin=data.vmin, vmax=data.vmax)
+    except AttributeError:
+        norm = None
 
     # Silently flatten, sort, and remove duplicates from the edges arrays.
     ra_edges = np.unique(ra_edges)
@@ -579,8 +638,8 @@ def plot_grid_map(data, ra_edges, dec_edges, cmap='viridis', colorbar=True,
     grid_ra, grid_dec = np.meshgrid(ra_edges, dec_edges)
 
     mesh = basemap.pcolormesh(
-        grid_ra, grid_dec, data, cmap=cmap, edgecolor='none',
-        lw=0, latlon=True)
+        grid_ra, grid_dec, data, cmap=cmap, norm=norm,
+        edgecolor='none', lw=0, latlon=True)
 
     if colorbar:
         bar = plt.colorbar(
@@ -655,7 +714,12 @@ def plot_sky_circles(ra_center, dec_center, field_of_view=3.2, data=None,
         if data.shape != ra_center.shape:
             raise ValueError('Invalid data shape, must match ra_center.')
         # Colors associated with masked values in data will be ignored later.
-        norm = matplotlib.colors.Normalize(vmin=data.min(), vmax=data.max())
+        try:
+            # Normalize the data using its vmin, vmax attributes, if present.
+            norm = matplotlib.colors.Normalize(vmin=data.vmin, vmax=data.vmax)
+        except AttributeError:
+            # Otherwise use the data limits.
+            norm = matplotlib.colors.Normalize(vmin=data.min(), vmax=data.max())
         cmapper = matplotlib.cm.ScalarMappable(norm, cmap)
         facecolors = cmapper.to_rgba(data)
     else:
