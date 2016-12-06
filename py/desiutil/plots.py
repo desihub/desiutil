@@ -844,6 +844,9 @@ def plot_sky_binned(ra, dec, weights=None, data=None, plot_type='grid',
             'Invalid plot_type, should be one of {0}.'
             .format(', '.join(plot_types)))
 
+    if data is not None and weights is None:
+        weights = np.ones_like(data)
+
     if plot_type == 'grid':
         # Convert the maximum pixel area to steradians.
         max_bin_area = max_bin_area * (np.pi / 180.) ** 2
