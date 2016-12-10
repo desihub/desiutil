@@ -415,11 +415,15 @@ def init_sky(projection='eck4', ra_center=120, galactic_plane_color='red',
         projection=projection, lon_0=ra_center, resolution=None,
         celestial=False, ax=ax)
     if dec_labels is not None:
+        if projection in ('hammer', 'moll'):
+            labels = [0, 0, 0, 0]
+        else:
+            labels = [0, 0, 1, 0]
         m.drawmeridians(
-            dec_labels, labels=[0,0,1,0], labelstyle='+/-')
+            dec_labels, labels=labels, labelstyle='+/-')
     if ra_labels is not None:
         m.drawparallels(
-            ra_labels, labels=[1,1,0,0], labelstyle='+/-')
+            ra_labels, labels=[1, 1, 0, 0], labelstyle='+/-')
     m.drawmapboundary()
 
     # Draw the optional galactic plane.
@@ -653,7 +657,8 @@ def plot_grid_map(data, ra_edges, dec_edges, cmap='viridis', colorbar=True,
 
 def plot_sky_circles(ra_center, dec_center, field_of_view=3.2, data=None,
                      cmap='viridis', facecolors='skyblue', edgecolor='none',
-                     colorbar=True, label=None, basemap=None):
+                     colorbar=True, colorbar_ticks=None, label=None,
+                     basemap=None):
     """Plot circles on an all-sky projection.
 
     Pass the optional data array through :func:`prepare_data` to select a
@@ -682,6 +687,9 @@ def plot_sky_circles(ra_center, dec_center, field_of_view=3.2, data=None,
         The edge color used for all circles.  Use 'none' to hide edges.
     colorbar : bool
         Draw a colorbar below the map when True and data is provided.
+    colorbar_ticks : list or None
+        Use the specified colorbar ticks or determine them automatically
+        when None.
     label : str or None
         Label to display under the colorbar.  Ignored unless a colorbar is
         displayed.
@@ -769,7 +777,8 @@ def plot_sky_circles(ra_center, dec_center, field_of_view=3.2, data=None,
         mappable.set_array(data)
         bar = plt.colorbar(
             mappable, ax=basemap.ax, orientation='horizontal',
-            spacing='proportional', pad=0.01, aspect=50)
+            spacing='proportional', pad=0.01, aspect=50,
+            ticks=colorbar_ticks)
         if label:
             bar.set_label(label)
 
