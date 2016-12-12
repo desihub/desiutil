@@ -789,7 +789,7 @@ def plot_sky_circles(ra_center, dec_center, field_of_view=3.2, data=None,
 
 
 def plot_sky_binned(ra, dec, weights=None, data=None, plot_type='grid',
-                    max_bin_area=5, clip_lo=None, clip_hi=None,
+                    max_bin_area=5, clip_lo=None, clip_hi=None, verbose=False,
                     cmap='viridis', colorbar=True, label=None, basemap=None):
     """Show objects on the sky using a binned plot.
 
@@ -829,6 +829,8 @@ def plot_sky_binned(ra, dec, weights=None, data=None, plot_type='grid',
         Clipping is applied to the plot data calculated as counts / area
         or the mean data value per bin. See :func:`prepare_data` for
         details.
+    verbose : bool
+        Print information about the automatic bin size calculation.
     cmap : colormap name or object
         Matplotlib colormap to use for mapping data values to colors.
     colorbar : bool
@@ -868,6 +870,10 @@ def plot_sky_binned(ra, dec, weights=None, data=None, plot_type='grid',
         n_ra = int(np.ceil(4 * np.pi / max_bin_area / n_cos_dec))
         # Calculate the actual pixel area in sq. degrees.
         bin_area = 360 ** 2 / np.pi / (n_cos_dec * n_ra)
+        if verbose:
+            print(
+                'Using {0} x {1} grid in cos(DEC) x RA'.format(n_cos_dec, n_ra),
+                'with pixel area {:.3f} sq.deg.'.format(bin_area))
 
         # Calculate the bin edges in degrees.
         ra_edges = np.linspace(-180., +180., n_ra + 1)
@@ -903,8 +909,13 @@ def plot_sky_binned(ra, dec, weights=None, data=None, plot_type='grid',
             if bin_area <= max_bin_area:
                 break
         npix = hp.nside2npix(nside)
+        nest = False
+        if verbose:
+            print(
+                'Using healpix map with NSIDE={0}'.format(nside),
+                'and pixel area {:.3f} sq.deg.'.format(bin_area))
 
-        pixels = hp.ang2pix(nside, np.radians(90 - dec), np.radians(ra))
+        pixels = hp.ang2pix(nside, np.radians(90 - dec), np.radians(ra), nest)
         counts = np.bincount(pixels, weights=weights, minlength=npix)
         if data is None:
             grid_data = counts / bin_area
@@ -917,6 +928,6 @@ def plot_sky_binned(ra, dec, weights=None, data=None, plot_type='grid',
         grid_data = prepare_data(grid_data, clip_lo=clip_lo, clip_hi=clip_hi)
 
         basemap = plot_healpix_map(
-            grid_data, cmap, colorbar, label, basemap)
+            grid_data, nest, cmap, colorbar, label, basemap)
 
     return basemap
