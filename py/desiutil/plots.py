@@ -448,8 +448,8 @@ def init_sky(projection='eck4', ra_center=120, galactic_plane_color='red',
     return m
 
 
-def plot_healpix_map(data, cmap='viridis', colorbar=True, label=None,
-                     basemap=None):
+def plot_healpix_map(data, nest=False, cmap='viridis', colorbar=True,
+                     label=None, basemap=None):
     """Plot a healpix map using an all-sky projection.
 
     Pass the data array through :func:`prepare_data` to select a subset to plot
@@ -468,6 +468,9 @@ def plot_healpix_map(data, cmap='viridis', colorbar=True, label=None,
         exactly matches the number of pixels for some NSIDE value. Use the
         output of :func:`prepare_data` as a convenient way to specify
         data cuts and color map clipping.
+    nest : bool
+        If True, assume NESTED pixel ordering.  Otheriwse, assume RING pixel
+        ordering.
     cmap : colormap name or object
         Matplotlib colormap to use for mapping data values to colors.
     colorbar : bool
@@ -498,7 +501,7 @@ def plot_healpix_map(data, cmap='viridis', colorbar=True, label=None,
         basemap = init_sky()
 
     # Get pixel boundaries as quadrilaterals.
-    corners = hp.boundaries(nside, np.arange(len(data)), step=1)
+    corners = hp.boundaries(nside, np.arange(len(data)), step=1, nest=nest)
     corner_theta, corner_phi = hp.vec2ang(corners.transpose(0,2,1))
     corner_ra, corner_dec = (
         np.degrees(corner_phi), np.degrees(np.pi/2-corner_theta))
@@ -513,8 +516,8 @@ def plot_healpix_map(data, cmap='viridis', colorbar=True, label=None,
     theta_edge = np.unique(uv_verts[:, :, 1])
     phi_edge = np.radians(basemap.lonmax)
     eps = 0.1 * np.sqrt(hp.nside2pixarea(nside))
-    wrapped1 = hp.ang2pix(nside, theta_edge, phi_edge - eps)
-    wrapped2 = hp.ang2pix(nside, theta_edge, phi_edge + eps)
+    wrapped1 = hp.ang2pix(nside, theta_edge, phi_edge - eps, nest=nest)
+    wrapped2 = hp.ang2pix(nside, theta_edge, phi_edge + eps, nest=nest)
     wrapped = np.unique(np.hstack((wrapped1, wrapped2)))
     data.mask[wrapped] = True
 
