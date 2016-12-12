@@ -632,7 +632,7 @@ def plot_grid_map(data, ra_edges, dec_edges, cmap='viridis', colorbar=True,
             ra_edges = np.hstack(([basemap.lonmin], ra_edges[first:],
                                   ra_edges[:first] + 360, [basemap.lonmax]))
             data = numpy.ma.hstack(
-                (data[:, first:first + 1], data[:, first:],
+                (data[:, first - 1:first], data[:, first:],
                  data[:, :first], data[:, first:first + 1]))
         else:
             ra_edges = np.hstack((ra_edges[first:], ra_edges[:first + 1] + 360))
