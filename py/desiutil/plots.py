@@ -892,9 +892,15 @@ def plot_sky_binned(ra, dec, weights=None, data=None, plot_type='grid',
         else:
             sums, _, _ = np.histogram2d(
                 dec, ra, [dec_edges, ra_edges], weights=weights * data)
+            # This ratio might result in some nan (0/0) or inf (1/0) values,
+            # but these will be masked by prepare_data().
+            settings = np.seterr(all='ignore')
             grid_data = sums / counts
+            np.seterr(**settings)
 
-        grid_data = prepare_data(grid_data, clip_lo=clip_lo, clip_hi=clip_hi)
+        grid_data = prepare_data(
+            grid_data, clip_lo=clip_lo, clip_hi=clip_hi,
+            mask=~np.isfinite(grid_data))
 
         basemap = plot_grid_map(
             grid_data, ra_edges, dec_edges, cmap, colorbar, label, basemap)
