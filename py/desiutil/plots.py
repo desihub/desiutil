@@ -155,7 +155,7 @@ def prepare_data(data, mask=None, clip_lo=None, clip_hi=None,
     routines that automatically assign colors based on input values.
 
     If no optional parameters are specified, the input data is returned
-    with an empty mask:
+    with only non-finite values masked:
 
     >>> data = np.arange(5.)
     >>> prepare_data(data)
@@ -248,6 +248,8 @@ def prepare_data(data, mask=None, clip_lo=None, clip_hi=None,
         mask = np.asarray(mask)
         if mask.shape != data.shape:
             raise ValueError('Invalid mask shape.')
+    # Mask any non-finite values.
+    mask |= ~np.isfinite(data)
     unmasked_data = data[~mask]
 
     # Convert percentile clip values to absolute values.
@@ -276,10 +278,15 @@ def prepare_data(data, mask=None, clip_lo=None, clip_hi=None,
     else:
         clipped = numpy.ma.MaskedArray(
             np.clip(data, clip_lo, clip_hi), mask)
+
+    # Mask values outside the clip range, if requested.  The comparisons
+    # below might trigger warnings for non-finite data.
+    settings = np.seterr(all='ignore')
     if mask_lo:
         clipped.mask[data < clip_lo] = True
     if mask_hi:
         clipped.mask[data > clip_hi] = True
+    np.seterr(**settings)
 
     return clipped
 
@@ -899,8 +906,7 @@ def plot_sky_binned(ra, dec, weights=None, data=None, plot_type='grid',
             np.seterr(**settings)
 
         grid_data = prepare_data(
-            grid_data, clip_lo=clip_lo, clip_hi=clip_hi,
-            mask=~np.isfinite(grid_data))
+            grid_data, clip_lo=clip_lo, clip_hi=clip_hi)
 
         basemap = plot_grid_map(
             grid_data, ra_edges, dec_edges, cmap, colorbar, label, basemap)
