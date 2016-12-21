@@ -56,7 +56,7 @@ class TestPlots(unittest.TestCase):
     def test_plot_sky(self):
         """Test plot_sky
         """
-        from ..plots import plot_sky
+        from ..plots import plot_sky_binned
         ra = 360.*np.random.rand(200)
         dec = 360.*np.random.rand(200)
         #Run
