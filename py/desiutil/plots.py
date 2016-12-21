@@ -162,6 +162,7 @@ def prepare_data(data, mask=None, clip_lo=None, clip_hi=None,
     masked_array(data = [0.0 1.0 2.0 3.0 4.0],
                  mask = [False False False False False],
            fill_value = 1e+20)
+    <BLANKLINE>
 
     Any mask selection is propagated to the output:
 
@@ -169,6 +170,7 @@ def prepare_data(data, mask=None, clip_lo=None, clip_hi=None,
     masked_array(data = [0.0 1.0 -- 3.0 4.0],
                  mask = [False False  True False False],
            fill_value = 1e+20)
+    <BLANKLINE>
 
     Values can be clipped by specifying any combination of percentiles
     (specified as strings ending with "%") and numeric values:
@@ -177,6 +179,7 @@ def prepare_data(data, mask=None, clip_lo=None, clip_hi=None,
     masked_array(data = [1.0 1.0 2.0 3.0 3.5],
                  mask = [False False False False False],
            fill_value = 1e+20)
+    <BLANKLINE>
 
     Clipped values are also masked when the clip value or percentile
     is prefixed with "!":
@@ -185,6 +188,7 @@ def prepare_data(data, mask=None, clip_lo=None, clip_hi=None,
     masked_array(data = [-- 1.0 2.0 3.0 3.5],
                  mask = [ True False False False False],
            fill_value = 1e+20)
+    <BLANKLINE>
 
     An input masked array is passed through without any copying unless
     clipping is requested:
