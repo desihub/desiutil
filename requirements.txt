@@ -1,5 +1,7 @@
 setuptools
 requests
 pyyaml
-matplotlib
 astropy
+healpy
+matplotlib
+git+https://github.com/matplotlib/basemap.git

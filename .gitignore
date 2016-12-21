@@ -5,6 +5,7 @@ __pycache__
 # Other generated files
 htmlcov
 .coverage
+py/desiutil/.cache
 
 # Sphinx
 doc/api

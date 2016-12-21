@@ -5,7 +5,9 @@ Change Log
 1.9.3 (unreleased)
 ------------------
 
-* No changes yet.
+* Added new functions for creating all-sky maps (`PR #52`_) with an accompanying tutorial notebook in `doc/nb/`.
+ 
+.. _`PR #52`: https://github.com/desihub/desiutil/pull/52
 
 1.9.2 (2016-11-18)
 ------------------
