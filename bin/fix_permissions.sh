@@ -70,7 +70,7 @@ if [ ! -x "${setfacl}" ]; then
     acl=False
 fi
 #
-# Make sure directory exists
+# Make sure directory exists, and check consistency.
 #
 if [ $# -lt 1 ]; then
     echo "You must specify a directory!" >&2
@@ -91,16 +91,13 @@ if [ -z "${NERSC_HOST}" ]; then
     echo "Unable to determine NERSC environment.  Are you running this script at NERSC?"
     exit 1
 fi
-#
-# Not all NERSC hosts know about the apache user, so make sure we're running
-# on one that does.
-#
-if [ -n "${apache}" ]; then
-    if [ "${NERSC_HOST}" != "datatran" ]; then
-        echo "You are attempting to set apache permissions on a host that might not be aware of apache.  Skipping request."
-        apache=''
-    fi
+if [ -n "${apache}" -a "${acl}" = "False" ]; then
+    echo "You are attempting to set apache permissions, while simultaneously disabling ACL altogether. Pick one or the other."
+    exit 1
 fi
+#
+# Proceed with permission changes.
+#
 [ "${verbose}" = "True" ] && echo "Fixing permissions on ${directory} ..."
 if [ "${test}" = "True" ]; then
     run ${verbose} "${find} ${directory} -user ${USER} -not -group ${group} -ls"
