@@ -13,7 +13,7 @@ function usage() {
     echo "    -A = Do NOT try to modify access control lists (ACL)."
     echo "    -g = Change group ownership to GROUP (default 'desi')."
     echo "    -h = Print this message and exit."
-    echo "    -o = Set permissions for 'official' data, remove groupe-writeability."
+    echo "    -o = Set permissions for 'official' data; remove group-writeability."
     echo "    -t = Test mode.  Do not make any changes.  Implies -v."
     echo "    -v = Verbose mode. Print lots of extra information."
     echo "   DIR = Directory to fix. Required."
@@ -48,7 +48,7 @@ while getopts aAg:hotv argname; do
         A) acl=False ;;
         g) group=${OPTARG} ;;
         h) usage; exit 0 ;;
-        o) official=True; defautl_acl='u::rwx,g::r-x,o::---'; default_chmod='g-w,o-rwx'; default_dir_chmod='2750'; gw='' ;;
+        o) official=True; default_acl='u::rwx,g::r-x,o::---'; default_chmod='g-w,o-rwx'; default_dir_chmod='2750'; gw='' ;;
         t) test=True; verbose=True ;;
         v) verbose=True ;;
         *) usage; exit 1 ;;
