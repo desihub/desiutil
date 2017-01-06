@@ -6,7 +6,8 @@ Change Log
 ------------------
 
 * Added new functions for creating all-sky maps (`PR #52`_) with an accompanying tutorial notebook in `doc/nb/`.
- 
+* Add option to :command:`fix_permissions.sh` to remove group-writeability for "official" data.
+
 .. _`PR #52`: https://github.com/desihub/desiutil/pull/52
 
 1.9.2 (2016-11-18)

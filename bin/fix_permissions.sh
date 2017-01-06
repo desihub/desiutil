@@ -5,13 +5,15 @@
 function usage() {
     local execName=$(basename $0)
     (
-    echo "${execName} [-a] [-g GROUP] [-h] [-t] [-v] DIR"
+    echo "${execName} [-a] [-A] [-g GROUP] [-h] [-o] [-t] [-v] DIR"
     echo ""
     echo "Set group-friendly permissions on a directory tree."
     echo ""
     echo "    -a = Include apache/www access when modifying permissons."
+    echo "    -A = Do NOT try to modify access control lists (ACL)."
     echo "    -g = Change group ownership to GROUP (default 'desi')."
     echo "    -h = Print this message and exit."
+    echo "    -o = Set permissions for 'official' data, remove groupe-writeability."
     echo "    -t = Test mode.  Do not make any changes.  Implies -v."
     echo "    -v = Verbose mode. Print lots of extra information."
     echo "   DIR = Directory to fix. Required."
@@ -31,15 +33,22 @@ function run() {
 #
 apache=''
 apache_uid=48
+acl=True
+group=desi
+official=False
+default_acl='u::rwx,g::rwx,o::---'
+default_chmod='g+w,o-rwx'
+default_dir_chmod='2770'
+gw='-not'
 test=False
 verbose=False
-group=desi
-acl=True
-while getopts ag:htv argname; do
+while getopts aAg:hotv argname; do
     case ${argname} in
         a) apache="u:${apache_uid}:rX" ;;
+        A) acl=False ;;
         g) group=${OPTARG} ;;
         h) usage; exit 0 ;;
+        o) official=True; defautl_acl='u::rwx,g::r-x,o::---'; default_chmod='g-w,o-rwx'; default_dir_chmod='2750'; gw='' ;;
         t) test=True; verbose=True ;;
         v) verbose=True ;;
         *) usage; exit 1 ;;
@@ -95,11 +104,11 @@ fi
 [ "${verbose}" = "True" ] && echo "Fixing permissions on ${directory} ..."
 if [ "${test}" = "True" ]; then
     run ${verbose} "${find} ${directory} -user ${USER} -not -group ${group} -ls"
-    run ${verbose} "${find} ${directory} -user ${USER} -type f ( -perm /o+rwx -or -not -perm /g+w ) -ls"
-    run ${verbose} "${find} ${directory} -user ${USER} -type d -not -perm 2770 -ls"
+    run ${verbose} "${find} ${directory} -user ${USER} -type f ( -perm /o+rwx -or ${gw} -perm /g+w ) -ls"
+    run ${verbose} "${find} ${directory} -user ${USER} -type d -not -perm ${default_dir_chmod} -ls"
     if [ "${acl}" = "True" ]; then
         run ${verbose} "${find} ${directory} -user ${USER} -exec ${setfacl} --test --remove-all {} ;"
-        run ${verbose} "${find} ${directory} -user ${USER} -type d -exec ${setfacl} --test --default -m u::rwx,g::rwx,o::--- {} ;"
+        run ${verbose} "${find} ${directory} -user ${USER} -type d -exec ${setfacl} --test --default -m ${default_acl} {} ;"
         if [ -n "${apache}" ]; then
             run ${verbose} "${find} ${directory} -user ${USER} -exec ${setfacl} --test -m ${apache} {} ;"
             run ${verbose} "${find} ${directory} -user ${USER} -type d -exec ${setfacl} --test --default -m ${apache} {} ;"
@@ -109,11 +118,11 @@ else
     vflag=''
     [ "${verbose}" = "True" ] && vflag='-v'
     run ${verbose} "${find} ${directory} -user ${USER} -not -group ${group} -exec chgrp ${vflag} -h ${group} {} ;"
-    run ${verbose} "${find} ${directory} -user ${USER} -type f ( -perm /o+rwx -or -not -perm /g+w ) -exec chmod ${vflag} g+w,o-rwx {} ;"
-    run ${verbose} "${find} ${directory} -user ${USER} -type d -not -perm 2770 -exec chmod ${vflag} 2770 {} ;"
+    run ${verbose} "${find} ${directory} -user ${USER} -type f ( -perm /o+rwx -or ${gw} -perm /g+w ) -exec chmod ${vflag} ${default_chmod} {} ;"
+    run ${verbose} "${find} ${directory} -user ${USER} -type d -not -perm ${default_dir_chmod} -exec chmod ${vflag} ${default_dir_chmod} {} ;"
     if [ "${acl}" = "True" ]; then
         run ${verbose} "${find} ${directory} -user ${USER} -exec ${setfacl} --remove-all {} ;"
-        run ${verbose} "${find} ${directory} -user ${USER} -type d -exec ${setfacl} --default -m u::rwx,g::rwx,o::--- {} ;"
+        run ${verbose} "${find} ${directory} -user ${USER} -type d -exec ${setfacl} --default -m ${default_acl} {} ;"
         if [ -n "${apache}" ]; then
             run ${verbose} "${find} ${directory} -user ${USER} -exec ${setfacl} -m ${apache} {} ;"
             run ${verbose} "${find} ${directory} -user ${USER} -type d -exec ${setfacl} --default -m ${apache} {} ;"
