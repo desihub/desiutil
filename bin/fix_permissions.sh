@@ -101,6 +101,7 @@ fi
 [ "${verbose}" = "True" ] && echo "Fixing permissions on ${directory} ..."
 if [ "${test}" = "True" ]; then
     run ${verbose} "${find} ${directory} -user ${USER} -not -group ${group} -ls"
+    run ${verbose} "${find} ${directory} -user ${USER} -type f -not -perm /g+r -ls"
     run ${verbose} "${find} ${directory} -user ${USER} -type f ( -perm /o+rwx -or ${gw} -perm /g+w ) -ls"
     run ${verbose} "${find} ${directory} -user ${USER} -type d -not -perm ${default_dir_chmod} -ls"
     if [ "${acl}" = "True" ]; then
@@ -113,8 +114,12 @@ if [ "${test}" = "True" ]; then
     fi
 else
     vflag=''
-    [ "${verbose}" = "True" ] && vflag='-v'
+    #
+    # Instruct chgrp & chmod to only report files that change.
+    #
+    [ "${verbose}" = "True" ] && vflag='-c'
     run ${verbose} "${find} ${directory} -user ${USER} -not -group ${group} -exec chgrp ${vflag} -h ${group} {} ;"
+    run ${verbose} "${find} ${directory} -user ${USER} -type f -not -perm /g+r -exec chmod ${vflag} g+r {} ;"
     run ${verbose} "${find} ${directory} -user ${USER} -type f ( -perm /o+rwx -or ${gw} -perm /g+w ) -exec chmod ${vflag} ${default_chmod} {} ;"
     run ${verbose} "${find} ${directory} -user ${USER} -type d -not -perm ${default_dir_chmod} -exec chmod ${vflag} ${default_dir_chmod} {} ;"
     if [ "${acl}" = "True" ]; then
