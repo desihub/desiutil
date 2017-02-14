@@ -44,6 +44,7 @@ class GaussianMixtureModel(object):
         return model
 
     def sample(self, n_samples=1, random_state=None):
+        import numpy as np
 
         if self.covtype != 'full':
             return NotImplementedError(
