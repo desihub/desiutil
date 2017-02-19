@@ -32,6 +32,9 @@ desiutil API
 .. automodule:: desiutil.setup
     :members:
 
+.. automodule:: desiutil.sklearn
+    :members:
+
 .. automodule:: desiutil.stats
     :members:
 
