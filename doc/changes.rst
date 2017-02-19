@@ -6,7 +6,6 @@ Change Log
 ------------------
 
 * Added new :mod:`desiutil.sklearn` module and :class:`distutils.sklearn.GaussianMixtureModel` class to save and sample from a Gaussian mixture model.
-
 * Added new functions for creating all-sky maps (`PR #52`_) with an accompanying tutorial notebook in `doc/nb/`.
 * Add option to :command:`fix_permissions.sh` to remove group-writeability for
   "official" data. Also, make sure that files and directories are group-readable.
