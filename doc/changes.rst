@@ -5,9 +5,7 @@ Change Log
 1.9.3 (unreleased)
 ------------------
 
-* Added new :mod:`desiutil.sklearn` module and
-:class:`distutils.sklearn.GaussianMixtureModel` class to save and sample from a
-Gaussian mixture model.
+* Added new :mod:`desiutil.sklearn` module and :class:`distutils.sklearn.GaussianMixtureModel` class to save and sample from a Gaussian mixture model.
 
 * Added new functions for creating all-sky maps (`PR #52`_) with an accompanying tutorial notebook in `doc/nb/`.
 * Add option to :command:`fix_permissions.sh` to remove group-writeability for
