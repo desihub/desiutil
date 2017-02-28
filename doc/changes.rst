@@ -12,9 +12,10 @@ Change Log
   accompanying tutorial notebook in `doc/nb/`.
 * Add option to :command:`fix_permissions.sh` to remove group-writeability for
   "official" data. Also, make sure that files and directories are group-readable.
-* Moved logging infrastructure from desispec.
+* Moved logging infrastructure from desispec (`PR #56`_).
 
 .. _`PR #52`: https://github.com/desihub/desiutil/pull/52
+.. _`PR #56`: https://github.com/desihub/desiutil/pull/56
 
 1.9.2 (2016-11-18)
 ------------------
