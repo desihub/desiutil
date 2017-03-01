@@ -2,7 +2,7 @@
 Change Log
 ==========
 
-1.9.3 (unreleased)
+1.9.3 (2017-03-01)
 ------------------
 
 * Added new :mod:`desiutil.sklearn` module and
