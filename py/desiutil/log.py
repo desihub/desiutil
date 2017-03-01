@@ -24,7 +24,7 @@ CRITICAL = logging.CRITICAL  # A serious error, indicating that the program itse
 # see example of usage in test/test_log.py
 
 
-def get_logger(level=None, timestamp=False):
+def get_logger(level=None, timestamp=False, delimiter=':'):
     """Returns a default DESI logger.
 
     Parameters
@@ -33,6 +33,8 @@ def get_logger(level=None, timestamp=False):
         Debugging level.
     timestamp : :class:`bool`, optional
         If set, include a time stamp in the log message.
+    delimiter : :class:`str`, optional
+        Use this string to separate fields in the log messages, default ':'.
 
     Returns
     -------
@@ -92,10 +94,12 @@ def get_logger(level=None, timestamp=False):
 
     ch = logging.StreamHandler(stdout)
 
+    fmtfields = ['%(levelname)s', '%(filename)s', '%(lineno)s', '%(funcName)s']
     if timestamp:
-        formatter = logging.Formatter('%(levelname)s:%(filename)s:%(lineno)s:%(funcName)s:%(asctime)s: %(message)s', datefmt='%Y-%m-%dT%H:%M:%S')
-    else:
-        formatter = logging.Formatter('%(levelname)s:%(filename)s:%(lineno)s:%(funcName)s: %(message)s')
+        fmtfields.append('%(asctime)s')
+    fmt = delimiter.join(fmtfields)
+
+    formatter = logging.Formatter(fmt + ': %(message)s', datefmt='%Y-%m-%dT%H:%M:%S')
 
     ch.setFormatter(formatter)
 

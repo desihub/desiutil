@@ -50,6 +50,21 @@ class TestLog(unittest.TestCase):
             logger.error("This is an error message.")
             logger.critical("This is a critical error message.")
 
+    def test_log_with_delimiter(self):
+        """Test logging with alternate delimiter.
+        """
+        for level in (None, l.DEBUG, l.INFO, l.WARNING, l.ERROR):
+            logger = l.get_logger(level, delimiter=' -- ')
+            print("With the requested debugging level={0}:".format(level))
+            if self.desi_level is not None and (self.desi_level != "" ) :
+                print("    (but overuled by env. DESI_LOGLEVEL='{0}'):".format(self.desi_level))
+            print("--------------------------------------------------")
+            logger.debug("This is a debugging message.")
+            logger.info("This is an informational message.")
+            logger.warning("This is a warning message.")
+            logger.error("This is an error message.")
+            logger.critical("This is a critical error message.")
+
 
 def test_suite():
     """Allows testing of only this module with the command::
