@@ -35,6 +35,31 @@ class TestLog(unittest.TestCase):
             logger.error("This is an error message.")
             logger.critical("This is a critical error message.")
 
+    def test_log_with_desi_loglevel(self):
+        """Test basic logging functionality with DESI_LOGLEVEL set.
+        """
+        from os import environ
+        desi_level_cache = self.desi_level
+        for lvl in ('warning', 'foobar'):
+            self.desi_level = environ['DESI_LOGLEVEL'] = lvl
+            for level in (None, l.DEBUG, l.INFO, l.WARNING, l.ERROR):
+                logger = l.get_logger(level)
+                print("With the requested debugging level={0}:".format(level))
+                if self.desi_level is not None and (self.desi_level != "" ):
+                    print("    (but overuled by env. DESI_LOGLEVEL='{0}')".format(self.desi_level))
+                print("--------------------------------------------------")
+                logger.debug("This is a debugging message.")
+                logger.info("This is an informational message.")
+                logger.warning("This is a warning message.")
+                logger.error("This is an error message.")
+                logger.critical("This is a critical error message.")
+        if desi_level_cache is None:
+            del environ['DESI_LOGLEVEL']
+            self.desi_level = None
+        else:
+            environ['DESI_LOGLEVEL'] = desi_level_cache
+            self.desi_level = desi_level_cache
+
     def test_log_with_timestamp(self):
         """Test logging with timestamps.
         """
