@@ -10,7 +10,7 @@ import shutil, tempfile
 import os
 import numpy as np
 import sys
-#Set non-interactive backend for Travis
+# Set non-interactive backend for Travis
 import matplotlib
 matplotlib.use('agg')
 
@@ -21,18 +21,25 @@ try:
 except NameError:  # For Python 3
     basestring = str
 
+try:
+    import mpl_toolkits.basemap
+    have_basemap = True
+except ImportError:
+    have_basemap = False
+
 class TestPlots(unittest.TestCase):
     """Test desiutil.plots
     """
 
     @classmethod
-    def setUpClass(self):
-        self.test_dir = tempfile.mkdtemp()
-        self.plot_file = os.path.join(self.test_dir,'test_slices.png')
-        self.plot_file2 = os.path.join(self.test_dir,'test_sky.png')
+    def setUpClass(cls):
+        cls.test_dir = tempfile.mkdtemp()
+        cls.plot_file = os.path.join(cls.test_dir, 'test_slices.png')
+        cls.plot_file2 = os.path.join(cls.test_dir, 'test_sky.png')
+
     @classmethod
-    def tearDownClass(self):
-        shutil.rmtree(self.test_dir)
+    def tearDownClass(cls):
+        shutil.rmtree(cls.test_dir)
 
     def test_slices(self):
         """Test plot_slices
@@ -47,12 +54,8 @@ class TestPlots(unittest.TestCase):
         ax_slices.set_xlabel('x')
         if 'TRAVIS_JOB_ID' not in os.environ:
             plt.savefig(self.plot_file)
-    try:
-        import mpl_toolkits.basemap
-        have_basemap = True
-    except ImportError:
-        have_basemap = False
-    @unittest.skipIf(have_basemap == False, 'Skipping tests of plot_sky that require basemap to be installed first')
+
+    @unittest.skipIf(not have_basemap, 'Skipping tests of plot_sky that require basemap to be installed first')
     def test_plot_sky(self):
         """Test plot_sky
         """
@@ -63,6 +66,7 @@ class TestPlots(unittest.TestCase):
         ax = plot_sky_binned(ra, dec)
         if 'TRAVIS_JOB_ID' not in os.environ:
             plt.savefig(self.plot_file2)
+
 
 def test_suite():
     """Allows testing of only this module with the command::
