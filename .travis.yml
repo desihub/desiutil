@@ -55,9 +55,13 @@ matrix:
           # -w is an astropy extension
 
         # Coverage test, pass the results to coveralls.
+        # - os: linux
+        #   python: 2.7
+        #   env: MAIN_CMD='coverage' SETUP_CMD='run py/desiutil/test/desiutil_test_suite.py'
+
         - os: linux
-          python: 2.7
-          env: MAIN_CMD='coverage' SETUP_CMD='run py/desiutil/test/desiutil_test_suite.py'
+          python: 3.5
+          env: MAIN_CMD='coverage' SETUP_CMD='run --source=desiutil setup.py test'
 
         # PEP 8 compliance.
 #         - os: linux
