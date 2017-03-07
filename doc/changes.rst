@@ -5,7 +5,8 @@ Change Log
 1.9.4 (unreleased)
 ------------------
 
-* No changes yet.
+* Get .travis.yml file and other components ready for Python 3.6.
+* Increase test coverage in a few areas.
 
 1.9.3 (2017-03-01)
 ------------------
