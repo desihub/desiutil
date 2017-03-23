@@ -51,29 +51,29 @@ matrix:
         # runs for a long time
         - os: linux
           python: 3.5
-          env: SETUP_CMD='build_sphinx'
-          # -w is an astropy extension
+          env: SETUP_CMD='build_sphinx --warning-is-error'
 
         # Coverage test, pass the results to coveralls.
-        # - os: linux
-        #   python: 2.7
-        #   env: MAIN_CMD='coverage' SETUP_CMD='run py/desiutil/test/desiutil_test_suite.py'
-
         - os: linux
           python: 3.5
           env: MAIN_CMD='coverage' SETUP_CMD='run --source=desiutil setup.py test'
 
+        # Experimental OS X test.
+        - os: osx
+          python: 3.5
+          env: SETUP_CMD='test'
+
         # PEP 8 compliance.
-#         - os: linux
-#           python: 3.5
-#           env: MAIN_CMD='pep8' SETUP_CMD='--count py/desiutil'
+        # - os: linux
+        #   python: 3.5
+        #   env: MAIN_CMD='pep8' SETUP_CMD='--count py/desiutil'
 
 before_install:
     - curl ipinfo.io
 
 install:
     - if [[ $MAIN_CMD == 'pep8' ]]; then pip install pep8; fi
-    - if [[ $SETUP_CMD == 'build_sphinx' ]]; then pip install Sphinx; fi
+    - if [[ $SETUP_CMD == build_sphinx* ]]; then pip install Sphinx; fi
     - if [[ $MAIN_CMD == 'coverage' ]]; then pip install coverage coveralls; fi
     - pip install -r requirements.txt
 
