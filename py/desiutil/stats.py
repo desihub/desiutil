@@ -1,9 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
 """
-===============
-desiutils.stats
-===============
+==============
+desiutil.stats
+==============
 
 Just contains a dead-simple wrapper on :func:`numpy.percentile`.
 """
