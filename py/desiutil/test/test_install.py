@@ -329,12 +329,13 @@ class TestInstall(unittest.TestCase):
         except KeyError:
             old_root = None
         environ['NERSC_HOST'] = 'edison'
-        options = self.desiInstall.get_options(['desiutil', 'master'])
+        test_code_version = 'test-blat-foo'
+        options = self.desiInstall.get_options(['desiutil', test_code_version])
         self.desiInstall.get_product_version()
         install_dir = self.desiInstall.set_install_dir()
         self.assertEqual(install_dir, join(
                          self.desiInstall.default_nersc_dir['edison'], 'code',
-                         'desiutil', 'master'))
+                         'desiutil', test_code_version))
         if old_root is not None:
             environ['DESI_PRODUCT_ROOT'] = old_root
         if old_nersc_host is None:
