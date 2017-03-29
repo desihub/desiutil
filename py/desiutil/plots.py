@@ -125,26 +125,60 @@ def plot_slices(x, y, x_lo, x_hi, y_cut, num_slices=5, min_count=100, axis=None,
 
 
 class MaskedArrayWithLimits(numpy.ma.MaskedArray):
-    """Masked array with additional vmin, vmax attributes.
+    """Masked array with additional `vmin`, `vmax` attributes.
 
-    Based on https://docs.scipy.org/doc/numpy/user/
-    basics.subclassing.html#simple-example-adding-an-extra-attribute-to-ndarray
+    This class accepts the same arguments as
+    :class:`~numpy.ma.MaskedArray`.
+
+    Based on https://docs.scipy.org/doc/numpy/user/basics.subclassing.html#simple-example-adding-an-extra-attribute-to-ndarray
 
     This is not a general-purpose subclass and is only intended to simplify
-    passing vmin, vmax limits from prepare_data() to the plotting utility
-    methods defined in this module.
+    passing `vmin`, `vmax` limits from :func:`~desiutil.plots.prepare_data` to
+    the plotting utility methods defined in this module.
+
+    Parameters
+    ----------
+    vmin : :class:`float`, optional
+        Minimum value when used for clipping or masking.
+    vmax : :class:`float`, optional
+        Maximum value when used for clipping or masking.
+
+    Attributes
+    ----------
+    vmin : :class:`float`
+        Minimum value when used for clipping or masking.
+    vmax : :class:`float`
+        Maximum value when used for clipping or masking.
     """
-    def __new__(cls, data, mask, dtype=None, order=None, vmin=None, vmax=None):
-        obj = numpy.ma.MaskedArray.__new__(cls, data, mask)
-        obj.vmin = vmin
-        obj.vmax = vmax
+    def __new__(cls, *args, **kwargs):
+        obj = super(MaskedArrayWithLimits, cls).__new__(cls, *args, **kwargs)
+        if 'vmin' in kwargs:
+            obj._optinfo['vmin'] = kwargs['vmin']
+        #     obj.vmin = kwargs['vmin']
+        # else:
+        #     obj.vmin = None
+        if 'vmax' in kwargs:
+            obj._optinfo['vmax'] = kwargs['vmax']
+        #     obj.vmax = kwargs['vmax']
+        # else:
+        #     obj.vmax = None
         return obj
 
-    def __array_finalize__(self, obj):
-        if obj is None: return
-        numpy.ma.MaskedArray.__array_finalize__(self, obj)
-        self.vmin = getattr(obj, 'vmin', None)
-        self.vmax = getattr(obj, 'vmax', None)
+    # def __array_finalize__(self, obj):
+    #     if obj is None: return
+    #     super(MaskedArrayWithLimits, self).__array_finalize__(obj)
+    #     print('   self type is {0}'.format(type(self)))
+    #     print('   obj type is {0}'.format(type(obj)))
+    #     self.vmin = getattr(obj, 'vmin', None)
+    #     self.vmax = getattr(obj, 'vmax', None)
+
+    @property
+    def vmin(self):
+        return self._optinfo.get('vmin', None)
+
+    @property
+    def vmax(self):
+        return self._optinfo.get('vmax', None)
 
 
 def prepare_data(data, mask=None, clip_lo=None, clip_hi=None,
@@ -154,6 +188,38 @@ def prepare_data(data, mask=None, clip_lo=None, clip_hi=None,
     Data is clipped and masked to be suitable for passing to matplotlib
     routines that automatically assign colors based on input values.
 
+    Parameters
+    ----------
+    data : array or masked array
+        Array of data values to assign colors for.
+    mask : array of bool or None
+        Array of bools with same shape as data, where True values indicate
+        values that should be ignored when assigning colors.  When None, the
+        mask of a masked array will be used or all values of an unmasked
+        array will be used.
+    clip_lo : float or str
+        Data values below clip_lo will be clipped to the minimum color. If
+        clip_lo is a string, it should end with "%" and specify a percentile
+        of un-masked data to clip below.
+    clip_hi : float or str
+        Data values above clip_hi will be clipped to the maximum color. If
+        clip_hi is a string, it should end with "%" and specify a percentile
+        of un-masked data to clip above.
+    save_limits : bool
+        Save the calculated lo/hi clip values as attributes vmin, vmax of
+        the returned masked array.  Use this flag to indicate that plotting
+        functions should use these vmin, vmax values when mapping the
+        returned data to colors.
+
+    Returns
+    -------
+    masked array
+        Masked numpy array with the same shape as the input data, with any
+        input mask applied (or copied from an input masked array) and values
+        clipped to [clip_lo, clip_hi].
+
+    Examples
+    --------
     If no optional parameters are specified, the input data is returned
     with only non-finite values masked:
 
@@ -206,55 +272,32 @@ def prepare_data(data, mask=None, clip_lo=None, clip_hi=None,
 
     These attributes can then be used by plotting routines to fix the input
     range used for colormapping, independently of the actual range of data.
-
-    Parameters
-    ----------
-    data : array or masked array
-        Array of data values to assign colors for.
-    mask : array of bool or None
-        Array of bools with same shape as data, where True values indicate
-        values that should be ignored when assigning colors.  When None, the
-        mask of a masked array will be used or all values of an unmasked
-        array will be used.
-    clip_lo : float or str
-        Data values below clip_lo will be clipped to the minimum color. If
-        clip_lo is a string, it should end with "%" and specify a percentile
-        of un-masked data to clip below.
-    clip_hi : float or str
-        Data values above clip_hi will be clipped to the maximum color. If
-        clip_hi is a string, it should end with "%" and specify a percentile
-        of un-masked data to clip above.
-    save_limits : bool
-        Save the calculated lo/hi clip values as attributes vmin, vmax of
-        the returned masked array.  Use this flag to indicate that plotting
-        functions should use these vmin, vmax values when mapping the
-        returned data to colors.
-
-    Returns
-    -------
-    masked array
-        Masked numpy array with the same shape as the input data, with any
-        input mask applied (or copied from an input masked array) and values
-        clipped to [clip_lo, clip_hi].
     """
     data = np.asanyarray(data)
     if mask is None:
         try:
             # Use the mask associated with a MaskedArray.
-            mask = data.mask
+            cmask = data.mask
             # If no clipping is requested, pass the input through.
             if clip_lo is None and clip_hi is None:
                 return data
         except AttributeError:
             # Nothing is masked by default.
-            mask = np.zeros_like(data, dtype=bool)
+            cmask = np.zeros_like(data, dtype=bool)
     else:
-        mask = np.asarray(mask)
-        if mask.shape != data.shape:
+        #
+        # Make every effort to ensure that modifying the mask of the output
+        # does not modify the input mask.
+        #
+        try:
+            cmask = np.asarray(mask.copy())
+        except:
+            cmask = np.asarray(mask)
+        if cmask.shape != data.shape:
             raise ValueError('Invalid mask shape.')
     # Mask any non-finite values.
-    mask |= ~np.isfinite(data)
-    unmasked_data = data[~mask]
+    cmask |= ~np.isfinite(data)
+    unmasked_data = data[~cmask]
 
     # Convert percentile clip values to absolute values.
     def get_clip(value):
@@ -278,10 +321,10 @@ def prepare_data(data, mask=None, clip_lo=None, clip_hi=None,
 
     if save_limits:
         clipped = MaskedArrayWithLimits(
-            np.clip(data, clip_lo, clip_hi), mask, vmin=clip_lo, vmax=clip_hi)
+            np.clip(data, clip_lo, clip_hi), cmask, vmin=clip_lo, vmax=clip_hi)
     else:
         clipped = numpy.ma.MaskedArray(
-            np.clip(data, clip_lo, clip_hi), mask)
+            np.clip(data, clip_lo, clip_hi), cmask)
 
     # Mask values outside the clip range, if requested.  The comparisons
     # below might trigger warnings for non-finite data.
