@@ -59,9 +59,11 @@ matrix:
           env: MAIN_CMD='coverage' SETUP_CMD='run --source=desiutil setup.py test'
 
         # Experimental OS X test.
-        - os: osx
-          python: 3.5
-          env: SETUP_CMD='test'
+        # As of March 2017, Python builds on OS X are not available.
+        # See https://docs.travis-ci.com/user/languages/python/
+        # - os: osx
+        #   python: 3.5
+        #   env: SETUP_CMD='test'
 
         # PEP 8 compliance.
         # - os: linux
