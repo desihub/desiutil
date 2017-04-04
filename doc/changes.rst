@@ -118,7 +118,7 @@ Change Log
 ------------------
 
 * Include :mod:`~desiutil.funcfits` in the documentation; added
- :func:`~desiutil.funcfits.mk_fit_dict`.
+  :func:`~desiutil.funcfits.mk_fit_dict`.
 * Improve coverage of :mod:`~desiutil.funcfits`.
 * Try to use a nicer Sphinx theme for documentation.
 
