@@ -7,6 +7,10 @@ Change Log
 
 * Get .travis.yml file and other components ready for Python 3.6.
 * Increase test coverage in a few areas.
+* Make basemap_ an optional dependency (PR `#61`_).
+
+.. _basemap: http://matplotlib.org/basemap/
+.. _`#61`: https://github.com/desihub/desiutil/pull/61
 
 1.9.3 (2017-03-01)
 ------------------
@@ -14,14 +18,14 @@ Change Log
 * Added new :mod:`desiutil.sklearn` module and
   :class:`distutils.sklearn.GaussianMixtureModel` class to save and
   sample from a Gaussian mixture model.
-* Added new functions for creating all-sky maps (`PR #52`_) with an
+* Added new functions for creating all-sky maps (PR `#52`_) with an
   accompanying tutorial notebook in `doc/nb/`.
 * Add option to :command:`fix_permissions.sh` to remove group-writeability for
   "official" data. Also, make sure that files and directories are group-readable.
-* Moved logging infrastructure from desispec (`PR #56`_).
+* Moved logging infrastructure from desispec (PR `#56`_).
 
-.. _`PR #52`: https://github.com/desihub/desiutil/pull/52
-.. _`PR #56`: https://github.com/desihub/desiutil/pull/56
+.. _`#52`: https://github.com/desihub/desiutil/pull/52
+.. _`#56`: https://github.com/desihub/desiutil/pull/56
 
 1.9.2 (2016-11-18)
 ------------------
@@ -45,22 +49,23 @@ Change Log
 
 * Shorten Python version printed in dependency headers.
 * :mod:`desiutil.test.test_plots` was not cleaning up after itself.
-* Support new DESI+Anaconda software stack infrastructure (`PR #43`_).
-* Fixes :meth:`~desiutil.bitmask.BitMask.names` when mask is a :class:`numpy.uint64` (`desitarget #79`_).
+* Support new DESI+Anaconda software stack infrastructure (PR `#43`_).
+* Fixes :meth:`~desiutil.bitmask.BitMask.names` when mask is a
+  :class:`numpy.uint64` (`desihub/desitarget#79`_).
 * :meth:`~desiutil.bitmask.BitMask.names` is much faster.
 * Fixed problem opening tar files in Python 3.
 
-.. _`PR #43`: https://github.com/desihub/desiutil/pull/43
-.. _`desitarget #79`: https://github.com/desihub/desiutil/pull/41
+.. _`#43`: https://github.com/desihub/desiutil/pull/43
+.. _`desihub/desitarget#79`: https://github.com/desihub/desitarget/pull/79
 
 1.8.0 (2016-09-10)
 ------------------
 
 * Added :func:`~desiutil.io.encode_table` and :func:`~desiutil.io.decode_table`
-  for converting string columns in tables between unicode and bytes (`PR #41`_).
+  for converting string columns in tables between unicode and bytes (PR `#41`_).
 * Set apache permissions by number instead of by name.
 
-.. _`PR #41`: https://github.com/desihub/desiutil/pull/41
+.. _`#41`: https://github.com/desihub/desiutil/pull/41
 
 1.7.0 (2016-08-18)
 ------------------
@@ -103,16 +108,17 @@ Change Log
 * Allow NERSC Modules root directory to be overridden in a configuration file.
 * :mod:`desiutil.stats` module was previously snuck in, but never documented.
 * Minor fixes for desiInstall bootstrap mode.
-* `PR #30`_: Enable use of weights in :func:`~desiutil.funcfits.iter_fit`.
+* PR `#30`_: Enable use of weights in :func:`~desiutil.funcfits.iter_fit`.
 * Add a method for connverting Python objects to yaml-ready format.
   Includes :class:`unicode` to :class:`str` conversion.
 
-.. _`PR #30`: https://github.com/desihub/desiutil/pull/30
+.. _`#30`: https://github.com/desihub/desiutil/pull/30
 
 1.3.6 (2016-03-25)
 ------------------
 
-* Include :mod:`~desiutil.funcfits` in the documentation; added :func:`~desiutil.funcfits.mk_fit_dict`.
+* Include :mod:`~desiutil.funcfits` in the documentation; added
+ :func:`~desiutil.funcfits.mk_fit_dict`.
 * Improve coverage of :mod:`~desiutil.funcfits`.
 * Try to use a nicer Sphinx theme for documentation.
 
