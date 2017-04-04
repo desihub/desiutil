@@ -62,7 +62,8 @@ setup_keywords['test_suite']='{name}.test.{name}_test_suite.{name}_test_suite'.f
 #
 # Autogenerate command-line scripts.
 #
-# setup_keywords['entry_points'] = {'console_scripts':['desiInstall = desiutil.install.desi_install:main']}
+# setup_keywords['entry_points'] = {'console_scripts':['desiInstall = desiutil.install:main',
+#                                                      'desi_data_census = desiutil.census:main']}
 #
 # Add internal data directories.
 #
