@@ -10,6 +10,32 @@ Determine the number of files and size in DESI data file systems.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+def get_options(test_args=None):
+    """Parse command-line options.
+
+    Parameters
+    ----------
+    test_args : :class:`list`
+        Override command-line arguments for testing purposes.
+
+    Returns
+    -------
+    :class:`argparse.Namespace`
+        A simple object containing the parsed options.
+    """
+    from sys import argv
+    from os.path import basename
+    from argparse import ArgumentParser
+    parser = ArgumentParser(description="Count number and size of DESI data files.",
+                            prog=basename(argv[0]))
+    parser.add_argument('-v', '--verbose', action='store_true',
+                        help="Print lots of extra information.")
+    if test_args is None:  # pragma: no cover
+        options = parser.parse_args()
+    else:
+        options = parser.parse_args(test_args)
+    return options
+
 
 def main():
     """Entry point for the :command:`desi_data_census` script.
@@ -19,4 +45,23 @@ def main():
     :class:`int`
         Exit status that will be passed to :func:`sys.exit`.
     """
+    from .log import get_logger, DEBUG
+    options = get_options()
+    if options.verbose:
+        log = get_logger(DEBUG)
+        log.debug("Verbose logging is set.")
+    else:
+        log = get_logger()
     return 0
+
+
+# * Directories to check:
+#   - Imaging raw & reduced.
+#   - spectro raw & reduced.
+#   - work directories.
+#   - non-footprint image data.
+# * Check group id, readability.
+# * Record mtime, size.
+# * Shift to fiscal year.
+# * Don't record filenames, just high-level directories.
+# * Treat projecta as same system, follow symlinks to projecta
