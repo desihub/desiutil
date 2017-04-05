@@ -130,8 +130,6 @@ class MaskedArrayWithLimits(numpy.ma.MaskedArray):
     This class accepts the same arguments as
     :class:`~numpy.ma.MaskedArray`.
 
-    Based on https://docs.scipy.org/doc/numpy/user/basics.subclassing.html#simple-example-adding-an-extra-attribute-to-ndarray
-
     This is not a general-purpose subclass and is only intended to simplify
     passing `vmin`, `vmax` limits from :func:`~desiutil.plots.prepare_data` to
     the plotting utility methods defined in this module.
@@ -163,14 +161,6 @@ class MaskedArrayWithLimits(numpy.ma.MaskedArray):
         # else:
         #     obj.vmax = None
         return obj
-
-    # def __array_finalize__(self, obj):
-    #     if obj is None: return
-    #     super(MaskedArrayWithLimits, self).__array_finalize__(obj)
-    #     print('   self type is {0}'.format(type(self)))
-    #     print('   obj type is {0}'.format(type(obj)))
-    #     self.vmin = getattr(obj, 'vmin', None)
-    #     self.vmax = getattr(obj, 'vmax', None)
 
     @property
     def vmin(self):
@@ -289,10 +279,7 @@ def prepare_data(data, mask=None, clip_lo=None, clip_hi=None,
         # Make every effort to ensure that modifying the mask of the output
         # does not modify the input mask.
         #
-        try:
-            cmask = np.asarray(mask.copy())
-        except:
-            cmask = np.asarray(mask)
+        cmask = np.array(mask)
         if cmask.shape != data.shape:
             raise ValueError('Invalid mask shape.')
     # Mask any non-finite values.
