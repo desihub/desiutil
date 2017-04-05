@@ -8,7 +8,7 @@ desiutil API
 .. automodule:: desiutil.bitmask
     :members:
 
-.. automodule:: desutil.census
+.. automodule:: desiutil.census
     :members:
 
 .. automodule:: desiutil.depend
