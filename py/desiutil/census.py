@@ -26,8 +26,12 @@ def get_options(test_args=None):
     from sys import argv
     from os.path import basename
     from argparse import ArgumentParser
+    from pkg_resources import resource_filename
     parser = ArgumentParser(description="Count number and size of DESI data files.",
                             prog=basename(argv[0]))
+    parser.add_argument('-c', '--config-file', action='store', dest='config',
+                        metavar='FILE', default=resource_filename('desiutil', 'data/census.yaml'),
+                        help="Read configuration from FILE (default %(default)s).")
     parser.add_argument('-v', '--verbose', action='store_true',
                         help="Print lots of extra information.")
     if test_args is None:  # pragma: no cover
@@ -45,13 +49,24 @@ def main():
     :class:`int`
         Exit status that will be passed to :func:`sys.exit`.
     """
+    import yaml
     from .log import get_logger, DEBUG
     options = get_options()
+    #
+    # Logging.
+    #
     if options.verbose:
         log = get_logger(DEBUG)
         log.debug("Verbose logging is set.")
     else:
         log = get_logger()
+    #
+    # Configuration
+    #
+    with open(options.config) as y:
+        log.info("Reading configuration from {0}.".format(options.config))
+        config = yaml.load(y)
+    log.debug(repr(config))
     return 0
 
 

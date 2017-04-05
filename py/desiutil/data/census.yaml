@@ -1,0 +1,52 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+# -*- coding: utf-8 -*-
+#
+# Configuration file for desi_data_census.
+#
+# If a symlink to these filesystems is encountered, the symlink
+# will be traversed.
+#
+descend:
+    - /projecta/projectdirs
+    - /global/projecta/projectdirs
+#
+# Analyze these directories.  Properties in subdirectories are inherited.
+# unless overridden.
+#
+data:
+    - root: /global/project/projectdirs/desi/spectro
+      category: DESI Data
+      description: DESI raw and reduced data.
+      group: desi
+      subdirs:
+          - root: data
+            description: DESI raw data
+          - root: redux
+            description: DESI reduced data
+          - root: sim
+            description: DESI simulated data
+    - root: /global/project/projectdirs/cosmo/staging/decam
+      category: Imaging Data
+      description: DECaLS data.
+      group: cosmo
+      subdirs:
+          - root: DECaLS_Raw
+            description: DECaLS raw data
+          - root: DECaLS_CP
+            description: DECaLS data processed by NOAO CP
+    - root: /global/project/projectdirs/cosmo/staging/mosaicz
+      category: Imaging Data
+      description: MzLS data.
+      group: cosmo
+    - root: /global/project/projectdirs/cosmo/staging/bok
+      category: Imaging Data
+      description: BASS data.
+      group: cosmo
+    - root: /global/project/projectdirs/cosmo/staging/decam-public
+      category: Non-DESI Data
+      description: DECam data outside of the DESI footprint.
+      group: cosmo
+    - root: /global/project/projectdirs/desi/users
+      category: Collaboration Workspace
+      description: Working space for individual users.
+      group: desi

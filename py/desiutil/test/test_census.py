@@ -6,7 +6,6 @@ from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 # The line above will help with 2to3 support.
 import unittest
-from ..census import foo
 
 
 class TestCensus(unittest.TestCase):
@@ -21,10 +20,16 @@ class TestCensus(unittest.TestCase):
     def tearDownClass(cls):
         pass
 
-    def test_foo(self):
-        """Test foo.
+    def test_get_options(self):
+        """Test command-line argument parsing.
         """
-        pass
+        from ..census import get_options
+        options = get_options([])
+        self.assertFalse(options.verbose)
+        options = get_options(['--verbose'])
+        self.assertTrue(options.verbose)
+        options = get_options(['-c', 'foo.yaml'])
+        self.assertEqual(options.config, 'foo.yaml')
 
 
 def test_suite():
