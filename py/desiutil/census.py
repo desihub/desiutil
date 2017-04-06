@@ -69,7 +69,7 @@ def scan_directories(conf, data):
     data : :class:`list`
         The specific directories to scan.
     """
-    from os import readlink, stat, walk
+    from os import lstat, readlink, stat, walk
     from os.path import islink, join
     from .log import get_logger
     log = get_logger()
