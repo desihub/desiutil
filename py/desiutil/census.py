@@ -82,7 +82,7 @@ def scan_directories(conf, data):
             for dd in dirnames:
                 fd = join(dirpath, dd)
                 s = stat(fd)
-                if dd.st_gid != conf['gid'][d['group']]
+                if s.st_gid != conf['gid'][d['group']]:
                     log.warning("{0} does not have correct group id!".format(fd))
                 if islink(fd):
                     rfd = readlink(fd)
@@ -94,7 +94,7 @@ def scan_directories(conf, data):
             for ff in filenames:
                 fff = join(dirpath, ff)
                 s = stat(fff)
-                if s.st_gid != conf['gid'][d['group']]
+                if s.st_gid != conf['gid'][d['group']]:
                     log.warning("{0} does not have correct group id!".format(fff))
                 s_files += s.st_size
             size_files[d['root']] += s_files
@@ -117,7 +117,7 @@ def main():
         Exit status that will be passed to :func:`sys.exit`.
     """
     import yaml
-    from .log import get_logger, DEBUG, INFO, WARNING
+    from .log import get_logger, DEBUG, INFO
     options = get_options()
     #
     # Logging.
@@ -126,7 +126,7 @@ def main():
         log = get_logger(DEBUG)
         log.debug("Verbose logging is set.")
     else:
-        log = get_logger(WARNING)
+        log = get_logger()
     #
     # Configuration
     #
