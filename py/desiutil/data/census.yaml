@@ -50,15 +50,29 @@ data:
             description: DECaLS DR3.0.
           - root: dr3.1
             description: DECaLS DR3.1.
-    # - root: /global/project/projectdirs/cosmo/staging/decam
-    #   category: Imaging Data
-    #   description: DECaLS data.
-    #   group: cosmo
-    #   subdirs:
-    #       - root: DECaLS_Raw
-    #         description: DECaLS raw data
-    #       - root: DECaLS_CP
-    #         description: DECaLS data processed by NOAO CP
+    - root: /global/project/projectdirs/cosmo/staging/decam
+      category: Imaging Data
+      description: DECaLS data.
+      group: cosmo
+      subdirs:
+          - root: 2013A-0741
+            description: Percursor survey?
+          - root: COSMOS
+            description: DECam data in the COSMOS field?
+          - root: CPDES82
+            description: CP-processed DECam in Stripe 82?
+          - root: DECaLS_Raw
+            description: DECaLS raw data.
+          - root: DECaLS_CP
+            description: DECaLS data processed by NOAO CP.
+          - root: DESY1_Stripe82
+            description: DES Year 1 data in Stripe 82?
+          - root: NonDECaLS
+            description: DECam data in the DECaLS footprint.
+          - root: NonDECaLS-DR5
+            description: DECam data in the DECaLS footprint in preparation for DR5.
+          - root: Stacks_Aug14
+            description: No idea what this is.
     # - root: /global/project/projectdirs/cosmo/staging/mosaicz
     #   category: Imaging Data
     #   description: MzLS data.

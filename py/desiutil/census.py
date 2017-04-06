@@ -41,6 +41,24 @@ def get_options(test_args=None):
     return options
 
 
+def walk_error(e):
+    """Handle errors reported by :func:`os.walk`.
+
+    Parameters
+    ----------
+    e : :class:`OSError`
+        The exception reported.
+    """
+    from .log import get_logger
+    log = get_logger()
+    log.error("OS strerror = {0.strerror}".format(e))
+    log.error("OS errno = {0.errno}".format(e))
+    log.error("filename = {0.filename}".format(e))
+    if e.filename2 is not None:
+        log.error("filename2 = {0.filename2}".format(e))
+    return
+
+
 def scan_directories(conf, data):
     """Scan the directories specified by the configuration file.
 
@@ -71,7 +89,9 @@ def scan_directories(conf, data):
                 log.debug('description = {description}'.format(**sd))
                 n_files[fsd] = 0
                 size_files[fsd] = 0
-        for dirpath, dirnames, filenames in walk(d['root'], followlinks=True):
+        for dirpath, dirnames, filenames in walk(d['root'], topdown=True,
+                                                 onerror=walk_error,
+                                                 followlinks=True):
             log.debug("dirpath = {0}".format(dirpath))
             #
             # We want to follow *some* links, but not all.  If a link
@@ -90,19 +110,30 @@ def scan_directories(conf, data):
                     if not any([rfd.startswith(l) for l in conf['descend']]):
                         log.info("Skipping {0} -> {1}.".format(fd, rfd))
                         del dirnames[dirnames.index(dd)]
-            n_files[d['root']] += len(filenames)
             s_files = 0
+            n_links_to_files = 0
             for ff in filenames:
+                #
+                # os.stat() follows symlinks, but we also want to count the
+                # symlink for counting inodes.
+                #
                 fff = join(dirpath, ff)
                 s = stat(fff)
                 if s.st_gid != conf['gid'][d['group']]:
                     log.warning("{0} does not have correct group id!".format(fff))
                 s_files += s.st_size
+                if islink(fff):
+                    rfff = readlink(fff)
+                    log.info("Found file link {0} -> {1}.".format(fff, rfff))
+                    s = lstat(fff)
+                    n_links_to_files += 1
+                    s_files += s.st_size
+            n_files[d['root']] += (len(filenames) + n_links_to_files)
             size_files[d['root']] += s_files
             for fsd in subdirs:
                 if dirpath.startswith(fsd):
-                    n_files[fsd] += len(filenames)
-                    size_files[fsd] += len(filenames)
+                    n_files[fsd] += (len(filenames) + n_links_to_files)
+                    size_files[fsd] += s_files
         log.info('{0} contains {1:d} bytes in {2:d} files.'.format(d['root'], size_files[d['root']], n_files[d['root']]))
         for fsd in subdirs:
             log.info('{0} contains {1:d} bytes in {2:d} files.'.format(fsd, size_files[fsd], n_files[fsd]))
