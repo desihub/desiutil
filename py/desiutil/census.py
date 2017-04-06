@@ -56,14 +56,21 @@ def scan_directories(conf, data):
     from .log import get_logger
     log = get_logger()
     for d in data:
-        n_files = 0
-        size_files = 0
+        subdirs = []
+        n_files = {d['root']: 0}
+        size_files = {d['root']: 0}
         log.debug('root = {root}'.format(**d))
         log.debug('category = {category}'.format(**d))
         log.debug('description = {description}'.format(**d))
         log.debug('group = {group}'.format(**d))
         if 'subdirs' in d:
-            log.debug(repr(d['subdirs']))
+            for sd in d['subdirs']:
+                fsd = join(d['root'], sd['root'])
+                subdirs.append(fsd)
+                log.debug('subdir = {0}'.format(fsd))
+                log.debug('description = {description}'.format(**sd))
+                n_files[fsd] = 0
+                size_files[fsd] = 0
         for dirpath, dirnames, filenames in walk(d['root'], followlinks=True):
             log.debug("dirpath = {0}".format(dirpath))
             #
@@ -82,7 +89,7 @@ def scan_directories(conf, data):
                     if not any([rfd.startswith(l) for l in conf['descend']]):
                         log.info("Skipping {0} -> {1}.".format(fd, rfd))
                         del dirnames[dirnames.index(dd)]
-            n_files += len(filenames)
+            n_files[d['root']] += len(filenames)
             s_files = 0
             for ff in filenames:
                 fff = join(dirpath, ff)
@@ -90,8 +97,14 @@ def scan_directories(conf, data):
                 if s.st_gid != conf['gid'][d['group']]
                     log.warning("{0} does not have correct group id!".format(fff))
                 s_files += s.st_size
-            size_files += s_files
-        log.info('{0} contains {1:d} bytes in {2:d} files.'.format(d['root'], size_files, n_files))
+            size_files[d['root']] += s_files
+            for fsd in subdirs:
+                if dirpath.startswith(fsd):
+                    n_files[fsd] += len(filenames)
+                    size_files[fsd] += len(filenames)
+        log.info('{0} contains {1:d} bytes in {2:d} files.'.format(d['root'], size_files[d['root']], n_files[d['root']]))
+        for fsd in subdirs:
+            log.info('{0} contains {1:d} bytes in {2:d} files.'.format(fsd, size_files[fsd], n_files[fsd]))
     return
 
 
