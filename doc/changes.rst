@@ -11,6 +11,7 @@ Change Log
 
 .. _basemap: http://matplotlib.org/basemap/
 .. _`#61`: https://github.com/desihub/desiutil/pull/61
+.. _`#63`: https://github.com/desihub/desiutil/pull/63
 
 1.9.3 (2017-03-01)
 ------------------
