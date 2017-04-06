@@ -84,6 +84,7 @@ data:
       category: Imaging Data
       description: BASS data.
       group: cosmo
+      subdirs:
           - root: BOK_CP
             description: BASS data processed by NOAO CP.
           - root: BOK_Raw
