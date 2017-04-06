@@ -219,7 +219,7 @@ def main():
     with open(options.config) as y:
         config = yaml.load(y)
     log.debug(repr(config))
-    summmary = scan_directories(config['configuration'], config['data'])
+    summary = scan_directories(config['configuration'], config['data'])
     for root in summary:
         for y in sorted(summary[root].keys()):
             log.info('For FY{0:d}, {1} contains {2:d} bytes in {3:d} files.'.format(y, root, summary[root][y]['size'], summary[root][y]['number']))
