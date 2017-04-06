@@ -136,7 +136,7 @@ def scan_directories(conf, data):
                     rfd = readlink(fd)
                     n_links_to_dirs += 1
                     s_links_to_dirs += s.st_size
-                    if any([f.match(rfd) is not None for f in filesytems]):
+                    if any([f.match(rfd) is not None for f in filesystems]):
                         log.info("Found filesystem link {0} -> {1}.".format(fd, rfd))
             s_files = s_links_to_dirs
             n_links_to_files = n_links_to_dirs
