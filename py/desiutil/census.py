@@ -86,6 +86,7 @@ def scan_directories(conf, data):
                     log.warning("{0} does not have correct group id!".format(fd))
                 if islink(fd):
                     rfd = readlink(fd)
+                    log.info("Found {0} -> {1}.".format(fd, rfd))
                     if not any([rfd.startswith(l) for l in conf['descend']]):
                         log.info("Skipping {0} -> {1}.".format(fd, rfd))
                         del dirnames[dirnames.index(dd)]
