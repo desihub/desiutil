@@ -102,8 +102,7 @@ def scan_directories(conf, data):
         filesystems.append(re.compile(f))
     for d in data:
         subdirs = list()
-        n_files = {d['root']: 0}
-        size_files = {d['root']: 0}
+        dir_summary = {d['root']: dict()}
         log.debug('root = {root}'.format(**d))
         log.debug('category = {category}'.format(**d))
         log.debug('description = {description}'.format(**d))
@@ -114,8 +113,7 @@ def scan_directories(conf, data):
                 subdirs.append(fsd)
                 log.debug('subdir = {0}'.format(fsd))
                 log.debug('description = {description}'.format(**sd))
-                n_files[fsd] = 0
-                size_files[fsd] = 0
+                dir_summary[fsd] = dict()
         for dirpath, dirnames, filenames in walk(d['root'], topdown=True,
                                                  onerror=walk_error,
                                                  followlinks=False):
@@ -124,8 +122,7 @@ def scan_directories(conf, data):
             # Detect symlinks that point to another filesystem so they
             # can be counted toward the total.
             #
-            n_links_to_dirs = 0
-            s_links_to_dirs = 0
+            sum_files = dict()
             for dd in dirnames:
                 fd = join(dirpath, dd)
                 s = stat(fd)
@@ -133,13 +130,17 @@ def scan_directories(conf, data):
                     log.warning("{0} does not have correct group id!".format(fd))
                 if islink(fd):
                     s = lstat(fd)
+                    if s.st_gid != conf['gid'][d['group']]:
+                        log.warning("{0} does not have correct group id!".format(fd))
                     rfd = readlink(fd)
-                    n_links_to_dirs += 1
-                    s_links_to_dirs += s.st_size
+                    y = year(s.st_mtime)
+                    if y in sum_files:
+                        sum_files[y]['number'] += 1
+                        sum_files[y]['size'] += s.st_size
+                    else:
+                        sum_files[y] = {'number': 1, 'size': s.st_size}
                     if any([f.match(rfd) is not None for f in filesystems]):
                         log.info("Found filesystem link {0} -> {1}.".format(fd, rfd))
-            s_files = s_links_to_dirs
-            n_links_to_files = n_links_to_dirs
             for ff in filenames:
                 #
                 # os.stat() follows symlinks, but we also want to count the
@@ -149,22 +150,43 @@ def scan_directories(conf, data):
                 s = stat(fff)
                 if s.st_gid != conf['gid'][d['group']]:
                     log.warning("{0} does not have correct group id!".format(fff))
-                s_files += s.st_size
+                y = year(s.st_mtime)
+                if y in sum_files:
+                    sum_files[y]['number'] += 1
+                    sum_files[y]['size'] += s.st_size
+                else:
+                    sum_files[y] = {'number': 1, 'size': s.st_size}
                 if islink(fff):
-                    rfff = readlink(fff)
-                    log.info("Found file link {0} -> {1}.".format(fff, rfff))
                     s = lstat(fff)
-                    n_links_to_files += 1
-                    s_files += s.st_size
-            n_files[d['root']] += (len(filenames) + n_links_to_files)
-            size_files[d['root']] += s_files
+                    if s.st_gid != conf['gid'][d['group']]:
+                        log.warning("{0} does not have correct group id!".format(fff))
+                    rfff = readlink(fff)
+                    y = year(s.st_mtime)
+                    if y in sum_files:
+                        sum_files[y]['number'] += 1
+                        sum_files[y]['size'] += s.st_size
+                    else:
+                        sum_files[y] = {'number': 1, 'size': s.st_size}
+                    log.info("Found file link {0} -> {1}.".format(fff, rfff))
+            for y in sum_files:
+                try:
+                    dir_summary[d['root']][y]['number'] += sum_files[y]['number']
+                    dir_summary[d['root']][y]['size'] += sum_files[y]['size']
+                except KeyError:
+                    dir_summary[d['root']][y] = {'number': sum_files[y]['number'],
+                                                 'size': sum_files[y]['size']}
+                for fsd in subdirs:
+                    if dirpath.startswith(fsd):
+                        try:
+                            dir_summary[fsd][y]['number'] += sum_files[y]['number']
+                            dir_summary[fsd][y]['size'] += sum_files[y]['size']
+                        except KeyError:
+                            dir_summary[fsd][y] = {'number': sum_files[y]['number'],
+                                                   'size': sum_files[y]['size']}
+        for y in dir_summary[d['root']]:
+            log.info('For FY{0:d}, {1} contains {2:d} bytes in {3:d} files.'.format(y, d['root'], dir_summary[d['root']][y]['size'], dir_summary[d['root']][y]['number']))
             for fsd in subdirs:
-                if dirpath.startswith(fsd):
-                    n_files[fsd] += (len(filenames) + n_links_to_files)
-                    size_files[fsd] += s_files
-        log.info('{0} contains {1:d} bytes in {2:d} files.'.format(d['root'], size_files[d['root']], n_files[d['root']]))
-        for fsd in subdirs:
-            log.info('{0} contains {1:d} bytes in {2:d} files.'.format(fsd, size_files[fsd], n_files[fsd]))
+                log.info('For FY{0:d}, {1} contains {2:d} bytes in {3:d} files.'.format(y, fsd, dir_summary[fsd][y]['size'], dir_summary[fsd][y]['number']))
     return
 
 
