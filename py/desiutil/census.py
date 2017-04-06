@@ -59,6 +59,29 @@ def walk_error(e):
     return
 
 
+def year(mtime, fy=True):
+    """Convert a file's modification time into a year.
+
+    Parameters
+    ----------
+    mtime : :class:`int` or :class:`float`
+        File modification time as reported by :func:`os.stat`.
+    fy : :class:`bool`, optional
+        If ``True`` use Fiscal Year (FY) instead of calendar year.
+        FY is defined to begin 1 October.
+
+    Returns
+    -------
+    :class:`int`
+        The year to which a file belongs.
+    """
+    from time import gmtime
+    tm = gmtime(mtime)
+    if fy and tm.tm_mon >= 10:
+        return tm.tm_year + 1
+    return tm.tm_year
+
+
 def scan_directories(conf, data):
     """Scan the directories specified by the configuration file.
 
@@ -69,12 +92,16 @@ def scan_directories(conf, data):
     data : :class:`list`
         The specific directories to scan.
     """
+    import re
     from os import lstat, readlink, stat, walk
     from os.path import islink, join
     from .log import get_logger
     log = get_logger()
+    filesystems = list()
+    for f in conf['filesystems']:
+        filesystems.append(re.compile(f))
     for d in data:
-        subdirs = []
+        subdirs = list()
         n_files = {d['root']: 0}
         size_files = {d['root']: 0}
         log.debug('root = {root}'.format(**d))
@@ -91,27 +118,28 @@ def scan_directories(conf, data):
                 size_files[fsd] = 0
         for dirpath, dirnames, filenames in walk(d['root'], topdown=True,
                                                  onerror=walk_error,
-                                                 followlinks=True):
+                                                 followlinks=False):
             log.debug("dirpath = {0}".format(dirpath))
             #
-            # We want to follow *some* links, but not all.  If a link
-            # is to another filesystem, we want to include that data.
-            # Otherwise assume the link is an alias or data copied from
-            # a previous release.
+            # Detect symlinks that point to another filesystem so they
+            # can be counted toward the total.
             #
+            n_links_to_dirs = 0
+            s_links_to_dirs = 0
             for dd in dirnames:
                 fd = join(dirpath, dd)
                 s = stat(fd)
                 if s.st_gid != conf['gid'][d['group']]:
                     log.warning("{0} does not have correct group id!".format(fd))
                 if islink(fd):
+                    s = lstat(fd)
                     rfd = readlink(fd)
-                    log.info("Found {0} -> {1}.".format(fd, rfd))
-                    if not any([rfd.startswith(l) for l in conf['descend']]):
-                        log.info("Skipping {0} -> {1}.".format(fd, rfd))
-                        del dirnames[dirnames.index(dd)]
-            s_files = 0
-            n_links_to_files = 0
+                    n_links_to_dirs += 1
+                    s_links_to_dirs += s.st_size
+                    if any([f.match(rfd) is not None for f in filesytems]):
+                        log.info("Found filesystem link {0} -> {1}.".format(fd, rfd))
+            s_files = s_links_to_dirs
+            n_links_to_files = n_links_to_dirs
             for ff in filenames:
                 #
                 # os.stat() follows symlinks, but we also want to count the
@@ -176,7 +204,11 @@ def main():
 #   - work directories.
 #   - non-footprint image data.
 # * Check group id, readability.
-# * Record mtime, size.
-# * Shift to fiscal year.
+# * Record mtime, size.  Convert mtime into just a year.
+# * Shift to fiscal year.  FY starts in October.
 # * Don't record filenames, just high-level directories.
 # * Treat projecta as same system, follow symlinks to projecta
+# * If a symlink is followed to another filesystem, os.walk() can't get back
+#   to the original filesystem.
+# * Symlinks to another subdirectory should only count as the symlink.  The
+#   file itself belongs to the other subdirectory.

@@ -5,12 +5,10 @@
 #
 configuration:
     #
-    # If a symlink to these filesystems is encountered, the symlink
-    # will be traversed.
+    # Patterns to define the filesystems that might be encountered.
     #
-    descend:
-        - /projecta/projectdirs
-        - /global/projecta/projectdirs
+    filesystems:
+        - (/global|)/project(a)?/projectdirs/(cosmo|desi)
     #
     # Map group name to group ID.
     #

@@ -31,6 +31,15 @@ class TestCensus(unittest.TestCase):
         options = get_options(['-c', 'foo.yaml'])
         self.assertEqual(options.config, 'foo.yaml')
 
+    def test_year(self):
+        """Test conversion of mtime to year.
+        """
+        from ..census import year
+        from time import gmtime
+        mtime = 1475692367.0
+        self.assertEqual(year(mtime), 2017)
+        self.assertEqual(year(mtime, fy=False), 2016)
+
 
 def test_suite():
     """Allows testing of only this module with the command::
