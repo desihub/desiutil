@@ -91,6 +91,11 @@ def scan_directories(conf, data):
         The configuration that applies to all directories.
     data : :class:`list`
         The specific directories to scan.
+
+    Returns
+    -------
+    :class:`list`
+        A list containing data structures summarizing data found.
     """
     import re
     from os import lstat, readlink, stat, walk
@@ -100,6 +105,7 @@ def scan_directories(conf, data):
     filesystems = list()
     for f in conf['filesystems']:
         filesystems.append(re.compile(f))
+    summary = list()
     for d in data:
         subdirs = list()
         dir_summary = {d['root']: dict()}
@@ -183,11 +189,8 @@ def scan_directories(conf, data):
                         except KeyError:
                             dir_summary[fsd][y] = {'number': sum_files[y]['number'],
                                                    'size': sum_files[y]['size']}
-        for y in dir_summary[d['root']]:
-            log.info('For FY{0:d}, {1} contains {2:d} bytes in {3:d} files.'.format(y, d['root'], dir_summary[d['root']][y]['size'], dir_summary[d['root']][y]['number']))
-            for fsd in subdirs:
-                log.info('For FY{0:d}, {1} contains {2:d} bytes in {3:d} files.'.format(y, fsd, dir_summary[fsd][y]['size'], dir_summary[fsd][y]['number']))
-    return
+        summary.append(dir_summary)
+    return summary
 
 
 def main():
@@ -216,7 +219,10 @@ def main():
     with open(options.config) as y:
         config = yaml.load(y)
     log.debug(repr(config))
-    scan_directories(config['configuration'], config['data'])
+    summmary = scan_directories(config['configuration'], config['data'])
+    for root in summary:
+        for y in sorted(summary[root].keys()):
+            log.info('For FY{0:d}, {1} contains {2:d} bytes in {3:d} files.'.format(y, root, summary[root][y]['size'], summary[root][y]['number']))
     return 0
 
 
