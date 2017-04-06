@@ -572,12 +572,12 @@ def plot_healpix_map(data, nest=False, cmap='viridis', colorbar=True,
     collection = PolyCollection(
         verts, array=data, cmap=cmap, norm=norm, edgecolors='none')
 
-    plt.gca().add_collection(collection)
-    plt.gca().autoscale_view()
+    basemap.ax.add_collection(collection)
+    basemap.ax.autoscale_view()
 
     if colorbar:
         bar = plt.colorbar(
-            collection, orientation='horizontal',
+            collection, ax=basemap.ax, orientation='horizontal',
             spacing='proportional', pad=0.01, aspect=50)
         if label:
             bar.set_label(label)
@@ -691,7 +691,7 @@ def plot_grid_map(data, ra_edges, dec_edges, cmap='viridis', colorbar=True,
 
     if colorbar:
         bar = plt.colorbar(
-            mesh, orientation='horizontal',
+            mesh, ax=basemap.ax, orientation='horizontal',
             spacing='proportional', pad=0.01, aspect=50)
         if label:
             bar.set_label(label)
