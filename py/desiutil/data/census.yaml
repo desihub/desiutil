@@ -3,50 +3,80 @@
 #
 # Configuration file for desi_data_census.
 #
-# If a symlink to these filesystems is encountered, the symlink
-# will be traversed.
-#
-descend:
-    - /projecta/projectdirs
-    - /global/projecta/projectdirs
+configuration:
+    #
+    # If a symlink to these filesystems is encountered, the symlink
+    # will be traversed.
+    #
+    descend:
+        - /projecta/projectdirs
+        - /global/projecta/projectdirs
+    #
+    # Map group name to group ID.
+    #
+    gid:
+        cosmo: 58191
+        desi: 58102
 #
 # Analyze these directories.  Properties in subdirectories are inherited.
 # unless overridden.
 #
 data:
-    - root: /global/project/projectdirs/desi/spectro
-      category: DESI Data
-      description: DESI raw and reduced data.
-      group: desi
+    # - root: /global/project/projectdirs/desi/spectro
+    #   category: DESI Data
+    #   description: DESI raw and reduced data.
+    #   group: desi
+    #   subdirs:
+    #       - root: data
+    #         description: DESI raw data
+    #       - root: redux
+    #         description: DESI reduced data
+    #       - root: sim
+    #         description: DESI simulated data
+    # - root: /global/project/projectdirs/desi/users
+    #   category: Collaboration Workspace
+    #   description: Working space for individual users.
+    #   group: desi
+    - root: /global/project/projectdirs/cosmo/data/legacysurvey
+      category: Imaging Data
+      description: Released data from DECaLS/MzLS/BASS.
+      group: cosmo
       subdirs:
-          - root: data
-            description: DESI raw data
-          - root: redux
-            description: DESI reduced data
-          - root: sim
-            description: DESI simulated data
-    - root: /global/project/projectdirs/cosmo/staging/decam
-      category: Imaging Data
-      description: DECaLS data.
-      group: cosmo
-      subdirs:
-          - root: DECaLS_Raw
-            description: DECaLS raw data
-          - root: DECaLS_CP
-            description: DECaLS data processed by NOAO CP
-    - root: /global/project/projectdirs/cosmo/staging/mosaicz
-      category: Imaging Data
-      description: MzLS data.
-      group: cosmo
-    - root: /global/project/projectdirs/cosmo/staging/bok
-      category: Imaging Data
-      description: BASS data.
-      group: cosmo
-    - root: /global/project/projectdirs/cosmo/staging/decam-public
-      category: Non-DESI Data
-      description: DECam data outside of the DESI footprint.
-      group: cosmo
-    - root: /global/project/projectdirs/desi/users
-      category: Collaboration Workspace
-      description: Working space for individual users.
-      group: desi
+          - root: dr1
+            description: DECaLS DR1.
+          - root: dr2
+            description: DECaLS DR2.
+          - root: dr3.0
+            description: DECaLS DR3.0.
+          - root: dr3.1
+            description: DECaLS DR3.1.
+    # - root: /global/project/projectdirs/cosmo/staging/decam
+    #   category: Imaging Data
+    #   description: DECaLS data.
+    #   group: cosmo
+    #   subdirs:
+    #       - root: DECaLS_Raw
+    #         description: DECaLS raw data
+    #       - root: DECaLS_CP
+    #         description: DECaLS data processed by NOAO CP
+    # - root: /global/project/projectdirs/cosmo/staging/mosaicz
+    #   category: Imaging Data
+    #   description: MzLS data.
+    #   group: cosmo
+    #   subdirs:
+    #       - root: MZLS_Raw
+    #         description: MzLS raw data
+    #       - root: MZLS_CP
+    #         description: MzLS data processed by NOAO CP
+    # - root: /global/project/projectdirs/cosmo/staging/bok
+    #   category: Imaging Data
+    #   description: BASS data.
+    #   group: cosmo
+    # - root: /global/project/projectdirs/cosmo/staging/decam-public
+    #   category: Non-DESI Data
+    #   description: DECam data outside of the DESI footprint.
+    #   group: cosmo
+    # - root: /global/project/projectdirs/cosmo/work
+    #   category: Collaboration Workspace
+    #   description: Working space for individual users.
+    #   group: cosmo
