@@ -6,6 +6,26 @@ desiutil.census
 ===============
 
 Determine the number of files and size in DESI data file systems.
+
+Notes
+-----
+
+* Directories to check:
+
+  - Imaging raw & reduced.
+  - spectro raw & reduced.
+  - Work directories.
+  - Non-Footprint image data.
+
+* Check group id, readability.
+* Count number of files and size.
+* Extract year from mtime. Shift to fiscal year.  FY starts in October.
+* Don't record filenames, just high-level directories.
+* Treat projecta as same system, follow symlinks to projecta
+* If a symlink is followed to another filesystem, :func:`os.walk` can't get back
+  to the original filesystem.
+* Symlinks to another subdirectory should only count as the symlink.  The
+  file itself belongs to the other subdirectory.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
@@ -32,6 +52,9 @@ def get_options(test_args=None):
     parser.add_argument('-c', '--config-file', action='store', dest='config',
                         metavar='FILE', default=resource_filename('desiutil', 'data/census.yaml'),
                         help="Read configuration from FILE (default %(default)s).")
+    parser.add_argument('-o', '--output', action='store', metavar='FILE',
+                        default='desi_data_census.csv',
+                        help="Output CSV file (default ./%(default)s).")
     parser.add_argument('-v', '--verbose', action='store_true',
                         help="Print lots of extra information.")
     if test_args is None:  # pragma: no cover
@@ -98,6 +121,7 @@ def scan_directories(conf, data):
         A list containing data structures summarizing data found.
     """
     import re
+    from collections import OrderedDict
     from os import lstat, readlink, stat, walk
     from os.path import islink, join
     from .log import get_logger
@@ -108,7 +132,8 @@ def scan_directories(conf, data):
     summary = list()
     for d in data:
         subdirs = list()
-        dir_summary = {d['root']: dict()}
+        dir_summary = OrderedDict()
+        dir_summary[d['root']] = dict()
         log.debug('root = {root}'.format(**d))
         log.debug('category = {category}'.format(**d))
         log.debug('description = {description}'.format(**d))
@@ -193,6 +218,51 @@ def scan_directories(conf, data):
     return summary
 
 
+def output_csv(summary, filename):
+    """Convert data into CSV file.
+
+    Parameters
+    ----------
+    summary : :class:`list`
+        A data structure.
+    filename : :class:`str`
+        Name of the file to write to.
+    """
+    directories = list()
+    years = set()
+    for s in summary:
+        for root in s:
+            directories.append(root)
+            years.update(set(s[root].keys()))
+    number = dict()
+    size = dict()
+    for d in directories:
+        number[d] = dict()
+        size[d] = dict()
+        for y in years:
+            number[d][y] = 0
+            size[d][y] = 0
+    for s in summary:
+        for root in s:
+            for y in sorted(years):
+                try:
+                    number[root][y] = s[root][y]['number'] + number[root][y-1]
+                    size[root][y] = s[root][y]['size'] + size[root][y-1]
+                except KeyError:
+                    number[root][y] = s[root][y]['number']
+                    size[root][y] = s[root][y]['size']
+    data = [['Directory'] + ['FY{0:d} Number,FY{0:d} Size'.format(y) for y in sorted(years)]]
+    for d in directories:
+        row = [d]
+        for y in sorted(years):
+            row.append(number[d][y])
+            row.append(size[d][y])
+        data.append(row)
+    with open(filename, 'w') as csv:
+        csv.write('\r\n'.join([','.join(row) for row in data]) + '\r\n')
+    return
+
+
 def main():
     """Entry point for the :command:`desi_data_census` script.
 
@@ -220,24 +290,5 @@ def main():
         config = yaml.load(y)
     log.debug(repr(config))
     summary = scan_directories(config['configuration'], config['data'])
-    for s in summary:
-        for root in s:
-            for y in sorted(s[root].keys()):
-                log.info('For FY{0:d}, {1} contains {2:d} bytes in {3:d} files.'.format(y, root, s[root][y]['size'], s[root][y]['number']))
+    output_csv(summary, options.output)
     return 0
-
-
-# * Directories to check:
-#   - Imaging raw & reduced.
-#   - spectro raw & reduced.
-#   - work directories.
-#   - non-footprint image data.
-# * Check group id, readability.
-# * Record mtime, size.  Convert mtime into just a year.
-# * Shift to fiscal year.  FY starts in October.
-# * Don't record filenames, just high-level directories.
-# * Treat projecta as same system, follow symlinks to projecta
-# * If a symlink is followed to another filesystem, os.walk() can't get back
-#   to the original filesystem.
-# * Symlinks to another subdirectory should only count as the symlink.  The
-#   file itself belongs to the other subdirectory.
