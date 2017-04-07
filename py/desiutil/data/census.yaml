@@ -59,9 +59,9 @@ data:
             description: DECam data in the COSMOS field?
           - root: CPDES82
             description: CP-processed DECam in Stripe 82?
-          - root: DECaLS_CP
+          - root: DECam_CP
             description: DECaLS data processed by NOAO CP.
-          - root: DECaLS_Raw
+          - root: DECam_Raw
             description: DECaLS raw data.
           - root: DESY1_Stripe82
             description: DES Year 1 data in Stripe 82?
