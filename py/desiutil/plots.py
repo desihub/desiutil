@@ -326,8 +326,8 @@ def prepare_data(data, mask=None, clip_lo=None, clip_hi=None,
 
 
 def init_sky(projection='eck4', ra_center=120, galactic_plane_color='red',
-             ra_labels=np.arange(-60, 90, 30),
-             dec_labels=np.arange(0, 360, 60) ,ax=None):
+             ra_labels=np.arange(0, 360, 60),
+             dec_labels=np.arange(-60, 90, 30), ax=None):
     """Initialize a basemap projection of the full sky.
 
     The returned Basemap object is augmented with an ``ellipse()`` method to
@@ -455,16 +455,16 @@ def init_sky(projection='eck4', ra_center=120, galactic_plane_color='red',
     m = BasemapWithEllipse(
         projection=projection, lon_0=ra_center, resolution=None,
         celestial=False, ax=ax)
-    if dec_labels is not None:
+    if ra_labels is not None:
         if projection in ('hammer', 'moll'):
             labels = [0, 0, 0, 0]
         else:
             labels = [0, 0, 1, 0]
         m.drawmeridians(
-            dec_labels, labels=labels, labelstyle='+/-')
-    if ra_labels is not None:
+            ra_labels, labels=labels, labelstyle='+/-')
+    if dec_labels is not None:
         m.drawparallels(
-            ra_labels, labels=[1, 1, 0, 0], labelstyle='+/-')
+            dec_labels, labels=[1, 1, 0, 0], labelstyle='+/-')
     m.drawmapboundary()
 
     # Draw the optional galactic plane.
@@ -572,12 +572,12 @@ def plot_healpix_map(data, nest=False, cmap='viridis', colorbar=True,
     collection = PolyCollection(
         verts, array=data, cmap=cmap, norm=norm, edgecolors='none')
 
-    plt.gca().add_collection(collection)
-    plt.gca().autoscale_view()
+    basemap.ax.add_collection(collection)
+    basemap.ax.autoscale_view()
 
     if colorbar:
         bar = plt.colorbar(
-            collection, orientation='horizontal',
+            collection, ax=basemap.ax, orientation='horizontal',
             spacing='proportional', pad=0.01, aspect=50)
         if label:
             bar.set_label(label)
@@ -691,7 +691,7 @@ def plot_grid_map(data, ra_edges, dec_edges, cmap='viridis', colorbar=True,
 
     if colorbar:
         bar = plt.colorbar(
-            mesh, orientation='horizontal',
+            mesh, ax=basemap.ax, orientation='horizontal',
             spacing='proportional', pad=0.01, aspect=50)
         if label:
             bar.set_label(label)
