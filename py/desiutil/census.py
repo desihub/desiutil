@@ -220,9 +220,10 @@ def main():
         config = yaml.load(y)
     log.debug(repr(config))
     summary = scan_directories(config['configuration'], config['data'])
-    for root in summary:
-        for y in sorted(summary[root].keys()):
-            log.info('For FY{0:d}, {1} contains {2:d} bytes in {3:d} files.'.format(y, root, summary[root][y]['size'], summary[root][y]['number']))
+    for s in summary:
+        for root in s:
+            for y in sorted(s[root].keys()):
+                log.info('For FY{0:d}, {1} contains {2:d} bytes in {3:d} files.'.format(y, root, s[root][y]['size'], s[root][y]['number']))
     return 0
 
 
