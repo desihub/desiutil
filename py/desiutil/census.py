@@ -249,8 +249,11 @@ def output_csv(summary, filename):
                     number[root][y] = s[root][y]['number'] + number[root][y-1]
                     size[root][y] = s[root][y]['size'] + size[root][y-1]
                 except KeyError:
-                    number[root][y] = s[root][y]['number']
-                    size[root][y] = s[root][y]['size']
+                    try:
+                        number[root][y] = s[root][y]['number']
+                        size[root][y] = s[root][y]['size']
+                    except KeyError:
+                        pass
     data = [['Directory'] + ['FY{0:d} Number,FY{0:d} Size'.format(y) for y in sorted(years)]]
     for d in directories:
         row = [d]
