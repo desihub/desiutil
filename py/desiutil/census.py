@@ -258,8 +258,8 @@ def output_csv(summary, filename):
     for d in directories:
         row = [d]
         for y in sorted(years):
-            row.append(number[d][y])
-            row.append(size[d][y])
+            row.append(str(number[d][y]))
+            row.append(str(size[d][y]))
         data.append(row)
     with open(filename, 'w') as csv:
         csv.write('\r\n'.join([','.join(row) for row in data]) + '\r\n')
