@@ -239,13 +239,13 @@ def scan_directory(dirpath, dirnames, filenames, gid):
         if f.isexternal:
             external[f.filename] = f.linkname
         else:
-            if f.year in sum_files:
+            if f.year in summary:
                 summary[f.year]['number'] += 1
                 summary[f.year]['size'] += f.size
             else:
                 summary[f.year] = {'number': 1, 'size': f.size}
         if f.islink:
-            if f.linkyear in sum_files:
+            if f.linkyear in summary:
                 summary[f.linkyear]['number'] += 1
                 summary[f.linkyear]['number'] += f.linksize
             else:
