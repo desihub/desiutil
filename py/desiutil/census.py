@@ -61,7 +61,7 @@ class ScannedFile(object):
         self.size = size
         self.year = year
         self.islink = False
-        self.isexternal = True
+        self.isexternal = False
         self.linkname = None
         self.linksize = None
         self.linkyear = None
@@ -286,7 +286,7 @@ def scan_file(dirpath, filename, gid):
         s = lstat(fd)
         if s.st_gid != gid:
             log.warning("{0} does not have correct group id!".format(fd))
-        f.linkname = realpath(abspath(readlink(fd)))
+        f.linkname = realpath(fd)
         f.linksize = s.st_size
         f.linkyear = year(s.st_mtime)
         if commonpath([dirpath, f.linkname]).startswith(dirpath):
