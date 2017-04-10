@@ -235,7 +235,7 @@ def scan_directory(dirpath, dirnames, filenames, gid):
     external = dict()
     log.debug("dirpath = {0}".format(dirpath))
     for k in dirnames + filenames:
-        f = scan_file(dirpath, d, gid)
+        f = scan_file(dirpath, k, gid)
         if f.isexternal:
             external[f.filename] = f.linkname
         else:
