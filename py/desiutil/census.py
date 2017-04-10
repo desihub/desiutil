@@ -26,9 +26,43 @@ Notes
   to the original filesystem.
 * Symlinks to another subdirectory should only count as the symlink.  The
   file itself belongs to the other subdirectory.
+* Physical directories count toward inode and size total.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
+
+
+class ScannedFile(object):
+    """Simple object to store results of a file scan.
+
+    Attributes
+    ----------
+    filename : :class:`str`
+        Name of the file.
+    size : :class:`int`
+        Size in bytes of the file.
+    year : :class:`int`
+        Year the file was modified.
+    islink : :class:`bool`
+        Is the file a symbolic link?
+    linkname : :class:`str`
+        If the file is a symbolic link, it points to this file.
+    linksize : :class:`int`
+        If the file is a symbolic link, this is the size of the link *itself*,
+        and the size attribute is the size of the file it *points to*.
+    linkyear : :class:`int`
+        Year the link *itself* was modified.
+    """
+    def __init__(self, filename, size, year):
+        self.filename = filename
+        self.size = size
+        self.year = year
+        self.islink = False
+        self.linkname = None
+        self.linksize = None
+        self.linkyear = None
+        return
+
 
 def get_options(test_args=None):
     """Parse command-line options.
@@ -122,8 +156,8 @@ def scan_directories(conf, data):
     """
     import re
     from collections import OrderedDict
-    from os import lstat, readlink, stat, walk
-    from os.path import islink, join
+    from os import walk
+    from os.path import join
     from .log import get_logger
     log = get_logger()
     filesystems = list()
@@ -148,57 +182,8 @@ def scan_directories(conf, data):
         for dirpath, dirnames, filenames in walk(d['root'], topdown=True,
                                                  onerror=walk_error,
                                                  followlinks=False):
-            log.debug("dirpath = {0}".format(dirpath))
-            #
-            # Detect symlinks that point to another filesystem so they
-            # can be counted toward the total.
-            #
-            sum_files = dict()
-            for dd in dirnames:
-                fd = join(dirpath, dd)
-                s = stat(fd)
-                if s.st_gid != conf['gid'][d['group']]:
-                    log.warning("{0} does not have correct group id!".format(fd))
-                if islink(fd):
-                    s = lstat(fd)
-                    if s.st_gid != conf['gid'][d['group']]:
-                        log.warning("{0} does not have correct group id!".format(fd))
-                    rfd = readlink(fd)
-                    y = year(s.st_mtime)
-                    if y in sum_files:
-                        sum_files[y]['number'] += 1
-                        sum_files[y]['size'] += s.st_size
-                    else:
-                        sum_files[y] = {'number': 1, 'size': s.st_size}
-                    if any([f.match(rfd) is not None for f in filesystems]):
-                        log.info("Found filesystem link {0} -> {1}.".format(fd, rfd))
-            for ff in filenames:
-                #
-                # os.stat() follows symlinks, but we also want to count the
-                # symlink for counting inodes.
-                #
-                fff = join(dirpath, ff)
-                s = stat(fff)
-                if s.st_gid != conf['gid'][d['group']]:
-                    log.warning("{0} does not have correct group id!".format(fff))
-                y = year(s.st_mtime)
-                if y in sum_files:
-                    sum_files[y]['number'] += 1
-                    sum_files[y]['size'] += s.st_size
-                else:
-                    sum_files[y] = {'number': 1, 'size': s.st_size}
-                if islink(fff):
-                    s = lstat(fff)
-                    if s.st_gid != conf['gid'][d['group']]:
-                        log.warning("{0} does not have correct group id!".format(fff))
-                    rfff = readlink(fff)
-                    y = year(s.st_mtime)
-                    if y in sum_files:
-                        sum_files[y]['number'] += 1
-                        sum_files[y]['size'] += s.st_size
-                    else:
-                        sum_files[y] = {'number': 1, 'size': s.st_size}
-                    log.info("Found file link {0} -> {1}.".format(fff, rfff))
+            sum_files = scan_directory(dirpath, dirnames, filenames,
+                                       filesystems, conf['gid'][d['group']])
             for y in sum_files:
                 try:
                     dir_summary[d['root']][y]['number'] += sum_files[y]['number']
@@ -216,6 +201,108 @@ def scan_directories(conf, data):
                                                    'size': sum_files[y]['size']}
         summary.append(dir_summary)
     return summary
+
+
+def scan_directory(dirpath, dirnames, filenames, filesystems, gid):
+    """Count number and size of files in a single directory hierarchy.
+
+    Parameters
+    ----------
+    dirpath : :class:`str`
+        Current directory, returned by :func:`os.walk`.
+    dirnames : :class:`list`
+        List of directories in `dirpath`.
+    filenames : :class:`list`
+        List of files in `dirpath`.
+    filesystems : :class:`list`
+        A list of regular expressions identifying other filesystems.
+    gid : :class:`int`
+        Group ID number that should be associated with this directory.
+
+    Returns
+    -------
+    :class:`dict`
+        Dictionary containing summary results organized by year.
+    """
+    from .log import get_logger
+    log = get_logger()
+    sum_files = dict()
+    log.debug("dirpath = {0}".format(dirpath))
+    for d in dirnames:
+        f = scan_file(dirpath, d, filesystems, gid, directory=True)
+        if f.year in sum_files:
+            sum_files[f.year]['number'] += 1
+            sum_files[f.year]['size'] += f.size
+        else:
+            sum_files[f.year] = {'number': 1, 'size': f.size}
+        if f.islink:
+            if f.linkyear in sum_files:
+                sum_files[f.linkyear]['number'] += 1
+                sum_files[f.linkyear]['number'] += f.linksize
+            else:
+                sum_files[f.linkyear] = {'number': 1, 'size': f.linksize}
+    for d in filenames:
+        f = scan_file(dirpath, d, filesystems, gid, directory=False)
+        if f.year in sum_files:
+            sum_files[f.year]['number'] += 1
+            sum_files[f.year]['size'] += f.size
+        else:
+            sum_files[f.year] = {'number': 1, 'size': f.size}
+        if f.islink:
+            if f.linkyear in sum_files:
+                sum_files[f.linkyear]['number'] += 1
+                sum_files[f.linkyear]['number'] += f.linksize
+            else:
+                sum_files[f.linkyear] = {'number': 1, 'size': f.linksize}
+    return sum_files
+
+
+def scan_file(dirpath, filename, filesystems, gid, directory=False):
+    """Analyze a single file or directory.
+
+    Parameters
+    ----------
+    dirpath : :class:`str`
+        Current directory, returned by :func:`os.walk`.
+    filename : :class:`str`
+        Base name of current file.
+    filesystems : :class:`list`
+        A list of regular expressions identifying other filesystems.
+    gid : :class:`int`
+        Group ID number that should be associated with this directory.
+    directory : :class:`bool`, optional
+        ``True`` if `filename` is actually a directory.
+
+    Returns
+    -------
+    :class:`ScannedFile`
+        A simple object containing the metadata relating to the file.
+    """
+    from os import lstat, readlink, stat
+    from os.path import islink, join
+    from .log import get_logger
+    log = get_logger()
+    fd = join(dirpath, filename)
+    log.debug("os.stat('{0}')".format(fd))
+    s = stat(fd)
+    if s.st_gid != gid:
+        log.warning("{0} does not have correct group id!".format(fd))
+    f = ScannedFile(fd, s.st_size, year(s.st_mtime))
+    if islink(fd):
+        f.islink = True
+        log.debug("os.lstat('{0}')".format(fd))
+        s = lstat(fd)
+        if s.st_gid != gid:
+            log.warning("{0} does not have correct group id!".format(fd))
+        f.linkname = readlink(fd)
+        f.linksize = s.st_size
+        f.linkyear = year(s.st_mtime)
+        if directory:
+            if any([k.match(f.linkname) is not None for k in filesystems]):
+                log.info("Found filesystem link {0.filename} -> {0.linkname}.".format(f))
+        else:
+            log.info("Found file link {0.filename} -> {0.linkname}.".format(f))
+    return f
 
 
 def output_csv(summary, filename):
