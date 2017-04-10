@@ -45,6 +45,9 @@ class ScannedFile(object):
         Year the file was modified.
     islink : :class:`bool`
         Is the file a symbolic link?
+    isexternal : :class:`bool`
+        If the file is a symbolic link, does it link outside the tree being
+        scanned?
     linkname : :class:`str`
         If the file is a symbolic link, it points to this file.
     linksize : :class:`int`
@@ -58,6 +61,7 @@ class ScannedFile(object):
         self.size = size
         self.year = year
         self.islink = False
+        self.isexternal = True
         self.linkname = None
         self.linksize = None
         self.linkyear = None
@@ -182,8 +186,8 @@ def scan_directories(conf, data):
         for dirpath, dirnames, filenames in walk(d['root'], topdown=True,
                                                  onerror=walk_error,
                                                  followlinks=False):
-            sum_files = scan_directory(dirpath, dirnames, filenames,
-                                       filesystems, conf['gid'][d['group']])
+            sum_files, ext = scan_directory(dirpath, dirnames, filenames,
+                                            conf['gid'][d['group']])
             for y in sum_files:
                 try:
                     dir_summary[d['root']][y]['number'] += sum_files[y]['number']
@@ -199,11 +203,13 @@ def scan_directories(conf, data):
                         except KeyError:
                             dir_summary[fsd][y] = {'number': sum_files[y]['number'],
                                                    'size': sum_files[y]['size']}
+            for key in ext:
+                log.info("External link detected: {0} -> {1}".format(key, ext[key]))
         summary.append(dir_summary)
     return summary
 
 
-def scan_directory(dirpath, dirnames, filenames, filesystems, gid):
+def scan_directory(dirpath, dirnames, filenames, gid):
     """Count number and size of files in a single directory hierarchy.
 
     Parameters
@@ -214,50 +220,40 @@ def scan_directory(dirpath, dirnames, filenames, filesystems, gid):
         List of directories in `dirpath`.
     filenames : :class:`list`
         List of files in `dirpath`.
-    filesystems : :class:`list`
-        A list of regular expressions identifying other filesystems.
     gid : :class:`int`
         Group ID number that should be associated with this directory.
 
     Returns
     -------
-    :class:`dict`
-        Dictionary containing summary results organized by year.
+    :func:`tuple`
+        A tuple containing two dictionaries: the summary results organized
+        by year, and a summary of links to external directories.
     """
     from .log import get_logger
     log = get_logger()
-    sum_files = dict()
+    summary = dict()
+    external = dict()
     log.debug("dirpath = {0}".format(dirpath))
-    for d in dirnames:
-        f = scan_file(dirpath, d, filesystems, gid, directory=True)
-        if f.year in sum_files:
-            sum_files[f.year]['number'] += 1
-            sum_files[f.year]['size'] += f.size
+    for k in dirnames + filenames:
+        f = scan_file(dirpath, d, gid)
+        if f.isexternal:
+            external[f.filename] = f.linkname
         else:
-            sum_files[f.year] = {'number': 1, 'size': f.size}
+            if f.year in sum_files:
+                summary[f.year]['number'] += 1
+                summary[f.year]['size'] += f.size
+            else:
+                summary[f.year] = {'number': 1, 'size': f.size}
         if f.islink:
             if f.linkyear in sum_files:
-                sum_files[f.linkyear]['number'] += 1
-                sum_files[f.linkyear]['number'] += f.linksize
+                summary[f.linkyear]['number'] += 1
+                summary[f.linkyear]['number'] += f.linksize
             else:
-                sum_files[f.linkyear] = {'number': 1, 'size': f.linksize}
-    for d in filenames:
-        f = scan_file(dirpath, d, filesystems, gid, directory=False)
-        if f.year in sum_files:
-            sum_files[f.year]['number'] += 1
-            sum_files[f.year]['size'] += f.size
-        else:
-            sum_files[f.year] = {'number': 1, 'size': f.size}
-        if f.islink:
-            if f.linkyear in sum_files:
-                sum_files[f.linkyear]['number'] += 1
-                sum_files[f.linkyear]['number'] += f.linksize
-            else:
-                sum_files[f.linkyear] = {'number': 1, 'size': f.linksize}
-    return sum_files
+                summary[f.linkyear] = {'number': 1, 'size': f.linksize}
+    return (summary, external)
 
 
-def scan_file(dirpath, filename, filesystems, gid, directory=False):
+def scan_file(dirpath, filename, gid):
     """Analyze a single file or directory.
 
     Parameters
@@ -266,12 +262,8 @@ def scan_file(dirpath, filename, filesystems, gid, directory=False):
         Current directory, returned by :func:`os.walk`.
     filename : :class:`str`
         Base name of current file.
-    filesystems : :class:`list`
-        A list of regular expressions identifying other filesystems.
     gid : :class:`int`
         Group ID number that should be associated with this directory.
-    directory : :class:`bool`, optional
-        ``True`` if `filename` is actually a directory.
 
     Returns
     -------
@@ -279,7 +271,7 @@ def scan_file(dirpath, filename, filesystems, gid, directory=False):
         A simple object containing the metadata relating to the file.
     """
     from os import lstat, readlink, stat
-    from os.path import islink, join
+    from os.path import abspath, commonpath, islink, join, realpath
     from .log import get_logger
     log = get_logger()
     fd = join(dirpath, filename)
@@ -294,14 +286,14 @@ def scan_file(dirpath, filename, filesystems, gid, directory=False):
         s = lstat(fd)
         if s.st_gid != gid:
             log.warning("{0} does not have correct group id!".format(fd))
-        f.linkname = readlink(fd)
+        f.linkname = realpath(abspath(readlink(fd)))
         f.linksize = s.st_size
         f.linkyear = year(s.st_mtime)
-        if directory:
-            if any([k.match(f.linkname) is not None for k in filesystems]):
-                log.info("Found filesystem link {0.filename} -> {0.linkname}.".format(f))
+        if commonpath([dirpath, f.linkname]).startswith(dirpath):
+            log.info("Found internal link {0.filename} -> {0.linkname}.".format(f))
         else:
-            log.info("Found file link {0.filename} -> {0.linkname}.".format(f))
+            f.isexternal = True
+            log.info("Found external link {0.filename} -> {0.linkname}.".format(f))
     return f
 
 
