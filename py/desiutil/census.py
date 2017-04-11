@@ -385,14 +385,23 @@ def output_csv(summary, filename):
         for root in s:
             for y in sorted(years):
                 try:
-                    number[root][y] = s[root][y]['number'] + number[root][y-1]
-                    size[root][y] = s[root][y]['size'] + size[root][y-1]
+                    previous_number = number[root][y-1]
                 except KeyError:
-                    try:
-                        number[root][y] = s[root][y]['number']
-                        size[root][y] = s[root][y]['size']
-                    except KeyError:
-                        pass
+                    previous_number = 0
+                try:
+                    previous_size = size[root][y-1]
+                except KeyError:
+                    previous_size = 0
+                try:
+                    this_number = s[root][y]['number']
+                except KeyError:
+                    this_number = 0
+                try:
+                    this_size = s[root][y]['size']
+                except KeyError:
+                    this_size = 0
+                number[root][y] = this_number + previous_number
+                size[root][y] = this_size + previous_size
     data = [['Directory'] + ['FY{0:d} Number,FY{0:d} Size'.format(y) for y in sorted(years)]]
     for d in directories:
         row = [d]
