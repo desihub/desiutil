@@ -46,8 +46,8 @@ class TestCensus(unittest.TestCase):
         from ..census import in_path
         self.assertTrue(in_path('/foo/bar/baz', '/foo/bar/baz/a/b/c/foo.txt'))
         self.assertTrue(in_path('/foo/bar/baz', '/foo/bar/baz/a'))
+        self.assertFalse(in_path('/foo/bar/baz', '/foo/bar/baz-x2'))
         self.assertFalse(in_path('/foo/bar/baz', '/foo/baz/bar'))
-        self.assertFalse(in_path('/foo/bar/baz', '/foo/bar/bat'))
 
 
 def test_suite():
