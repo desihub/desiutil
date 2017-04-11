@@ -158,15 +158,15 @@ def scan_directories(conf, data):
     :class:`list`
         A list containing data structures summarizing data found.
     """
-    import re
+    # import re
     from collections import OrderedDict
     from os import walk
     from os.path import join
     from .log import get_logger
     log = get_logger()
-    filesystems = list()
-    for f in conf['filesystems']:
-        filesystems.append(re.compile(f))
+    # filesystems = list()
+    # for f in conf['filesystems']:
+    #     filesystems.append(re.compile(f))
     summary = list()
     for d in data:
         subdirs = list()
@@ -183,6 +183,7 @@ def scan_directories(conf, data):
                 log.debug('subdir = {0}'.format(fsd))
                 log.debug('description = {description}'.format(**sd))
                 dir_summary[fsd] = dict()
+        auxilliary_links = dict()
         for dirpath, dirnames, filenames in walk(d['root'], topdown=True,
                                                  onerror=walk_error,
                                                  followlinks=False):
@@ -196,7 +197,8 @@ def scan_directories(conf, data):
                     dir_summary[d['root']][y] = {'number': sum_files[y]['number'],
                                                  'size': sum_files[y]['size']}
                 for fsd in subdirs:
-                    if dirpath.startswith(fsd):
+                    # if dirpath.startswith(fsd):
+                    if in_path(fsd, dirpath):
                         try:
                             dir_summary[fsd][y]['number'] += sum_files[y]['number']
                             dir_summary[fsd][y]['size'] += sum_files[y]['size']
@@ -204,7 +206,16 @@ def scan_directories(conf, data):
                             dir_summary[fsd][y] = {'number': sum_files[y]['number'],
                                                    'size': sum_files[y]['size']}
             for key in ext:
-                log.info("External link detected: {0} -> {1}".format(key, ext[key]))
+                log.debug("External link detected: {0} -> {1}.".format(key, ext[key]))
+                for primary, aux in conf['filesystems'].items():
+                    n_aux = 0
+                    for k in subdirs + [d['root']]:
+                        if in_path(k, ext[key].replace(aux, primary)):
+                            log.info("Found link to auxilliary filesystem: {0} -> {1}. Data belongs to {2}.".format(key, ext[key], k))
+                            auxilliary_links[k] = ext[key]
+                            n_aux += 1
+                    if n_aux > 2:
+                        log.warning("Extraneous auxilliary links found for {0} -> {1}.".format(key, ext[key]))
         summary.append(dir_summary)
     return summary
 
@@ -270,8 +281,8 @@ def scan_file(dirpath, filename, gid):
     :class:`ScannedFile`
         A simple object containing the metadata relating to the file.
     """
-    from os import lstat, readlink, stat
-    from os.path import abspath, commonpath, islink, join, realpath
+    from os import lstat, stat
+    from os.path import islink, join, realpath
     from .log import get_logger
     log = get_logger()
     fd = join(dirpath, filename)
@@ -289,12 +300,31 @@ def scan_file(dirpath, filename, gid):
         f.linkname = realpath(fd)
         f.linksize = s.st_size
         f.linkyear = year(s.st_mtime)
-        if commonpath([dirpath, f.linkname]).startswith(dirpath):
+        if in_path(dirpath, f.linkname):
             log.info("Found internal link {0.filename} -> {0.linkname}.".format(f))
         else:
             f.isexternal = True
             log.info("Found external link {0.filename} -> {0.linkname}.".format(f))
     return f
+
+
+def in_path(root, path):
+    """Check if `path` is in the same directory hierarchy as `root`.
+
+    Parameters
+    ----------
+    root : :class:`str`
+        Root directory.
+    path : :class:`str`
+        Filename, could be a file or a directory.
+
+    Returns
+    -------
+    :class:`bool`
+        ``True`` if `path` is in `root`.
+    """
+    from os.path import commonpath
+    return commonpath([root, path]).startswith(root)
 
 
 def output_csv(summary, filename):

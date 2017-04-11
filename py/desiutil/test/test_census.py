@@ -40,6 +40,15 @@ class TestCensus(unittest.TestCase):
         self.assertEqual(year(mtime), 2017)
         self.assertEqual(year(mtime, fy=False), 2016)
 
+    def test_in_path(self):
+        """Test directory hierarchy checker.
+        """
+        from ..census import in_path
+        self.assertTrue(in_path('/foo/bar/baz', '/foo/bar/baz/a/b/c/foo.txt'))
+        self.assertTrue(in_path('/foo/bar/baz', '/foo/bar/baz/a'))
+        self.assertFalse(in_path('/foo/bar/baz', '/foo/baz/bar'))
+        self.assertFalse(in_path('/foo/bar/baz', '/foo/bar/bat'))
+
 
 def test_suite():
     """Allows testing of only this module with the command::
