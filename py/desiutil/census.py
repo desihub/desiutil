@@ -221,10 +221,10 @@ def scan_directories(conf, data):
                                     dir_summary[k][f.year]['size'] += f.size
                                 except KeyError:
                                     dir_summary[k][f.year] = {'number': 1, 'size': f.size}
-                if len(auxilliary_links[ext[key]]) > 2:
-                    log.warning("Extraneous auxilliary links found for {0} -> {1}.".format(key, ext[key]))
-                if auxilliary_links[ext[key]][1] != d['root']:
-                    log.warning("Malformed auxilliary link found for {0} -> {1}.".format(key, ext[key]))
+                    if len(auxilliary_links[ext[key]]) > 2:
+                        log.warning("Extraneous auxilliary links found for {0} -> {1}.".format(key, ext[key]))
+                    if auxilliary_links[ext[key]][1] != d['root']:
+                        log.warning("Malformed auxilliary link found for {0} -> {1}.".format(key, ext[key]))
             for aux_root in auxilliary_links:
                 aux_fsd = auxilliary_links[aux_root][0]
                 for aux_dirpath, aux_dirnames, aux_filenames in walk(aux_root, topdown=True, onerror=walk_error, followlinks=False):
