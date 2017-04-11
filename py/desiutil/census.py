@@ -288,7 +288,7 @@ def scan_directory(dirpath, dirnames, filenames, gid):
         if f.islink:
             if f.linkyear in summary:
                 summary[f.linkyear]['number'] += 1
-                summary[f.linkyear]['number'] += f.linksize
+                summary[f.linkyear]['size'] += f.linksize
             else:
                 summary[f.linkyear] = {'number': 1, 'size': f.linksize}
     return (summary, external)
