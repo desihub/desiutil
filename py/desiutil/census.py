@@ -203,7 +203,7 @@ def scan_directories(conf, data):
             for key in ext:
                 log.debug("External link detected: {0} -> {1}.".format(key, ext[key]))
                 for primary, aux in conf['filesystems'].items():
-                    log.info("primary = {0}; aux = {1}".format(primary, aux))
+                    log.debug("primary = {0}; aux = {1}".format(primary, aux))
                     for k in subdirs + [d['root']]:
                         if ext[key].startswith(aux) and in_path(k, ext[key].replace(aux, primary)):
                             log.info("Found link to auxilliary filesystem: {0} -> {1}.".format(key, ext[key]))

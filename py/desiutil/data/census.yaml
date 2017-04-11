@@ -72,30 +72,30 @@ data:
             description: DECam data in the DECaLS footprint in preparation for DR5.
           - root: Stacks_Aug14
             description: No idea what this is.
-    # - root: /global/project/projectdirs/cosmo/staging/mosaicz
-    #   category: Imaging Data
-    #   description: MzLS data.
-    #   group: cosmo
-    #   subdirs:
-    #       - root: MZLS_CP
-    #         description: MzLS data processed by NOAO CP.
-    #       - root: MZLS_Raw
-    #         description: MzLS raw data.
-    # - root: /global/project/projectdirs/cosmo/staging/bok
-    #   category: Imaging Data
-    #   description: BASS data.
-    #   group: cosmo
-    #   subdirs:
-    #       - root: BOK_CP
-    #         description: BASS data processed by NOAO CP.
-    #       - root: BOK_Raw
-    #         description: BASS raw data.
-    #       - root: ccds_files
-    #         description: No idea what this is.
-    #       - root: engineering
-    #         description: No idea what this is.
-    #       - root: reduced
-    #         description: BASS data processed by BASS.
+    - root: /global/project/projectdirs/cosmo/staging/mosaicz
+      category: Imaging Data
+      description: MzLS data.
+      group: cosmo
+      subdirs:
+          - root: MZLS_CP
+            description: MzLS data processed by NOAO CP.
+          - root: MZLS_Raw
+            description: MzLS raw data.
+    - root: /global/project/projectdirs/cosmo/staging/bok
+      category: Imaging Data
+      description: BASS data.
+      group: cosmo
+      subdirs:
+          - root: BOK_CP
+            description: BASS data processed by NOAO CP.
+          - root: BOK_Raw
+            description: BASS raw data.
+          - root: ccds_files
+            description: No idea what this is.
+          - root: engineering
+            description: No idea what this is.
+          - root: reduced
+            description: BASS data processed by BASS.
     # - root: /global/project/projectdirs/cosmo/staging/decam-public
     #   category: Non-DESI Data
     #   description: DECam data outside of the DESI footprint.
