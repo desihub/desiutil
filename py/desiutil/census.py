@@ -93,6 +93,9 @@ def get_options(test_args=None):
     parser.add_argument('-o', '--output', action='store', metavar='FILE',
                         default='desi_data_census.csv',
                         help="Output CSV file (default ./%(default)s).")
+    parser.add_argument('-r', '--raw-output', action='store', dest='raw',
+                        metavar='FILE', default='desi_data_census.yml',
+                        help="Dump raw data to FILE (default ./%(default)s)")
     parser.add_argument('-v', '--verbose', action='store_true',
                         help="Print lots of extra information.")
     if test_args is None:  # pragma: no cover
@@ -429,5 +432,7 @@ def main():
         config = yaml.load(y)
     log.debug(repr(config))
     summary = scan_directories(config['configuration'], config['data'])
+    with open(options.raw, 'w') as y:
+        yaml.dump(summary, y, default_flow_style=False)
     output_csv(summary, options.output)
     return 0
