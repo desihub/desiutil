@@ -221,6 +221,7 @@ def scan_directories(conf, data):
                                     dir_summary[k][f.year]['size'] += f.size
                                 except KeyError:
                                     dir_summary[k][f.year] = {'number': 1, 'size': f.size}
+                if ext[key] in auxilliary_links:
                     if len(auxilliary_links[ext[key]]) > 2:
                         log.warning("Extraneous auxilliary links found for {0} -> {1}.".format(key, ext[key]))
                     if auxilliary_links[ext[key]][1] != d['root']:
