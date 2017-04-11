@@ -158,15 +158,11 @@ def scan_directories(conf, data):
     :class:`list`
         A list containing data structures summarizing data found.
     """
-    # import re
     from collections import OrderedDict
     from os import walk
-    from os.path import join
+    from os.path import basename, dirname, isdir, join
     from .log import get_logger
     log = get_logger()
-    # filesystems = list()
-    # for f in conf['filesystems']:
-    #     filesystems.append(re.compile(f))
     summary = list()
     for d in data:
         subdirs = list()
@@ -197,7 +193,6 @@ def scan_directories(conf, data):
                     dir_summary[d['root']][y] = {'number': sum_files[y]['number'],
                                                  'size': sum_files[y]['size']}
                 for fsd in subdirs:
-                    # if dirpath.startswith(fsd):
                     if in_path(fsd, dirpath):
                         try:
                             dir_summary[fsd][y]['number'] += sum_files[y]['number']
@@ -208,14 +203,43 @@ def scan_directories(conf, data):
             for key in ext:
                 log.debug("External link detected: {0} -> {1}.".format(key, ext[key]))
                 for primary, aux in conf['filesystems'].items():
-                    n_aux = 0
                     for k in subdirs + [d['root']]:
-                        if in_path(k, ext[key].replace(aux, primary)):
-                            log.info("Found link to auxilliary filesystem: {0} -> {1}. Data belongs to {2}.".format(key, ext[key], k))
-                            auxilliary_links[k] = ext[key]
-                            n_aux += 1
-                    if n_aux > 2:
+                        if ext[key].startswith(aux) and in_path(k, ext[key].replace(aux, primary)):
+                            if isdir(key):
+                                log.info("Found link to directory on auxilliary filesystem: {0} -> {1}. Data belongs to {2}.".format(key, ext[key], k))
+                                if ext[key] in auxilliary_links:
+                                    auxilliary_links[ext[key]].append(k)
+                                else:
+                                    auxilliary_links[ext[key]] = [k]
+                            else:
+                                log.info("Found link to single file on auxilliary filesystem: {0} -> {1}. Data belongs to {2}.".format(key, ext[key], k))
+                                f = scan_file(dirname(ext[key]), basename(ext[key]), conf['gid'][d['group']])
+                                try:
+                                    dir_summary[k][f.year]['number'] += 1
+                                    dir_summary[k][f.year]['size'] += f.size
+                                except KeyError:
+                                    dir_summary[k][f.year] = {'number': 1, 'size': f.size}
+                    if len(auxilliary_links[ext[key]]) > 2:
                         log.warning("Extraneous auxilliary links found for {0} -> {1}.".format(key, ext[key]))
+                    if auxilliary_links[ext[key]][1] != d['root']:
+                        log.warning("Malformed auxilliary link found for {0} -> {1}.".format(key, ext[key]))
+            for aux_root in auxilliary_links:
+                aux_fsd = auxilliary_links[aux_root][0]
+                for aux_dirpath, aux_dirnames, aux_filenames in walk(aux_root, topdown=True, onerror=walk_error, followlinks=False):
+                    sum_files, ext = scan_directory(aux_dirpath, aux_dirnames, aux_filenames, conf['gid'][d['group']])
+                    for aux_y in sum_files:
+                        try:
+                            dir_summary[d['root']][aux_y]['number'] += sum_files[aux_y]['number']
+                            dir_summary[d['root']][aux_y]['size'] += sum_files[aux_y]['size']
+                        except KeyError:
+                            dir_summary[d['root']][aux_y] = {'number': sum_files[aux_y]['number'],
+                                                             'size': sum_files[aux_y]['size']}
+                        try:
+                            dir_summary[aux_fsd][aux_y]['number'] += sum_files[aux_y]['number']
+                            dir_summary[aux_fsd][aux_y]['size'] += sum_files[aux_y]['size']
+                        except KeyError:
+                            dir_summary[aux_fsd][aux_y] = {'number': sum_files[aux_y]['number'],
+                                                           'size': sum_files[aux_y]['size']}
         summary.append(dir_summary)
     return summary
 
@@ -301,10 +325,10 @@ def scan_file(dirpath, filename, gid):
         f.linksize = s.st_size
         f.linkyear = year(s.st_mtime)
         if in_path(dirpath, f.linkname):
-            log.info("Found internal link {0.filename} -> {0.linkname}.".format(f))
+            log.debug("Found internal link {0.filename} -> {0.linkname}.".format(f))
         else:
             f.isexternal = True
-            log.info("Found external link {0.filename} -> {0.linkname}.".format(f))
+            log.debug("Found external link {0.filename} -> {0.linkname}.".format(f))
     return f
 
 
