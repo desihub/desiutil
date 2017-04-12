@@ -76,9 +76,14 @@ class TestCensus(unittest.TestCase):
                 raise OSError(2, 'File not found', 'foo.txt')
             except OSError as e:
                 walk_error(e)
-            calls = [call.error('OS strerror = File not found'),
-                     call.error('OS errno = 2'),
-                     call.error('filename = foo.txt')]
+            calls = [call.error("[Errno 2] File not found: 'foo.txt'")]
+            self.assertListEqual(mock.mock_calls, calls)
+        with patch('desiutil.log.desi_logger') as mock:
+            try:
+                raise OSError(2, 'File not found', 'foo.txt', None, 'bar.txt')
+            except OSError as e:
+                walk_error(e)
+            calls = [call.error("[Errno 2] File not found: 'foo.txt' -> 'bar.txt'")]
             self.assertListEqual(mock.mock_calls, calls)
 
     def test_year(self):

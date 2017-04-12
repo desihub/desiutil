@@ -115,11 +115,7 @@ def walk_error(e):
     """
     from .log import get_logger
     log = get_logger()
-    log.error("OS strerror = {0.strerror}".format(e))
-    log.error("OS errno = {0.errno}".format(e))
-    log.error("filename = {0.filename}".format(e))
-    if e.filename2 is not None:
-        log.error("filename2 = {0.filename2}".format(e))
+    log.error(str(e))
     return
 
 
