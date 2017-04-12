@@ -369,7 +369,13 @@ def output_csv(summary, filename):
         A data structure.
     filename : :class:`str`
         Name of the file to write to.
+
+    Returns
+    -------
+    :class:`list`
+        The data written to the CSV file, as a list of rows.
     """
+    import csv
     directories = list()
     years = set()
     for s in summary:
@@ -412,9 +418,10 @@ def output_csv(summary, filename):
             row.append(str(number[d][y]))
             row.append(str(size[d][y]))
         data.append(row)
-    with open(filename, 'w') as csv:
-        csv.write('\r\n'.join([','.join(row) for row in data]) + '\r\n')
-    return
+    with open(filename, 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerows(data)
+    return data
 
 
 def main():
@@ -446,5 +453,5 @@ def main():
     summary = scan_directories(config['configuration'], config['data'])
     with open(options.raw, 'w') as y:
         yaml.dump(summary, y, default_flow_style=False)
-    output_csv(summary, options.output)
+    data = output_csv(summary, options.output)
     return 0

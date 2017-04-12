@@ -98,10 +98,10 @@ data:
             description: No idea what this is.
           - root: reduced
             description: BASS data processed by BASS.
-    # - root: /global/project/projectdirs/cosmo/staging/decam-public
-    #   category: Non-DESI Data
-    #   description: DECam data outside of the DESI footprint.
-    #   group: cosmo
+    - root: /global/project/projectdirs/cosmo/staging/decam-public
+      category: Non-DESI Data
+      description: DECam data outside of the DESI footprint.
+      group: cosmo
     # - root: /global/project/projectdirs/cosmo/work
     #   category: Collaboration Workspace
     #   description: Working space for individual users.

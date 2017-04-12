@@ -20,6 +20,20 @@ class TestCensus(unittest.TestCase):
     def tearDownClass(cls):
         pass
 
+    def test_ScannedFile(self):
+        """Test simple object storing file data.
+        """
+        from ..census import ScannedFile
+        f = ScannedFile('foo.txt', 12345, 1973)
+        self.assertEqual(f.filename, 'foo.txt')
+        self.assertEqual(f.size, 12345)
+        self.assertEqual(f.year, 1973)
+        self.assertFalse(f.islink)
+        self.assertFalse(f.isexternal)
+        self.assertIsNone(f.linkname)
+        self.assertIsNone(f.linksize)
+        self.assertIsNone(f.linkyear)
+
     def test_get_options(self):
         """Test command-line argument parsing.
         """
