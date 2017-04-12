@@ -229,23 +229,26 @@ def scan_directories(conf, data):
                         log.warning("Extraneous auxilliary links found for {0} -> {1}.".format(key, ext[key]))
                     if auxilliary_links[ext[key]][1] != d['root']:
                         log.warning("Malformed auxilliary link found for {0} -> {1}.".format(key, ext[key]))
-            for aux_root in auxilliary_links:
-                aux_fsd = auxilliary_links[aux_root][0]
-                for aux_dirpath, aux_dirnames, aux_filenames in walk(aux_root, topdown=True, onerror=walk_error, followlinks=False):
-                    sum_files, ext = scan_directory(aux_dirpath, aux_dirnames, aux_filenames, conf['gid'][d['group']])
-                    for aux_y in sum_files:
-                        try:
-                            dir_summary[d['root']][aux_y]['number'] += sum_files[aux_y]['number']
-                            dir_summary[d['root']][aux_y]['size'] += sum_files[aux_y]['size']
-                        except KeyError:
-                            dir_summary[d['root']][aux_y] = {'number': sum_files[aux_y]['number'],
-                                                             'size': sum_files[aux_y]['size']}
-                        try:
-                            dir_summary[aux_fsd][aux_y]['number'] += sum_files[aux_y]['number']
-                            dir_summary[aux_fsd][aux_y]['size'] += sum_files[aux_y]['size']
-                        except KeyError:
-                            dir_summary[aux_fsd][aux_y] = {'number': sum_files[aux_y]['number'],
-                                                           'size': sum_files[aux_y]['size']}
+        #
+        # Check auxilliary links *after* the first os.walk() has completed.
+        #
+        for aux_root in auxilliary_links:
+            aux_fsd = auxilliary_links[aux_root][0]
+            for aux_dirpath, aux_dirnames, aux_filenames in walk(aux_root, topdown=True, onerror=walk_error, followlinks=False):
+                sum_files, ext = scan_directory(aux_dirpath, aux_dirnames, aux_filenames, conf['gid'][d['group']])
+                for aux_y in sum_files:
+                    try:
+                        dir_summary[d['root']][aux_y]['number'] += sum_files[aux_y]['number']
+                        dir_summary[d['root']][aux_y]['size'] += sum_files[aux_y]['size']
+                    except KeyError:
+                        dir_summary[d['root']][aux_y] = {'number': sum_files[aux_y]['number'],
+                                                         'size': sum_files[aux_y]['size']}
+                    try:
+                        dir_summary[aux_fsd][aux_y]['number'] += sum_files[aux_y]['number']
+                        dir_summary[aux_fsd][aux_y]['size'] += sum_files[aux_y]['size']
+                    except KeyError:
+                        dir_summary[aux_fsd][aux_y] = {'number': sum_files[aux_y]['number'],
+                                                       'size': sum_files[aux_y]['size']}
         summary.append(dir_summary)
     return summary
 

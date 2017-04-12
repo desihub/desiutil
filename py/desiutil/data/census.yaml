@@ -92,6 +92,8 @@ data:
             description: BASS raw data.
           - root: ccds_files
             description: No idea what this is.
+          - root: dr1d_naoc
+            description: BASS data processed by NAOC group.
           - root: engineering
             description: No idea what this is.
           - root: reduced
