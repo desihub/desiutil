@@ -8,6 +8,13 @@ from __future__ import (absolute_import, division,
 import unittest
 
 
+has_commonpath = True
+try:
+    from os.path import commonpath
+except ImportError:
+    has_commonpath = False
+
+
 class TestCensus(unittest.TestCase):
     """Test desiutil.census.
     """
@@ -54,6 +61,7 @@ class TestCensus(unittest.TestCase):
         self.assertEqual(year(mtime), 2017)
         self.assertEqual(year(mtime, fy=False), 2016)
 
+    @unittest.skipUnless(has_commonpath, "Skipping test that requires os.path.commonpath().")
     def test_in_path(self):
         """Test directory hierarchy checker.
         """
