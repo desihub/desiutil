@@ -422,9 +422,14 @@ def output_csv(summary, filename):
             row.append(str(number[d][y]))
             row.append(str(size[d][y]))
         data.append(row)
-    with open(filename, 'w', newline='') as csvfile:
-        writer = csv.writer(csvfile)
-        writer.writerows(data)
+    try:
+        csvfile = open(filename, 'w', newline='')
+    except TypeError:
+        # Python 2
+        csvfile = open(filename, 'w')
+    writer = csv.writer(csvfile)
+    writer.writerows(data)
+    csvfile.close()
     return data
 
 
