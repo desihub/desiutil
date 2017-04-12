@@ -7,12 +7,25 @@ from __future__ import (absolute_import, division,
 # The line above will help with 2to3 support.
 import unittest
 
+has_mock = True
+try:
+    from unittest.mock import call, patch
+except ImportError:
+    has_mock = False
 
 has_commonpath = True
 try:
     from os.path import commonpath
 except ImportError:
     has_commonpath = False
+
+
+class MockLogger(object):
+    """Foo
+    """
+
+    def error(self, message):
+        print(message)
 
 
 class TestCensus(unittest.TestCase):
@@ -52,6 +65,21 @@ class TestCensus(unittest.TestCase):
         self.assertTrue(options.verbose)
         options = get_options(['-c', 'foo.yaml'])
         self.assertEqual(options.config, 'foo.yaml')
+
+    @unittest.skipUnless(has_mock, "Skipping test that requires unittest.mock.")
+    def test_walk_error(self):
+        """Test error-handling function for os.walk().
+        """
+        from ..census import walk_error
+        with patch('desiutil.log.desi_logger') as mock:
+            try:
+                raise OSError(2, 'File not found', 'foo.txt')
+            except OSError as e:
+                walk_error(e)
+            calls = [call.error('OS strerror = File not found'),
+                     call.error('OS errno = 2'),
+                     call.error('filename = foo.txt')]
+            self.assertListEqual(mock.mock_calls, calls)
 
     def test_year(self):
         """Test conversion of mtime to year.
