@@ -21,7 +21,8 @@ class TestCensus(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        pass
+        from os.path import dirname, join
+        cls.data_dir = join(dirname(__file__), 't')
 
     @classmethod
     def tearDownClass(cls):
@@ -70,6 +71,38 @@ class TestCensus(unittest.TestCase):
         self.assertTrue(in_path('/foo/bar/baz', '/foo/bar/baz/a'))
         self.assertFalse(in_path('/foo/bar/baz', '/foo/bar/baz-x2'))
         self.assertFalse(in_path('/foo/bar/baz', '/foo/baz/bar'))
+
+    def test_output_csv(self):
+        """Test CSV writer.
+        """
+        from os import remove
+        from os.path import join
+        from collections import OrderedDict
+        from ..census import output_csv
+        csvfile = join(self.data_dir, 'test_output_csv.csv')
+        d = OrderedDict()
+        d['/foo/bar'] = {2000: {'number': 2, 'size': 20},
+                         2001: {'number': 2, 'size': 20},
+                         2002: {'number': 2, 'size': 20}}
+        d['/foo/bar/baz'] = {2000: {'number': 1, 'size': 10},
+                             2001: {'number': 1, 'size': 10},
+                             2002: {'number': 1, 'size': 10}}
+        dd = OrderedDict()
+        dd['/a/b/c'] = {2001: {'number': 2, 'size':50},
+                        2002: {'number': 4, 'size': 100},
+                        2003: {'number': 2, 'size': 50}}
+        dd['/a/b/c/d'] = {2002: {'number': 2, 'size': 50}}
+        output_data = output_csv([d, dd], csvfile)
+        datatext = """Directory,FY2000 Number,FY2000 Size,FY2001 Number,FY2001 Size,FY2002 Number,FY2002 Size,FY2003 Number,FY2003 Size
+/foo/bar,2,20,4,40,6,60,6,60
+/foo/bar/baz,1,10,2,20,3,30,3,30
+/a/b/c,0,0,2,50,6,150,8,200
+/a/b/c/d,0,0,0,0,2,50,2,50"""
+        data = [row.split(',') for row in datatext.split('\n')]
+        self.assertEqual(len(output_data), len(data))
+        for k in range(len(data)):
+            self.assertListEqual(output_data[k], data[k])
+        remove(csvfile)
 
 
 def test_suite():

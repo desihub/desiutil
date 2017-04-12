@@ -411,7 +411,11 @@ def output_csv(summary, filename):
                     this_size = 0
                 number[root][y] = this_number + previous_number
                 size[root][y] = this_size + previous_size
-    data = [['Directory'] + ['FY{0:d} Number,FY{0:d} Size'.format(y) for y in sorted(years)]]
+    row = ['Directory']
+    for y in sorted(years):
+        row.append('FY{0:d} Number'.format(y))
+        row.append('FY{0:d} Size'.format(y))
+    data = [row]
     for d in directories:
         row = [d]
         for y in sorted(years):
