@@ -9,7 +9,7 @@ import unittest
 
 has_mock = True
 try:
-    from unittest.mock import call, patch
+    from unittest.mock import call, patch, Mock
 except ImportError:
     has_mock = False
 
@@ -86,6 +86,86 @@ class TestCensus(unittest.TestCase):
         mtime = 1475692367.0
         self.assertEqual(year(mtime), 2017)
         self.assertEqual(year(mtime, fy=False), 2016)
+
+    @unittest.skipUnless(has_mock, "Skipping test that requires unittest.mock.")
+    def test_scan_file(self):
+        """Test analysis of a single file.
+        """
+        from os import stat_result
+        from os.path import join
+        from ..census import scan_file
+        mock_os = Mock()
+        fd = join(self.data_dir, 'test.module')
+        intlink = join(self.data_dir, 'test.module.link')
+        extlink = '/foo/bar/t/test.module'
+        s = stat_result((33188, 83865343, 16777220,
+                         1, 501, 20, 973,
+                         1491428112, 1446143268,
+                         1462630505))
+        #
+        # Simulate a simple file.
+        #
+        calls = [call.debug("os.stat('{0}')".format(fd)),
+                 call.warning("{0} does not have correct group id!".format(fd))]
+        with patch('desiutil.log.desi_logger') as mock_log:
+            with patch.dict('sys.modules', {'os': mock_os, 'os.path': mock_os.path}):
+                mock_os.environ = dict()
+                mock_os.stat.return_value = s
+                mock_os.path.islink.return_value = False
+                mock_os.path.join.return_value = fd
+                f = scan_file(self.data_dir, 'test.module', 12345)
+        self.assertListEqual(mock_log.mock_calls, calls)
+        self.assertEqual(f.filename, fd)
+        self.assertEqual(f.size, 973)
+        self.assertEqual(f.year, 2016)
+        #
+        # Simulate an internal link.
+        #
+        calls = [call.debug("os.stat('{0}')".format(fd)),
+                 call.warning("{0} does not have correct group id!".format(fd)),
+                 call.debug("os.lstat('{0}')".format(fd)),
+                 call.warning("{0} does not have correct group id!".format(fd)),
+                 call.debug("Found internal link {0} -> {0}.link.".format(fd))]
+        with patch('desiutil.log.desi_logger') as mock_log:
+            with patch.dict('sys.modules', {'os': mock_os, 'os.path': mock_os.path}):
+                mock_os.environ = dict()
+                mock_os.stat.return_value = s
+                mock_os.lstat.return_value = s
+                mock_os.path.commonpath.return_value = self.data_dir
+                mock_os.path.islink.return_value = True
+                mock_os.path.join.return_value = fd
+                mock_os.path.realpath.return_value = intlink
+                f = scan_file(self.data_dir, 'test.module', 12345)
+        self.assertListEqual(mock_log.mock_calls, calls)
+        self.assertEqual(f.filename, fd)
+        self.assertEqual(f.size, 973)
+        self.assertTrue(f.islink)
+        self.assertFalse(f.isexternal)
+        self.assertEqual(f.linkname, intlink)
+        #
+        # Simulate an external link.
+        #
+        calls = [call.debug("os.stat('{0}')".format(fd)),
+                 call.warning("{0} does not have correct group id!".format(fd)),
+                 call.debug("os.lstat('{0}')".format(fd)),
+                 call.warning("{0} does not have correct group id!".format(fd)),
+                 call.debug("Found external link {0} -> {1}.".format(fd, extlink))]
+        with patch('desiutil.log.desi_logger') as mock_log:
+            with patch.dict('sys.modules', {'os': mock_os, 'os.path': mock_os.path}):
+                mock_os.environ = dict()
+                mock_os.stat.return_value = s
+                mock_os.lstat.return_value = s
+                mock_os.path.commonpath.return_value = '/'
+                mock_os.path.islink.return_value = True
+                mock_os.path.join.return_value = fd
+                mock_os.path.realpath.return_value = extlink
+                f = scan_file(self.data_dir, 'test.module', 12345)
+        self.assertListEqual(mock_log.mock_calls, calls)
+        self.assertEqual(f.filename, fd)
+        self.assertEqual(f.size, 973)
+        self.assertTrue(f.islink)
+        self.assertTrue(f.isexternal)
+        self.assertEqual(f.linkname, extlink)
 
     @unittest.skipUnless(has_commonpath, "Skipping test that requires os.path.commonpath().")
     def test_in_path(self):

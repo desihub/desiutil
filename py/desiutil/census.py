@@ -420,7 +420,7 @@ def output_csv(summary, filename):
         data.append(row)
     try:
         csvfile = open(filename, 'w', newline='')
-    except TypeError:
+    except TypeError:  # pragma: no cover
         # Python 2
         csvfile = open(filename, 'w')
     writer = csv.writer(csvfile)
