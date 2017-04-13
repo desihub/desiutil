@@ -20,14 +20,6 @@ except ImportError:
     has_commonpath = False
 
 
-class MockLogger(object):
-    """Foo
-    """
-
-    def error(self, message):
-        print(message)
-
-
 class TestCensus(unittest.TestCase):
     """Test desiutil.census.
     """
