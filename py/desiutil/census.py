@@ -407,17 +407,13 @@ def output_csv(summary, filename):
                     this_size = 0
                 number[root][y] = this_number + previous_number
                 size[root][y] = this_size + previous_size
-    row = ['Directory']
-    for y in sorted(years):
-        row.append('FY{0:d} Number'.format(y))
-        row.append('FY{0:d} Size'.format(y))
-    data = [row]
+    data = [(['Directory'] +
+             ['FY{0:d} Number'.format(y) for y in sorted(years)] +
+             ['FY{0:d} Size'.format(y) for y in sorted(years)])]
     for d in directories:
-        row = [d]
-        for y in sorted(years):
-            row.append(str(number[d][y]))
-            row.append(str(size[d][y]))
-        data.append(row)
+        data.append([d] +
+                    [str(number[d][y]) for y in sorted(years)] +
+                    [str(size[d][y]) for y in sorted(years)])
     try:
         csvfile = open(filename, 'w', newline='')
     except TypeError:  # pragma: no cover

@@ -198,11 +198,11 @@ class TestCensus(unittest.TestCase):
                         2003: {'number': 2, 'size': 50}}
         dd['/a/b/c/d'] = {2002: {'number': 2, 'size': 50}}
         output_data = output_csv([d, dd], csvfile)
-        datatext = """Directory,FY2000 Number,FY2000 Size,FY2001 Number,FY2001 Size,FY2002 Number,FY2002 Size,FY2003 Number,FY2003 Size
-/foo/bar,2,20,4,40,6,60,6,60
-/foo/bar/baz,1,10,2,20,3,30,3,30
-/a/b/c,0,0,2,50,6,150,8,200
-/a/b/c/d,0,0,0,0,2,50,2,50"""
+        datatext = """Directory,FY2000 Number,FY2001 Number,FY2002 Number,FY2003 Number,FY2000 Size,FY2001 Size,FY2002 Size,FY2003 Size
+/foo/bar,2,4,6,6,20,40,60,60
+/foo/bar/baz,1,2,3,3,10,20,30,30
+/a/b/c,0,2,6,8,0,50,150,200
+/a/b/c/d,0,0,2,2,0,0,50,50"""
         data = [row.split(',') for row in datatext.split('\n')]
         self.assertEqual(len(output_data), len(data))
         for k in range(len(data)):
