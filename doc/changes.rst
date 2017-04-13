@@ -8,6 +8,7 @@ Change Log
 * Get .travis.yml file and other components ready for Python 3.6.
 * Increase test coverage in a few areas.
 * Make basemap_ an optional dependency (PR `#61`_).
+* fix desiInstall on cori
 
 .. _basemap: http://matplotlib.org/basemap/
 .. _`#61`: https://github.com/desihub/desiutil/pull/61
