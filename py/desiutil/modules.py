@@ -72,10 +72,10 @@ def init_modules(moduleshome=None, method=False, command=False):
         #
         # This is probably one of the primary NERSC systems, edison or cori.
         #
-        tmpcmd = '/opt/modules/{MODULE_VERSION}/bin/modulecmd'.format(**os.environ) 
+        tmpcmd = '/opt/modules/{MODULE_VERSION}/bin/modulecmd'.format(**os.environ)
         # if that doesn't exist, try in /opt/cray/pe/modules (cori)
         if not os.path.exists(tmpcmd):
-            tmpcmd = '/opt/cray/pe/modules/{MODULE_VERSION}/bin/modulecmd'.format(**os.environ) 
+            tmpcmd = '/opt/cray/pe/modules/{MODULE_VERSION}/bin/modulecmd'.format(**os.environ)
 
         modulecmd = [tmpcmd, 'python']
         os.environ['MODULE_VERSION_STACK'] = os.environ['MODULE_VERSION']
