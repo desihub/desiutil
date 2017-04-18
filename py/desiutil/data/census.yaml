@@ -104,15 +104,15 @@ data:
       group: cosmo
       subdirs:
           - root: allsky
-            description: Imaging used for 'allsky' catalog?
+            description: Imaging used for allsky catalog?
+          - root: allwise-catalog
+            description: allwise catalog derived from imaging.
           - root: cryo_3band
             description: Imaging with just 3 bands?
-          - root: postcryo
-            description: Imaging without functioning cryostat?
           - root: neowiser
             description: Post-reactivation imaging?
-          - root: allwise-catalog
-            description: 'allwise' catalog derived from imaging.
+          - root: postcryo
+            description: Imaging without functioning cryostat?
     - root: /project/projectdirs/cosmo/staging/wise/neowiser2/neowiser
       category: Imaging Data
       description: Unmerged post-reactivation WISE imaging.
