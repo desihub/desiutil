@@ -14,6 +14,13 @@ from __future__ import (absolute_import, division,
 # The line above will help with 2to3 support.
 
 
+try:
+    from shutil import which
+except ImportError:
+    # shutil.which() is Python 3.
+    from distutils.spawn import find_executable as which
+
+
 def init_modules(moduleshome=None, method=False, command=False):
     """Set up the Modules infrastructure.
 
@@ -68,26 +75,28 @@ def init_modules(moduleshome=None, method=False, command=False):
             os.environ['MODULEPATH'] = ':'.join(path)
     if 'LOADEDMODULES' not in os.environ:
         os.environ['LOADEDMODULES'] = ''
-    if 'MODULE_VERSION' in os.environ:
-        #
-        # This is probably one of the primary NERSC systems, edison or cori.
-        #
-        modulecmd = ['/opt/modules/{MODULE_VERSION}/bin/modulecmd'.format(**os.environ), 'python']
-        os.environ['MODULE_VERSION_STACK'] = os.environ['MODULE_VERSION']
-    elif os.path.exists(os.path.join(moduleshome, 'modulecmd.tcl')):
+    if os.path.exists(os.path.join(moduleshome, 'modulecmd.tcl')):
         #
         # TCL version!
         #
         if 'TCLSH' in os.environ:
             tclsh = os.environ['TCLSH']
         else:
-            tclsh = '/usr/bin/tclsh'
+            tclsh = which('tclsh')
+        if tclsh is None:
+            raise ValueError("TCL Modules detected, but no tclsh excecutable found.")
         modulecmd = [tclsh, os.path.join(moduleshome, 'modulecmd.tcl'), 'python']
     else:
         #
-        # This is the path on NERSC data transfer nodes.
+        # This should work on all NERSC systems, assuming the user's environment
+        # is not totally screwed up.
         #
-        modulecmd = ['/usr/bin/modulecmd', 'python']
+        tmpcmd = which('modulecmd')
+        if tmpcmd is None:
+            raise ValueError("Modules environment detected, but no 'modulecmd' excecutable found.")
+        modulecmd = [tmpcmd, 'python']
+    if 'MODULE_VERSION' in os.environ:
+        os.environ['MODULE_VERSION_STACK'] = os.environ['MODULE_VERSION']
     if command:
         return modulecmd
     def desiutil_module(command, *arguments):
