@@ -6,10 +6,12 @@ from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 # The line above will help with 2to3 support.
 import unittest
+from stat import S_IXUSR
 from types import MethodType
-from os import environ, mkdir, remove, rmdir
+from os import chmod, environ, mkdir, pathsep, remove, rmdir
 from os.path import dirname, exists, isdir, join
 from sys import version_info
+from shutil import rmtree
 from ..modules import (init_modules, configure_module, process_module,
                        default_module)
 
@@ -22,9 +24,11 @@ class TestModules(unittest.TestCase):
     def setUpClass(cls):
         # Data directory
         cls.data_dir = join(dirname(__file__), 't')
+        cls.bin_dir = join(cls.data_dir, 'libexec')
         cls.orig_env_cache = dict()
         cls.env_cache = dict()
-        cls.module_envs = {'MODULESHOME': cls.data_dir,
+        cls.module_envs = {'PATH': cls.bin_dir+pathsep+environ['PATH'],
+                           'MODULESHOME': cls.data_dir,
                            'MODULEPATH': '', 'LOADEDMODULES': ''}
         #
         # Set up a dummy MODULESHOME for all tests.
@@ -35,6 +39,15 @@ class TestModules(unittest.TestCase):
             except KeyError:
                 cls.orig_env_cache[e] = None
             environ[e] = cls.module_envs[e]
+        #
+        # Set up dummy executables.
+        #
+        mkdir(cls.bin_dir)
+        script = '#!/bin/sh\necho $@\n'
+        for s in ('modulecmd', 'tclsh'):
+            with open(join(cls.bin_dir, s), 'w') as ex:
+                ex.write(script)
+            chmod(join(cls.bin_dir, s), S_IXUSR)
 
     @classmethod
     def tearDownClass(cls):
@@ -43,6 +56,7 @@ class TestModules(unittest.TestCase):
                 del environ[e]
             else:
                 environ[e] = cls.orig_env_cache[e]
+        rmtree(cls.bin_dir)
 
     def cache_env(self, envs):
         """Store existing environment variables in a cache and delete them.
@@ -103,12 +117,12 @@ class TestModules(unittest.TestCase):
         #
         self.cache_env(('MODULE_VERSION', 'MODULE_VERSION_STACK', 'TCLSH'))
         modulecmd = init_modules(command=True)
-        self.assertListEqual(modulecmd, ['/usr/bin/modulecmd', 'python'])
+        self.assertListEqual(modulecmd, [join(self.bin_dir, 'modulecmd'), 'python'])
         tclfile = join(self.data_dir, 'modulecmd.tcl')
         with open(tclfile, 'w') as tcl:
             tcl.write('#!/usr/bin/tclsh\nputs "foo"\n')
         modulecmd = init_modules(command=True)
-        self.assertListEqual(modulecmd, ['/usr/bin/tclsh', tclfile, 'python'])
+        self.assertListEqual(modulecmd, [join(self.bin_dir, 'tclsh'), tclfile, 'python'])
         environ['TCLSH'] = '/opt/local/bin/tclsh'
         modulecmd = init_modules(command=True)
         self.assertListEqual(modulecmd, ['/opt/local/bin/tclsh', tclfile,
@@ -118,7 +132,7 @@ class TestModules(unittest.TestCase):
         remove(tclfile)
         environ['MODULE_VERSION'] = '1.2.3.4'
         modulecmd = init_modules(command=True)
-        self.assertListEqual(modulecmd, ['/opt/modules/1.2.3.4/bin/modulecmd',
+        self.assertListEqual(modulecmd, [join(self.bin_dir, 'modulecmd'),
                                          'python'])
         self.assertEqual(environ['MODULE_VERSION'],
                          environ['MODULE_VERSION_STACK'])
