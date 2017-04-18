@@ -98,6 +98,38 @@ data:
             description: No idea what this is.
           - root: reduced
             description: BASS data processed by BASS.
+    - root: /project/projectdirs/cosmo/data/wise
+      category: Imaging Data
+      description: WISE images.
+      group: cosmo
+      subdirs:
+          - root: allsky
+            description: Imaging used for 'allsky' catalog?
+          - root: cryo_3band
+            description: Imaging with just 3 bands?
+          - root: postcryo
+            description: Imaging without functioning cryostat?
+          - root: neowiser
+            description: Post-reactivation imaging?
+          - root: allwise-catalog
+            description: 'allwise' catalog derived from imaging.
+    - root: /project/projectdirs/cosmo/staging/wise/neowiser2/neowiser
+      category: Imaging Data
+      description: Unmerged post-reactivation WISE imaging.
+      group: cosmo
+    - root: /project/projectdirs/cosmo/data/unwise
+      category: Imaging Data
+      description: WISE full-resolution coadds.
+      group: cosmo
+      subdirs:
+          - root: neo1
+            description: NEO1 full-depth unWISE coadds.
+          - root: neo2
+            description: NEO2 full-depth unWISE coadds.
+          - root: unwise-comp
+            description: Original unWISE coadds.
+          - root: unwise-phot
+            description: Original unWISE coadds (photometry?).
     - root: /global/project/projectdirs/cosmo/staging/decam-public
       category: Non-DESI Data
       description: DECam data outside of the DESI footprint.
