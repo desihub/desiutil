@@ -572,8 +572,9 @@ def plot_healpix_map(data, nest=False, cmap='viridis', colorbar=True,
     collection = PolyCollection(
         verts, array=data, cmap=cmap, norm=norm, edgecolors='none')
 
-    basemap.ax.add_collection(collection)
-    basemap.ax.autoscale_view()
+    axes = plt.gca() if basemap.ax is None else basemap.ax
+    axes.add_collection(collection)
+    axes.autoscale_view()
 
     if colorbar:
         bar = plt.colorbar(
