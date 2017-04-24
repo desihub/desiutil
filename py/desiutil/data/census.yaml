@@ -1,0 +1,140 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+# -*- coding: utf-8 -*-
+#
+# Configuration file for desi_data_census.
+#
+configuration:
+    #
+    # Define the filesystems that might be encountered.
+    # Mapping from primary filesystem to auxilliary filesystem.
+    #
+    filesystems:
+        /global/project/projectdirs: /global/projecta/projectdirs
+    #
+    # Map group name to group ID.
+    #
+    gid:
+        cosmo: 58191
+        desi: 58102
+#
+# Analyze these directories.  Properties in subdirectories are inherited.
+# unless overridden.
+#
+data:
+    # - root: /global/project/projectdirs/desi/spectro
+    #   category: DESI Data
+    #   description: DESI raw and reduced data.
+    #   group: desi
+    #   subdirs:
+    #       - root: data
+    #         description: DESI raw data
+    #       - root: redux
+    #         description: DESI reduced data
+    #       - root: sim
+    #         description: DESI simulated data
+    # - root: /global/project/projectdirs/desi/users
+    #   category: Collaboration Workspace
+    #   description: Working space for individual users.
+    #   group: desi
+    - root: /global/project/projectdirs/cosmo/data/legacysurvey
+      category: Imaging Data
+      description: Released data from DECaLS/MzLS/BASS.
+      group: cosmo
+      subdirs:
+          - root: dr1
+            description: DECaLS DR1.
+          - root: dr2
+            description: DECaLS DR2.
+          - root: dr3.0
+            description: DECaLS DR3.0.
+          - root: dr3.1
+            description: DECaLS DR3.1.
+    - root: /global/project/projectdirs/cosmo/staging/decam
+      category: Imaging Data
+      description: DECaLS data.
+      group: cosmo
+      subdirs:
+          - root: 2013A-0741
+            description: Percursor survey?
+          - root: COSMOS
+            description: DECam data in the COSMOS field?
+          - root: CPDES82
+            description: CP-processed DECam in Stripe 82?
+          - root: DECam_CP
+            description: DECaLS data processed by NOAO CP.
+          - root: DECam_Raw
+            description: DECaLS raw data.
+          - root: DESY1_Stripe82
+            description: DES Year 1 data in Stripe 82?
+          - root: NonDECaLS
+            description: DECam data in the DECaLS footprint.
+          - root: NonDECaLS-DR5
+            description: DECam data in the DECaLS footprint in preparation for DR5.
+          - root: Stacks_Aug14
+            description: No idea what this is.
+    - root: /global/project/projectdirs/cosmo/staging/mosaicz
+      category: Imaging Data
+      description: MzLS data.
+      group: cosmo
+      subdirs:
+          - root: MZLS_CP
+            description: MzLS data processed by NOAO CP.
+          - root: MZLS_Raw
+            description: MzLS raw data.
+    - root: /global/project/projectdirs/cosmo/staging/bok
+      category: Imaging Data
+      description: BASS data.
+      group: cosmo
+      subdirs:
+          - root: BOK_CP
+            description: BASS data processed by NOAO CP.
+          - root: BOK_Raw
+            description: BASS raw data.
+          - root: ccds_files
+            description: No idea what this is.
+          - root: dr1d_naoc
+            description: BASS data processed by NAOC group.
+          - root: engineering
+            description: No idea what this is.
+          - root: reduced
+            description: BASS data processed by BASS.
+    - root: /global/project/projectdirs/cosmo/data/wise
+      category: Imaging Data
+      description: WISE images.
+      group: cosmo
+      subdirs:
+          - root: allsky
+            description: Imaging used for allsky catalog?
+          - root: allwise-catalog
+            description: allwise catalog derived from imaging.
+          - root: cryo_3band
+            description: Imaging with just 3 bands?
+          - root: neowiser
+            description: Post-reactivation imaging?
+          - root: postcryo
+            description: Imaging without functioning cryostat?
+    - root: /global/project/projectdirs/cosmo/staging/wise/neowiser2/neowiser
+      category: Imaging Data
+      description: Unmerged post-reactivation WISE imaging.
+      group: cosmo
+    - root: /global/project/projectdirs/cosmo/data/unwise
+      category: Imaging Data
+      description: WISE full-resolution coadds.
+      group: cosmo
+      subdirs:
+          - root: neo1
+            description: NEO1 full-depth unWISE coadds.
+          - root: neo2
+            description: NEO2 full-depth unWISE coadds.
+          - root: unwise-comp
+            description: Original unWISE coadds.
+          - root: unwise-phot
+            description: Original unWISE coadds (photometry?).
+    - root: /global/project/projectdirs/cosmo/staging/decam-public
+      category: Non-DESI Data
+      description: DECam data outside of the DESI footprint.
+      group: cosmo
+    # - root: /global/project/projectdirs/cosmo/work
+    #   category: Collaboration Workspace
+    #   description: Working space for individual users.
+    #   group: cosmo
