@@ -160,12 +160,12 @@ class TestDepend(unittest.TestCase):
         import numpy
         add_dependencies(hdr)
         self.assertEqual(getdep(hdr, 'numpy'), numpy.__version__)
-        #- ok, but no action
+        # ok, but no action
         add_dependencies(hdr, ['blatbar', 'quatlarm'])
         self.assertFalse(hasdep(hdr, 'blatbar'))
         self.assertFalse(hasdep(hdr, 'quatlarm'))
 
-        #- no .__version__
+        # no .__version__
         add_dependencies(hdr, ['os.path', 'sys'])
         self.assertTrue(hasdep(hdr, 'os.path'))
         self.assertTrue(getdep(hdr, 'os.path').startswith('unknown'))

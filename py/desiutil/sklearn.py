@@ -10,10 +10,11 @@ Useful functions from the sklearn python package.
 from __future__ import (print_function, absolute_import, division,
                         unicode_literals)
 
+
 class GaussianMixtureModel(object):
     """Read and sample from a pre-defined Gaussian mixture model.
-
     """
+
     def __init__(self, weights, means, covars, covtype):
         self.weights = weights
         self.means = means
@@ -38,8 +39,8 @@ class GaussianMixtureModel(object):
         hdus = fits.open(filename, memmap=False)
         hdr = hdus[0].header
         covtype = hdr['covtype']
-        model = GaussianMixtureModel(
-            hdus['weights'].data, hdus['means'].data, hdus['covars'].data, covtype)
+        model = GaussianMixtureModel(hdus['weights'].data, hdus['means'].data,
+                                     hdus['covars'].data, covtype)
         hdus.close()
         return model
 
@@ -69,5 +70,3 @@ class GaussianMixtureModel(object):
                 X[comp_in_X] = random_state.multivariate_normal(
                     self.means[comp], self.covars[comp], num_comp_in_X)
         return X
-
- 

@@ -6,7 +6,8 @@ from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 # The line above will help with 2to3 support.
 import unittest
-import shutil, tempfile
+import shutil
+import tempfile
 import os
 import numpy as np
 # Set non-interactive backend for Travis
@@ -29,6 +30,7 @@ try:
     have_basemap = True
 except ImportError:
     have_basemap = False
+
 
 class TestPlots(unittest.TestCase):
     """Test desiutil.plots
@@ -75,7 +77,8 @@ class TestPlots(unittest.TestCase):
         self.assertFalse(ma.mask.any())
         ma = prepare_data(data, mask)
         self.assertTrue(np.allclose(data, ma.data))
-        self.assertTrue((ma.mask == np.array([False, False, True, False, False])).all())
+        self.assertTrue((ma.mask == np.array([False, False, True, False,
+                                              False])).all())
         data2 = data.copy()
         data2[0] = 0.25
         data3 = data.copy()
@@ -86,19 +89,25 @@ class TestPlots(unittest.TestCase):
         data4[-1] = 3.25
         ma = prepare_data(data, mask, clip_lo=0.25)
         self.assertTrue(np.allclose(data2, ma.data))
-        self.assertTrue((ma.mask == np.array([False, False, True, False, False])).all())
+        self.assertTrue((ma.mask == np.array([False, False, True, False,
+                                              False])).all())
         ma = prepare_data(data, mask, clip_lo=0.25, clip_hi=0.75)
         self.assertTrue(np.allclose(data3, ma.data))
-        self.assertTrue((ma.mask == np.array([False, False, True, False, False])).all())
+        self.assertTrue((ma.mask == np.array([False, False, True, False,
+                                              False])).all())
         ma = prepare_data(data, mask, clip_lo='25%', clip_hi='75%')
         self.assertTrue(np.allclose(data4, ma.data))
-        self.assertTrue((ma.mask == np.array([False, False, True, False, False])).all())
+        self.assertTrue((ma.mask == np.array([False, False, True, False,
+                                              False])).all())
         ma = prepare_data(data, mask, clip_lo='!25%', clip_hi='!75%')
         self.assertTrue(np.allclose(data4, ma.data))
-        self.assertTrue((ma.mask == np.array([True, False, True, False, True])).all())
-        ma = prepare_data(data, mask, clip_lo='25%', clip_hi='75%', save_limits=True)
+        self.assertTrue((ma.mask == np.array([True, False, True, False,
+                                              True])).all())
+        ma = prepare_data(data, mask, clip_lo='25%', clip_hi='75%',
+                          save_limits=True)
         self.assertTrue(np.allclose(data4, ma.data))
-        self.assertTrue((ma.mask == np.array([False, False, True, False, False])).all())
+        self.assertTrue((ma.mask == np.array([False, False, True, False,
+                                              False])).all())
         self.assertEqual(ma.vmin, 0.75)
         self.assertEqual(ma.vmax, 3.25)
 
@@ -145,7 +154,8 @@ class TestPlots(unittest.TestCase):
         from ..plots import plot_sky_circles
 
     @unittest.skipIf(not (have_matplotlib and have_healpy and have_basemap),
-                     'Skipping tests that require matplotlib, healpy and basemap.')
+                     ('Skipping tests that require matplotlib, healpy ' +
+                      'and basemap.'))
     def test_plot_sky_binned(self):
         """Test plot_sky_binned
         """

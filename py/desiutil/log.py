@@ -76,8 +76,8 @@ def get_logger(level=None, timestamp=False, delimiter=':'):
                                                        ', '.join(dico.keys()))
             print(message)
 
-    if desi_logger is not None :
-        if level is not None :
+    if desi_logger is not None:
+        if level is not None:
             desi_logger.setLevel(level)
         return desi_logger
 

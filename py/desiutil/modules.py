@@ -99,6 +99,7 @@ def init_modules(moduleshome=None, method=False, command=False):
         os.environ['MODULE_VERSION_STACK'] = os.environ['MODULE_VERSION']
     if command:
         return modulecmd
+
     def desiutil_module(command, *arguments):
         """Call the Modules command.
 

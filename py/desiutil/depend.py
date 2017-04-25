@@ -56,6 +56,7 @@ so that it can be used in subsequent I/O
 
 """
 
+
 def setdep(header, name, version):
     '''
     Set dependency version for code name.
@@ -77,8 +78,9 @@ def setdep(header, name, version):
             header[verkey] = version
             return
 
-    #- if we got this far, we ran out of numbers
+    # if we got this far, we ran out of numbers
     raise IndexError("Too many versions to track!")
+
 
 def getdep(header, name):
     '''
@@ -99,9 +101,10 @@ def getdep(header, name):
             if header[namekey] == name:
                 return header[verkey]
         elif i == 0:
-            continue    #- ok if DEPNAM00 is missing; continue to DEPNAME01
+            continue  # ok if DEPNAM00 is missing; continue to DEPNAME01
         else:
             raise KeyError('{} version not found'.format(name))
+
 
 def hasdep(header, name):
     '''
@@ -113,12 +116,14 @@ def hasdep(header, name):
     except KeyError:
         return False
 
+
 def iterdep(header):
     '''Returns iterator over (codename, version) tuples'''
     for i in range(100):
         namekey = 'DEPNAM{:02d}'.format(i)
         verkey = 'DEPVER{:02d}'.format(i)
-        if namekey not in header and i==0: continue
+        if namekey not in header and i == 0:
+            continue
         if namekey in header:
             yield (header[namekey], header[verkey])
         else:
@@ -126,13 +131,15 @@ def iterdep(header):
 
     raise StopIteration
 
-#- default possible dependencies to check in add_dependencies()
+
+# default possible dependencies to check in add_dependencies()
 possible_dependencies = [
     'numpy', 'scipy', 'astropy', 'yaml', 'matplotlib',
     'requests', 'fitsio', 'h5py', 'mpi4py', 'psycopg2',
     'desiutil', 'desispec', 'desitarget', 'desimodel', 'desisim',
     'redmonster', 'specter', 'speclite', 'specsim',
     ]
+
 
 def add_dependencies(header, module_names=None, long_python=False):
     '''Adds DEPNAMnn, DEPVERnn keywords to header for imported modules
@@ -162,15 +169,15 @@ def add_dependencies(header, module_names=None, long_python=False):
     if module_names is None:
         module_names = possible_dependencies
 
-    #- Set version strings only for modules that have already been loaded
+    # Set version strings only for modules that have already been loaded
     for module in module_names:
         if module in sys.modules:
-            #- already loaded, but we need a reference to the module object
+            # already loaded, but we need a reference to the module object
             x = importlib.import_module(module)
             if hasattr(x, '__version__'):
                 version = x.__version__
             elif hasattr(x, '__path__'):
-                #- e.g. redmonster doesn't set __version__
+                # e.g. redmonster doesn't set __version__
                 version = 'unknown ({})'.format(x.__path__[0])
             elif hasattr(x, '__file__'):
                 version = 'unknown ({})'.format(x.__file__)
@@ -178,6 +185,7 @@ def add_dependencies(header, module_names=None, long_python=False):
                 version = 'unknown'
 
             setdep(header, module, version)
+
 
 class Dependencies(object):
     """Dictionary-like object to track dependencies.

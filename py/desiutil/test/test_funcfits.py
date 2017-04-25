@@ -8,7 +8,6 @@ from __future__ import (absolute_import, division,
 import unittest
 import numpy as np
 from warnings import catch_warnings, simplefilter
-#import pdb
 from ..funcfits import func_fit, func_val, iter_fit, mk_fit_dict
 
 
@@ -28,7 +27,7 @@ class TestFuncFits(unittest.TestCase):
         """Test fit dict
         """
         fdict = mk_fit_dict(np.arange(10), 5, 'legendre', xmin=0., xmax=5000.)
-        assert isinstance(fdict,dict)
+        assert isinstance(fdict, dict)
 
     def test_poly_fit(self):
         """Test polynomial fit.
@@ -131,7 +130,9 @@ class TestFuncFits(unittest.TestCase):
             # simplefilter("always")
             dfit, mask = iter_fit(x, y, 'legendre', 4, forceimask=True)
             self.assertEqual(len(w), 1)
-            self.assertEqual(str(w[-1].message), "Initial mask cannot be enforced -- no initital mask supplied")
+            self.assertEqual(str(w[-1].message),
+                             "Initial mask cannot be enforced -- " +
+                             "no initital mask supplied")
         x2 = np.linspace(0, np.pi, 100)
         y2 = func_val(x2, dfit)
         np.testing.assert_allclose(y2[50], 0.99941444872371643)

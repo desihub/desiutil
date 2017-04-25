@@ -84,7 +84,7 @@ def plot_slices(x, y, x_lo, x_hi, y_cut, num_slices=5, min_count=100, axis=None,
 
     # Plot scatter of all fits.
     axis.scatter(x, y, s=15, marker='.', lw=0, color='b', alpha=0.5)
-    #axis.scatter(x[~ok], y[~ok], s=15, marker='x', lw=0, color='k', alpha=0.5)
+    # axis.scatter(x[~ok], y[~ok], s=15, marker='x', lw=0, color='k', alpha=0.5)
 
     # Plot quantiles in slices with enough fits.
     stepify = lambda y: np.vstack([y, y]).transpose().flatten()
@@ -109,7 +109,7 @@ def plot_slices(x, y, x_lo, x_hi, y_cut, num_slices=5, min_count=100, axis=None,
             min_m2 = min(min_m2, np.min(y_m2[s]))
 
     # xlim
-    xmin,xmax = np.min(x), np.max(x)
+    xmin, xmax = np.min(x), np.max(x)
     axis.set_xlim(np.min(x)-(xmax-xmin)*0.02, np.max(x)+(xmax-xmin)*0.02)
 
     # ylim
@@ -412,14 +412,14 @@ def init_sky(projection='eck4', ra_center=120, galactic_plane_color='red',
             """
             ax = kwargs.pop('ax', None) or self._check_ax()
             g = pyproj.Geod(a=self.rmajor, b=self.rminor)
-            azf, azb, dist = g.inv([x0, x0],[y0, y0],[x0+a, x0],[y0, y0+b])
-            tsid = dist[0] * dist[1] # a * b
+            azf, azb, dist = g.inv([x0, x0], [y0, y0], [x0+a, x0], [y0, y0+b])
+            tsid = dist[0] * dist[1]  # a * b
             seg = [self(x0+a, y0)]
             AZ = np.linspace(azf[0], 360. + azf[0], n)
             for i, az in enumerate(AZ):
                 # Skips segments along equator (Geod can't handle equatorial arcs).
                 if np.allclose(0., y0) and (np.allclose(90., az) or
-                    np.allclose(270., az)):
+                                            np.allclose(270., az)):
                     continue
 
                 # In polar coordinates, with the origin at the center of the
@@ -472,9 +472,9 @@ def init_sky(projection='eck4', ra_center=120, galactic_plane_color='red',
         # Generate coordinates of a line in galactic coordinates and convert
         # to equatorial coordinates.
         galactic_l = np.linspace(0, 2 * np.pi, 1000)
-        galactic_plane = SkyCoord(
-            l=galactic_l*u.radian, b=np.zeros_like(galactic_l)*u.radian,
-            frame='galactic').fk5
+        galactic_plane = SkyCoord(l=galactic_l*u.radian,
+                                  b=np.zeros_like(galactic_l)*u.radian,
+                                  frame='galactic').fk5
         # Project to map coordinates and display.  Use a scatter plot to
         # avoid wrap-around complications.
         galactic_x, galactic_y = m(galactic_plane.ra.degree,
@@ -543,17 +543,17 @@ def plot_healpix_map(data, nest=False, cmap='viridis', colorbar=True,
 
     # Get pixel boundaries as quadrilaterals.
     corners = hp.boundaries(nside, np.arange(len(data)), step=1, nest=nest)
-    corner_theta, corner_phi = hp.vec2ang(corners.transpose(0,2,1))
-    corner_ra, corner_dec = (
-        np.degrees(corner_phi), np.degrees(np.pi/2-corner_theta))
+    corner_theta, corner_phi = hp.vec2ang(corners.transpose(0, 2, 1))
+    corner_ra, corner_dec = (np.degrees(corner_phi),
+                             np.degrees(np.pi/2-corner_theta))
     # Convert sky coords to map coords.
     x, y = basemap(corner_ra, corner_dec)
     # Regroup into pixel corners.
-    verts = np.array([x.reshape(-1,4), y.reshape(-1,4)]).transpose(1,2,0)
+    verts = np.array([x.reshape(-1, 4), y.reshape(-1, 4)]).transpose(1, 2, 0)
 
     # Find and mask any pixels that wrap around in RA.
-    uv_verts = np.array([corner_phi.reshape(-1,4),
-                         corner_theta.reshape(-1,4)]).transpose(1,2,0)
+    uv_verts = np.array([corner_phi.reshape(-1, 4),
+                         corner_theta.reshape(-1, 4)]).transpose(1, 2, 0)
     theta_edge = np.unique(uv_verts[:, :, 1])
     phi_edge = np.radians(basemap.lonmax)
     eps = 0.1 * np.sqrt(hp.nside2pixarea(nside))
@@ -811,9 +811,8 @@ def plot_sky_circles(ra_center, dec_center, field_of_view=3.2, data=None,
     n_pt = max(8, int(np.ceil(field_of_view)))
 
     # Loop over non-wrapped circles.
-    for ra, dec, dra, fc in zip(
-        ra_center[~wrapped], dec_center[~wrapped],
-        dRA[~wrapped], facecolors[~wrapped]):
+    for ra, dec, dra, fc in zip(ra_center[~wrapped], dec_center[~wrapped],
+                                dRA[~wrapped], facecolors[~wrapped]):
         basemap.ellipse(ra, dec, dra, dDEC, n_pt, facecolor=fc,
                         edgecolor=edgecolor)
 
