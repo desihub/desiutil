@@ -109,7 +109,7 @@ def plot_slices(x, y, x_lo, x_hi, y_cut, num_slices=5, min_count=100, axis=None,
             min_m2 = min(min_m2, np.min(y_m2[s]))
 
     # xlim
-    xmin,xmax = np.min(x), np.max(x)
+    xmin, xmax = np.min(x), np.max(x)
     axis.set_xlim(np.min(x)-(xmax-xmin)*0.02, np.max(x)+(xmax-xmin)*0.02)
 
     # ylim
@@ -412,7 +412,7 @@ def init_sky(projection='eck4', ra_center=120, galactic_plane_color='red',
             """
             ax = kwargs.pop('ax', None) or self._check_ax()
             g = pyproj.Geod(a=self.rmajor, b=self.rminor)
-            azf, azb, dist = g.inv([x0, x0],[y0, y0],[x0+a, x0],[y0, y0+b])
+            azf, azb, dist = g.inv([x0, x0], [y0, y0], [x0+a, x0], [y0, y0+b])
             tsid = dist[0] * dist[1]  # a * b
             seg = [self(x0+a, y0)]
             AZ = np.linspace(azf[0], 360. + azf[0], n)
@@ -543,17 +543,17 @@ def plot_healpix_map(data, nest=False, cmap='viridis', colorbar=True,
 
     # Get pixel boundaries as quadrilaterals.
     corners = hp.boundaries(nside, np.arange(len(data)), step=1, nest=nest)
-    corner_theta, corner_phi = hp.vec2ang(corners.transpose(0,2,1))
-    corner_ra, corner_dec = (
-        np.degrees(corner_phi), np.degrees(np.pi/2-corner_theta))
+    corner_theta, corner_phi = hp.vec2ang(corners.transpose(0, 2, 1))
+    corner_ra, corner_dec = (np.degrees(corner_phi),
+                             np.degrees(np.pi/2-corner_theta))
     # Convert sky coords to map coords.
     x, y = basemap(corner_ra, corner_dec)
     # Regroup into pixel corners.
-    verts = np.array([x.reshape(-1,4), y.reshape(-1,4)]).transpose(1,2,0)
+    verts = np.array([x.reshape(-1, 4), y.reshape(-1, 4)]).transpose(1, 2, 0)
 
     # Find and mask any pixels that wrap around in RA.
-    uv_verts = np.array([corner_phi.reshape(-1,4),
-                         corner_theta.reshape(-1,4)]).transpose(1,2,0)
+    uv_verts = np.array([corner_phi.reshape(-1, 4),
+                         corner_theta.reshape(-1, 4)]).transpose(1, 2, 0)
     theta_edge = np.unique(uv_verts[:, :, 1])
     phi_edge = np.radians(basemap.lonmax)
     eps = 0.1 * np.sqrt(hp.nside2pixarea(nside))

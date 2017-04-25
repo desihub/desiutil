@@ -193,7 +193,7 @@ class TestCensus(unittest.TestCase):
                              2001: {'number': 1, 'size': 10},
                              2002: {'number': 1, 'size': 10}}
         dd = OrderedDict()
-        dd['/a/b/c'] = {2001: {'number': 2, 'size':50},
+        dd['/a/b/c'] = {2001: {'number': 2, 'size': 50},
                         2002: {'number': 4, 'size': 100},
                         2003: {'number': 2, 'size': 50}}
         dd['/a/b/c/d'] = {2002: {'number': 2, 'size': 50}}

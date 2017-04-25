@@ -27,7 +27,7 @@ class TestFuncFits(unittest.TestCase):
         """Test fit dict
         """
         fdict = mk_fit_dict(np.arange(10), 5, 'legendre', xmin=0., xmax=5000.)
-        assert isinstance(fdict,dict)
+        assert isinstance(fdict, dict)
 
     def test_poly_fit(self):
         """Test polynomial fit.
