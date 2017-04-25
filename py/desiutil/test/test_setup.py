@@ -79,7 +79,8 @@ setup(name="{0.fake_name}",
             s.write(setup)
         init = """from ._version import __version__
 """
-        with open(os.path.join(package_dir, self.fake_name, '__init__.py'), 'w') as i:
+        with open(os.path.join(package_dir, self.fake_name,
+                               '__init__.py'), 'w') as i:
             i.write(init)
         os.chdir(package_dir)
         v_file = os.path.join(package_dir, self.fake_name, '_version.py')

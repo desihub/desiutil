@@ -117,12 +117,14 @@ class TestModules(unittest.TestCase):
         #
         self.cache_env(('MODULE_VERSION', 'MODULE_VERSION_STACK', 'TCLSH'))
         modulecmd = init_modules(command=True)
-        self.assertListEqual(modulecmd, [join(self.bin_dir, 'modulecmd'), 'python'])
+        self.assertListEqual(modulecmd, [join(self.bin_dir, 'modulecmd'),
+                                         'python'])
         tclfile = join(self.data_dir, 'modulecmd.tcl')
         with open(tclfile, 'w') as tcl:
             tcl.write('#!/usr/bin/tclsh\nputs "foo"\n')
         modulecmd = init_modules(command=True)
-        self.assertListEqual(modulecmd, [join(self.bin_dir, 'tclsh'), tclfile, 'python'])
+        self.assertListEqual(modulecmd, [join(self.bin_dir, 'tclsh'), tclfile,
+                                         'python'])
         environ['TCLSH'] = '/opt/local/bin/tclsh'
         modulecmd = init_modules(command=True)
         self.assertListEqual(modulecmd, ['/opt/local/bin/tclsh', tclfile,

@@ -165,6 +165,7 @@ class TestInstall(unittest.TestCase):
     def test_get_product_version(self):
         """Test resolution of product/version input.
         """
+        ini = 'desiInstall_configuration.ini'
         options = self.desiInstall.get_options(['foo', 'bar'])
         out = self.desiInstall.get_product_version()
         self.assertEqual(out, (u'https://github.com/desihub/foo',
@@ -178,8 +179,7 @@ class TestInstall(unittest.TestCase):
         self.assertEqual(out, (u'https://github.com/desihub/desispec',
                          'desispec', '2.0.0'))
         options = self.desiInstall.get_options(['--configuration',
-                                                join(self.data_dir,
-                                                     'desiInstall_configuration.ini'),
+                                                join(self.data_dir, ini),
                                                 'my_new_product', '1.2.3'])
         out = self.desiInstall.get_product_version()
         self.assertEqual(out, (u'https://github.com/me/my_new_product',
@@ -363,6 +363,7 @@ class TestInstall(unittest.TestCase):
     def test_nersc_module_dir(self):
         """Test the nersc_module_dir property.
         """
+        ini = 'desiInstall_configuration.ini'
         self.assertIsNone(self.desiInstall.nersc_module_dir)
         self.desiInstall.nersc = None
         self.assertIsNone(self.desiInstall.nersc_module_dir)
@@ -372,8 +373,7 @@ class TestInstall(unittest.TestCase):
                              join(self.desiInstall.default_nersc_dir[n],
                                   "modulefiles"))
         options = self.desiInstall.get_options(['--configuration',
-                                                join(self.data_dir,
-                                                     'desiInstall_configuration.ini'),
+                                                join(self.data_dir, ini),
                                                 'my_new_product', '1.2.3'])
         self.desiInstall.nersc = 'edison'
         self.assertEqual(self.desiInstall.nersc_module_dir,

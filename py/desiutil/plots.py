@@ -472,9 +472,9 @@ def init_sky(projection='eck4', ra_center=120, galactic_plane_color='red',
         # Generate coordinates of a line in galactic coordinates and convert
         # to equatorial coordinates.
         galactic_l = np.linspace(0, 2 * np.pi, 1000)
-        galactic_plane = SkyCoord(
-            l=galactic_l*u.radian, b=np.zeros_like(galactic_l)*u.radian,
-            frame='galactic').fk5
+        galactic_plane = SkyCoord(l=galactic_l*u.radian,
+                                  b=np.zeros_like(galactic_l)*u.radian,
+                                  frame='galactic').fk5
         # Project to map coordinates and display.  Use a scatter plot to
         # avoid wrap-around complications.
         galactic_x, galactic_y = m(galactic_plane.ra.degree,

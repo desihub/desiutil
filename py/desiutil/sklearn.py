@@ -39,8 +39,8 @@ class GaussianMixtureModel(object):
         hdus = fits.open(filename, memmap=False)
         hdr = hdus[0].header
         covtype = hdr['covtype']
-        model = GaussianMixtureModel(
-            hdus['weights'].data, hdus['means'].data, hdus['covars'].data, covtype)
+        model = GaussianMixtureModel(hdus['weights'].data, hdus['means'].data,
+                                     hdus['covars'].data, covtype)
         hdus.close()
         return model
 

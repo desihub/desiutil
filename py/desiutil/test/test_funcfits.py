@@ -130,7 +130,9 @@ class TestFuncFits(unittest.TestCase):
             # simplefilter("always")
             dfit, mask = iter_fit(x, y, 'legendre', 4, forceimask=True)
             self.assertEqual(len(w), 1)
-            self.assertEqual(str(w[-1].message), "Initial mask cannot be enforced -- no initital mask supplied")
+            self.assertEqual(str(w[-1].message),
+                             "Initial mask cannot be enforced -- " +
+                             "no initital mask supplied")
         x2 = np.linspace(0, np.pi, 100)
         y2 = func_val(x2, dfit)
         np.testing.assert_allclose(y2[50], 0.99941444872371643)

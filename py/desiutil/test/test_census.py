@@ -58,7 +58,8 @@ class TestCensus(unittest.TestCase):
         options = get_options(['-c', 'foo.yaml'])
         self.assertEqual(options.config, 'foo.yaml')
 
-    @unittest.skipUnless(has_mock, "Skipping test that requires unittest.mock.")
+    @unittest.skipUnless(has_mock,
+                         "Skipping test that requires unittest.mock.")
     def test_walk_error(self):
         """Test error-handling function for os.walk().
         """
@@ -75,7 +76,8 @@ class TestCensus(unittest.TestCase):
                 raise OSError(2, 'File not found', 'foo.txt', None, 'bar.txt')
             except OSError as e:
                 walk_error(e)
-            calls = [call.error("[Errno 2] File not found: 'foo.txt' -> 'bar.txt'")]
+            calls = [call.error("[Errno 2] File not found: 'foo.txt' -> " +
+                                "'bar.txt'")]
             self.assertListEqual(mock.mock_calls, calls)
 
     def test_year(self):
@@ -87,7 +89,8 @@ class TestCensus(unittest.TestCase):
         self.assertEqual(year(mtime), 2017)
         self.assertEqual(year(mtime, fy=False), 2016)
 
-    @unittest.skipUnless(has_mock, "Skipping test that requires unittest.mock.")
+    @unittest.skipUnless(has_mock,
+                         "Skipping test that requires unittest.mock.")
     def test_scan_file(self):
         """Test analysis of a single file.
         """
@@ -108,7 +111,8 @@ class TestCensus(unittest.TestCase):
         calls = [call.debug("os.stat('{0}')".format(fd)),
                  call.warning("{0} does not have correct group id!".format(fd))]
         with patch('desiutil.log.desi_logger') as mock_log:
-            with patch.dict('sys.modules', {'os': mock_os, 'os.path': mock_os.path}):
+            with patch.dict('sys.modules', {'os': mock_os,
+                                            'os.path': mock_os.path}):
                 mock_os.environ = dict()
                 mock_os.stat.return_value = s
                 mock_os.path.islink.return_value = False
@@ -127,7 +131,8 @@ class TestCensus(unittest.TestCase):
                  call.warning("{0} does not have correct group id!".format(fd)),
                  call.debug("Found internal link {0} -> {0}.link.".format(fd))]
         with patch('desiutil.log.desi_logger') as mock_log:
-            with patch.dict('sys.modules', {'os': mock_os, 'os.path': mock_os.path}):
+            with patch.dict('sys.modules', {'os': mock_os,
+                                            'os.path': mock_os.path}):
                 mock_os.environ = dict()
                 mock_os.stat.return_value = s
                 mock_os.lstat.return_value = s
@@ -151,7 +156,8 @@ class TestCensus(unittest.TestCase):
                  call.warning("{0} does not have correct group id!".format(fd)),
                  call.debug("Found external link {0} -> {1}.".format(fd, extlink))]
         with patch('desiutil.log.desi_logger') as mock_log:
-            with patch.dict('sys.modules', {'os': mock_os, 'os.path': mock_os.path}):
+            with patch.dict('sys.modules', {'os': mock_os,
+                                            'os.path': mock_os.path}):
                 mock_os.environ = dict()
                 mock_os.stat.return_value = s
                 mock_os.lstat.return_value = s
@@ -167,7 +173,8 @@ class TestCensus(unittest.TestCase):
         self.assertTrue(f.isexternal)
         self.assertEqual(f.linkname, extlink)
 
-    @unittest.skipUnless(has_commonpath, "Skipping test that requires os.path.commonpath().")
+    @unittest.skipUnless(has_commonpath,
+                         "Skipping test that requires os.path.commonpath().")
     def test_in_path(self):
         """Test directory hierarchy checker.
         """
