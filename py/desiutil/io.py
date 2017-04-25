@@ -40,8 +40,7 @@ def combine_dicts(dict1, dict2):
         else:
             output[item] = value
     for item, value in cdict2.items():
-         output[item] = value
-    # Return
+        output[item] = value
     return output
 
 
@@ -107,6 +106,7 @@ def yamlify(obj, debug=False):
         print(type(obj))
     return obj
 
+
 def _dtype_size(dtype):
     '''
     Parse dtype like '<Un' into int(n)
@@ -114,6 +114,7 @@ def _dtype_size(dtype):
     '''
     i = dtype.str.find(dtype.kind)
     return int(dtype.str[i+1:])
+
 
 def _pick_encoding(table, encoding):
     '''
@@ -132,13 +133,12 @@ def _pick_encoding(table, encoding):
             raise UnicodeError('No encoding given as argument or in table metadata')
     elif 'ENCODING' in table.meta and table.meta['ENCODING'] != encoding:
         import warnings
-        message = """\
-data.metadata['ENCODING']=='{}' does not match option '{}';
-use encoding=None to use data.metadata['ENCODING'] instead""".format(\
-            table.meta['ENCODING'], encoding)
+        message = """data.metadata['ENCODING']=='{}' does not match option '{}';
+use encoding=None to use data.metadata['ENCODING'] instead""".format(table.meta['ENCODING'], encoding)
         warnings.warn(message)
 
     return encoding
+
 
 def encode_table(data, encoding='ascii'):
     '''
@@ -167,7 +167,7 @@ def encode_table(data, encoding='ascii'):
 
     try:
         table = Table(data, copy=False)
-    except ValueError:  #- https://github.com/astropy/astropy/issues/5298
+    except ValueError:  # https://github.com/astropy/astropy/issues/5298
         table = Table(data, copy=True)
 
     encoding = _pick_encoding(table, encoding)
@@ -180,6 +180,7 @@ def encode_table(data, encoding='ascii'):
 
     table.meta['ENCODING'] = encoding
     return table
+
 
 def decode_table(data, encoding='ascii', native=True):
     '''
@@ -201,10 +202,10 @@ def decode_table(data, encoding='ascii', native=True):
     import numpy as np
     try:
         table = Table(data, copy=False)
-    except ValueError:  #- https://github.com/astropy/astropy/issues/5298
+    except ValueError:  # https://github.com/astropy/astropy/issues/5298
         table = Table(data, copy=True)
 
-    #- Check if native str type is bytes
+    # Check if native str type is bytes
     if native and np.str_('a').dtype.kind == 'S':
         return table
 

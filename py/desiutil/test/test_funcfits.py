@@ -8,7 +8,6 @@ from __future__ import (absolute_import, division,
 import unittest
 import numpy as np
 from warnings import catch_warnings, simplefilter
-#import pdb
 from ..funcfits import func_fit, func_val, iter_fit, mk_fit_dict
 
 

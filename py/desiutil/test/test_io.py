@@ -33,7 +33,7 @@ class TestIO(unittest.TestCase):
         """Test encoding / decoding round-trip with numpy structured array.
         """
         data = np.zeros(4, dtype=[(str('x'), 'U4'), (str('y'), 'f8')])
-        data['x'] = 'ab'  #- purposefully have fewer characters than width
+        data['x'] = 'ab'  # purposefully have fewer characters than width
         data['y'] = np.arange(len(data))
         t1 = encode_table(data)
         self.assertEqual(t1['x'].dtype.kind, 'S')
@@ -46,7 +46,7 @@ class TestIO(unittest.TestCase):
         self.assertTrue(np.all(t2['x'] == data['x']))
         self.assertTrue(np.all(t2['y'] == data['y']))
 
-        #- have to give an encoding
+        # have to give an encoding
         with self.assertRaises(UnicodeError):
             tx = encode_table(data, encoding=None)
 
@@ -54,7 +54,7 @@ class TestIO(unittest.TestCase):
         with self.assertRaises(UnicodeError):
             tx = decode_table(t1, encoding=None, native=False)
 
-        #- Test encoding / decoding round-trip with Table
+        # Test encoding / decoding round-trip with Table
         data = Table()
         data['x'] = np.asarray(['a', 'bb', 'ccc'], dtype='U')
         data['y'] = np.arange(len(data['x']))
@@ -69,7 +69,7 @@ class TestIO(unittest.TestCase):
         self.assertTrue(np.all(t2['x'] == data['x']))
         self.assertTrue(np.all(t2['y'] == data['y']))
 
-        #- Non-default encoding with non-ascii unicode
+        # Non-default encoding with non-ascii unicode
         data['x'][0] = 'µ'
         t1 = encode_table(data, encoding='utf-8')
         self.assertEqual(t1.meta['ENCODING'], 'utf-8')
@@ -81,7 +81,7 @@ class TestIO(unittest.TestCase):
         with self.assertRaises(UnicodeDecodeError):
             tx = decode_table(t1, encoding='ascii', native=False)
 
-        #- Table can specify encoding if option encoding=None
+        # Table can specify encoding if option encoding=None
         data['x'][0] = 'p'
         data.meta['ENCODING'] = 'utf-8'
         t1 = encode_table(data, encoding=None)
@@ -89,13 +89,13 @@ class TestIO(unittest.TestCase):
         t2 = decode_table(t1, native=False, encoding=None)
         self.assertEqual(t2.meta['ENCODING'], 'utf-8')
 
-        #- conflicting encodings print warning but still proceed
+        # conflicting encodings print warning but still proceed
         t1 = encode_table(data, encoding='ascii')
         self.assertEqual(t1.meta['ENCODING'], 'ascii')
         t2 = decode_table(t1, encoding='utf-8', native=False)
         self.assertEqual(t2.meta['ENCODING'], 'utf-8')
 
-        #- native=True should retain native str type
+        # native=True should retain native str type
         data = Table()
         data['x'] = np.asarray(['a', 'bb', 'ccc'], dtype='S')
         data['y'] = np.arange(len(data['x']))
@@ -103,7 +103,7 @@ class TestIO(unittest.TestCase):
         tx = decode_table(data, native=True)
         self.assertIsInstance(tx['x'][0], str)
 
-        #- Test roundtype with 2D array and unsigned ints
+        # Test roundtype with 2D array and unsigned ints
         data = np.zeros(4, dtype=[(str('x'), ('U8', 3)), (str('y'), 'u8')])
         data['y'] = np.arange(len(data))
         data['x'][0] = ['a', 'bb', 'c']
@@ -122,10 +122,13 @@ class TestIO(unittest.TestCase):
     def test_yamlify(self):
         """Test yamlify
         """
-        fdict = {'name':'test', 'num':np.int32(3), 1: 'expid', 'flt32':np.float32(3.), 'flt64':np.float64(2.),
-                     'num2':np.int64(4), 'bool':np.bool(True), 'lst':['tst2', np.int16(2)],
-                     'tup':(1,3), 'dct':{'a':'tst3', 'b':np.float32(6.)}, 'array': np.zeros(10)}
-        if sys.version_info >= (3,0,0):
+        fdict = {'name': 'test', 'num': np.int32(3),
+                 1: 'expid', 'flt32': np.float32(3.), 'flt64': np.float64(2.),
+                 'num2': np.int64(4), 'bool': np.bool(True),
+                 'lst': ['tst2', np.int16(2)],
+                 'tup': (1, 3), 'dct': {'a': 'tst3', 'b': np.float32(6.)},
+                 'array': np.zeros(10)}
+        if sys.version_info >= (3, 0, 0):
             self.assertIsInstance(fdict['name'], str)
         else:
             self.assertIsInstance(fdict['name'], unicode)

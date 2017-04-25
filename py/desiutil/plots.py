@@ -84,7 +84,7 @@ def plot_slices(x, y, x_lo, x_hi, y_cut, num_slices=5, min_count=100, axis=None,
 
     # Plot scatter of all fits.
     axis.scatter(x, y, s=15, marker='.', lw=0, color='b', alpha=0.5)
-    #axis.scatter(x[~ok], y[~ok], s=15, marker='x', lw=0, color='k', alpha=0.5)
+    # axis.scatter(x[~ok], y[~ok], s=15, marker='x', lw=0, color='k', alpha=0.5)
 
     # Plot quantiles in slices with enough fits.
     stepify = lambda y: np.vstack([y, y]).transpose().flatten()
@@ -413,13 +413,13 @@ def init_sky(projection='eck4', ra_center=120, galactic_plane_color='red',
             ax = kwargs.pop('ax', None) or self._check_ax()
             g = pyproj.Geod(a=self.rmajor, b=self.rminor)
             azf, azb, dist = g.inv([x0, x0],[y0, y0],[x0+a, x0],[y0, y0+b])
-            tsid = dist[0] * dist[1] # a * b
+            tsid = dist[0] * dist[1]  # a * b
             seg = [self(x0+a, y0)]
             AZ = np.linspace(azf[0], 360. + azf[0], n)
             for i, az in enumerate(AZ):
                 # Skips segments along equator (Geod can't handle equatorial arcs).
                 if np.allclose(0., y0) and (np.allclose(90., az) or
-                    np.allclose(270., az)):
+                                            np.allclose(270., az)):
                     continue
 
                 # In polar coordinates, with the origin at the center of the
@@ -811,9 +811,8 @@ def plot_sky_circles(ra_center, dec_center, field_of_view=3.2, data=None,
     n_pt = max(8, int(np.ceil(field_of_view)))
 
     # Loop over non-wrapped circles.
-    for ra, dec, dra, fc in zip(
-        ra_center[~wrapped], dec_center[~wrapped],
-        dRA[~wrapped], facecolors[~wrapped]):
+    for ra, dec, dra, fc in zip(ra_center[~wrapped], dec_center[~wrapped],
+                                dRA[~wrapped], facecolors[~wrapped]):
         basemap.ellipse(ra, dec, dra, dDEC, n_pt, facecolor=fc,
                         edgecolor=edgecolor)
 

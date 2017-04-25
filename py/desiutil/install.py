@@ -11,24 +11,12 @@ from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 # The line above will help with 2to3 support.
 from sys import argv, executable, path, version_info
-try:
-    from setuptools.compat import PY3
-except ImportError:
-    PY3 = version_info >= (3,)
 import requests
 import tarfile
 import logging
 import re
 from logging.handlers import MemoryHandler
 from subprocess import Popen, PIPE
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from io import BytesIO as StringIO
-if PY3:
-    from configparser import ConfigParser as SafeConfigParser
-else:
-    from ConfigParser import SafeConfigParser
 from datetime import date
 from types import MethodType
 from os import chdir, environ, getcwd, makedirs, remove, symlink
@@ -38,6 +26,20 @@ from .git import last_tag
 from .modules import (init_modules, configure_module,
                       process_module, default_module)
 from . import __version__ as desiutilVersion
+
+try:
+    # Python 3
+    from io import BytesIO as StringIO
+except ImportError:
+    # Python 2
+    from cStringIO import StringIO
+
+try:
+    # Python 3
+    from configparser import ConfigParser as SafeConfigParser
+except ImportError:
+    # Python 2
+    from ConfigParser import SafeConfigParser
 
 
 known_products = {
@@ -375,7 +377,7 @@ class DesiInstall(object):
                     self.baseproduct)
             log.warning('Guessing {0} is at {1}.'.format(
                 self.baseproduct, self.fullproduct))
-            log.warning('Add location to desiutil.install.known_products '+
+            log.warning('Add location to desiutil.install.known_products ' +
                         'if that is incorrect.')
         self.baseversion = basename(self.options.product_version)
         self.github = False
@@ -721,7 +723,7 @@ class DesiInstall(object):
                 nersc_module = self.config.get("Module Processing",
                                                'nersc_module_dir')
             if self.config.has_option("Module Processing",
-                                        '{0}_module_dir'.format(self.nersc)):
+                                      '{0}_module_dir'.format(self.nersc)):
                 nersc_module = self.config.get("Module Processing",
                                                '{0}_module_dir'.format(self.nersc))
         return nersc_module

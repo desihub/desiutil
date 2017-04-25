@@ -110,21 +110,21 @@ class TestBitMask(unittest.TestCase):
     @unittest.skipIf(sys.version_info.major == 2, "Known issue: highest mask bits don't work under python 2")
     def test_highbit(self):
         _bitdefs = dict(ccdmask=list())
-        _bitdefs['ccdmask'].append( ['LOWEST',   0, "bit 0"] )
-        _bitdefs['ccdmask'].append( ['HIGHEST', 63, "bit 63"] )
+        _bitdefs['ccdmask'].append(['LOWEST',   0, "bit 0"])
+        _bitdefs['ccdmask'].append(['HIGHEST', 63, "bit 63"])
         mask = BitMask('ccdmask', _bitdefs)
         self.assertEqual(mask.names(1), ['LOWEST'])
         self.assertEqual(mask.names(2**63), ['HIGHEST'])
 
     def test_uint64(self):
         _bitdefs = dict(ccdmask=list())
-        _bitdefs['ccdmask'].append( ['BAD',   0, "badness"] )
-        _bitdefs['ccdmask'].append( ['HOT',   1, "hothot"] )
-        _bitdefs['ccdmask'].append( ['TEST', 16, "testing"] )
-        _bitdefs['ccdmask'].append( ['BIG31', 31, "blat31..."] )
-        _bitdefs['ccdmask'].append( ['BIGGER32', 32, "blat32..."] )
-        _bitdefs['ccdmask'].append( ['WOW62', 62, "blat62..."] )
-        # _bitdefs['ccdmask'].append( ['BIGGEST63', 63, "blat63..."] )
+        _bitdefs['ccdmask'].append(['BAD',   0, "badness"])
+        _bitdefs['ccdmask'].append(['HOT',   1, "hothot"])
+        _bitdefs['ccdmask'].append(['TEST', 16, "testing"])
+        _bitdefs['ccdmask'].append(['BIG31', 31, "blat31..."])
+        _bitdefs['ccdmask'].append(['BIGGER32', 32, "blat32..."])
+        _bitdefs['ccdmask'].append(['WOW62', 62, "blat62..."])
+        # _bitdefs['ccdmask'].append(['BIGGEST63', 63, "blat63..."])
 
         mask = BitMask('ccdmask', _bitdefs)
 
@@ -143,9 +143,9 @@ class TestBitMask(unittest.TestCase):
             names = mask.names(2**i)
             names = mask.names(np.int(2**i))
             names = mask.names(np.uint64(2**i))
-            #- Also happens to work with length-1 arrays; maybe it shouldn't
+            # Also happens to work with length-1 arrays; maybe it shouldn't
             names = mask.names(np.array([2**i], dtype=np.uint64))
-            if i<63:
+            if i < 63:
                 names = mask.names(np.array([2**i], dtype=np.int64))
 
     def test_print(self):

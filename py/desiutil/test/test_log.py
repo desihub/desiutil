@@ -6,6 +6,7 @@ from __future__ import absolute_import, print_function
 import unittest
 import desiutil.log as l
 
+
 class TestLog(unittest.TestCase):
     """Test desispec.log
     """
@@ -26,7 +27,7 @@ class TestLog(unittest.TestCase):
         for level in (None, l.DEBUG, l.INFO, l.WARNING, l.ERROR):
             logger = l.get_logger(level)
             print("With the requested debugging level={0}:".format(level))
-            if self.desi_level is not None and (self.desi_level != "" ):
+            if self.desi_level is not None and (self.desi_level != ""):
                 print("    (but overuled by env. DESI_LOGLEVEL='{0}')".format(self.desi_level))
             print("--------------------------------------------------")
             logger.debug("This is a debugging message.")
@@ -45,7 +46,7 @@ class TestLog(unittest.TestCase):
             for level in (None, l.DEBUG, l.INFO, l.WARNING, l.ERROR):
                 logger = l.get_logger(level)
                 print("With the requested debugging level={0}:".format(level))
-                if self.desi_level is not None and (self.desi_level != "" ):
+                if self.desi_level is not None and (self.desi_level != ""):
                     print("    (but overuled by env. DESI_LOGLEVEL='{0}')".format(self.desi_level))
                 print("--------------------------------------------------")
                 logger.debug("This is a debugging message.")
@@ -66,7 +67,7 @@ class TestLog(unittest.TestCase):
         for level in (None, l.DEBUG, l.INFO, l.WARNING, l.ERROR):
             logger = l.get_logger(level, timestamp=True)
             print("With the requested debugging level={0}:".format(level))
-            if self.desi_level is not None and (self.desi_level != "" ) :
+            if self.desi_level is not None and (self.desi_level != ""):
                 print("    (but overuled by env. DESI_LOGLEVEL='{0}'):".format(self.desi_level))
             print("--------------------------------------------------")
             logger.debug("This is a debugging message.")
@@ -81,7 +82,7 @@ class TestLog(unittest.TestCase):
         for level in (None, l.DEBUG, l.INFO, l.WARNING, l.ERROR):
             logger = l.get_logger(level, delimiter=' -- ')
             print("With the requested debugging level={0}:".format(level))
-            if self.desi_level is not None and (self.desi_level != "" ) :
+            if self.desi_level is not None and (self.desi_level != ""):
                 print("    (but overuled by env. DESI_LOGLEVEL='{0}'):".format(self.desi_level))
             print("--------------------------------------------------")
             logger.debug("This is a debugging message.")

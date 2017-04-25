@@ -6,7 +6,8 @@ from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 # The line above will help with 2to3 support.
 import unittest
-import shutil, tempfile
+import shutil
+import tempfile
 import os
 import numpy as np
 # Set non-interactive backend for Travis
@@ -29,6 +30,7 @@ try:
     have_basemap = True
 except ImportError:
     have_basemap = False
+
 
 class TestPlots(unittest.TestCase):
     """Test desiutil.plots
