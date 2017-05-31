@@ -5,7 +5,7 @@ Change Log
 1.9.4 (unreleased)
 ------------------
 
-* Moved desispec.brick to desiutil.brick
+* Moved ``desispec.brick`` to :mod:`desiutil.brick` (PR `#70`_).
 * Get .travis.yml file and other components ready for Python 3.6.
 * Increase test coverage in a few areas.
 * Make basemap_ an optional dependency (PR `#61`_).
