@@ -12,6 +12,9 @@ properties:
 
 Use this with caution!  In most cases you should be propagating brick
 info from input targeting, not recalculating brick locations and names.
+
+Note that this code was originally in desispec, so earlier commit information
+is in the desispec repository.
 """
 
 from __future__ import absolute_import, division, print_function
