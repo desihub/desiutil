@@ -5,6 +5,7 @@ Change Log
 1.9.4 (unreleased)
 ------------------
 
+* Moved desispec.brick to desiutil.brick
 * Get .travis.yml file and other components ready for Python 3.6.
 * Increase test coverage in a few areas.
 * Make basemap_ an optional dependency (PR `#61`_).
@@ -14,6 +15,7 @@ Change Log
 .. _basemap: http://matplotlib.org/basemap/
 .. _`#61`: https://github.com/desihub/desiutil/pull/61
 .. _`#63`: https://github.com/desihub/desiutil/pull/63
+.. _`#70`: https://github.com/desihub/desiutil/pull/70
 
 1.9.3 (2017-03-01)
 ------------------
