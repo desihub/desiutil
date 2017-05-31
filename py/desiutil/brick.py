@@ -1,5 +1,8 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+# -*- coding: utf-8 -*-
 """
-desispec.brick
+==============
+desiutil.brick
 ==============
 
 Code for calculating bricks, which are a tiling of the sky with the following
@@ -13,8 +16,8 @@ properties:
 Use this with caution!  In most cases you should be propagating brick
 info from input targeting, not recalculating brick locations and names.
 
-Note that this code was originally in desispec, so earlier commit information
-is in the desispec repository.
+Note that this code was originally in desispec_, so earlier commit information
+is in the desispec_ repository.
 """
 
 from __future__ import absolute_import, division, print_function
@@ -62,7 +65,7 @@ class Bricks(object):
         edges_dec_pole_limit[0] = -90.
         edges_dec_pole_limit[-1] = 90.
 
-        #- Brick names [row, col]        
+        #- Brick names [row, col]
         brickname = list()
         #ADM brick areas [row, col]
         brickarea = list()
@@ -129,7 +132,7 @@ class Bricks(object):
             The Right Ascensions of the locations of interest
         dec : array_like.
             The Declinations of the locations of interest
-        
+
         Returns
         -------
         brickid : array_like.
@@ -171,7 +174,7 @@ class Bricks(object):
             The Right Ascensions of the locations of interest
         dec : array_like.
             The Declinations of the locations of interest
-        
+
         Returns
         -------
         brickarea : array_like.
@@ -213,7 +216,7 @@ class Bricks(object):
             The Right Ascensions of the locations of interest
         dec : array_like.
             The Declinations of the locations of interest
-        
+
         Returns
         -------
         vertices : array_like.
@@ -222,7 +225,7 @@ class Bricks(object):
 
         Notes
         -----
-        The vertices are ordered counter-clockwise from the minimum (RA, Dec)            
+        The vertices are ordered counter-clockwise from the minimum (RA, Dec)
         """
         #ADM record whether the user wanted non-array behavior
         inscalar = np.isscalar(ra)

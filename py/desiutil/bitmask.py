@@ -57,7 +57,7 @@ Users would then access this mask with:
 'Cosmic ray'
 
 
-.. _desispec: http://desispec.readthedocs.org
+.. _desispec: http://desispec.readthedocs.io
 """
 
 
