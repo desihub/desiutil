@@ -2,7 +2,7 @@
 Change Log
 ==========
 
-1.9.4 (unreleased)
+1.9.4 (2017-06-01)
 ------------------
 
 * Moved ``desispec.brick`` to :mod:`desiutil.brick` (PR `#70`_).
