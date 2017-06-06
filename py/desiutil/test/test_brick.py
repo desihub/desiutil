@@ -10,6 +10,8 @@ from __future__ import absolute_import, unicode_literals
 # The line above will help with 2to3 support.
 import unittest
 import numpy as np
+import os
+import glob
 from ..brick import brickname
 from .. import brick
 
@@ -36,7 +38,8 @@ class TestBrick(unittest.TestCase):
              0.062499356,  0.062497571,  0.062494595,  0.062485076,  0.062478535], dtype='<f4')
 
     def test_brickvertices_scalar(self):
-        """Test scalar to brick vertex conversion"""
+        """Test scalar to brick vertex conversion.
+        """
         b = brick.Bricks()
         ra, dec = 0, 0
         bverts = b.brickvertices(ra,dec)
@@ -44,7 +47,8 @@ class TestBrick(unittest.TestCase):
         self.assertTrue( (np.min(bverts[:,1]) <= dec) & (np.max(bverts[:,1]) >= dec) )
 
     def test_brickvertices_array(self):
-        """Test array to brick vertex conversion"""
+        """Test array to brick vertex conversion.
+        """
         b = brick.Bricks()
         bverts = b.brickvertices(self.ra, self.dec)
         #ADM have to wraparound the negative RAs for "between" tests in RA
@@ -53,7 +57,8 @@ class TestBrick(unittest.TestCase):
         self.assertTrue( np.all( (np.min(bverts[:,:,1],axis=1) <= self.dec) & (np.max(bverts[:,:,1],axis=1) >= self.dec) ) )
 
     def test_brickvertices_wrap(self):
-        """Test RA wrap and poles for brick vertices"""
+        """Test RA wrap and poles for brick vertices.
+        """
         b = brick.Bricks()
         b1 = b.brickvertices(1, 0)
         b2 = b.brickvertices(361, 0)
@@ -91,7 +96,8 @@ class TestBrick(unittest.TestCase):
         self.assertTrue((bareas == self.areas).all())
 
     def test_brickarea_wrap(self):
-        """Test RA wrap and poles for brick areas"""
+        """Test RA wrap and poles for brick areas.
+        """
         b = brick.Bricks()
         b1 = b.brickarea(1, 0)
         b2 = b.brickarea(361, 0)
@@ -127,28 +133,8 @@ class TestBrick(unittest.TestCase):
         self.assertTrue((bids == self.brickids).all())
 
     def test_brickid_wrap(self):
-        """Test RA wrap and poles for BRICKIDs"""
-        b = brick.Bricks()
-        b1 = b.brickid(1, 0)
-        b2 = b.brickid(361, 0)
-        self.assertEqual(b1, b2)
-
-        b1 = b.brickid(-0.5, 0)
-        b2 = b.brickid(359.5, 0)
-        self.assertEqual(b1, b2)
-
-        b1 = b.brickid(0, 90)
-        b2 = b.brickid(90, 90)
-        self.assertEqual(b1, b2)
-        self.assertEqual(b1, 662174)
-
-        b1 = b.brickid(0, -90)
-        b2 = b.brickid(90, -90)
-        self.assertEqual(b1, b2)
-        self.assertEqual(b1, 1)
-
-    def test_brickid_wrap(self):
-        """Test RA wrap and poles for BRICKIDs"""
+        """Test RA wrap and poles for BRICKIDs.
+        """
         b = brick.Bricks()
         b1 = b.brickid(1, 0)
         b2 = b.brickid(361, 0)
@@ -182,7 +168,8 @@ class TestBrick(unittest.TestCase):
         self.assertTrue((bricknames == self.names).all())
 
     def test_brickname_wrap(self):
-        """Test RA wrap and poles for bricknames"""
+        """Test RA wrap and poles for bricknames.
+        """
         b1 = brickname(1, 0)
         b2 = brickname(361, 0)
         self.assertEqual(b1, b2)
@@ -209,6 +196,8 @@ class TestBrick(unittest.TestCase):
         self.assertTrue((bricknames == self.names).all())
 
     def test_bricksize(self):
+        """Test the bricksize attribute.
+        """
         brick._bricks = None
         blat = brickname(0, 0, bricksize=0.5)
         self.assertEqual(brick._bricks.bricksize, 0.5)
@@ -216,8 +205,49 @@ class TestBrick(unittest.TestCase):
         self.assertEqual(brick._bricks.bricksize, 0.25)
         brick._bricks = None
 
+    @unittest.skipIf('DTILING_DIR' not in os.environ,
+                     "Skipping test that requires dtiling code.")
+    def test_IDL_bricks(self):
+        """Compare Python bricks to IDL bricks.
+        """
+        from astropy.io import fits
+        brickfiles = glob.glob(os.path.join(os.environ['DTILING_DIR'],
+                                            'bricks-*.fits'))
+        bricksizes = [os.path.basename(b).split('-')[1].replace('.fits', '') for b in brickfiles]
+        # self.assertEqual(set(bricksizes), set(['0.25', '0.50', '1.00']))
+        for i, f in enumerate(brickfiles):
+            with fits.open(f) as hdulist:
+                dtiling_data = hdulist[1].data
+            B = brick.Bricks(bricksize=float(bricksizes[i]))
+            bricknames = B.brickname(dtiling_data['RA'], dtiling_data['DEC'])
+            brickids = B.brickid(dtiling_data['RA'], dtiling_data['DEC'])
+            brickareas = B.brickarea(dtiling_data['RA'], dtiling_data['DEC'])
+            brick_ra, brick_dec = B.brick_radec(dtiling_data['RA'], dtiling_data['DEC'])
+            brickvertices = B.brickvertices(dtiling_data['RA'], dtiling_data['DEC'])
+            #
+            # For bricksize=1.0, lists first differ in element 476,
+            # '0899m780' versus '0900m780'.
+            #
+            # self.assertListEqual(bricknames.tolist(), dtiling_data['BRICKNAME'].tolist())
+            self.assertTrue((brickids == dtiling_data['BRICKID']).all())
+            self.assertTrue(np.allclose(brickareas, dtiling_data['AREA'], rtol=1e-7))
+            self.assertTrue(np.allclose(brick_ra, dtiling_data['RA'], rtol=1e-7))
+            self.assertTrue(np.allclose(brick_dec, dtiling_data['DEC'], rtol=1e-7))
+            dtiling_vertices = np.reshape(np.vstack([dtiling_data['RA1'],
+                                                     dtiling_data['DEC1'],
+                                                     dtiling_data['RA2'],
+                                                     dtiling_data['DEC1'],
+                                                     dtiling_data['RA2'],
+                                                     dtiling_data['DEC2'],
+                                                     dtiling_data['RA1'],
+                                                     dtiling_data['DEC2']]).T,
+                                          (len(dtiling_data['RA1']), 4, 2))
+            self.assertTrue(np.allclose(brickvertices, dtiling_vertices, rtol=1e-7))
+
+
 def test_suite():
     """Allows testing of only this module with the command::
+
         python setup.py test -m <modulename>
     """
     return unittest.defaultTestLoader.loadTestsFromName(__name__)
