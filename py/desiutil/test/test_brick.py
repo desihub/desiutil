@@ -28,6 +28,7 @@ class TestBrick(unittest.TestCase):
         self.brickids = np.array(
             [323162, 324603, 327484, 328926, 330367, 331808, 333250, 334691,
              337572, 339014])
+        self.brickqs = np.array([0, 3, 2, 0, 3, 2, 0, 3, 2, 0])
         #ADM note that these are the correct brick names for bricksize=0.5
         self.names = np.array(
             ['3587m015', '3587m010', '3592m010', '3597m005', '3597p000',
@@ -116,6 +117,48 @@ class TestBrick(unittest.TestCase):
         b2 = b.brickarea(90, -90)
         self.assertEqual(b1, b2)
         self.assertEqual(b1, np.array([0.049087364],dtype='<f4')[0])
+
+    def test_brickq_scalar(self):
+        """Test scalar to BRICKQ conversion.
+        """
+        b = brick.Bricks()
+        bq = b.brickq(0, -90)
+        self.assertEqual(bq, 1)
+        bq = b.brickq(0, 90)
+        self.assertEqual(bq, 0)
+        bq = b.brickq(0, 0)
+        self.assertEqual(bq, 0)
+
+    def test_brickq_array(self):
+        """Test array to BRICKQ conversion.
+        """
+        b = brick.Bricks()
+        bqs = b.brickq(self.ra, self.dec)
+        self.assertEqual(len(bqs), len(self.ra))
+        # self.assertTrue((bqs == self.brickqs).all())
+        self.assertListEqual(bqs.tolist(), self.brickqs.tolist())
+
+    def test_brickq_wrap(self):
+        """Test RA wrap and poles for BRICKQs.
+        """
+        b = brick.Bricks()
+        b1 = b.brickq(1, 0)
+        b2 = b.brickq(361, 0)
+        self.assertEqual(b1, b2)
+
+        b1 = b.brickq(-0.5, 0)
+        b2 = b.brickq(359.5, 0)
+        self.assertEqual(b1, b2)
+
+        b1 = b.brickq(0, 90)
+        b2 = b.brickq(90, 90)
+        self.assertEqual(b1, b2)
+        self.assertEqual(b1, 0)
+
+        b1 = b.brickq(0, -90)
+        b2 = b.brickq(90, -90)
+        self.assertEqual(b1, b2)
+        self.assertEqual(b1, 1)
 
     def test_brickid_scalar(self):
         """Test scalar to BRICKID conversion.
@@ -221,6 +264,7 @@ class TestBrick(unittest.TestCase):
             B = brick.Bricks(bricksize=float(bricksizes[i]))
             bricknames = B.brickname(dtiling_data['RA'], dtiling_data['DEC'])
             brickids = B.brickid(dtiling_data['RA'], dtiling_data['DEC'])
+            brickqs = B.brickq(dtiling_data['RA'], dtiling_data['DEC'])
             brickareas = B.brickarea(dtiling_data['RA'], dtiling_data['DEC'])
             brick_ra, brick_dec = B.brick_radec(dtiling_data['RA'], dtiling_data['DEC'])
             brickvertices = B.brickvertices(dtiling_data['RA'], dtiling_data['DEC'])
@@ -229,10 +273,18 @@ class TestBrick(unittest.TestCase):
             # '0899m780' versus '0900m780'.
             #
             # self.assertListEqual(bricknames.tolist(), dtiling_data['BRICKNAME'].tolist())
+            bricknames_ra = [b[0:4] for b in bricknames.tolist()]
+            bricknames_dec = [b[4:] for b in bricknames.tolist()]
+            dtiling_bricknames_ra = [b[0:4] for b in dtiling_data['BRICKNAME'].tolist()]
+            dtiling_bricknames_dec = [b[4:] for b in dtiling_data['BRICKNAME'].tolist()]
+            self.assertListEqual(bricknames_ra, dtiling_bricknames_ra)
+            self.assertListEqual(bricknames_dec, dtiling_bricknames_dec)
             self.assertTrue((brickids == dtiling_data['BRICKID']).all())
-            self.assertTrue(np.allclose(brickareas, dtiling_data['AREA'], rtol=1e-7))
-            self.assertTrue(np.allclose(brick_ra, dtiling_data['RA'], rtol=1e-7))
-            self.assertTrue(np.allclose(brick_dec, dtiling_data['DEC'], rtol=1e-7))
+            self.assertTrue((brickqs == dtiling_data['BRICKQ']).all())
+            # self.assertListEqual(brickqs.tolist(), dtiling_data['BRICKQ'].tolist())
+            self.assertTrue(np.allclose(brickareas, dtiling_data['AREA'], rtol=1e-7, atol=1e-9))
+            self.assertTrue(np.allclose(brick_ra, dtiling_data['RA'], rtol=1e-7, atol=1e-9))
+            self.assertTrue(np.allclose(brick_dec, dtiling_data['DEC'], rtol=1e-7, atol=1e-9))
             dtiling_vertices = np.reshape(np.vstack([dtiling_data['RA1'],
                                                      dtiling_data['DEC1'],
                                                      dtiling_data['RA2'],
@@ -242,7 +294,7 @@ class TestBrick(unittest.TestCase):
                                                      dtiling_data['RA1'],
                                                      dtiling_data['DEC2']]).T,
                                           (len(dtiling_data['RA1']), 4, 2))
-            self.assertTrue(np.allclose(brickvertices, dtiling_vertices, rtol=1e-7))
+            self.assertTrue(np.allclose(brickvertices, dtiling_vertices, rtol=1e-7, atol=1e-9))
 
 
 def test_suite():

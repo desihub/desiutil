@@ -53,17 +53,21 @@ class Bricks(object):
             edges = np.linspace(0, 360, ncol_per_row[i]+1)
             edges_ra.append( edges )
             center_ra.append( 0.5*(edges[0:-1]+edges[1:]) )
-            ### dra = edges[1]-edges[0]
-            ### center_ra.append(dra/2 + np.arange(ncol_per_row[i])*dra)
+            # dra = edges[1]-edges[0]
+            # center_ra.append(dra/2 + np.arange(ncol_per_row[i])*dra)
 
         #- More special cases at the poles
         edges_ra[0] = edges_ra[-1] = np.array([0, 360])
         center_ra[0] = center_ra[-1] = np.array([180,])
 
         #ADM to calculate brick areas, we can't exceed the poles
+        # Why is this not edges_dec_pole_limit = edges_dec.copy()?
+        # You're modifying edges_dec, not just edges_dec_pole_limit.
         edges_dec_pole_limit = edges_dec
         edges_dec_pole_limit[0] = -90.
         edges_dec_pole_limit[-1] = 90.
+        # assert edges_dec_pole_limit[0] != edges_dec[0]
+        # assert edges_dec_pole_limit[-1] != edges_dec[-1]
 
         #- Brick names [row, col]
         brickname = list()
@@ -76,7 +80,9 @@ class Bricks(object):
             names = list()
             for j in range(ncol_per_row[i]):
                 ra = center_ra[i][j]
-                names.append('{:04d}{}{:03d}'.format(int(ra*10), pm, int(abs(dec)*10)))
+                names.append('{0:04d}{1}{2:03d}'.format(int(ra*10), pm, int(abs(dec)*10)))
+                # names.append('{0:04d}{1}{2:03d}'.format(int(np.floor(ra*10)), pm,
+                #                                         int(np.floor(np.absolute(dec)*10))))
             brickname.append(names)
             #ADM integrate area factors between Dec edges and RA edges in degrees
             decfac = np.diff(np.degrees(np.sin(np.radians(edges_dec_pole_limit[i:i+2]))))
@@ -164,6 +170,44 @@ class Bricks(object):
         if inscalar:
             return brickid[0]
         return brickid
+
+    def brickq(self, ra, dec):
+        """Return the BRICKQ for a given location.
+
+        Parameters
+        ----------
+        ra : array_like.
+            The Right Ascensions of the locations of interest.
+        dec : array_like.
+            The Declinations of the locations of interest.
+
+        Returns
+        -------
+        array_like.
+            The legacysurvey BRICKQ at the locations of interest.
+        """
+        #ADM record whether the user wanted non-array behavior
+        inscalar = np.isscalar(ra)
+
+        #ADM enforce array behavior and correct for wraparound
+        ra = np.atleast_1d(ra) % 360
+        dec = np.atleast_1d(dec)
+
+        #ADM the brickrow based on the declination
+        brickrow = ((dec+90.0+self._bricksize/2)/self._bricksize).astype(int)
+
+        #ADM the brickcolumn based on the RA
+        ncol = self._ncol_per_row[brickrow]
+        brickcol = (ra/360.0 * ncol).astype(int)
+
+        # BAW: all the code above is duplicated from brickid().
+        brickq = (brickcol % 2) + (brickrow % 2)*2
+        brickq[brickrow == 0] = 1
+
+        #ADM returns the brickid as a scalar or array (depending on what was passed)
+        if inscalar:
+            return brickq[0]
+        return brickq
 
     def brickarea(self, ra, dec):
         """Return the area of the brick that given locations lie in
