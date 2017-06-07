@@ -61,13 +61,9 @@ class Bricks(object):
         center_ra[0] = center_ra[-1] = np.array([180,])
 
         #ADM to calculate brick areas, we can't exceed the poles
-        # Why is this not edges_dec_pole_limit = edges_dec.copy()?
-        # You're modifying edges_dec, not just edges_dec_pole_limit.
-        edges_dec_pole_limit = edges_dec
+        edges_dec_pole_limit = edges_dec.copy()
         edges_dec_pole_limit[0] = -90.
         edges_dec_pole_limit[-1] = 90.
-        # assert edges_dec_pole_limit[0] != edges_dec[0]
-        # assert edges_dec_pole_limit[-1] != edges_dec[-1]
 
         #- Brick names [row, col]
         brickname = list()
@@ -75,14 +71,16 @@ class Bricks(object):
         brickarea = list()
 
         for i in range(nrow):
+            #
+            # This hack allows numbers like 39.599999999999994 to be
+            # converted into 0396.
+            #
             pm = 'p' if center_dec[i] >= 0 else 'm'
-            dec = center_dec[i]
+            dec = "{0:06.0f}".format(np.absolute(center_dec[i])*10000)
             names = list()
             for j in range(ncol_per_row[i]):
-                ra = center_ra[i][j]
-                names.append('{0:04d}{1}{2:03d}'.format(int(ra*10), pm, int(abs(dec)*10)))
-                # names.append('{0:04d}{1}{2:03d}'.format(int(np.floor(ra*10)), pm,
-                #                                         int(np.floor(np.absolute(dec)*10))))
+                ra = "{0:07.0f}".format(center_ra[i][j]*10000)
+                names.append(ra[0:4]+pm+dec[0:3])
             brickname.append(names)
             #ADM integrate area factors between Dec edges and RA edges in degrees
             decfac = np.diff(np.degrees(np.sin(np.radians(edges_dec_pole_limit[i:i+2]))))
@@ -97,6 +95,9 @@ class Bricks(object):
         self._edges_dec = edges_dec
         self._center_ra = center_ra
         self._edges_ra = edges_ra
+
+    def __repr__(self):
+        return "Bricks(bricksize={0._bricksize:4.2f})".format(self)
 
     @property
     def bricksize(self):
