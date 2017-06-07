@@ -5,9 +5,9 @@ Change Log
 1.9.5 (unreleased)
 ------------------
 
-* Improved correctness and functionality of :mod:`desiutil.brick` (PR `#77`_).
+* Improved correctness and functionality of :mod:`desiutil.brick` (PR `#74`_).
 
-.. _`#77`: https://github.com/desihub/desiutil/pull/77
+.. _`#77`: https://github.com/desihub/desiutil/pull/74
 
 
 1.9.4 (2017-06-01)
