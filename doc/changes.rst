@@ -5,7 +5,10 @@ Change Log
 1.9.5 (unreleased)
 ------------------
 
-* No changes yet.
+* Improved correctness and functionality of :mod:`desiutil.brick` (PR `#77`_).
+
+.. _`#77`: https://github.com/desihub/desiutil/pull/77
+
 
 1.9.4 (2017-06-01)
 ------------------
