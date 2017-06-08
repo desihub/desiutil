@@ -7,7 +7,7 @@ Change Log
 
 * Improved correctness and functionality of :mod:`desiutil.brick` (PR `#74`_).
 
-.. _`#77`: https://github.com/desihub/desiutil/pull/74
+.. _`#74`: https://github.com/desihub/desiutil/pull/74
 
 
 1.9.4 (2017-06-01)
