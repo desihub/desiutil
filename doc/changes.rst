@@ -2,7 +2,7 @@
 Change Log
 ==========
 
-1.9.5 (unreleased)
+1.9.5 (2017-06-15)
 ------------------
 
 * Improved correctness and functionality of :mod:`desiutil.brick` (PR `#74`_).
