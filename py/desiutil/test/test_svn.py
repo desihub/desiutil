@@ -10,6 +10,7 @@ from os import environ
 from os.path import abspath, dirname, isdir, join
 from subprocess import Popen, PIPE
 from shutil import rmtree
+# from pkg_resources import resource_filename
 from ..svn import last_revision, last_tag, version
 
 
@@ -29,6 +30,17 @@ class TestSvn(unittest.TestCase):
         cls.has_subversion = p.returncode == 0
         if cls.has_subversion:
             try:
+                #
+                # It is possible for the *system* versions of svn and
+                # svnadmin to be out of sync at NERSC.
+                #
+                p = Popen(['svn', '--version'], stdout=PIPE, stderr=PIPE)
+                out, err = p.communicate()
+                svn_version = out.split('\n')[0].split(',')[1].strip()
+                p = Popen(['svnadmin', '--version'], stdout=PIPE, stderr=PIPE)
+                out, err = p.communicate()
+                svnadmin_version = out.split('\n')[0].split(',')[1].strip()
+                assert svn_version == svnadmin_version
                 cls.svn_url = 'file://' + cls.svn_path
                 p = Popen(['svnadmin', 'create', cls.svn_path],
                           stdout=PIPE, stderr=PIPE)
@@ -57,15 +69,18 @@ class TestSvn(unittest.TestCase):
                 assert p.returncode == 0
             except AssertionError:
                 cls.has_subversion = False
-                rmtree(cls.svn_path)
-                rmtree(cls.svn_checkout_path)
-        # Create an environment variable pointing to a dummy product.
-        if isdir(cls.svn_checkout_path):
-            if 'SVN_TEST_DIR' in environ:
-                cls.old_svn_test_dir = environ['SVN_TEST_DIR']
-            else:
-                cls.old_svn_test_dir = None
-            environ['SVN_TEST_DIR'] = cls.svn_checkout_path
+                try:
+                    rmtree(cls.svn_path)
+                    rmtree(cls.svn_checkout_path)
+                except FileNotFoundError:
+                    pass
+            # Create an environment variable pointing to a dummy product.
+            if isdir(cls.svn_checkout_path):
+                if 'SVN_TEST_DIR' in environ:
+                    cls.old_svn_test_dir = environ['SVN_TEST_DIR']
+                else:
+                    cls.old_svn_test_dir = None
+                environ['SVN_TEST_DIR'] = cls.svn_checkout_path
 
     @classmethod
     def tearDownClass(cls):
@@ -73,10 +88,10 @@ class TestSvn(unittest.TestCase):
         if cls.has_subversion:
             rmtree(cls.svn_path)
             rmtree(cls.svn_checkout_path)
-        if cls.old_svn_test_dir is None:
-            del environ['SVN_TEST_DIR']
-        else:
-            environ['SVN_TEST_DIR'] = cls.old_svn_test_dir
+            if cls.old_svn_test_dir is None:
+                del environ['SVN_TEST_DIR']
+            else:
+                environ['SVN_TEST_DIR'] = cls.old_svn_test_dir
 
     def test_last_revision(self):
         """Test svn revision number determination.
