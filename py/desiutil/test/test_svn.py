@@ -36,10 +36,10 @@ class TestSvn(unittest.TestCase):
                 #
                 p = Popen(['svn', '--version'], stdout=PIPE, stderr=PIPE)
                 out, err = p.communicate()
-                svn_version = out.split('\n')[0].split(',')[1].strip()
+                svn_version = out.decode('ascii').split('\n')[0].split(',')[1].strip()
                 p = Popen(['svnadmin', '--version'], stdout=PIPE, stderr=PIPE)
                 out, err = p.communicate()
-                svnadmin_version = out.split('\n')[0].split(',')[1].strip()
+                svnadmin_version = out.decode('ascii').split('\n')[0].split(',')[1].strip()
                 assert svn_version == svnadmin_version
                 cls.svn_url = 'file://' + cls.svn_path
                 p = Popen(['svnadmin', 'create', cls.svn_path],
