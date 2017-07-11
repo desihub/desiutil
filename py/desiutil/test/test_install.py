@@ -288,13 +288,13 @@ class TestInstall(unittest.TestCase):
         options = self.desiInstall.get_options(['desiutil', 'master'])
         self.desiInstall.nersc = 'edison'
         nersc_dir = self.desiInstall.default_nersc_dir()
-        self.assertEqual(nersc_dir, '/global/common/edison/contrib/desi/current')
+        self.assertEqual(nersc_dir, '/global/common/edison/contrib/desi/desiconda/current')
         options = self.desiInstall.get_options(['--anaconda',
                                                 'frobulate',
                                                 'desiutil', 'master'])
         self.desiInstall.nersc = 'datatran'
         nersc_dir = self.desiInstall.default_nersc_dir()
-        self.assertEqual(nersc_dir, '/global/project/projectdirs/desi/software/datatran/frobulate')
+        self.assertEqual(nersc_dir, '/global/project/projectdirs/desi/software/datatran/desiconda/frobulate')
 
     def test_set_install_dir(self):
         """Test the determination of the install directory.
