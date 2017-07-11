@@ -282,6 +282,27 @@ class TestInstall(unittest.TestCase):
         else:
             self.desiInstall.working_dir = old_working_dir
 
+    def test_anaconda_version(self):
+        """Test determination of the DESI+Anaconda version.
+        """
+        try:
+            old_desiconda = environ['DESICONDA']
+            del environ['DESICONDA']
+        except KeyError:
+            old_desiconda = None
+        v = self.desiInstall.anaconda_version()
+        self.assertEqual(v, 'current')
+        environ['DESICONDA'] = '/global/common/cori/contrib/desi/desiconda/20170613-1.1.4-spectro/code/desiconda/20170613-1.1.4-spectro_conda'
+        v = self.desiInstall.anaconda_version()
+        self.assertEqual(v, '20170613-1.1.4-spectro')
+        environ['DESICONDA'] = '/global/common/cori/contrib/desi/desiconda/20170613-1.1.4-spectro/CODE/desiconda/20170613-1.1.4-spectro_conda'
+        v = self.desiInstall.anaconda_version()
+        self.assertEqual(v, 'current')
+        if old_desiconda is None:
+            del environ['DESICONDA']
+        else:
+            environ['DESICONDA'] = old_desiconda
+
     def test_default_nersc_dir(self):
         """Test determination of the NERSC installation root.
         """

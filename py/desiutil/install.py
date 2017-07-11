@@ -229,7 +229,7 @@ class DesiInstall(object):
         parser = ArgumentParser(description="Install DESI software.",
                                 prog=self.executable)
         parser.add_argument('-a', '--anaconda', action='store', dest='anaconda',
-                            default='current', metavar='VERSION',
+                            default=self.anaconda_version(), metavar='VERSION',
                             help="Set the version of the DESI+Anaconda software stack.")
         parser.add_argument('-b', '--bootstrap', action='store_true',
                             dest='bootstrap',
@@ -614,6 +614,24 @@ class DesiInstall(object):
                     log.debug("Detected build type: src")
                     build_type.add('src')
         return build_type
+
+    def anaconda_version(self):
+        """Try to determine the exact DESI+Anaconda version from the
+        environment.
+
+        Returns
+        -------
+        :class:`str`
+            The DESI+Anaconda version.
+        """
+        try:
+            desiconda = environ['DESICONDA']
+        except KeyError:
+            return 'current'
+        try:
+            return basename(desiconda[:desiconda.index('/code/desiconda')])
+        except ValueError:
+            return 'current'
 
     def default_nersc_dir(self, nersc_host=None):
         """Set the directory where code will reside.

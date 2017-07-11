@@ -5,10 +5,11 @@
 function usage() {
     local execName=$(basename $0)
     (
-    echo "${execName} [-c CONFIG] [-h] [-m MODULESHOME] [-p PYTHON] [-t] [-v]"
+    echo "${execName} [-a VERSION] [-c CONFIG] [-h] [-m MODULESHOME] [-p PYTHON] [-t] [-v]"
     echo ""
     echo "Install desiutil on a bare system."
     echo ""
+    ecoh "    -a = Version of DESI+Anaconda software stack."
     echo "    -c = Pass CONFIG to desiInstall."
     echo "    -h = Print this message and exit."
     echo "    -m = Look for the Modules install in MODULESHOME."
@@ -20,6 +21,7 @@ function usage() {
 #
 # Get options
 #
+anaconda='current'
 test=''
 verbose=''
 modules=''
@@ -27,6 +29,7 @@ py=''
 config=''
 while getopts c:hm:p:tv argname; do
     case ${argname} in
+        a) anaconda=${OPTARG} ;;
         c) config="-c ${OPTARG}" ;;
         h) usage; exit 0 ;;
         m) modules=${OPTARG} ;;
@@ -64,8 +67,8 @@ else
     export PYTHONPATH=${DESIUTIL}/py:${PYTHONPATH}
 fi
 if [[ -z "${py}" ]]; then
-    desiInstall -b ${config} ${test} ${verbose}
+    desiInstall -a ${anaconda} -b ${config} ${test} ${verbose}
 else
-    ${py} ${DESIUTIL}/bin/desiInstall -b ${config} ${test} ${verbose}
+    ${py} ${DESIUTIL}/bin/desiInstall -a ${anaconda} -b ${config} ${test} ${verbose}
 fi
 /bin/rm -rf ${DESIUTIL}
