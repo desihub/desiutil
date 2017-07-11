@@ -142,7 +142,7 @@ class DesiInstall(object):
         this holds the object that reads it.
     cross_install_host : :class:`str`
         The NERSC host on which to perform cross-installs.
-    default_nersc_dir : :class:`dict`
+    default_nersc_dir_templates : :class:`dict`
         The default code and Modules install directory for every NERSC host.
     executable : :class:`str`
         The command used to invoke the script.
@@ -171,10 +171,10 @@ class DesiInstall(object):
     """
     cross_install_host = 'edison'
     nersc_hosts = ('cori', 'edison', 'datatran', 'scigate')
-    default_nersc_dir = {'edison': '/global/common/edison/contrib/desi',
-                         'cori': '/global/common/cori/contrib/desi',
-                         'datatran': '/global/project/projectdirs/desi/software/datatran',
-                         'scigate': '/global/project/projectdirs/desi/software/scigate'}
+    default_nersc_dir_templates = {'edison': '/global/common/edison/contrib/desi/{desiconda_version}',
+                                   'cori': '/global/common/cori/contrib/desi/{desiconda_version}',
+                                   'datatran': '/global/project/projectdirs/desi/software/datatran/{desiconda_version}',
+                                   'scigate': '/global/project/projectdirs/desi/software/scigate/{desiconda_version}'}
 
     def __init__(self, test=False):
         """Bare-bones initialization.
@@ -228,6 +228,9 @@ class DesiInstall(object):
                                 'set!').format(e))
         parser = ArgumentParser(description="Install DESI software.",
                                 prog=self.executable)
+        parser.add_argument('-a', '--anaconda', action='store', dest='anaconda',
+                            default='current', metavar='VERSION',
+                            help="Set the version of the DESI+Anaconda software stack.")
         parser.add_argument('-b', '--bootstrap', action='store_true',
                             dest='bootstrap',
                             help=("Run in bootstrap mode to install the " +
@@ -612,6 +615,23 @@ class DesiInstall(object):
                     build_type.add('src')
         return build_type
 
+    def default_nersc_dir(self, nersc_host=None):
+        """Set the directory where code will reside.
+
+        Parameters
+        ----------
+        nersc_host : :class:`str`, optional
+            Specify a NERSC host that might be different from the current host.
+
+        Returns
+        -------
+        :class:`str`
+            Path to the host-specific install directory.
+        """
+        if nersc_host is None:
+            return self.default_nersc_dir_templates[self.nersc].format(desiconda_version=self.options.anaconda)
+        return self.default_nersc_dir_templates[nersc_host].format(desiconda_version=self.options.anaconda)
+
     def set_install_dir(self):
         """Decide on an install directory.
 
@@ -627,7 +647,7 @@ class DesiInstall(object):
             self.nersc = None
         if self.options.root is None or not isdir(self.options.root):
             if self.nersc is not None:
-                self.options.root = self.default_nersc_dir[self.nersc]
+                self.options.root = self.default_nersc_dir()
             else:
                 message = "DESI_PRODUCT_ROOT is missing or not set."
                 log.critical(message)
@@ -713,7 +733,7 @@ class DesiInstall(object):
         if self.nersc is None:
             return None
         else:
-            nersc_module = join(self.default_nersc_dir[self.nersc],
+            nersc_module = join(self.default_nersc_dir(),
                                 'modulefiles')
         if not hasattr(self, 'config'):
             return nersc_module
@@ -1008,13 +1028,13 @@ class DesiInstall(object):
                 for nh in nersc_hosts:
                     if nh == cross_install_host:
                         continue
-                    dst = join(self.default_nersc_dir[nh], 'code',
+                    dst = join(self.default_nersc_dir(nh), 'code',
                                self.baseproduct)
                     if not islink(dst):
                         src = join('..', cross_install_host,
                                    self.baseproduct)
                         links.append((src, dst))
-                    dst = join(self.default_nersc_dir[nh], 'modulefiles',
+                    dst = join(self.default_nersc_dir(nh), 'modulefiles',
                                self.baseproduct)
                     if not islink(dst):
                         src = join('..', cross_install_host,
