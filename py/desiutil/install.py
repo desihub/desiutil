@@ -679,7 +679,7 @@ class DesiInstall(object):
         initpy_found = False
         module_method = init_modules(self.options.moduleshome, method=True)
         if module_method is None:
-            message = ("Could initialize Modules with MODULESHOME={0}!".format(
+            message = ("Could not initialize Modules with MODULESHOME={0}!".format(
                        self.options.moduleshome))
             log.critical(message)
             raise DesiInstallException(message)
