@@ -137,10 +137,6 @@ code/
     or :command:`make install`.  The code is always placed in a ``product/version``
     directory.  So for example, the full path to desiInstall might be
     ``$product_root/code/desiutil/1.8.0/bin/desiInstall``.
-conda/
-    At NERSC, this contains the Anaconda_ infrastructure.  desiInstall does
-    not manipulate this directory in any way, though it may *use* the
-    :command:`python` executable installed here.
 modulefiles/
     This contains the the Module files installed by desiInstall.  A Module
     file is almost always named ``product/version``.  For example, the
@@ -238,13 +234,13 @@ install is taking place at NERSC, the top-level install directory is
 predetermined based on the value of :envvar:`NERSC_HOST`.
 
 edison
-    ``/global/common/edison/contrib/desi``
+    ``/global/common/edison/contrib/desi/desiconda/$DESICONDA_VERSION``
 cori
-    ``/global/common/cori/contrib/desi``
+    ``/global/common/cori/contrib/desi/desiconda/$DESICONDA_VERSION``
 datatran
-    ``/global/project/projectdirs/desi/software/datatran``
+    ``/global/project/projectdirs/desi/software/datatran/desiconda/$DESICONDA_VERSION``
 scigate
-    ``/global/project/projectdirs/desi/software/scigate``
+    ``/global/project/projectdirs/desi/software/scigate/desiconda/$DESICONDA_VERSION``
 
 At other locations, the user must set the environment variable
 :envvar:`DESI_PRODUCT_ROOT` to point to the equivalent directory.
