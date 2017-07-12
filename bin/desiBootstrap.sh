@@ -5,11 +5,12 @@
 function usage() {
     local execName=$(basename $0)
     (
-    echo "${execName} [-a VERSION] [-c CONFIG] [-h] [-m MODULESHOME] [-p PYTHON] [-t] [-v]"
+    echo "${execName} [-a VERSION] [-b BRANCH] [-c CONFIG] [-h] [-m MODULESHOME] [-p PYTHON] [-t] [-v]"
     echo ""
     echo "Install desiutil on a bare system."
     echo ""
     echo "    -a = Version of DESI+Anaconda software stack."
+    echo "    -b = Switch to desiutil BRANCH before installing."
     echo "    -c = Pass CONFIG to desiInstall."
     echo "    -h = Print this message and exit."
     echo "    -m = Look for the Modules install in MODULESHOME."
@@ -22,14 +23,16 @@ function usage() {
 # Get options
 #
 anaconda='current'
+branch=''
+modules=''
+config=''
+py=''
 test=''
 verbose=''
-modules=''
-py=''
-config=''
-while getopts a:c:hm:p:tv argname; do
+while getopts a:b:c:hm:p:tv argname; do
     case ${argname} in
         a) anaconda=${OPTARG} ;;
+        b) branch=${OPTARG} ;;
         c) config="-c ${OPTARG}" ;;
         h) usage; exit 0 ;;
         m) modules=${OPTARG} ;;
@@ -87,6 +90,12 @@ fi
 #
 [[ -n "${verbose}" ]] && echo git clone https://github.com/desihub/desiutil.git desiutil-master
 git clone https://github.com/desihub/desiutil.git desiutil-master
+if [[ -n "${branch}" ]]; then
+    cd desiutil-master
+    [[ -n "${verbose}" ]] && echo git checkout ${branch}
+    git checkout ${branch}
+    cd ..
+fi
 export DESIUTIL=$(pwd)/desiutil-master
 export PATH=${DESIUTIL}/bin:${PATH}
 if [[ -z "${PYTHONPATH}" ]]; then
