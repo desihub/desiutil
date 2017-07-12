@@ -5,7 +5,11 @@ Change Log
 1.9.6 (unreleased)
 ------------------
 
-* No changes yet.
+* Changed the location where code is installed so that code is correctly
+  matched to the corresponding DESI+Anaconda (desiconda_) version (PR `#77`_).
+
+.. _`#77`: https://github.com/desihub/desiutil/pull/77
+.. _desiconda: https://github.com/desihub/desiconda
 
 1.9.5 (2017-06-15)
 ------------------
