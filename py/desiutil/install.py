@@ -751,8 +751,11 @@ class DesiInstall(object):
         if self.nersc is None:
             return None
         else:
-            nersc_module = join(self.default_nersc_dir(),
-                                'modulefiles')
+            if self.baseproduct == 'desimodules':
+                nersc_module = self.default_nersc_dir_templates[self.nersc].format(desiconda_version='startup')
+            else:
+                nersc_module = join(self.default_nersc_dir(),
+                                    'modulefiles')
         if not hasattr(self, 'config'):
             return nersc_module
         if self.config is not None:
