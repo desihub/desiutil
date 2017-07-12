@@ -752,7 +752,8 @@ class DesiInstall(object):
             return None
         else:
             if self.baseproduct == 'desimodules':
-                nersc_module = self.default_nersc_dir_templates[self.nersc].format(desiconda_version='startup')
+                nersc_module = join(self.default_nersc_dir_templates[self.nersc].format(desiconda_version='startup'),
+                                    'modulefiles')
             else:
                 nersc_module = join(self.default_nersc_dir(),
                                     'modulefiles')
