@@ -34,7 +34,7 @@ while getopts a:c:hm:p:tv argname; do
         h) usage; exit 0 ;;
         m) modules=${OPTARG} ;;
         p) py=${OPTARG} ;;
-        t) test='-t' ;;
+        t) test='-t'; verbose='-v' ;;
         v) verbose='-v' ;;
         *) usage; exit 1 ;;
     esac
