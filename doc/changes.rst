@@ -2,7 +2,7 @@
 Change Log
 ==========
 
-1.9.6 (unreleased)
+1.9.6 (2017-07-12)
 ------------------
 
 * Changed the location where code is installed so that code is correctly
