@@ -95,10 +95,10 @@ else
     export PYTHONPATH=${DESIUTIL}/py:${PYTHONPATH}
 fi
 if [[ -z "${py}" ]]; then
-    [[ -n "${verbose}" ]] & echo desiInstall -a ${anaconda} -b ${config} ${test} ${verbose}
+    [[ -n "${verbose}" ]] && echo desiInstall -a ${anaconda} -b ${config} ${test} ${verbose}
     desiInstall -a ${anaconda} -b ${config} ${test} ${verbose}
 else
-    [[ -n "${verbose}" ]] & echo ${py} ${DESIUTIL}/bin/desiInstall -a ${anaconda} -b ${config} ${test} ${verbose}
+    [[ -n "${verbose}" ]] && echo ${py} ${DESIUTIL}/bin/desiInstall -a ${anaconda} -b ${config} ${test} ${verbose}
     ${py} ${DESIUTIL}/bin/desiInstall -a ${anaconda} -b ${config} ${test} ${verbose}
 fi
 [[ -n "${verbose}" ]] && echo /bin/rm -rf ${DESIUTIL}
