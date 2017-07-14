@@ -32,16 +32,17 @@ class TestSetup(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        shutil.rmtree(os.path.join(cls.setup_dir, cls.fake_name),
-                      ignore_errors=True)
-        shutil.rmtree(os.path.join(cls.data_dir, cls.fake_name),
-                      ignore_errors=True)
+        pass
 
     def setUp(self):
         os.chdir(self.original_dir)
 
     def tearDown(self):
         os.chdir(self.original_dir)
+        shutil.rmtree(os.path.join(self.setup_dir, self.fake_name),
+                      ignore_errors=True)
+        shutil.rmtree(os.path.join(self.data_dir, self.fake_name),
+                      ignore_errors=True)
 
     def run_setup(self, *args, **kwargs):
         """In Python 3, on MacOS X, the import cache has to be invalidated
