@@ -309,7 +309,10 @@ class TestInstall(unittest.TestCase):
         options = self.desiInstall.get_options(['desiutil', 'master'])
         self.desiInstall.nersc = 'edison'
         nersc_dir = self.desiInstall.default_nersc_dir()
-        self.assertEqual(nersc_dir, '/global/common/edison/contrib/desi/desiconda/current')
+        edison_nersc_dir = '/global/common/edison/contrib/desi/desiconda/current'
+        if 'DESICONDA' in environ:
+            edison_nersc_dir = edison_nersc_dir.replace('current', self.desiInstall.anaconda_version())
+        self.assertEqual(nersc_dir, edison_nersc_dir)
         options = self.desiInstall.get_options(['--anaconda',
                                                 'frobulate',
                                                 'desiutil', 'master'])
