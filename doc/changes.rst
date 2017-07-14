@@ -5,7 +5,11 @@ Change Log
 1.9.7 (unreleased)
 ------------------
 
-* No changes yet.
+* Fixed some test failures that occurred in the NERSC environment and/or
+  in an installed package, as opposed to a git checkout (PR `#80`_).
+
+.. _`#80`: https://github.com/desihub/desiutil/pull/80
+
 
 1.9.6 (2017-07-12)
 ------------------

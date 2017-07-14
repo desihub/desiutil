@@ -85,7 +85,7 @@ class TestInstall(unittest.TestCase):
                 env_settings[key]['old'] = environ[key]
             environ[key] = env_settings[key]['new']
         default_namespace = Namespace(
-            anaconda='current',
+            anaconda=self.desiInstall.anaconda_version(),
             bootstrap=False,
             config_file='',
             cross_install=False,
@@ -309,7 +309,10 @@ class TestInstall(unittest.TestCase):
         options = self.desiInstall.get_options(['desiutil', 'master'])
         self.desiInstall.nersc = 'edison'
         nersc_dir = self.desiInstall.default_nersc_dir()
-        self.assertEqual(nersc_dir, '/global/common/edison/contrib/desi/desiconda/current')
+        edison_nersc_dir = '/global/common/edison/contrib/desi/desiconda/current'
+        if 'DESICONDA' in environ:
+            edison_nersc_dir = edison_nersc_dir.replace('current', self.desiInstall.anaconda_version())
+        self.assertEqual(nersc_dir, edison_nersc_dir)
         options = self.desiInstall.get_options(['--anaconda',
                                                 'frobulate',
                                                 'desiutil', 'master'])
@@ -393,6 +396,7 @@ class TestInstall(unittest.TestCase):
                          "with MODULESHOME={0}!").format(
                          '/fake/modules/directory'))
         options = self.desiInstall.get_options(['desiutil', 'master'])
+        self.assertEqual(options.moduleshome, environ['MODULESHOME'])
         status = self.desiInstall.start_modules()
         self.assertTrue(callable(self.desiInstall.module))
 
