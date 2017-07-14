@@ -396,6 +396,7 @@ class TestInstall(unittest.TestCase):
                          "with MODULESHOME={0}!").format(
                          '/fake/modules/directory'))
         options = self.desiInstall.get_options(['desiutil', 'master'])
+        self.assertEqual(options.moduleshome, environ['MODULESHOME'])
         status = self.desiInstall.start_modules()
         self.assertTrue(callable(self.desiInstall.module))
 
