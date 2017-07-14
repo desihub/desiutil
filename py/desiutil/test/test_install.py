@@ -85,7 +85,7 @@ class TestInstall(unittest.TestCase):
                 env_settings[key]['old'] = environ[key]
             environ[key] = env_settings[key]['new']
         default_namespace = Namespace(
-            anaconda='current',
+            anaconda=self.desiInstall.anaconda_version(),
             bootstrap=False,
             config_file='',
             cross_install=False,
