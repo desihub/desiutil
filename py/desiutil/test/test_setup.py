@@ -28,11 +28,11 @@ class TestSetup(unittest.TestCase):
         # Workaround for https://github.com/astropy/astropy-helpers/issues/124
         if hasattr(sandbox, 'hide_setuptools'):
             sandbox.hide_setuptools = lambda: None
-        log.set_threshold(log.WARN)
+        cls.old_threshold = log.set_threshold(log.WARN)
 
     @classmethod
     def tearDownClass(cls):
-        pass
+        log.set_threshold(cls.old_threshold)
 
     def setUp(self):
         os.chdir(self.original_dir)
@@ -124,7 +124,13 @@ setup(name="{0.fake_name}",
         self.assertEqual(v, 'unknown')
         p = os.path.join(self.setup_dir, self.fake_name)
         os.makedirs(p)
-        v = get_version(self.fake_name)
+        try:
+            v = get_version(self.fake_name)
+        except (OSError, IOError):
+            #
+            # Running in an installed package, not a git or svn checkout.
+            #
+            v = get_version(self.fake_name, tag='1.2.3')
         self.assertTrue(os.path.exists(os.path.join(p, '_version.py')))
         os.remove(os.path.join(p, '_version.py'))
         os.rmdir(p)
@@ -136,6 +142,13 @@ setup(name="{0.fake_name}",
         """
         p = os.path.join(self.setup_dir, self.fake_name)
         os.makedirs(p)
+        try:
+            update_version(self.fake_name)
+        except (OSError, IOError):
+            #
+            # Running in an installed package, not a git or svn checkout.
+            #
+            update_version(self.fake_name, tag='0.1.2')
         update_version(self.fake_name)
         self.assertTrue(os.path.exists(os.path.join(p, '_version.py')))
         update_version(self.fake_name, tag='1.2.3')
