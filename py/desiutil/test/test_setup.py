@@ -130,7 +130,7 @@ setup(name="{0.fake_name}",
             #
             # Running in an installed package, not a git or svn checkout.
             #
-            v = get_version(self.fake_name, tag='1.2.3')
+            update_version(self.fake_name, tag='1.2.3')
         self.assertTrue(os.path.exists(os.path.join(p, '_version.py')))
         os.remove(os.path.join(p, '_version.py'))
         os.rmdir(p)
@@ -149,7 +149,6 @@ setup(name="{0.fake_name}",
             # Running in an installed package, not a git or svn checkout.
             #
             update_version(self.fake_name, tag='0.1.2')
-        update_version(self.fake_name)
         self.assertTrue(os.path.exists(os.path.join(p, '_version.py')))
         update_version(self.fake_name, tag='1.2.3')
         with open(os.path.join(p, '_version.py')) as f:
