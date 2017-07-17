@@ -976,4 +976,4 @@ def plot_sky_binned(ra, dec, weights=None, data=None, plot_type='grid',
         basemap = plot_healpix_map(
             grid_data, nest, cmap, colorbar, label, basemap)
 
-    return basemap
+    return basemap, grid_data
