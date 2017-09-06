@@ -260,7 +260,7 @@ class TestBrick(unittest.TestCase):
         self.assertEqual(dec, 0.)
 
     def test_brick_radec_array(self):
-        """Test scalar to brick RA,Dec conversion.
+        """Test array to brick RA,Dec conversion.
         """
         b = B.Bricks(bricksize=1.)
         ra,dec = b.brick_radec(np.array([0., 1.]), np.array([0.,0.]))

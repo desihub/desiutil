@@ -2,6 +2,10 @@
 Change Log
 ==========
 
+* Fixed bug in desiutil.brick.Brick.brick_radec() handling scalar inputs.
+
+.. _`#81`: https://github.com/desihub/desiutil/pull/81
+
 1.9.7 (unreleased)
 ------------------
 
