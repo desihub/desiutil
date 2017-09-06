@@ -251,6 +251,26 @@ class TestBrick(unittest.TestCase):
         self.assertEqual(B._bricks.bricksize, 0.25)
         B._bricks = None
 
+    def test_brick_radec_scalar(self):
+        """Test scalar to brick RA,Dec conversion.
+        """
+        b = B.Bricks(bricksize=1.)
+        ra,dec = b.brick_radec(0., 0.)
+        self.assertEqual(ra, 0.5)
+        self.assertEqual(dec, 0.)
+
+    def test_brick_radec_array(self):
+        """Test scalar to brick RA,Dec conversion.
+        """
+        b = B.Bricks(bricksize=1.)
+        ra,dec = b.brick_radec(np.array([0., 1.]), np.array([0.,0.]))
+        self.assertEqual(len(ra), 2)
+        self.assertEqual(len(dec), 2)
+        self.assertEqual(ra[0], 0.5)
+        self.assertEqual(dec[0], 0.)
+        self.assertEqual(ra[1], 1.5)
+        self.assertEqual(dec[1], 0.)
+
     def test_to_table(self):
         """Test conversion to table.
         """
