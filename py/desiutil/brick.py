@@ -281,7 +281,7 @@ class Bricks(object):
         ara, adec = self._array_radec(ra, dec)
         irow, icol = self._row_col(ara, adec)
         if np.isscalar(ra):
-            xra = self._center_ra[irow][icol]
+            xra = self._center_ra[irow[0]][icol]
             xdec = self._center_dec[irow]
         else:
             xra = np.array([self._center_ra[i][j] for i,j in zip(irow, icol)])
