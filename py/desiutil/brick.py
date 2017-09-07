@@ -128,6 +128,7 @@ class Bricks(object):
         """Determine the brick row and column, given `ra`, `dec`.
         """
         row = ((dec+90.0+self._bricksize/2)/self._bricksize).astype(int)
+        row = np.clip(row, 0, len(self._ncol_per_row)-1)
         return (row, (ra/360.0 * self._ncol_per_row[row]).astype(int))
 
     def brickname(self, ra, dec):
