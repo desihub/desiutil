@@ -52,7 +52,7 @@ class Bricks(object):
         ncol_per_row = np.zeros(nrow, dtype=int)
         for i in range(nrow):
             declo = np.abs(center_dec[i])-bricksize/2
-            n = (360/bricksize * np.cos(declo*np.pi/180))
+            n = (360/bricksize * np.cos(np.deg2rad(declo)))
             ncol_per_row[i] = int(np.ceil(n/2)*2)
 
         #- special cases at the poles
