@@ -9,9 +9,13 @@ Change Log
   in an installed package, as opposed to a git checkout (PR `#80`_).
 * Fixed bug in :meth:`desiutil.brick.Bricks.brick_radec` handling scalar inputs
   (PR `#81`_).
+* Fixed bugs that could cause bricks to be slightly too big, and that
+  incorrectly special-cased the north pole with brick sizes that don't
+  evenly divide 180 degrees (PR `#82`_).
 
 .. _`#80`: https://github.com/desihub/desiutil/pull/80
 .. _`#81`: https://github.com/desihub/desiutil/pull/81
+.. _`#82`: https://github.com/desihub/desiutil/pull/82
 
 1.9.6 (2017-07-12)
 ------------------
