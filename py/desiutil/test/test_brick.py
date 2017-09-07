@@ -96,9 +96,9 @@ class TestBrick(unittest.TestCase):
         r,d = b.brick_radec(0., 90.)
         self.assertTrue(d <= 90.)
 
-        # If one row spans Dec=0, the number of bricks in that row may
-        # be set incorrectly.
-        # This happens for lots of different values, as low as 0.1 deg
+        # If one row spans Dec=0, the number of bricks in that row
+        # used to be set incorrectly.  This happened for lots of
+        # different values, as low as 0.1 deg
         bricksize = 9.97
         b = B.Bricks(bricksize=bricksize)
         a = b.brickarea(0., 0.)
@@ -114,6 +114,13 @@ class TestBrick(unittest.TestCase):
         # Measure the brick width at Dec=0 (the widest point)
         r0,r1 = v[0,0],v[1,0]
         self.assertTrue(np.abs(r1 - r0) <= bricksize)
+
+        # Big bricks (that don't evenly divide 180) can cause issues too
+        bricksize = 8.0
+        b = B.Bricks(bricksize=bricksize)
+        a = b.brickarea(0., 90.)
+        print('Area', a)
+        self.assertTrue(a <= bricksize**2)
 
     def test_brickarea_scalar(self):
         """Test scalar to brick area conversion.
