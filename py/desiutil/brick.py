@@ -39,6 +39,8 @@ class Bricks(object):
     def __init__(self, bricksize=0.25):
         #- Brick row centers and edges
         center_dec = np.arange(-90.0, +90.0+bricksize/2, bricksize)
+        # clip the north pole to +90
+        center_dec[-1] = min(90., center_dec[-1])
         edges_dec = np.arange(-90.0-bricksize/2, +90.0+bricksize, bricksize)
         # poles
         edges_dec[0] = -90.
