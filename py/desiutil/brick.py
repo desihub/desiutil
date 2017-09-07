@@ -52,7 +52,8 @@ class Bricks(object):
         ncol_per_row = np.zeros(nrow, dtype=int)
         for i in range(nrow):
             # The widest part of the brick is at the Dec closest to
-            # the equator
+            # the equator.  max(0, ...) handles a row that spans the
+            # Dec=0 equator.
             declo = max(0, np.abs(center_dec[i]) - bricksize/2)
             n = (360/bricksize * np.cos(np.deg2rad(declo)))
             ncol_per_row[i] = int(np.ceil(n/2)*2)
