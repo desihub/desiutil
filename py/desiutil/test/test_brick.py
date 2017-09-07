@@ -86,7 +86,7 @@ class TestBrick(unittest.TestCase):
         self.assertTrue(np.all(b1[:,1] >= -90.))
 
     def test_uneven_bricksize(self):
-        # Brick sizes that evenly divide 180 degrees work fine
+        # Brick size that evenly divides 180 degrees
         b = B.Bricks(bricksize=0.25)
         r,d = b.brick_radec(0., 90.)
         self.assertTrue(d <= 90.)
@@ -115,11 +115,11 @@ class TestBrick(unittest.TestCase):
         r0,r1 = v[0,0],v[1,0]
         self.assertTrue(np.abs(r1 - r0) <= bricksize)
 
-        # Big bricks (that don't evenly divide 180) can cause issues too
+        # Big bricks (that don't evenly divide 180) could cause issues
+        # too
         bricksize = 8.0
         b = B.Bricks(bricksize=bricksize)
         a = b.brickarea(0., 90.)
-        print('Area', a)
         self.assertTrue(a <= bricksize**2)
 
     def test_brickarea_scalar(self):

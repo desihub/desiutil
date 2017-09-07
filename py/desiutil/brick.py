@@ -60,7 +60,8 @@ class Bricks(object):
 
         #- special cases at the poles
         ncol_per_row[0] = 1
-        ncol_per_row[-1] = 1
+        if center_dec[-1] == 90.:
+            ncol_per_row[-1] = 1
 
         #- ra
         center_ra = list()
@@ -73,8 +74,11 @@ class Bricks(object):
             # center_ra.append(dra/2 + np.arange(ncol_per_row[i])*dra)
 
         #- More special cases at the poles
-        edges_ra[0] = edges_ra[-1] = np.array([0, 360])
-        center_ra[0] = center_ra[-1] = np.array([180,])
+        edges_ra[0] = np.array([0, 360])
+        center_ra[0] = np.array([180,])
+        if center_dec[-1] == 90.:
+            edges_ra[-1] = np.array([0, 360])
+            center_ra[-1] = np.array([180,])
 
         #- Brick names [row, col]
         brickname = list()
