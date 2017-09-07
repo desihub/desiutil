@@ -39,6 +39,8 @@ class Bricks(object):
     def __init__(self, bricksize=0.25):
         #- Brick row centers and edges
         center_dec = np.arange(-90.0, +90.0+bricksize/2, bricksize)
+        # clip the north pole to +90
+        center_dec[-1] = min(90., center_dec[-1])
         edges_dec = np.arange(-90.0-bricksize/2, +90.0+bricksize, bricksize)
         # poles
         edges_dec[0] = -90.
@@ -49,13 +51,17 @@ class Bricks(object):
         #- How many columns per row: even number, no bigger than bricksize
         ncol_per_row = np.zeros(nrow, dtype=int)
         for i in range(nrow):
-            declo = np.abs(center_dec[i])-bricksize/2
-            n = (360/bricksize * np.cos(declo*np.pi/180))
+            # The widest part of the brick is at the Dec closest to
+            # the equator.  max(0, ...) handles a row that spans the
+            # Dec=0 equator.
+            declo = max(0, np.abs(center_dec[i]) - bricksize/2)
+            n = (360/bricksize * np.cos(np.deg2rad(declo)))
             ncol_per_row[i] = int(np.ceil(n/2)*2)
 
         #- special cases at the poles
         ncol_per_row[0] = 1
-        ncol_per_row[-1] = 1
+        if center_dec[-1] == 90.:
+            ncol_per_row[-1] = 1
 
         #- ra
         center_ra = list()
@@ -68,8 +74,11 @@ class Bricks(object):
             # center_ra.append(dra/2 + np.arange(ncol_per_row[i])*dra)
 
         #- More special cases at the poles
-        edges_ra[0] = edges_ra[-1] = np.array([0, 360])
-        center_ra[0] = center_ra[-1] = np.array([180,])
+        edges_ra[0] = np.array([0, 360])
+        center_ra[0] = np.array([180,])
+        if center_dec[-1] == 90.:
+            edges_ra[-1] = np.array([0, 360])
+            center_ra[-1] = np.array([180,])
 
         #- Brick names [row, col]
         brickname = list()
@@ -123,6 +132,7 @@ class Bricks(object):
         """Determine the brick row and column, given `ra`, `dec`.
         """
         row = ((dec+90.0+self._bricksize/2)/self._bricksize).astype(int)
+        row = np.clip(row, 0, len(self._ncol_per_row)-1)
         return (row, (ra/360.0 * self._ncol_per_row[row]).astype(int))
 
     def brickname(self, ra, dec):
