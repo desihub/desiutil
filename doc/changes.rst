@@ -11,11 +11,11 @@ Change Log
   (PR `#81`_).
 * Fixed bugs that could cause bricks to be slightly too big, and that
   incorrectly special-cased the north pole with brick sizes that don't
-  evenly divide 180 degrees (PR `#82`_).
+  evenly divide 180 degrees (PR `#84`_).
 
 .. _`#80`: https://github.com/desihub/desiutil/pull/80
 .. _`#81`: https://github.com/desihub/desiutil/pull/81
-.. _`#82`: https://github.com/desihub/desiutil/pull/82
+.. _`#84`: https://github.com/desihub/desiutil/pull/84
 
 1.9.6 (2017-07-12)
 ------------------

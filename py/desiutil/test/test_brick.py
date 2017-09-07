@@ -86,6 +86,7 @@ class TestBrick(unittest.TestCase):
         self.assertTrue(np.all(b1[:,1] >= -90.))
 
     def test_uneven_bricksize(self):
+        """Test with bricksizes that do not evenly divide 180 degrees."""
         # Brick size that evenly divides 180 degrees
         b = B.Bricks(bricksize=0.25)
         r,d = b.brick_radec(0., 90.)
