@@ -94,6 +94,11 @@ class GaussianMixtureModel(object):
         -------
         :class:`numpy.ndarray`
             An array containing the samples.
+
+        Raises
+        ------
+        ValueError
+            If the covariance type is unknown.
         """
         import numpy as np
 

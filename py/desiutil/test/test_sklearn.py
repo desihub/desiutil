@@ -87,6 +87,7 @@ class TestSKLearn(unittest.TestCase):
     def test_sample(self):
         """Test sampling from a model.
         """
+        from numpy.random import RandomState as RS
         model = GMM(np.ones((5,), dtype=np.float64),
                     np.zeros((5, 3), dtype=np.float64),
                     np.zeros((5, 3, 3), dtype=np.float64),
@@ -95,6 +96,16 @@ class TestSKLearn(unittest.TestCase):
             model.sample()
         self.assertEqual(str(cm.exception),
                          'Covariance type "foo" is not yet implemented.')
+        model = GMM(np.array([0.5, 0.5]),
+                    np.array([[1.0, 1.0], [-1.0, -1.0]]),
+                    np.array([[[1.0, 0.0], [0.0, 1.0]],
+                              [[1.0, 0.0], [0.0, 1.0]]]))
+        s = model.sample(n_samples=10)
+        self.assertEqual(s.shape, (10, 2))
+        rs = RS(137)
+        s = model.sample(n_samples=2, random_state=rs)
+        self.assertTrue(np.allclose(s, np.array([[3.51574031, -1.66767452],
+                                                 [2.09077549, 2.06558071]])))
 
 
 def test_suite():
