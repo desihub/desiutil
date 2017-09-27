@@ -4,8 +4,10 @@
 """
 from __future__ import absolute_import, print_function
 import unittest
+from tempfile import NamedTemporaryFile
 from pkg_resources import resource_filename
 import numpy as np
+from astropy.io import fits
 from ..sklearn import GaussianMixtureModel as GMM
 
 
@@ -63,6 +65,36 @@ class TestSKLearn(unittest.TestCase):
                          self.means.shape)
         self.assertTrue(np.allclose(model.weights, self.weights))
         self.assertTrue(np.allclose(model.means, self.means))
+
+    def test_save(self):
+        """Test saving a model from to file.
+        """
+        model = GMM(np.ones((5,), dtype=np.float64),
+                    np.zeros((5, 3), dtype=np.float64),
+                    np.zeros((5, 3, 3), dtype=np.float64),
+                    'full')
+        with NamedTemporaryFile(suffix='.fits') as f:
+            model.save(model, f.name)
+            with fits.open(f.name) as hdulist:
+                self.assertEqual(len(hdulist), 3)
+                self.assertEqual(hdulist[0].header['COVTYPE'], 'full')
+                self.assertTrue(np.allclose(hdulist['WEIGHTS'].data,
+                                            np.ones((5,), dtype=np.float64)))
+                self.assertTrue(np.allclose(hdulist['MEANS'].data,
+                                            np.zeros((5, 3),
+                                                     dtype=np.float64)))
+
+    def test_sample(self):
+        """Test sampling from a model.
+        """
+        model = GMM(np.ones((5,), dtype=np.float64),
+                    np.zeros((5, 3), dtype=np.float64),
+                    np.zeros((5, 3, 3), dtype=np.float64),
+                    'foo')
+        with self.assertRaises(ValueError) as cm:
+            model.sample()
+        self.assertEqual(str(cm.exception),
+                         'Covariance type "foo" is not yet implemented.')
 
 
 def test_suite():
