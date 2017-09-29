@@ -13,9 +13,7 @@ from __future__ import (absolute_import, division,
 from sys import argv, executable, path, version_info
 import requests
 import tarfile
-import logging
 import re
-from logging.handlers import MemoryHandler
 from subprocess import Popen, PIPE
 from datetime import date
 from types import MethodType
@@ -23,6 +21,7 @@ from os import chdir, environ, getcwd, makedirs, remove, symlink
 from os.path import abspath, basename, exists, isdir, join
 from shutil import copyfile, copytree, rmtree
 from .git import last_tag
+from .log import get_logger, DEBUG, INFO
 from .modules import (init_modules, configure_module,
                       process_module, default_module)
 from . import __version__ as desiutilVersion
@@ -126,11 +125,6 @@ class DesiInstallException(Exception):
 class DesiInstall(object):
     """Code and data that drive the desiInstall script.
 
-    Parameters
-    ----------
-    test : :class:`bool`, optional
-        If ``True`` log messages will be supressed for testing purposes.
-
     Attributes
     ----------
     baseproduct : :class:`str`
@@ -176,21 +170,12 @@ class DesiInstall(object):
                                    'datatran': '/global/project/projectdirs/desi/software/datatran/desiconda/{desiconda_version}',
                                    'scigate': '/global/project/projectdirs/desi/software/scigate/desiconda/{desiconda_version}'}
 
-    def __init__(self, test=False):
+    def __init__(self):
         """Bare-bones initialization.
 
         The only thing done here is setting up the logging infrastructure.
         """
-        self.executable = basename(argv[0])
-        self.test = test
-        if self.test:
-            nh = logging.NullHandler()
-            mh = MemoryHandler(1000000, flushLevel=logging.CRITICAL, target=nh)
-            logging.getLogger(__name__).addHandler(mh)
-        else:  # pragma: no cover
-            logging.basicConfig(format=self.executable +
-                                ' [%(name)s] Log - %(levelname)s: %(message)s',
-                                datefmt='%Y-%m-%dT%H:%M:%S')
+        self.log = get_logger(INFO, timestamp=True)
         return
 
     def get_options(self, test_args=None):
@@ -210,7 +195,6 @@ class DesiInstall(object):
             attribute `options` is set.
         """
         from argparse import ArgumentParser
-        log = logging.getLogger(__name__ + '.DesiInstall.get_options')
         check_env = {'MODULESHOME': None,
                      'DESI_PRODUCT_ROOT': None,
                      'USER': None,
@@ -220,14 +204,14 @@ class DesiInstall(object):
                 check_env[e] = environ[e]
             except KeyError:
                 if e == 'DESI_PRODUCT_ROOT' and 'NERSC_HOST' in environ:
-                    log.debug('The environment variable DESI_PRODUCT_ROOT ' +
-                              'is not set, but this is probably not a ' +
-                              'problem at NERSC.')
+                    self.log.info('The environment variable DESI_PRODUCT_ROOT ' +
+                                  'is not set, but this is probably not a ' +
+                                  'problem at NERSC.')
                 else:
-                    log.warning(('The environment variable {0} is not ' +
-                                'set!').format(e))
+                    self.log.warning('The environment variable %s is not set!',
+                                     e)
         parser = ArgumentParser(description="Install DESI software.",
-                                prog=self.executable)
+                                prog=basename(argv[0]))
         parser.add_argument('-a', '--anaconda', action='store', dest='anaconda',
                             default=self.anaconda_version(), metavar='VERSION',
                             help="Set the version of the DESI+Anaconda software stack.")
@@ -298,24 +282,21 @@ class DesiInstall(object):
         if test_args is None:  # pragma: no cover
             self.options = parser.parse_args()
         else:
+            self.log.debug('Called parse_args() with: %s', ' '.join(test_args))
             self.options = parser.parse_args(test_args)
-        self.ll = logging.INFO
-        if self.options.verbose or self.options.test or self.test:
-            self.ll = logging.DEBUG
-        logging.getLogger(__name__).setLevel(self.ll)
-        if test_args is not None:
-            log.debug('Called parse_args() with: {0}'.format(
-                      ' '.join(test_args)))
-        log.debug('Set log level to {0}.'.format(
-                  logging.getLevelName(self.ll)))
+        if self.options.verbose or self.options.test:
+            self.log.setLevel(DEBUG)
+            self.log.debug('Set log level to DEBUG.')
         self.config = None
         if self.options.config_file:
-            log.debug("Detected configuration file: {0}.".format(self.options.config_file))
+            self.log.debug("Detected configuration file: %s.",
+                           self.options.config_file)
             c = SafeConfigParser()
             status = c.read([self.options.config_file])
             if status[0] == self.options.config_file:
                 self.config = c
-                log.debug("Successfully parsed {0}.".format(self.options.config_file))
+                self.log.debug("Successfully parsed %s.",
+                               self.options.config_file)
         return self.options
 
     def sanity_check(self):
@@ -331,23 +312,22 @@ class DesiInstall(object):
         DesiInstallException
             If any options don't make sense.
         """
-        log = logging.getLogger(__name__ + '.DesiInstall.sanity_check')
         if (self.options.product == 'NO PACKAGE' or
                 self.options.product_version == 'NO VERSION'):
             if self.options.bootstrap:
                 self.options.default = True
                 self.options.product = 'desiutil'
                 self.options.product_version = last_tag('desihub', 'desiutil')
-                log.info("Selected desiutil/{0} for installation.".format(
-                         self.options.product_version))
+                self.log.info("Selected desiutil/%s for installation.",
+                              self.options.product_version)
             else:
                 message = "You must specify a product and a version!"
-                log.critical(message)
+                self.log.critical(message)
                 raise DesiInstallException(message)
         if (self.options.moduleshome is None or
                 not isdir(self.options.moduleshome)):
             message = "You do not appear to have Modules set up."
-            log.critical(message)
+            self.log.critical(message)
             raise DesiInstallException(message)
         return True
 
@@ -364,7 +344,6 @@ class DesiInstall(object):
         DesiInstallException
             If the product and version inputs didn't make sense.
         """
-        log = logging.getLogger(__name__ + '.DesiInstall.get_product_version')
         if self.config is not None:
             if self.config.has_section("Known Products"):
                 for name, value in self.config.items("Known Products"):
@@ -378,15 +357,15 @@ class DesiInstall(object):
         except KeyError:
             self.fullproduct = 'https://github.com/desihub/{}'.format(
                     self.baseproduct)
-            log.warning('Guessing {0} is at {1}.'.format(
-                self.baseproduct, self.fullproduct))
-            log.warning('Add location to desiutil.install.known_products ' +
-                        'if that is incorrect.')
+            self.log.warning('Guessing %s is at %s.',
+                             self.baseproduct, self.fullproduct)
+            self.log.warning('Add location to desiutil.install.known_products ' +
+                             'if that is incorrect.')
         self.baseversion = basename(self.options.product_version)
         self.github = False
         if 'github.com' in self.fullproduct:
             self.github = True
-            log.debug("Detected GitHub install.")
+            self.log.debug("Detected GitHub install.")
         return (self.fullproduct, self.baseproduct, self.baseversion)
 
     def identify_branch(self):
@@ -398,7 +377,6 @@ class DesiInstall(object):
         :class:`str`
             The full path to the branch/tag/trunk/master code.
         """
-        log = logging.getLogger(__name__ + '.DesiInstall.identify_branch')
         self.is_branch = self.options.product_version.startswith('branches')
         self.is_trunk = (self.options.product_version == 'trunk' or
                          self.options.product_version == 'master')
@@ -416,8 +394,8 @@ class DesiInstall(object):
             else:
                 self.product_url = join(self.fullproduct, 'tags',
                                         self.options.product_version)
-        log.debug("Using {0} as the URL of this product.".format(
-                  self.product_url))
+        self.log.debug("Using %s as the URL of this product.",
+                       self.product_url)
         return self.product_url
 
     def verify_url(self, svn='svn'):
@@ -438,7 +416,6 @@ class DesiInstall(object):
         DesiInstallException
             If the subversion URL could not be found.
         """
-        log = logging.getLogger(__name__ + '.DesiInstall.verify_url')
         if self.github:
             try:
                 r = requests.head(self.product_url)
@@ -446,20 +423,20 @@ class DesiInstall(object):
             except requests.exceptions.HTTPError:
                 message = ("Error {0:d} querying GitHub URL: " +
                            "{1}.").format(r.status_code, self.product_url)
-                log.critical(message)
+                self.log.critical(message)
                 raise DesiInstallException(message)
         else:
             command = [svn, '--non-interactive', '--username',
                        self.options.username, 'ls', self.product_url]
-            log.debug(' '.join(command))
+            self.log.debug(' '.join(command))
             proc = Popen(command, universal_newlines=True,
                          stdout=PIPE, stderr=PIPE)
             out, err = proc.communicate()
-            log.debug(out)
+            self.log.debug(out)
             if len(err) > 0:
                 message = ("svn error while testing product URL: " +
                            "{0}.").format(err)
-                log.critical(message)
+                self.log.critical(message)
                 raise DesiInstallException(message)
         return True
 
@@ -474,13 +451,12 @@ class DesiInstall(object):
         DesiInstallException
             If any download errors are detected.
         """
-        log = logging.getLogger(__name__ + '.DesiInstall.get_code')
         self.working_dir = join(abspath('.'), '{0}-{1}'.format(
                                 self.baseproduct, self.baseversion))
         if isdir(self.working_dir):
-            log.info(("Detected old working directory, {0}. " +
-                     "Deleting...").format(self.working_dir))
-            log.debug("rmtree('{0}')".format(self.working_dir))
+            self.log.info("Detected old working directory, %s. Deleting...",
+                          self.working_dir)
+            self.log.debug("rmtree('%s')", self.working_dir)
             if not self.options.test:
                 rmtree(self.working_dir)
         if self.github:
@@ -494,50 +470,50 @@ class DesiInstall(object):
                         message = ("Branch {0} does not appear to exist. " +
                                    "HTTP response was {1:d}.").format(
                                    self.baseversion, r.status_code)
-                        log.critical(message)
+                        self.log.critical(message)
                         raise DesiInstallException(message)
                 command = ['git', 'clone', '-q', self.product_url,
                            self.working_dir]
-                log.debug(' '.join(command))
+                self.log.debug(' '.join(command))
                 if self.options.test:
                     out, err = 'Test Mode.', ''
                 else:
                     proc = Popen(command, universal_newlines=True,
                                  stdout=PIPE, stderr=PIPE)
                     out, err = proc.communicate()
-                log.debug(out)
+                self.log.debug(out)
                 if len(err) > 0:
                     message = ("git error while downloading product code: " +
                                err)
-                    log.critical(message)
+                    self.log.critical(message)
                     raise DesiInstallException(message)
                 if self.is_branch:
                     original_dir = getcwd()
-                    log.debug("chdir('{0}')".format(self.working_dir))
+                    self.log.debug("chdir('%s')", self.working_dir)
                     if not self.options.test:
                         chdir(self.working_dir)
                     command = ['git', 'checkout', '-q', '-b', self.baseversion,
                                'origin/'+self.baseversion]
-                    log.debug(' '.join(command))
+                    self.log.debug(' '.join(command))
                     if self.options.test:
                         out, err = 'Test Mode.', ''
                     else:
                         proc = Popen(command, universal_newlines=True,
                                      stdout=PIPE, stderr=PIPE)
                         out, err = proc.communicate()
-                    log.debug(out)
+                    self.log.debug(out)
                     if len(err) > 0:
                         message = ("git error while changing branch:" +
                                    " {0}".format(err))
-                        log.critical(message)
+                        self.log.critical(message)
                         raise DesiInstallException(message)
-                    log.debug("chdir('{0}')".format(original_dir))
+                    self.log.debug("chdir('%s')", original_dir)
                     if not self.options.test:
                         chdir(original_dir)
             else:
                 if self.options.test:
-                    log.debug("Test Mode. Skipping download of {0}".format(
-                              self.product_url))
+                    self.log.debug("Test Mode. Skipping download of %s.",
+                                   self.product_url)
                 else:
                     try:
                         r = requests.get(self.product_url)
@@ -546,7 +522,7 @@ class DesiInstall(object):
                         message = ("Error while downloading {0}, " +
                                    "HTTP response was {1:d}.").format(
                                    self.product_url, r.status_code)
-                        log.critical(message)
+                        self.log.critical(message)
                         raise DesiInstallException(message)
                     try:
                         tgz = StringIO(r.content)
@@ -563,7 +539,7 @@ class DesiInstall(object):
                                 self.working_dir = nov
                     except:
                         message = "tar error while expanding product code!"
-                        log.critical(message)
+                        self.log.critical(message)
                         raise DesiInstallException(message)
         else:
             if self.is_trunk or self.is_branch:
@@ -573,18 +549,18 @@ class DesiInstall(object):
             command = ['svn', '--non-interactive', '--username',
                        self.options.username, get_svn, self.product_url,
                        self.working_dir]
-            log.debug(' '.join(command))
+            self.log.debug(' '.join(command))
             if self.options.test:
                 out, err = 'Test Mode.', ''
             else:
                 proc = Popen(command, universal_newlines=True,
                              stdout=PIPE, stderr=PIPE)
                 out, err = proc.communicate()
-            log.debug(out)
+            self.log.debug(out)
             if len(err) > 0:
                 message = ("svn error while downloading product " +
                            "code: {0}".format(err))
-                log.critical(message)
+                self.log.critical(message)
                 raise DesiInstallException(message)
         return
 
@@ -597,21 +573,20 @@ class DesiInstall(object):
         :class:`set`
             A set containing the detected build types.
         """
-        log = logging.getLogger(__name__ + '.DesiInstall.build_type')
         build_type = set(['plain'])
         if self.options.force_build_type:
-            log.debug("Forcing build type: make")
+            self.log.debug("Forcing build type: make")
             build_type.add('make')
         else:
             if exists(join(self.working_dir, 'setup.py')):
-                log.debug("Detected build type: py")
+                self.log.debug("Detected build type: py")
                 build_type.add('py')
             if exists(join(self.working_dir, 'Makefile')):
-                log.debug("Detected build type: make")
+                self.log.debug("Detected build type: make")
                 build_type.add('make')
             else:
                 if isdir(join(self.working_dir, 'src')):
-                    log.debug("Detected build type: src")
+                    self.log.debug("Detected build type: src")
                     build_type.add('src')
         return build_type
 
@@ -658,7 +633,6 @@ class DesiInstall(object):
         :class:`str`
             The directory selected for installation.
         """
-        log = logging.getLogger(__name__ + '.DesiInstall.set_install_dir')
         try:
             self.nersc = environ['NERSC_HOST']
         except KeyError:
@@ -668,19 +642,19 @@ class DesiInstall(object):
                 self.options.root = self.default_nersc_dir()
             else:
                 message = "DESI_PRODUCT_ROOT is missing or not set."
-                log.critical(message)
+                self.log.critical(message)
                 raise DesiInstallException(message)
         self.install_dir = join(self.options.root, 'code', self.baseproduct,
                                 self.baseversion)
         if isdir(self.install_dir) and not self.options.test:
             if self.options.force:
-                log.debug("rmtree('{0}')".format(self.install_dir))
+                self.log.debug("rmtree('%s')", self.install_dir)
                 if not self.options.test:
                     rmtree(self.install_dir)
             else:
                 message = ("Install directory, {0}, already exists!".format(
                            self.install_dir))
-                log.critical(message)
+                self.log.critical(message)
                 raise DesiInstallException(message)
         return self.install_dir
 
@@ -693,17 +667,16 @@ class DesiInstall(object):
             ``True`` if the modules infrastructure was initialized
             successfully.
         """
-        log = logging.getLogger(__name__ + '.DesiInstall.start_modules')
         initpy_found = False
         module_method = init_modules(self.options.moduleshome, method=True)
         if module_method is None:
             message = ("Could not initialize Modules with MODULESHOME={0}!".format(
                        self.options.moduleshome))
-            log.critical(message)
+            self.log.critical(message)
             raise DesiInstallException(message)
         else:
-            log.debug("Initializing Modules with MODULESHOME={0}.".format(
-                      self.options.moduleshome))
+            self.log.debug("Initializing Modules with MODULESHOME=%s.",
+                           self.options.moduleshome)
             self.module = MethodType(module_method, self)
         return True
 
@@ -715,7 +688,6 @@ class DesiInstall(object):
         :class:`list`
             The list of dependencies.
         """
-        log = logging.getLogger(__name__ + '.DesiInstall.module_dependencies')
         self.module_file = join(self.working_dir, 'etc',
                                 self.baseproduct + '.module')
         if not exists(self.module_file):
@@ -725,10 +697,10 @@ class DesiInstall(object):
             except KeyError:
                 message = ("DESIUTIL is not set.  " +
                            "Is desiutil installed and loaded?")
-                log.critical(message)
+                self.log.critical(message)
                 raise DesiInstallException(message)
         if self.options.test:
-            log.debug('Test Mode. Skipping loading of dependencies.')
+            self.log.debug('Test Mode. Skipping loading of dependencies.')
             self.deps = list()
         else:
             self.deps = dependencies(self.module_file)
@@ -738,7 +710,7 @@ class DesiInstall(object):
                     m_command = 'switch'
                 else:
                     m_command = 'load'
-                log.debug("module('{0}', '{1}')".format(m_command, d))
+                self.log.debug("module('%s', '%s')", m_command, d)
                 self.module(m_command, d)
         return self.deps
 
@@ -778,7 +750,6 @@ class DesiInstall(object):
         :class:`str`
             The text of the processed module file.
         """
-        log = logging.getLogger(__name__ + '.DesiInstall.install_module')
         dev = False
         if 'py' in self.build_type:
             if self.is_trunk or self.is_branch:
@@ -786,9 +757,9 @@ class DesiInstall(object):
         else:
             if isdir(join(self.working_dir, 'py')):
                 dev = True
-        log.debug(("configure_module({0}, {1}, working_dir={2}, " +
-                  "dev={3})").format(self.baseproduct, self.baseversion,
-                  self.working_dir, dev))
+        self.log.debug("configure_module(%s, %s, working_dir=%s, dev=%s)",
+                       self.baseproduct, self.baseversion,
+                       self.working_dir, dev)
         self.module_keywords = configure_module(self.baseproduct,
                                                 self.baseversion,
                                                 join(self.options.root, 'code'),
@@ -802,32 +773,34 @@ class DesiInstall(object):
                 self.options.moduledir = join(self.options.root, 'modulefiles')
             else:
                 self.options.moduledir = self.nersc_module_dir
-                log.debug("nersc_module_dir set to {0}.".format(self.options.moduledir))
+                self.log.debug("nersc_module_dir set to %s.",
+                          self.options.moduledir)
             if not self.options.test:
                 if not isdir(self.options.moduledir):
-                    log.info("Creating Modules directory {0}.".format(
-                             self.options.moduledir))
+                    self.log.info("Creating Modules directory %s.",
+                                  self.options.moduledir)
+                    self.log.debug("makedirs('%s')", self.options.moduledir)
                     try:
                         makedirs(self.options.moduledir)
                     except OSError as ose:
-                        log.critical(ose.strerror)
+                        self.log.critical(ose.strerror)
                         raise DesiInstallException(ose.strerror)
         if self.options.test:
-            log.debug("Test Mode. Skipping Module file installation.")
+            self.log.debug("Test Mode. Skipping Module file installation.")
             mod = ''
         else:
             try:
-                log.debug(("process_module('{0}', self.module_keywords, " +
-                           "'{1}')").format(self.module_file,
-                                            self.options.moduledir))
+                self.log.debug(("process_module('%s', self.module_keywords, " +
+                                "'%s')"), self.module_file,
+                               self.options.moduledir)
                 mod = process_module(self.module_file, self.module_keywords,
                                      self.options.moduledir)
             except OSError as ose:
-                log.critical(ose.strerror)
+                self.log.critical(ose.strerror)
                 raise DesiInstallException(ose.strerror)
             if self.options.default:
-                log.debug(("default_module(self.module_keywords, " +
-                           "'{0}')".format(self.options.moduledir)))
+                self.log.debug("default_module(self.module_keywords, '%s')",
+                               self.options.moduledir)
                 dot_version = default_module(self.module_keywords,
                                              self.options.moduledir)
         return mod
@@ -840,7 +813,6 @@ class DesiInstall(object):
         :class:`str`
             The current working directory.  Because we're about to change it.
         """
-        log = logging.getLogger(__name__ + '.DesiInstall.prepare_environment')
         environ['WORKING_DIR'] = self.working_dir
         environ['INSTALL_DIR'] = self.install_dir
         if self.baseproduct == 'desiutil':
@@ -850,8 +822,8 @@ class DesiInstall(object):
                 m_command = 'switch'
             else:
                 m_command = 'load'
-            log.debug("module('{0}', '{1}/{2}')".format(m_command,
-                      self.baseproduct, self.baseversion))
+            self.log.debug("module('%s', '%s/%s')", m_command,
+                           self.baseproduct, self.baseversion)
             if not self.options.test:
                 self.module(m_command, self.baseproduct + '/' + self.baseversion)
         env_version = self.baseproduct.upper() + '_VERSION'
@@ -867,23 +839,22 @@ class DesiInstall(object):
 
         This is done here so that :envvar:`WORKING_DIR` is defined.
         """
-        log = logging.getLogger(__name__ + '.DesiInstall.get_extra')
         extra_script = join(self.working_dir, 'etc',
                             '{0}_data.sh'.format(self.baseproduct))
         if self.options.test:
-            log.debug('Test Mode. Skipping install of extra data.')
+            self.log.debug('Test Mode. Skipping install of extra data.')
         else:
             if exists(extra_script):
-                log.debug("Detected extra script: {0}.".format(extra_script))
+                self.log.debug("Detected extra script: %s.", extra_script)
                 proc = Popen([extra_script], universal_newlines=True,
                              stdout=PIPE, stderr=PIPE)
                 out, err = proc.communicate()
                 status = proc.returncode
-                log.debug(out)
+                self.log.debug(out)
                 # Temporarily ignore all error messages from script.
                 # if status != 0 and len(err) > 0:
                 #     message = "Error grabbing extra data: {0}".format(err)
-                #     log.critical(message)
+                #     self.log.critical(message)
                 #     raise DesiInstallException(message)
         return
 
@@ -895,9 +866,8 @@ class DesiInstall(object):
         :class:`bool`
             Returns ``True``.
         """
-        log = logging.getLogger(__name__ + '.DesiInstall.copy_install')
-        log.debug("copytree('{0}', '{1}')".format(
-                  self.working_dir, self.install_dir))
+        self.log.debug("copytree('%s', '%s')", self.working_dir,
+                       self.install_dir)
         if not self.options.test:
             copytree(self.working_dir, self.install_dir)
         return True
@@ -905,23 +875,22 @@ class DesiInstall(object):
     def install(self):
         """Run setup.py, etc.
         """
-        log = logging.getLogger(__name__ + '.DesiInstall.install')
         if (self.is_trunk or self.is_branch):
             if 'src' in self.build_type:
                 if self.options.test:
-                    log.debug("Test Mode. Skipping 'make'.")
+                    self.log.debug("Test Mode. Skipping 'make'.")
                 else:
                     chdir(self.install_dir)
                     command = ['make', '-C', 'src', 'all']
-                    log.info('Running "{0}" in {1}.'.format(
-                             ' '.join(command), self.install_dir))
+                    self.log.info('Running "%s" in %s.',
+                                  ' '.join(command), self.install_dir)
                     proc = Popen(command, universal_newlines=True,
                                  stdout=PIPE, stderr=PIPE)
                     out, err = proc.communicate()
-                    log.debug(out)
+                    self.log.debug(out)
                     if len(err) > 0:
                         message = "Error during compile: {0}".format(err)
-                        log.critical(message)
+                        self.log.critical(message)
                         raise DesiInstallException(message)
         else:
             #
@@ -938,13 +907,14 @@ class DesiInstall(object):
                                self.module_keywords['pyversion'],
                                'site-packages')
                 if self.options.test:
-                    log.debug(("Test Mode.  Skipping creation of " +
-                               "{0}.").format(lib_dir))
+                    self.log.debug("Test Mode.  Skipping creation of %s.",
+                                   lib_dir)
                 else:
+                    self.log.debug("makedirs('%s')", lib_dir)
                     try:
                         makedirs(lib_dir)
                     except OSError as ose:
-                        log.critical(ose.strerror)
+                        self.log.critical(ose.strerror)
                         raise DesiInstallException(ose.strerror)
                     if lib_dir not in path:
                         try:
@@ -959,15 +929,15 @@ class DesiInstall(object):
                 #
                 command = [executable, 'setup.py', 'install',
                            '--prefix={0}'.format(self.install_dir)]
-                log.debug(' '.join(command))
+                self.log.debug(' '.join(command))
                 if self.options.test:
-                    log.debug("Test Mode.  Skipping 'python setup.py install'.")
+                    self.log.debug("Test Mode.  Skipping 'python setup.py install'.")
                 else:
                     chdir(self.working_dir)
                     proc = Popen(command, universal_newlines=True,
                                  stdout=PIPE, stderr=PIPE)
                     out, err = proc.communicate()
-                    log.debug(out)
+                    self.log.debug(out)
                     if len(err) > 0:
                         #
                         # Some warnings can be produced by processing
@@ -988,7 +958,7 @@ class DesiInstall(object):
                         if len(lines) > 0:
                             message = ("Error during installation: " +
                                        "{0}".format("\n".join(lines)))
-                            log.critical(message)
+                            self.log.critical(message)
                             raise DesiInstallException(message)
             #
             # At this point either we have already completed a Python
@@ -1000,9 +970,9 @@ class DesiInstall(object):
                     command = ['make', '-C', 'src', 'all']
                 else:
                     command = ['make', 'install']
-                log.debug(' '.join(command))
+                self.log.debug(' '.join(command))
                 if self.options.test:
-                    log.debug("Test Mode.  Skipping 'make install'.")
+                    self.log.debug("Test Mode.  Skipping 'make install'.")
                 else:
                     if 'src' in self.build_type:
                         chdir(self.install_dir)
@@ -1011,10 +981,10 @@ class DesiInstall(object):
                     proc = Popen(command, universal_newlines=True,
                                  stdout=PIPE, stderr=PIPE)
                     out, err = proc.communicate()
-                    log.debug(out)
+                    self.log.debug(out)
                     if len(err) > 0:
                         message = "Error during compile: {0}".format(err)
-                        log.critical(message)
+                        self.log.critical(message)
                         raise DesiInstallException(message)
         return
 
@@ -1026,7 +996,6 @@ class DesiInstall(object):
         :class:`list`
             A list of the symlinks created.
         """
-        log = logging.getLogger(__name__ + '.DesiInstall.cross_install')
         links = list()
         if self.options.cross_install:
             cross_install_host = self.cross_install_host
@@ -1036,16 +1005,18 @@ class DesiInstall(object):
                                           'cross_install_host'):
                     cross_install_host = self.config.get("Cross Install",
                                                          'cross_install_host')
-                    log.debug("cross_install_host set to {0}.".format(cross_install_host))
+                    self.log.debug("cross_install_host set to %s.",
+                                   cross_install_host)
                 if self.config.has_option("Cross Install", 'nersc_hosts'):
                     nersc_hosts = self.config.get("Cross Install",
                                                   'nersc_hosts').split(',')
-                    log.debug("nersc_hosts set to {0}.".format(", ".join(nersc_hosts)))
+                    self.log.debug("nersc_hosts set to %s.",
+                                   ", ".join(nersc_hosts))
             if self.nersc is None:
-                log.error("Cross-installs are only supported at NERSC.")
+                self.log.error("Cross-installs are only supported at NERSC.")
             elif self.nersc != cross_install_host:
-                log.error("Cross-installs should be performed on {0}.".format(
-                          cross_install_host))
+                self.log.error("Cross-installs should be performed on %s.",
+                               cross_install_host)
             else:
                 for nh in nersc_hosts:
                     if nh == cross_install_host:
@@ -1063,7 +1034,7 @@ class DesiInstall(object):
                                    self.baseproduct)
                         links.append((src, dst))
                 for s, d in links:
-                    log.debug("symlink('{0}', '{1}')".format(s, d))
+                    self.log.debug("symlink('%s', '%s')", s, d)
                     if not self.options.test:
                         symlink(s, d)
         return links
@@ -1076,19 +1047,18 @@ class DesiInstall(object):
         :class:`int`
             Status code returned by fix_permissions.sh script.
         """
-        log = logging.getLogger(__name__+'.DesiInstall.permissions')
         command = ['fix_permissions.sh']
         if self.options.verbose:
             command.append('-v')
         if self.options.test:
             command.append('-t')
         command.append(self.install_dir)
-        log.debug(' '.join(command))
+        self.log.debug(' '.join(command))
         proc = Popen(command, universal_newlines=True,
                      stdout=PIPE, stderr=PIPE)
         out, err = proc.communicate()
         status = proc.returncode
-        log.debug(out)
+        self.log.debug(out)
         return status
 
     def cleanup(self):
@@ -1099,12 +1069,11 @@ class DesiInstall(object):
         :class:`bool`
             Returns ``True``
         """
-        log = logging.getLogger(__name__+'.DesiInstall.cleanup')
-        log.debug("chdir('{0}')".format(self.original_dir))
+        self.log.debug("chdir('%s')", self.original_dir)
         if not self.options.test:
             chdir(self.original_dir)
         if not self.options.keep:
-            log.debug("rmtree('{0}')".format(self.working_dir))
+            self.log.debug("rmtree('%s')", self.working_dir)
             if not self.options.test:
                 rmtree(self.working_dir)
         return True
@@ -1117,8 +1086,7 @@ class DesiInstall(object):
         :class:`int`
             An integer suitable for passing to :func:`sys.exit`.
         """
-        log = logging.getLogger(__name__ + '.DesiInstall.run')
-        log.debug('Commencing run().')
+        self.log.debug('Commencing run().')
         self.get_options()
         try:
             self.sanity_check()
@@ -1140,7 +1108,7 @@ class DesiInstall(object):
         except DesiInstallException:
             return 1
         self.cleanup()
-        log.debug('run() complete.')
+        self.log.debug('run() complete.')
         return 0
 
 
