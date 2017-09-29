@@ -9,10 +9,19 @@ import os
 import sys
 import shutil
 import unittest
+from tempfile import mkdtemp
 from distutils import log
 from setuptools import sandbox
 from ..setup import find_version_directory, get_version, update_version
 from .. import __version__ as desiutil_version
+
+
+skipMock = False
+try:
+    from unittest.mock import call, patch
+except ImportError:
+    # Python 2
+    skipMock = True
 
 
 class TestSetup(unittest.TestCase):
@@ -21,8 +30,6 @@ class TestSetup(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.data_dir = os.path.join(os.path.dirname(__file__), 't')
-        cls.setup_dir = os.path.abspath('.')
         cls.fake_name = 'frobulate'
         cls.original_dir = os.getcwd()
         # Workaround for https://github.com/astropy/astropy-helpers/issues/124
@@ -36,13 +43,11 @@ class TestSetup(unittest.TestCase):
 
     def setUp(self):
         os.chdir(self.original_dir)
+        self.setup_dir = mkdtemp()
 
     def tearDown(self):
         os.chdir(self.original_dir)
-        shutil.rmtree(os.path.join(self.setup_dir, self.fake_name),
-                      ignore_errors=True)
-        shutil.rmtree(os.path.join(self.data_dir, self.fake_name),
-                      ignore_errors=True)
+        shutil.rmtree(self.setup_dir, ignore_errors=True)
 
     def run_setup(self, *args, **kwargs):
         """In Python 3, on MacOS X, the import cache has to be invalidated
@@ -56,12 +61,13 @@ class TestSetup(unittest.TestCase):
                 import importlib
                 importlib.invalidate_caches()
 
+    @unittest.skipIf(skipMock, "Skipping test that requires unittest.mock.")
     def test_version(self):
         """Test python setup.py version.
         """
         path_index = int(sys.path[0] == '')
         sys.path.insert(path_index, os.path.abspath('./py'))
-        package_dir = os.path.join(self.data_dir, self.fake_name)
+        package_dir = os.path.join(self.setup_dir, self.fake_name)
         os.mkdir(package_dir)
         os.mkdir(os.path.join(package_dir, self.fake_name))
         os.mkdir(os.path.join(package_dir, '.git'))
@@ -85,14 +91,21 @@ setup(name="{0.fake_name}",
             i.write(init)
         os.chdir(package_dir)
         v_file = os.path.join(package_dir, self.fake_name, '_version.py')
-        self.run_setup('setup.py', ['version'])
-        self.assertTrue(os.path.exists(v_file))
-        self.run_setup('setup.py', ['version', '--tag', '1.2.3'])
-        with open(v_file) as v:
-            data = v.read()
-        self.assertEqual(data, "__version__ = '1.2.3'\n")
+        with patch('distutils.log.Log._log') as mock_log:
+            self.run_setup('setup.py', ['version'])
+            self.assertTrue(os.path.exists(v_file))
+            self.assertListEqual(mock_log.mock_calls,
+                                 [call(2, 'running %s', ('version',)),
+                                  call(2, 'Version is now 0.0.1.dev0.', ())])
+        with patch('distutils.log.Log._log') as mock_log:
+            self.run_setup('setup.py', ['version', '--tag', '1.2.3'])
+            with open(v_file) as v:
+                data = v.read()
+            self.assertEqual(data, "__version__ = '1.2.3'\n")
+            self.assertListEqual(mock_log.mock_calls,
+                                 [call(2, 'running %s', ('version',)),
+                                  call(2, 'Version is now 1.2.3.', ())])
         os.chdir(self.original_dir)
-        shutil.rmtree(package_dir)
         del sys.path[path_index]
 
     def test_find_version_directory(self):
@@ -101,14 +114,13 @@ setup(name="{0.fake_name}",
         #
         # Create a fake package
         #
-        save_py = os.path.isdir(os.path.join(self.setup_dir, 'py'))
         p = os.path.join(self.setup_dir, 'py', self.fake_name)
         os.makedirs(p)
+        os.chdir(self.setup_dir)
         f = find_version_directory(self.fake_name)
         self.assertEqual(p, f)
         os.rmdir(p)
-        if not save_py:
-            os.rmdir(os.path.join(self.setup_dir, 'py'))
+        os.rmdir(os.path.join(self.setup_dir, 'py'))
         p = os.path.join(self.setup_dir, self.fake_name)
         os.makedirs(p)
         f = find_version_directory(self.fake_name)
@@ -124,6 +136,7 @@ setup(name="{0.fake_name}",
         self.assertEqual(v, 'unknown')
         p = os.path.join(self.setup_dir, self.fake_name)
         os.makedirs(p)
+        os.chdir(self.setup_dir)
         try:
             v = get_version(self.fake_name)
         except (OSError, IOError):
@@ -134,6 +147,7 @@ setup(name="{0.fake_name}",
         self.assertTrue(os.path.exists(os.path.join(p, '_version.py')))
         os.remove(os.path.join(p, '_version.py'))
         os.rmdir(p)
+        os.chdir(self.original_dir)
         v = get_version('desiutil')
         self.assertEqual(v, desiutil_version)
 
@@ -142,6 +156,7 @@ setup(name="{0.fake_name}",
         """
         p = os.path.join(self.setup_dir, self.fake_name)
         os.makedirs(p)
+        os.chdir(self.setup_dir)
         try:
             update_version(self.fake_name)
         except (OSError, IOError):
@@ -168,11 +183,6 @@ setup(name="{0.fake_name}",
         os.makedirs(os.path.join(p, '.svn'))
         update_version(self.fake_name)
         self.assertTrue(os.path.exists(os.path.join(p2, '_version.py')))
-        os.remove(os.path.join(p2, '_version.py'))
-        os.rmdir(os.path.join(p, '.svn'))
-        os.chdir(self.original_dir)
-        os.rmdir(p2)
-        os.rmdir(p)
 
 
 def test_suite():
