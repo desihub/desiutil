@@ -85,6 +85,44 @@ class TestBrick(unittest.TestCase):
         self.assertEqual(np.max(b1[:,0])-np.min(b1[:,0]), 360.)
         self.assertTrue(np.all(b1[:,1] >= -90.))
 
+    def test_uneven_bricksize(self):
+        """Test with bricksizes that do not evenly divide 180 degrees."""
+        # Brick size that evenly divides 180 degrees
+        b = B.Bricks(bricksize=0.25)
+        r,d = b.brick_radec(0., 90.)
+        self.assertTrue(d <= 90.)
+
+        # Strange brick size
+        b = B.Bricks(bricksize=0.23)
+        r,d = b.brick_radec(0., 90.)
+        self.assertTrue(d <= 90.)
+
+        # If one row spans Dec=0, the number of bricks in that row
+        # used to be set incorrectly.  This happened for lots of
+        # different values, as low as 0.1 deg
+        bricksize = 9.97
+        b = B.Bricks(bricksize=bricksize)
+        a = b.brickarea(0., 0.)
+        self.assertTrue(np.sqrt(a) <= bricksize)
+        v = b.brickvertices(0., 0.)
+        # First two vertices are the bottom edge
+        d0,d1 = v[0,1],v[1,1]
+        self.assertTrue(d0 == d1)
+        d2 = v[2,1]
+        # Third vertex is positive Dec.
+        self.assertTrue((d0 < 0) and (d2 > 0))
+        # Thus the vertex spans Dec=0
+        # Measure the brick width at Dec=0 (the widest point)
+        r0,r1 = v[0,0],v[1,0]
+        self.assertTrue(np.abs(r1 - r0) <= bricksize)
+
+        # Big bricks (that don't evenly divide 180) could cause issues
+        # too
+        bricksize = 8.0
+        b = B.Bricks(bricksize=bricksize)
+        a = b.brickarea(0., 90.)
+        self.assertTrue(a <= bricksize**2)
+
     def test_brickarea_scalar(self):
         """Test scalar to brick area conversion.
         """
@@ -250,6 +288,26 @@ class TestBrick(unittest.TestCase):
         blat = B.brickname(0, 0, bricksize=0.25)
         self.assertEqual(B._bricks.bricksize, 0.25)
         B._bricks = None
+
+    def test_brick_radec_scalar(self):
+        """Test scalar to brick RA,Dec conversion.
+        """
+        b = B.Bricks(bricksize=1.)
+        ra,dec = b.brick_radec(0., 0.)
+        self.assertEqual(ra, 0.5)
+        self.assertEqual(dec, 0.)
+
+    def test_brick_radec_array(self):
+        """Test array to brick RA,Dec conversion.
+        """
+        b = B.Bricks(bricksize=1.)
+        ra,dec = b.brick_radec(np.array([0., 1.]), np.array([0.,0.]))
+        self.assertEqual(len(ra), 2)
+        self.assertEqual(len(dec), 2)
+        self.assertEqual(ra[0], 0.5)
+        self.assertEqual(dec[0], 0.)
+        self.assertEqual(ra[1], 1.5)
+        self.assertEqual(dec[1], 0.)
 
     def test_to_table(self):
         """Test conversion to table.
