@@ -2,7 +2,12 @@
 Change Log
 ==========
 
-1.9.7 (unreleased)
+1.9.8 (unreleased)
+------------------
+
+* No changes yet
+
+1.9.7 (2017-09-29)
 ------------------
 
 * Fixed some test failures that occurred in the NERSC environment and/or
