@@ -7,10 +7,19 @@ Change Log
 
 * Fixed some test failures that occurred in the NERSC environment and/or
   in an installed package, as opposed to a git checkout (PR `#80`_).
+* Fixed bug in :meth:`desiutil.brick.Bricks.brick_radec` handling scalar inputs
+  (PR `#81`_).
+* Fixed bugs that could cause bricks to be slightly too big, and that
+  incorrectly special-cased the north pole with brick sizes that don't
+  evenly divide 180 degrees (PR `#84`_).
 * Adds ``return_grid_data``` option to :func:``desiutil.plots.plot_sky_binned``
   (PR `#85`_).
+* Added tests of :mod:`desiutil.sklearn` (PR `#86`_).
 
 .. _`#80`: https://github.com/desihub/desiutil/pull/80
+.. _`#81`: https://github.com/desihub/desiutil/pull/81
+.. _`#84`: https://github.com/desihub/desiutil/pull/84
+.. _`#86`: https://github.com/desihub/desiutil/pull/86
 .. _`#85`: https://github.com/desihub/desiutil/pull/85
 
 
@@ -29,7 +38,6 @@ Change Log
 * Improved correctness and functionality of :mod:`desiutil.brick` (PR `#74`_).
 
 .. _`#74`: https://github.com/desihub/desiutil/pull/74
-
 
 1.9.4 (2017-06-01)
 ------------------
