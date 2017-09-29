@@ -7,8 +7,11 @@ Change Log
 
 * Fixed some test failures that occurred in the NERSC environment and/or
   in an installed package, as opposed to a git checkout (PR `#80`_).
+* Adds ``return_grid_data``` option to ``desiutil.plots.plot_sky_binned()``
+  (PR `#85`_)
 
 .. _`#80`: https://github.com/desihub/desiutil/pull/80
+.. _`#85`: https://github.com/desihub/desiutil/pull/85
 
 
 1.9.6 (2017-07-12)
