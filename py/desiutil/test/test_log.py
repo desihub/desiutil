@@ -4,6 +4,7 @@
 """
 from __future__ import absolute_import, print_function
 import os
+import re
 import unittest
 from logging import NullHandler
 from logging.handlers import MemoryHandler
@@ -45,6 +46,17 @@ class TestLog(unittest.TestCase):
         if 'DESI_LOGLEVEL' in os.environ:
             cls.desi_loglevel = os.environ['DESI_LOGLEVEL']
             del os.environ['DESI_LOGLEVEL']
+        cls.fmtre = re.compile(r"""
+        ^(DEBUG|INFO|WARNING|ERROR|CRITICAL)              # level
+        (:|\s--\s)                                        # delimiter
+        test_log\.py                                      # the module
+        (:|\s--\s)                                        # delimiter
+        (\d+)                                             # line number
+        (:|\s--\s)                                        # delimiter
+        (run_logs|test_log_context)                       # function
+        ((:|\s--\s)\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}|)  # optional timetamp
+        :\s                                               # start of message
+        """, re.VERBOSE)
 
     @classmethod
     def tearDown(self):
@@ -64,7 +76,13 @@ class TestLog(unittest.TestCase):
     def assertLog(self, logger, order=-1, message=''):
         """Examine the log messages.
         """
-        self.assertEqual(logger.handlers[0].buffer[order].msg, message)
+        handler = logger.handlers[0]
+        record = handler.buffer[order]
+        self.assertEqual(record.getMessage(), message)
+        formatted = handler.format(record)
+        if not skipMock:
+            # Cheating on Python 3 detection.
+            self.assertRegex(formatted, self.fmtre)
 
     def get_logger(self, level, **kwargs):
         """Get the actual logging object, but swap out its default handler.
