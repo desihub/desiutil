@@ -5,7 +5,8 @@ Change Log
 1.9.8 (unreleased)
 ------------------
 
-* No changes yet
+* Adds redrock, surveysim, desisurvey, and healpy to dependency version checks.
+* Adds redrock and surveysim to known products for installation.
 
 1.9.7 (2017-09-29)
 ------------------
