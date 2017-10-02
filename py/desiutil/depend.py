@@ -135,9 +135,9 @@ def iterdep(header):
 # default possible dependencies to check in add_dependencies()
 possible_dependencies = [
     'numpy', 'scipy', 'astropy', 'yaml', 'matplotlib',
-    'requests', 'fitsio', 'h5py', 'mpi4py', 'psycopg2',
-    'desiutil', 'desispec', 'desitarget', 'desimodel', 'desisim',
-    'redmonster', 'specter', 'speclite', 'specsim',
+    'requests', 'fitsio', 'h5py', 'mpi4py', 'psycopg2', 'healpy',
+    'desiutil', 'desispec', 'desitarget', 'desimodel', 'desisim', 'desisurvey',
+    'redmonster', 'specter', 'speclite', 'specsim', 'surveysim', 'redrock',
     ]
 
 
