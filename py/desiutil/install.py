@@ -882,11 +882,10 @@ class DesiInstall(object):
                 out, err = proc.communicate()
                 status = proc.returncode
                 log.debug(out)
-                # Temporarily ignore all error messages from script.
-                # if status != 0 and len(err) > 0:
-                #     message = "Error grabbing extra data: {0}".format(err)
-                #     log.critical(message)
-                #     raise DesiInstallException(message)
+                if status != 0 and len(err) > 0:
+                    message = "Error grabbing extra data: {0}".format(err)
+                    log.critical(message)
+                    raise DesiInstallException(message)
         return
 
     def copy_install(self):
