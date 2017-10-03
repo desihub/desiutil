@@ -63,8 +63,10 @@ if [[ -n "${NERSC_HOST}" && -z "${py}" ]]; then
     # Make certain we are using the Python version associated with the
     # specified DESI+Anaconda stack.
     #
-    common_root=/global/common/${NERSC_HOST}/contrib/desi/desiconda/${anaconda}
-    software_root=/global/project/projectdirs/desi/software/${NERSC_HOST}/desiconda/${anaconda}
+    common_root=/global/common/software/desi/${NERSC_HOST}/desiconda/${anaconda}
+    # common_root=/global/common/${NERSC_HOST}/contrib/desi/desiconda/${anaconda}
+    # software_root=/global/project/projectdirs/desi/software/${NERSC_HOST}/desiconda/${anaconda}
+    software_root=${common_root}
     for d in ${common_root} ${software_root}; do
         if [[ -d ${d} ]]; then
             if [[ "${anaconda}" == "current" ]]; then

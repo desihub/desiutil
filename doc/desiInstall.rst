@@ -54,7 +54,7 @@ file::
     # cori_module_dir overrides the Module file install directory only
     # on cori.
     #
-    cori_module_dir = /global/common/cori/contrib/desi/test/modules
+    cori_module_dir = /global/common/software/desi/cori/test/modules
 
 Finally, desiInstall both reads and sets several environment variables.
 
@@ -234,13 +234,13 @@ install is taking place at NERSC, the top-level install directory is
 predetermined based on the value of :envvar:`NERSC_HOST`.
 
 edison
-    ``/global/common/edison/contrib/desi/desiconda/$DESICONDA_VERSION``
+    ``/global/common/software/desi/edison/desiconda/$DESICONDA_VERSION``
 cori
-    ``/global/common/cori/contrib/desi/desiconda/$DESICONDA_VERSION``
+    ``/global/common/software/desi/cori/desiconda/$DESICONDA_VERSION``
 datatran
-    ``/global/project/projectdirs/desi/software/datatran/desiconda/$DESICONDA_VERSION``
+    ``/global/common/software/desi/datatran/desiconda/$DESICONDA_VERSION``
 scigate
-    ``/global/project/projectdirs/desi/software/scigate/desiconda/$DESICONDA_VERSION``
+    ``/global/common/software/desi/scigate/desiconda/$DESICONDA_VERSION``
 
 At other locations, the user must set the environment variable
 :envvar:`DESI_PRODUCT_ROOT` to point to the equivalent directory.

@@ -292,10 +292,10 @@ class TestInstall(unittest.TestCase):
             old_desiconda = None
         v = self.desiInstall.anaconda_version()
         self.assertEqual(v, 'current')
-        environ['DESICONDA'] = '/global/common/cori/contrib/desi/desiconda/20170613-1.1.4-spectro/code/desiconda/20170613-1.1.4-spectro_conda'
+        environ['DESICONDA'] = '/global/common/software/desi/cori/desiconda/20170613-1.1.4-spectro/code/desiconda/20170613-1.1.4-spectro_conda'
         v = self.desiInstall.anaconda_version()
         self.assertEqual(v, '20170613-1.1.4-spectro')
-        environ['DESICONDA'] = '/global/common/cori/contrib/desi/desiconda/20170613-1.1.4-spectro/CODE/desiconda/20170613-1.1.4-spectro_conda'
+        environ['DESICONDA'] = '/global/common/software/desi/cori/desiconda/20170613-1.1.4-spectro/CODE/desiconda/20170613-1.1.4-spectro_conda'
         v = self.desiInstall.anaconda_version()
         self.assertEqual(v, 'current')
         if old_desiconda is None:
@@ -309,7 +309,7 @@ class TestInstall(unittest.TestCase):
         options = self.desiInstall.get_options(['desiutil', 'master'])
         self.desiInstall.nersc = 'edison'
         nersc_dir = self.desiInstall.default_nersc_dir()
-        edison_nersc_dir = '/global/common/edison/contrib/desi/desiconda/current'
+        edison_nersc_dir = '/global/common/software/desi/edison/desiconda/current'
         if 'DESICONDA' in environ:
             edison_nersc_dir = edison_nersc_dir.replace('current', self.desiInstall.anaconda_version())
         self.assertEqual(nersc_dir, edison_nersc_dir)
@@ -318,7 +318,7 @@ class TestInstall(unittest.TestCase):
                                                 'desiutil', 'master'])
         self.desiInstall.nersc = 'datatran'
         nersc_dir = self.desiInstall.default_nersc_dir()
-        self.assertEqual(nersc_dir, '/global/project/projectdirs/desi/software/datatran/desiconda/frobulate')
+        self.assertEqual(nersc_dir, '/global/common/software/desi/datatran/desiconda/frobulate')
 
     def test_set_install_dir(self):
         """Test the determination of the install directory.

@@ -173,10 +173,10 @@ class DesiInstall(object):
     """
     cross_install_host = 'edison'
     nersc_hosts = ('cori', 'edison', 'datatran', 'scigate')
-    default_nersc_dir_templates = {'edison': '/global/common/edison/contrib/desi/desiconda/{desiconda_version}',
-                                   'cori': '/global/common/cori/contrib/desi/desiconda/{desiconda_version}',
-                                   'datatran': '/global/project/projectdirs/desi/software/datatran/desiconda/{desiconda_version}',
-                                   'scigate': '/global/project/projectdirs/desi/software/scigate/desiconda/{desiconda_version}'}
+    default_nersc_dir_templates = {'edison': '/global/common/software/desi/edison/desiconda/{desiconda_version}',
+                                   'cori': '/global/common/software/desi/cori/desiconda/{desiconda_version}',
+                                   'datatran': '/global/common/software/desi/datatran/desiconda/{desiconda_version}',
+                                   'scigate': '/global/common/software/desi/scigate/desiconda/{desiconda_version}'}
 
     def __init__(self, test=False):
         """Bare-bones initialization.
