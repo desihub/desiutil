@@ -77,7 +77,7 @@ if [[ -n "${NERSC_HOST}" && -z "${py}" ]]; then
             fi
             py=${dd}/code/desiconda/${anaconda}_conda/bin/python
             if [[ ! -x ${py} ]]; then
-                echo "Python executable not found!"
+                echo "Python executable ${py} not found!"
                 exit 1
             fi
         fi
