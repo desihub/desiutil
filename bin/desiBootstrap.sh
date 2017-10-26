@@ -5,7 +5,7 @@
 function usage() {
     local execName=$(basename $0)
     (
-    echo "${execName} [-a VERSION] [-b BRANCH] [-c CONFIG] [-h] [-m MODULESHOME] [-p PYTHON] [-t] [-v]"
+    echo "${execName} [-a VERSION] [-b BRANCH] [-c CONFIG] [-h] [-K] [-m MODULESHOME] [-p PYTHON] [-t] [-v]"
     echo ""
     echo "Install desiutil on a bare system."
     echo ""
@@ -13,7 +13,7 @@ function usage() {
     echo "    -b = Switch to desiutil BRANCH before installing."
     echo "    -c = Pass CONFIG to desiInstall."
     echo "    -h = Print this message and exit."
-    echo "    -k = Install in a 'knl' version, e.g. coriknl."
+    echo "    -K = Install in a 'knl' version, e.g. coriknl."
     echo "    -m = Look for the Modules install in MODULESHOME."
     echo "    -p = Use the Python executable PYTHON (e.g. /opt/local/bin/python2.7)."
     echo "    -t = Test mode.  Do not make any changes.  Implies -v."
@@ -31,13 +31,13 @@ modules=''
 py=''
 test=''
 verbose=''
-while getopts a:b:c:hkm:p:tv argname; do
+while getopts a:b:c:hKm:p:tv argname; do
     case ${argname} in
         a) anaconda=${OPTARG} ;;
         b) branch=${OPTARG} ;;
         c) config="-c ${OPTARG}" ;;
         h) usage; exit 0 ;;
-        k) knl='knl' ;;
+        K) knl='knl' ;;
         m) modules=${OPTARG} ;;
         p) py=${OPTARG} ;;
         t) test='-t'; verbose='-v' ;;
