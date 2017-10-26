@@ -174,7 +174,7 @@ class DesiInstall(object):
     cross_install_host = 'edison'
     nersc_hosts = ('cori', 'edison', 'datatran', 'scigate')
     default_nersc_dir_templates = {'edison': '/global/common/software/desi/edison/desiconda/{desiconda_version}',
-                                   'cori': '/global/common/software/desi/cori/desiconda/{desiconda_version}',
+                                   'cori': '/global/common/software/desi/cori{knl}/desiconda/{desiconda_version}',
                                    'datatran': '/global/common/software/desi/datatran/desiconda/{desiconda_version}',
                                    'scigate': '/global/common/software/desi/scigate/desiconda/{desiconda_version}'}
 
@@ -254,6 +254,8 @@ class DesiInstall(object):
                             dest='force',
                             help=('Overwrite any existing installation of ' +
                                   'this product/version.'))
+        parser.add_argument('-K', '--knl', action='store_true', dest='knl',
+                            help='Support KNL versions of desiconda (e.g. coriknl).')
         parser.add_argument('-k', '--keep', action='store_true',
                             dest='keep',
                             help='Keep the exported build directory.')
@@ -649,8 +651,8 @@ class DesiInstall(object):
             Path to the host-specific install directory.
         """
         if nersc_host is None:
-            return self.default_nersc_dir_templates[self.nersc].format(desiconda_version=self.options.anaconda)
-        return self.default_nersc_dir_templates[nersc_host].format(desiconda_version=self.options.anaconda)
+            return self.default_nersc_dir_templates[self.nersc].format(knl=('', 'knl')[int(self.options.knl)], desiconda_version=self.options.anaconda)
+        return self.default_nersc_dir_templates[nersc_host].format(knl=('', 'knl')[int(self.options.knl)], desiconda_version=self.options.anaconda)
 
     def set_install_dir(self):
         """Decide on an install directory.
@@ -754,7 +756,7 @@ class DesiInstall(object):
             return None
         else:
             if self.baseproduct == 'desimodules':
-                nersc_module = join(self.default_nersc_dir_templates[self.nersc].format(desiconda_version='startup'),
+                nersc_module = join(self.default_nersc_dir_templates[self.nersc].format(knl=('', 'knl')[int(self.options.knl)], desiconda_version='startup'),
                                     'modulefiles')
             else:
                 nersc_module = join(self.default_nersc_dir(),

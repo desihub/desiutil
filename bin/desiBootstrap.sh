@@ -13,6 +13,7 @@ function usage() {
     echo "    -b = Switch to desiutil BRANCH before installing."
     echo "    -c = Pass CONFIG to desiInstall."
     echo "    -h = Print this message and exit."
+    echo "    -k = Install in a 'knl' version, e.g. coriknl."
     echo "    -m = Look for the Modules install in MODULESHOME."
     echo "    -p = Use the Python executable PYTHON (e.g. /opt/local/bin/python2.7)."
     echo "    -t = Test mode.  Do not make any changes.  Implies -v."
@@ -24,17 +25,19 @@ function usage() {
 #
 anaconda='current'
 branch=''
-modules=''
 config=''
+knl=''
+modules=''
 py=''
 test=''
 verbose=''
-while getopts a:b:c:hm:p:tv argname; do
+while getopts a:b:c:hkm:p:tv argname; do
     case ${argname} in
         a) anaconda=${OPTARG} ;;
         b) branch=${OPTARG} ;;
         c) config="-c ${OPTARG}" ;;
         h) usage; exit 0 ;;
+        k) knl='knl' ;;
         m) modules=${OPTARG} ;;
         p) py=${OPTARG} ;;
         t) test='-t'; verbose='-v' ;;
@@ -63,7 +66,7 @@ if [[ -n "${NERSC_HOST}" && -z "${py}" ]]; then
     # Make certain we are using the Python version associated with the
     # specified DESI+Anaconda stack.
     #
-    common_root=/global/common/software/desi/${NERSC_HOST}/desiconda/${anaconda}
+    common_root=/global/common/software/desi/${NERSC_HOST}${knl}/desiconda/${anaconda}
     # common_root=/global/common/${NERSC_HOST}/contrib/desi/desiconda/${anaconda}
     # software_root=/global/project/projectdirs/desi/software/${NERSC_HOST}/desiconda/${anaconda}
     software_root=${common_root}
@@ -83,7 +86,7 @@ if [[ -n "${NERSC_HOST}" && -z "${py}" ]]; then
         fi
     done
     if [[ -z "${py}" ]]; then
-        echo "Could not find Python executable associated with '${anaconda}' on ${NERSC_HOST}!"
+        echo "Could not find Python executable associated with '${anaconda}' on ${NERSC_HOST}${knl}!"
         exit 1
     fi
 fi
@@ -105,12 +108,17 @@ if [[ -z "${PYTHONPATH}" ]]; then
 else
     export PYTHONPATH=${DESIUTIL}/py:${PYTHONPATH}
 fi
-if [[ -z "${py}" ]]; then
-    [[ -n "${verbose}" ]] && echo desiInstall -a ${anaconda} -b ${config} ${test} ${verbose}
-    desiInstall -a ${anaconda} -b ${config} ${test} ${verbose}
+if [[ -n "${knl}" ]]; then
+    knlOpt='--knl'
 else
-    [[ -n "${verbose}" ]] && echo ${py} ${DESIUTIL}/bin/desiInstall -a ${anaconda} -b ${config} ${test} ${verbose}
-    ${py} ${DESIUTIL}/bin/desiInstall -a ${anaconda} -b ${config} ${test} ${verbose}
+    knlOpt=''
+fi
+if [[ -z "${py}" ]]; then
+    [[ -n "${verbose}" ]] && echo desiInstall -a ${anaconda} -b ${config} ${knlOpt} ${test} ${verbose}
+    desiInstall -a ${anaconda} -b ${config} ${knlOpt} ${test} ${verbose}
+else
+    [[ -n "${verbose}" ]] && echo ${py} ${DESIUTIL}/bin/desiInstall -a ${anaconda} -b ${config} ${knlOpt} ${test} ${verbose}
+    ${py} ${DESIUTIL}/bin/desiInstall -a ${anaconda} -b ${config} ${knlOpt} ${test} ${verbose}
 fi
 [[ -n "${verbose}" ]] && echo /bin/rm -rf ${DESIUTIL}
 /bin/rm -rf ${DESIUTIL}
