@@ -304,6 +304,14 @@ class TestInstall(unittest.TestCase):
         else:
             environ['DESICONDA'] = old_desiconda
 
+    def test_knl(self):
+        """Test the knl property.
+        """
+        options = self.desiInstall.get_options(['desiutil', 'master'])
+        self.assertEqual(self.desiInstall.knl, '')
+        options = self.desiInstall.get_options(['--knl', 'desiutil', 'master'])
+        self.assertEqual(self.desiInstall.knl, 'knl')
+
     def test_default_nersc_dir(self):
         """Test determination of the NERSC installation root.
         """

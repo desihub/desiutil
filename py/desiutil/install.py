@@ -619,6 +619,12 @@ class DesiInstall(object):
                     build_type.add('src')
         return build_type
 
+    @property
+    def knl(self):
+        """String for use in specifying the name of KNL-based installs.
+        """
+        return ('', 'knl')[int(self.options.knl)]
+
     def anaconda_version(self):
         """Try to determine the exact DESI+Anaconda version from the
         environment.
@@ -651,8 +657,8 @@ class DesiInstall(object):
             Path to the host-specific install directory.
         """
         if nersc_host is None:
-            return self.default_nersc_dir_templates[self.nersc].format(knl=('', 'knl')[int(self.options.knl)], desiconda_version=self.options.anaconda)
-        return self.default_nersc_dir_templates[nersc_host].format(knl=('', 'knl')[int(self.options.knl)], desiconda_version=self.options.anaconda)
+            return self.default_nersc_dir_templates[self.nersc].format(knl=self.knl, desiconda_version=self.options.anaconda)
+        return self.default_nersc_dir_templates[nersc_host].format(knl=self.knl, desiconda_version=self.options.anaconda)
 
     def set_install_dir(self):
         """Decide on an install directory.
@@ -756,7 +762,7 @@ class DesiInstall(object):
             return None
         else:
             if self.baseproduct == 'desimodules':
-                nersc_module = join(self.default_nersc_dir_templates[self.nersc].format(knl=('', 'knl')[int(self.options.knl)], desiconda_version='startup'),
+                nersc_module = join(self.default_nersc_dir_templates[self.nersc].format(knl=self.knl, desiconda_version='startup'),
                                     'modulefiles')
             else:
                 nersc_module = join(self.default_nersc_dir(),
