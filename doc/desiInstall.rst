@@ -234,13 +234,18 @@ install is taking place at NERSC, the top-level install directory is
 predetermined based on the value of :envvar:`NERSC_HOST`.
 
 edison
-    ``/global/common/software/desi/edison/desiconda/$DESICONDA_VERSION``
+    ``/global/common/software/desi/edison/desiconda/${DESICONDA_VERSION}``
 cori
-    ``/global/common/software/desi/cori/desiconda/$DESICONDA_VERSION``
+    ``/global/common/software/desi/cori/desiconda/${DESICONDA_VERSION}``
+coriknl
+    ``/global/common/software/desi/coriknl/desiconda/${DESICONDA_VERSION}``
 datatran
-    ``/global/common/software/desi/datatran/desiconda/$DESICONDA_VERSION``
+    ``/global/common/software/desi/datatran/desiconda/${DESICONDA_VERSION}``
 scigate
-    ``/global/common/software/desi/scigate/desiconda/$DESICONDA_VERSION``
+    ``/global/common/software/desi/scigate/desiconda/${DESICONDA_VERSION}``
+
+Note that to support KNL (`Knights Landing`_) versions of desiconda_,
+the ``--knl`` option must be passed to :command:`desiInstall`.
 
 At other locations, the user must set the environment variable
 :envvar:`DESI_PRODUCT_ROOT` to point to the equivalent directory.
@@ -253,6 +258,9 @@ If the install directory already exists, desiInstall will exit, unless the
 
 desiInstall will set the environment variable :envvar:`INSTALL_DIR` to point to the
 install directory.
+
+.. _`Knights Landing`: http://www.nersc.gov/news-publications/nersc-news/nersc-center-news/2016/nersc-staff-users-readying-for-delivery-of-cori-phase-2-knights-landing-based-system-in-july/
+.. _desiconda: https://github.com/desihub/desiconda
 
 Module Infrastructure
 ---------------------
