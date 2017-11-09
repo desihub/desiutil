@@ -7,6 +7,9 @@ Change Log
 
 * Adds redrock, surveysim, desisurvey, and healpy to dependency version checks.
 * Adds redrock and surveysim to known products for installation.
+* Fix team name in license file.
+* Support new ``/global/common/software`` filesystem at NERSC.
+* Support ``coriknl`` versions of desiconda_.
 
 1.9.7 (2017-09-29)
 ------------------
