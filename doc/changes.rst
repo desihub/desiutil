@@ -2,7 +2,7 @@
 Change Log
 ==========
 
-1.9.8 (unreleased)
+1.9.8 (2017-11-09)
 ------------------
 
 * Adds redrock, surveysim, desisurvey, and healpy to dependency version checks.
