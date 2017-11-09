@@ -50,6 +50,7 @@ known_products = {
     'desisim': 'https://github.com/desihub/desisim',
     'desispec': 'https://github.com/desihub/desispec',
     'desisurvey': 'https://github.com/desihub/desisurvey',
+    'surveysim': 'https://github.com/desihub/surveysim',
     'desitarget': 'https://github.com/desihub/desitarget',
     'desitemplate': 'https://github.com/desihub/desitemplate',
     'desitemplate_cpp': 'https://github.com/desihub/desitemplate_cpp',
@@ -59,6 +60,7 @@ known_products = {
     'fiberassign_sqlite': 'https://github.com/desihub/fiberassign_sqlite',
     'imaginglss': 'https://github.com/desihub/imaginglss',
     'redmonster': 'https://github.com/desihub/redmonster',
+    'redrock': 'https://github.com/desihub/redrock',
     'specex': 'https://github.com/desihub/specex',
     'speclite': 'https://github.com/dkirkby/speclite',
     'specsim': 'https://github.com/desihub/specsim',
@@ -165,10 +167,10 @@ class DesiInstall(object):
     """
     cross_install_host = 'edison'
     nersc_hosts = ('cori', 'edison', 'datatran', 'scigate')
-    default_nersc_dir_templates = {'edison': '/global/common/edison/contrib/desi/desiconda/{desiconda_version}',
-                                   'cori': '/global/common/cori/contrib/desi/desiconda/{desiconda_version}',
-                                   'datatran': '/global/project/projectdirs/desi/software/datatran/desiconda/{desiconda_version}',
-                                   'scigate': '/global/project/projectdirs/desi/software/scigate/desiconda/{desiconda_version}'}
+    default_nersc_dir_templates = {'edison': '/global/common/software/desi/edison{knl}/desiconda/{desiconda_version}',
+                                   'cori': '/global/common/software/desi/cori{knl}/desiconda/{desiconda_version}',
+                                   'datatran': '/global/common/software/desi/datatran/desiconda/{desiconda_version}',
+                                   'scigate': '/global/common/software/desi/scigate/desiconda/{desiconda_version}'}
 
     def __init__(self):
         """Bare-bones initialization.
@@ -236,6 +238,8 @@ class DesiInstall(object):
                             dest='force',
                             help=('Overwrite any existing installation of ' +
                                   'this product/version.'))
+        parser.add_argument('-K', '--knl', action='store_true', dest='knl',
+                            help='Support KNL versions of desiconda (e.g. coriknl).')
         parser.add_argument('-k', '--keep', action='store_true',
                             dest='keep',
                             help='Keep the exported build directory.')
@@ -590,6 +594,12 @@ class DesiInstall(object):
                     build_type.add('src')
         return build_type
 
+    @property
+    def knl(self):
+        """String for use in specifying the name of KNL-based installs.
+        """
+        return ('', 'knl')[int(self.options.knl)]
+
     def anaconda_version(self):
         """Try to determine the exact DESI+Anaconda version from the
         environment.
@@ -622,8 +632,8 @@ class DesiInstall(object):
             Path to the host-specific install directory.
         """
         if nersc_host is None:
-            return self.default_nersc_dir_templates[self.nersc].format(desiconda_version=self.options.anaconda)
-        return self.default_nersc_dir_templates[nersc_host].format(desiconda_version=self.options.anaconda)
+            return self.default_nersc_dir_templates[self.nersc].format(knl=self.knl, desiconda_version=self.options.anaconda)
+        return self.default_nersc_dir_templates[nersc_host].format(knl=self.knl, desiconda_version=self.options.anaconda)
 
     def set_install_dir(self):
         """Decide on an install directory.
@@ -724,7 +734,7 @@ class DesiInstall(object):
             return None
         else:
             if self.baseproduct == 'desimodules':
-                nersc_module = join(self.default_nersc_dir_templates[self.nersc].format(desiconda_version='startup'),
+                nersc_module = join(self.default_nersc_dir_templates[self.nersc].format(knl=self.knl, desiconda_version='startup'),
                                     'modulefiles')
             else:
                 nersc_module = join(self.default_nersc_dir(),
@@ -851,11 +861,10 @@ class DesiInstall(object):
                 out, err = proc.communicate()
                 status = proc.returncode
                 self.log.debug(out)
-                # Temporarily ignore all error messages from script.
-                # if status != 0 and len(err) > 0:
-                #     message = "Error grabbing extra data: {0}".format(err)
-                #     self.log.critical(message)
-                #     raise DesiInstallException(message)
+                if status != 0 and len(err) > 0:
+                    message = "Error grabbing extra data: {0}".format(err)
+                    self.log.critical(message)
+                    raise DesiInstallException(message)
         return
 
     def copy_install(self):

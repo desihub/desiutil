@@ -831,7 +831,8 @@ def plot_sky_circles(ra_center, dec_center, field_of_view=3.2, data=None,
 
 def plot_sky_binned(ra, dec, weights=None, data=None, plot_type='grid',
                     max_bin_area=5, clip_lo=None, clip_hi=None, verbose=False,
-                    cmap='viridis', colorbar=True, label=None, basemap=None):
+                    cmap='viridis', colorbar=True, label=None, basemap=None,
+                    return_grid_data=False):
     """Show objects on the sky using a binned plot.
 
     Bin values either show object counts per unit sky area or, if an array
@@ -881,12 +882,15 @@ def plot_sky_binned(ra, dec, weights=None, data=None, plot_type='grid',
     basemap : Basemap object or None
         Use the specified basemap or create a default basemap using
         :func:`init_sky` when None.
+    return_grid_data : bool
+        If true, return (basemap, grid_data) instead of just basemap
 
     Returns
     -------
-    basemap
+    basemap or (basemap, grid_data)
         The basemap used for the plot, which will match the input basemap
         provided, or be a newly created basemap if None was provided.
+        The grid_data plotted is also returned if return_grid_data is True.
     """
     ra = np.asarray(ra).reshape(-1)
     dec = np.asarray(dec).reshape(-1)
@@ -976,4 +980,7 @@ def plot_sky_binned(ra, dec, weights=None, data=None, plot_type='grid',
         basemap = plot_healpix_map(
             grid_data, nest, cmap, colorbar, label, basemap)
 
-    return basemap
+    if return_grid_data:
+        return basemap, grid_data
+    else:
+        return basemap
