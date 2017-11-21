@@ -5,8 +5,50 @@
 desiutil.log
 ============
 
-Utility functions to dump log messages. We can have something specific for
-DESI in the future but for now we use the standard Python.
+DESI-specific utility functions that wrap the standard :mod:`logging`
+module.
+
+This module is intended to support three different logging use patterns:
+
+1. Just get an easy-to-use, pre-configured logging object.
+2. Easily change the log level temporarily within a function.  This is
+   provided by a context manager.
+3. Change the default log level on the command-line.  This can actually be
+   accomplished in two ways: the command-line interpreter can call
+   :func:`~desiutil.log.get_logger` with the appropriate level, or
+   the environment variable :envvar:`DESI_LOGLEVEL` can be set.
+
+In addition, it is possible to add timestamps and change the delimiter of
+log messages as needed.  See the optional arguments to
+:func:`~desiutil.log.get_logger`.
+
+Examples
+--------
+
+Simplest possible use:
+
+>>> from desiutil.log import get_logger
+>>> log = get_logger()
+>>> log.info('This is some information.')
+
+Temporarily change the log level with a context manager:
+
+>>> from desiutil.log import get_logger, DesiLogContext, DEBUG
+>>> log = get_logger()  # defaults to INFO
+>>> log.info('This is some information.')
+>>> log.debug("This won't be logged.")
+>>> with DesiLogContext(log, DEBUG):
+...     log.debug("This will be logged.")
+>>> log.debug("This won't be logged.")
+
+Create the logger with a different log level:
+
+>>> from desiutil.log import get_logger, DEBUG
+>>> if options.debug:
+...     log = get_logger(DEBUG)
+>>> else:
+...     log = get_logger()
+
 """
 from __future__ import absolute_import, division, print_function
 import logging
@@ -87,8 +129,8 @@ def get_logger(level=None, timestamp=False, delimiter=':'):
     Notes
     -----
     * If environment variable :envvar:`DESI_LOGLEVEL` exists and has value
-      DEBUG, INFO, WARNING or ERROR (upper or lower case), it overules the level
-      argument.
+      DEBUG, INFO, WARNING, ERROR or CRITICAL (upper or lower case),
+      it overules the level argument.
     * If :envvar:`DESI_LOGLEVEL` is not set and `level` is ``None``,
       the default level is set to INFO.
     """
