@@ -42,8 +42,14 @@ class TestSetup(unittest.TestCase):
         log.set_threshold(cls.old_threshold)
 
     def setUp(self):
+        #
+        # MacOS note: os.path.abspath() is needed because /var is a
+        # symlink to /private/var, but $TMPDIR just has /var.
+        #
+        setup_dir = mkdtemp()
+        os.chdir(setup_dir)
+        self.setup_dir = os.path.abspath('.')
         os.chdir(self.original_dir)
-        self.setup_dir = mkdtemp()
 
     def tearDown(self):
         os.chdir(self.original_dir)

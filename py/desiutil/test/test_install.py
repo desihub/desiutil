@@ -131,9 +131,12 @@ class TestInstall(unittest.TestCase):
                            message="Called parse_args() with: -v product version")
         # Test missing environment:
         with patch.dict('os.environ', {'MODULESHOME': '/fake/module/directory'}):
+            if 'DESI_PRODUCT_ROOT' in environ:
+                del environ['DESI_PRODUCT_ROOT']
             options = self.desiInstall.get_options(['-v', 'product', 'version'])
             default_namespace.root = None
             self.assertEqual(options, default_namespace)
+        # self.assertIn('DESI_PRODUCT_ROOT', environ)
 
     @unittest.skipIf(skipMock, "Skipping test that requires unittest.mock.")
     def test_sanity_check(self):
