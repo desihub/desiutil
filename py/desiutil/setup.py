@@ -20,7 +20,7 @@ try:
     from setuptools.compat import PY3
 except ImportError:
     PY3 = version_info >= (3,)
-from setuptools.py31compat import unittest_main
+# from setuptools.py31compat import unittest_main
 from setuptools.command.test import test as BaseTest
 from pkg_resources import _namespace_packages
 from distutils.log import INFO, WARN, ERROR
@@ -127,7 +127,7 @@ class DesiTest(BaseTest, object):
                                     config_file=abspath(".coveragerc"))
             cov.start()
 
-        result = unittest_main(None, None,
+        result = unittest.main(None, None,
                                ([unittest.__file__] + self.test_args),
                                testLoader=self._resolve_as_ep(self.test_loader),
                                testRunner=self._resolve_as_ep(self.test_runner),
