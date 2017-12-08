@@ -63,8 +63,6 @@ def version(git='git'):
                   universal_newlines=True, stdout=PIPE, stderr=PIPE)
     except OSError:
         return myversion
-    except EnvironmentError:
-        return myversion
     out, err = p.communicate()
     if p.returncode != 0:
         return myversion
@@ -73,8 +71,6 @@ def version(git='git'):
         p = Popen([git, "rev-list", "--count", "HEAD"],
                   universal_newlines=True, stdout=PIPE, stderr=PIPE)
     except OSError:
-        return myversion
-    except EnvironmentError:
         return myversion
     out, err = p.communicate()
     if p.returncode != 0:

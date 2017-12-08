@@ -6,12 +6,15 @@ from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 # The line above will help with 2to3 support.
 import unittest
-from os import environ
-from os.path import abspath, dirname, isdir, join
-from subprocess import Popen, PIPE
-from shutil import rmtree
 # from pkg_resources import resource_filename
 from ..svn import last_revision, last_tag, version
+
+skipMock = False
+try:
+    from unittest.mock import call, DEFAULT, patch, Mock, PropertyMock
+except ImportError:
+    # Python 2
+    skipMock = True
 
 
 class TestSvn(unittest.TestCase):
@@ -20,118 +23,104 @@ class TestSvn(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        # Data directory
-        cls.data_dir = join(dirname(__file__), 't')
-        # Set up a dummy svn repository.
-        cls.svn_path = join(abspath(cls.data_dir), 'svn_test')
-        cls.svn_checkout_path = join(abspath(cls.data_dir), 'svn_test_co')
-        p = Popen(['which', 'svnadmin'], stdout=PIPE, stderr=PIPE)
-        out, err = p.communicate()
-        cls.has_subversion = p.returncode == 0
-        if cls.has_subversion:
-            try:
-                #
-                # It is possible for the *system* versions of svn and
-                # svnadmin to be out of sync at NERSC.
-                #
-                p = Popen(['svn', '--version'], stdout=PIPE, stderr=PIPE)
-                out, err = p.communicate()
-                svn_version = out.decode('ascii').split('\n')[0].split(',')[1].strip()
-                p = Popen(['svnadmin', '--version'], stdout=PIPE, stderr=PIPE)
-                out, err = p.communicate()
-                svnadmin_version = out.decode('ascii').split('\n')[0].split(',')[1].strip()
-                assert svn_version == svnadmin_version
-                cls.svn_url = 'file://' + cls.svn_path
-                p = Popen(['svnadmin', 'create', cls.svn_path],
-                          stdout=PIPE, stderr=PIPE)
-                out, err = p.communicate()
-                assert p.returncode == 0
-                p = Popen(['svn', 'mkdir', cls.svn_url + '/trunk',
-                          cls.svn_url + '/tags', cls.svn_url + '/branches',
-                          '-m', "Create initial structure."],
-                          stdout=PIPE, stderr=PIPE)
-                out, err = p.communicate()
-                assert p.returncode == 0
-                p = Popen(['svn', 'mkdir',
-                          cls.svn_url + '/tags/0.0.1',
-                          cls.svn_url + '/tags/0.1.0',
-                          cls.svn_url + '/tags/0.1.1',
-                          cls.svn_url + '/tags/0.2.0',
-                          cls.svn_url + '/tags/0.2.1',
-                          '-m', "Create tags."],
-                          stdout=PIPE, stderr=PIPE)
-                out, err = p.communicate()
-                assert p.returncode == 0
-                p = Popen(['svn', 'checkout', cls.svn_url,
-                          cls.svn_checkout_path],
-                          stdout=PIPE, stderr=PIPE)
-                out, err = p.communicate()
-                assert p.returncode == 0
-            except AssertionError:
-                cls.has_subversion = False
-                try:
-                    rmtree(cls.svn_path)
-                    rmtree(cls.svn_checkout_path)
-                except FileNotFoundError:
-                    pass
-            # Create an environment variable pointing to a dummy product.
-            if isdir(cls.svn_checkout_path):
-                if 'SVN_TEST_DIR' in environ:
-                    cls.old_svn_test_dir = environ['SVN_TEST_DIR']
-                else:
-                    cls.old_svn_test_dir = None
-                environ['SVN_TEST_DIR'] = cls.svn_checkout_path
+        pass
 
     @classmethod
     def tearDownClass(cls):
-        # Clean up svn repository.
-        if cls.has_subversion:
-            rmtree(cls.svn_path)
-            rmtree(cls.svn_checkout_path)
-            if cls.old_svn_test_dir is None:
-                del environ['SVN_TEST_DIR']
-            else:
-                environ['SVN_TEST_DIR'] = cls.old_svn_test_dir
+        pass
 
+    @unittest.skipIf(skipMock, "Skipping test that requires unittest.mock.")
     def test_last_revision(self):
         """Test svn revision number determination.
         """
-        n = last_revision('frobulate')
-        self.assertEqual(n, '0')
-        if self.has_subversion:
-            if 'FROBULATE' in environ:
-                old_frob = environ['FROBULATE']
-            else:
-                old_frob = None
-            environ['FROBULATE'] = self.data_dir
-            n = last_revision('frobulate')
+        from subprocess import PIPE
+        with patch('subprocess.Popen') as MockPopen:
+            process = Mock()
+            process.returncode = 0
+            process.communicate.return_value = ('Unversioned', '')
+            MockPopen.return_value = process
+            calls = [call(['svnversion', '-n', '.'],
+                          universal_newlines=True, stdout=PIPE, stderr=PIPE),
+                     call().communicate()]
+            n = last_revision()
             self.assertEqual(n, '0')
-            if old_frob is None:
-                del environ['FROBULATE']
-            else:
-                environ['FROBULATE'] = old_frob
+            MockPopen.assert_has_calls(calls)
+        with patch('subprocess.Popen') as MockPopen:
+            process = Mock()
+            process.returncode = 0
+            process.communicate.return_value = ('123:345', '')
+            MockPopen.return_value = process
+            calls = [call(['svnversion', '-n', '.'],
+                          universal_newlines=True, stdout=PIPE, stderr=PIPE),
+                     call().communicate()]
+            n = last_revision()
+            self.assertEqual(n, '345')
+            MockPopen.assert_has_calls(calls)
+        with patch('subprocess.Popen') as MockPopen:
+            process = Mock()
+            process.returncode = 0
+            process.communicate.return_value = ('345M', '')
+            MockPopen.return_value = process
+            calls = [call(['svnversion', '-n', '.'],
+                          universal_newlines=True, stdout=PIPE, stderr=PIPE),
+                     call().communicate()]
+            n = last_revision()
+            self.assertEqual(n, '345')
+            MockPopen.assert_has_calls(calls)
 
+    @unittest.skipIf(skipMock, "Skipping test that requires unittest.mock.")
     def test_last_tag(self):
         """Test the processing of svn tag lists.
         """
-        if self.has_subversion:
-            tag = last_tag(self.svn_url + '/tags')
-            self.assertEqual(tag, '0.2.1')
-            tag = last_tag(self.svn_url + '/tags', username=environ['USER'])
-            self.assertEqual(tag, '0.2.1')
-            tag = last_tag(self.svn_url + '/branches')
-            self.assertEqual(tag, '0.0.0')
+        from subprocess import PIPE
+        with patch('subprocess.Popen') as MockPopen:
+            process = Mock()
+            process.returncode = 0
+            process.communicate.return_value = ('0.0.1/\n0.0.2/\n0.0.3/\n', '')
+            MockPopen.return_value = process
+            calls = [call(['svn', '--non-interactive', 'ls', 'tags'],
+                          universal_newlines=True, stdout=PIPE, stderr=PIPE),
+                     call().communicate()]
+            n = last_tag('tags')
+            self.assertEqual(n, '0.0.3')
+            MockPopen.assert_has_calls(calls)
+        with patch('subprocess.Popen') as MockPopen:
+            process = Mock()
+            process.returncode = 0
+            process.communicate.return_value = ('0.0.1/\n0.0.2/\n0.0.3/\n', '')
+            MockPopen.return_value = process
+            calls = [call(['svn', '--non-interactive', '--username', 'foo', 'ls', 'tags'],
+                          universal_newlines=True, stdout=PIPE, stderr=PIPE),
+                     call().communicate()]
+            n = last_tag('tags', 'foo')
+            self.assertEqual(n, '0.0.3')
+            MockPopen.assert_has_calls(calls)
+        with patch('subprocess.Popen') as MockPopen:
+            process = Mock()
+            process.returncode = 0
+            process.communicate.return_value = ('', '')
+            MockPopen.return_value = process
+            calls = [call(['svn', '--non-interactive', '--username', 'foo', 'ls', 'tags'],
+                          universal_newlines=True, stdout=PIPE, stderr=PIPE),
+                     call().communicate()]
+            n = last_tag('tags', 'foo')
+            self.assertEqual(n, '0.0.0')
+            MockPopen.assert_has_calls(calls)
 
+    @unittest.skipIf(skipMock, "Skipping test that requires unittest.mock.")
     def test_version(self):
         """Test svn version parser.
         """
-        if self.has_subversion:
-            v = version('svn_test', url=self.svn_url)
-            self.assertEqual(v, '0.2.1.dev0',
-                             'Failed to extract version, got {0}.'.format(v))
-        v = version('foo_bar')
-        self.assertEqual(v, '0.0.1.dev0', ('Failed to return default ' +
-                         'version, got {0}.').format(v))
+        with patch.multiple('desiutil.svn', last_tag=DEFAULT, last_revision=DEFAULT) as patches:
+            with patch.dict('desiutil.install.known_products', {'foo': 'bar'}) as pd:
+                patches['last_revision'].return_value = '0'
+                patches['last_tag'].return_value = '1.2.3'
+                v = version('foo')
+                self.assertEqual(v, '1.2.3.dev0')
+                v = version('bar', url='baz')
+                self.assertEqual(v, '1.2.3.dev0')
+                v = version('frobulate')
+                self.assertEqual(v, '0.0.1.dev0')
 
 
 def test_suite():
