@@ -94,7 +94,10 @@ class DesiLogContext(object):
         # self.close = close
 
     def __enter__(self):
-        if self.level is not None:
+        if self.level is None:
+            warn("This context manager will not actually do anything!",
+                 DesiLogWarning)
+        else:
             self.old_level = self.logger.level
             self.logger.setLevel(self.level)
         # if self.handler:

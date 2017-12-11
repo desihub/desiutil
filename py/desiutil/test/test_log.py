@@ -205,6 +205,15 @@ class TestLog(unittest.TestCase):
         logger.info("This is an informational message.")
         logger.warning("This is a warning message.")
         self.assertLog(logger, 4, "This is a warning message.")
+        with catch_warnings(record=True) as w:
+            simplefilter('always')
+            with dul.DesiLogContext(logger):
+                logger.debug("This is a debugging message.")
+            self.assertEqual(len(w), 1)
+            self.assertTrue(issubclass(w[-1].category,
+                            UserWarning))
+            # print(w[-1].message)
+            self.assertTrue("This context manager will not actually do anything!" in str(w[-1].message))
 
 
 def test_suite():
