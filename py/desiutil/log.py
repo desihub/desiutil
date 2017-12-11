@@ -131,9 +131,12 @@ def get_logger(level=None, timestamp=False, delimiter=':'):
 
     Notes
     -----
-    * If environment variable :envvar:`DESI_LOGLEVEL` exists and has value
+    * If `level` is not ``None``, that sets the log level, overriding anything
+      else.
+    * If `level` is not set, and if the environment variable
+      :envvar:`DESI_LOGLEVEL` exists and has value
       DEBUG, INFO, WARNING, ERROR or CRITICAL (upper or lower case),
-      it overules the level argument.
+      that is used to set the log level.
     * If :envvar:`DESI_LOGLEVEL` is not set and `level` is ``None``,
       the default level is set to INFO.
     """
