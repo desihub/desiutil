@@ -117,7 +117,7 @@ def get_logger(level=None, timestamp=False, delimiter=':'):
 
     Parameters
     ----------
-    level : :class:`int`, optional
+    level : :class:`int` or :class:`str`, optional
         Debugging level.
     timestamp : :class:`bool`, optional
         If set, include a time stamp in the log message.
@@ -138,37 +138,38 @@ def get_logger(level=None, timestamp=False, delimiter=':'):
       the default level is set to INFO.
     """
     global desi_logger
-    try:
-        desi_level = environ["DESI_LOGLEVEL"]
-    except KeyError:
-        desi_level = None
-    if desi_level is not None and (desi_level != ""):
-        #
-        # Forcing the level to the value of DESI_LOGLEVEL,
-        # ignoring the requested logging level.
-        #
-        dico = {"DEBUG": DEBUG,
-                "INFO": INFO,
-                "WARNING": WARNING,
-                "ERROR": ERROR,
-                "CRITICAL": CRITICAL}
+    good_levels = {"DEBUG": DEBUG,
+                   "INFO": INFO,
+                   "WARNING": WARNING,
+                   "ERROR": ERROR,
+                   "CRITICAL": CRITICAL,
+                   DEBUG: DEBUG,
+                   INFO: INFO,
+                   WARNING: WARNING,
+                   ERROR: ERROR,
+                   CRITICAL: CRITICAL}
+    if level is None:
         try:
-            level = dico[desi_level.upper()]
+            level = environ["DESI_LOGLEVEL"].upper()
         except KeyError:
-            # Amusingly I would need the logger to dump a warning here
-            # but this recursion can be problematic.
-            message = ("Ignore DESI_LOGLEVEL='{0}' " +
-                       "(only recognize {1}).").format(desi_level,
-                                                       ', '.join(dico.keys()))
-            warn(message, DesiLogWarning)
+            level = INFO
+    else:
+        try:
+            level = level.upper()
+        except AttributeError:
+            # level should be an integer in this case.
+            pass
+    if level not in good_levels:
+        message = ("Ignore level='{0}' " +
+                   "(only recognize {1}).").format(str(level),
+                                                   ', '.join(map(str, good_levels.keys())))
+        warn(message, DesiLogWarning)
+        level = INFO
 
     if desi_logger is not None:
         if level is not None:
             desi_logger.setLevel(level)
         return desi_logger
-
-    if level is None:
-        level = INFO
 
     desi_logger = logging.getLogger("DESI")
 
