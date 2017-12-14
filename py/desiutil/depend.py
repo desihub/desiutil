@@ -127,10 +127,8 @@ def iterdep(header):
         if namekey in header:
             yield (header[namekey], header[verkey])
         else:
-            raise StopIteration
-
-    raise StopIteration
-
+            return
+    return
 
 # default possible dependencies to check in add_dependencies()
 possible_dependencies = [

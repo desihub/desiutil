@@ -78,6 +78,7 @@ matrix:
 
 before_install:
     - curl ipinfo.io
+    - python -c 'import setuptools; print(setuptools.__version__)'
 
 install:
     - if [[ $MAIN_CMD == 'pycodestyle' ]]; then pip install pycodestyle; fi

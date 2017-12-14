@@ -5,11 +5,56 @@
 desiutil.log
 ============
 
-Utility functions to dump log messages. We can have something specific for
-DESI in the future but for now we use the standard Python.
+DESI-specific utility functions that wrap the standard :mod:`logging`
+module.
+
+This module is intended to support three different logging use patterns:
+
+1. Just get an easy-to-use, pre-configured logging object.
+2. Easily change the log level temporarily within a function.  This is
+   provided by a context manager.
+3. Change the default log level on the command-line.  This can actually be
+   accomplished in two ways: the command-line interpreter can call
+   :func:`~desiutil.log.get_logger` with the appropriate level, or
+   the environment variable :envvar:`DESI_LOGLEVEL` can be set.
+
+In addition, it is possible to add timestamps and change the delimiter of
+log messages as needed.  See the optional arguments to
+:func:`~desiutil.log.get_logger`.
+
+Examples
+--------
+
+Simplest possible use:
+
+>>> from desiutil.log import get_logger
+>>> log = get_logger()
+>>> log.info('This is some information.')
+
+Temporarily change the log level with a context manager:
+
+>>> from desiutil.log import get_logger, DesiLogContext, DEBUG
+>>> log = get_logger()  # defaults to INFO
+>>> log.info('This is some information.')
+>>> log.debug("This won't be logged.")
+>>> with DesiLogContext(log, DEBUG):
+...     log.debug("This will be logged.")
+>>> log.debug("This won't be logged.")
+
+Create the logger with a different log level:
+
+>>> from desiutil.log import get_logger, DEBUG
+>>> if options.debug:
+...     log = get_logger(DEBUG)
+>>> else:
+...     log = get_logger()
+
 """
 from __future__ import absolute_import, division, print_function
 import logging
+from os import environ
+from sys import stdout
+from warnings import warn
 
 desi_logger = None
 
@@ -24,12 +69,55 @@ CRITICAL = logging.CRITICAL  # A serious error, indicating that the program itse
 # see example of usage in test/test_log.py
 
 
+class DesiLogWarning(UserWarning):
+    """Warnings related to misconfiguration of the DESI logging object.
+    """
+    pass
+
+
+class DesiLogContext(object):
+    """Provides a context manager to temporarily change the log level of
+    an existing logging object.
+
+    Parameters
+    ----------
+    logger : :class:`logging.Logger`
+        Logging object.
+    level : :class:`int`, optional
+        The logging level to set.  If it is not set, this whole class
+        does nothing.
+    """
+    def __init__(self, logger, level=None):  # , handler=None, close=True):
+        self.logger = logger
+        self.level = level
+        # self.handler = handler
+        # self.close = close
+
+    def __enter__(self):
+        if self.level is None:
+            warn("This context manager will not actually do anything!",
+                 DesiLogWarning)
+        else:
+            self.old_level = self.logger.level
+            self.logger.setLevel(self.level)
+        # if self.handler:
+        #     self.logger.addHandler(self.handler)
+
+    def __exit__(self, et, ev, tb):
+        if self.level is not None:
+            self.logger.setLevel(self.old_level)
+        # if self.handler:
+        #     self.logger.removeHandler(self.handler)
+        # if self.handler and self.close:
+        #     self.handler.close()
+
+
 def get_logger(level=None, timestamp=False, delimiter=':'):
     """Returns a default DESI logger.
 
     Parameters
     ----------
-    level : :class:`int`, optional
+    level : :class:`int` or :class:`str`, optional
         Debugging level.
     timestamp : :class:`bool`, optional
         If set, include a time stamp in the log message.
@@ -43,46 +131,48 @@ def get_logger(level=None, timestamp=False, delimiter=':'):
 
     Notes
     -----
-    * If environment variable :envvar:`DESI_LOGLEVEL` exists and has value
-      DEBUG, INFO, WARNING or ERROR (upper or lower case), it overules the level
-      argument.
+    * If `level` is not ``None``, that sets the log level, overriding anything
+      else.
+    * If `level` is not set, and if the environment variable
+      :envvar:`DESI_LOGLEVEL` exists and has value
+      DEBUG, INFO, WARNING, ERROR or CRITICAL (upper or lower case),
+      that is used to set the log level.
     * If :envvar:`DESI_LOGLEVEL` is not set and `level` is ``None``,
       the default level is set to INFO.
     """
-    from os import environ
-    from sys import stdout
     global desi_logger
-    try:
-        desi_level = environ["DESI_LOGLEVEL"]
-    except KeyError:
-        desi_level = None
-    if desi_level is not None and (desi_level != ""):
-        #
-        # Forcing the level to the value of DESI_LOGLEVEL,
-        # ignoring the requested logging level.
-        #
-        desi_level = desi_level.upper()
-        dico = {"DEBUG": DEBUG,
-                "INFO": INFO,
-                "WARNING": WARNING,
-                "ERROR": ERROR}
+    good_levels = {"DEBUG": DEBUG,
+                   "INFO": INFO,
+                   "WARNING": WARNING,
+                   "ERROR": ERROR,
+                   "CRITICAL": CRITICAL,
+                   DEBUG: DEBUG,
+                   INFO: INFO,
+                   WARNING: WARNING,
+                   ERROR: ERROR,
+                   CRITICAL: CRITICAL}
+    if level is None:
         try:
-            level = dico[desi_level]
+            level = environ["DESI_LOGLEVEL"].upper()
         except KeyError:
-            # Amusingly I would need the logger to dump a warning here
-            # but this recursion can be problematic.
-            message = ("Ignore DESI_LOGLEVEL='{0}' " +
-                       "(only recognize {1}).").format(desi_level,
-                                                       ', '.join(dico.keys()))
-            print(message)
+            level = INFO
+    else:
+        try:
+            level = level.upper()
+        except AttributeError:
+            # level should be an integer in this case.
+            pass
+    if level not in good_levels:
+        message = ("Ignore level='{0}' " +
+                   "(only recognize {1}).").format(str(level),
+                                                   ', '.join(map(str, good_levels.keys())))
+        warn(message, DesiLogWarning)
+        level = INFO
 
     if desi_logger is not None:
         if level is not None:
             desi_logger.setLevel(level)
         return desi_logger
-
-    if level is None:
-        level = INFO
 
     desi_logger = logging.getLogger("DESI")
 

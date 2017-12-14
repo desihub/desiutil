@@ -69,14 +69,16 @@ class TestCensus(unittest.TestCase):
                 raise OSError(2, 'File not found', 'foo.txt')
             except OSError as e:
                 walk_error(e)
-            calls = [call.error("[Errno 2] File not found: 'foo.txt'")]
+            calls = [call.setLevel(20),
+                     call.error("[Errno 2] File not found: 'foo.txt'")]
             self.assertListEqual(mock.mock_calls, calls)
         with patch('desiutil.log.desi_logger') as mock:
             try:
                 raise OSError(2, 'File not found', 'foo.txt', None, 'bar.txt')
             except OSError as e:
                 walk_error(e)
-            calls = [call.error("[Errno 2] File not found: 'foo.txt' -> " +
+            calls = [call.setLevel(20),
+                     call.error("[Errno 2] File not found: 'foo.txt' -> " +
                                 "'bar.txt'")]
             self.assertListEqual(mock.mock_calls, calls)
 
@@ -108,7 +110,8 @@ class TestCensus(unittest.TestCase):
         #
         # Simulate a simple file.
         #
-        calls = [call.debug("os.stat('{0}')".format(fd)),
+        calls = [call.setLevel(20),
+                 call.debug("os.stat('{0}')".format(fd)),
                  call.warning("{0} does not have correct group id!".format(fd))]
         with patch('desiutil.log.desi_logger') as mock_log:
             with patch.dict('sys.modules', {'os': mock_os,
@@ -125,7 +128,8 @@ class TestCensus(unittest.TestCase):
         #
         # Simulate an internal link.
         #
-        calls = [call.debug("os.stat('{0}')".format(fd)),
+        calls = [call.setLevel(20),
+                 call.debug("os.stat('{0}')".format(fd)),
                  call.warning("{0} does not have correct group id!".format(fd)),
                  call.debug("os.lstat('{0}')".format(fd)),
                  call.warning("{0} does not have correct group id!".format(fd)),
@@ -150,7 +154,8 @@ class TestCensus(unittest.TestCase):
         #
         # Simulate an external link.
         #
-        calls = [call.debug("os.stat('{0}')".format(fd)),
+        calls = [call.setLevel(20),
+                 call.debug("os.stat('{0}')".format(fd)),
                  call.warning("{0} does not have correct group id!".format(fd)),
                  call.debug("os.lstat('{0}')".format(fd)),
                  call.warning("{0} does not have correct group id!".format(fd)),

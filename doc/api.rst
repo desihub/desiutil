@@ -29,6 +29,9 @@ desiutil API
 .. automodule:: desiutil.io
     :members:
 
+.. automodule:: desiutil.log
+    :members:
+
 .. automodule:: desiutil.modules
     :members:
 

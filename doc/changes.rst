@@ -5,7 +5,11 @@ Change Log
 1.9.9 (unreleased)
 ------------------
 
-* No changes yet.
+* Enhance :mod:`desiutil.log` with a context manager (PR `#92`_), and
+  change the way the log level is set.
+* Use :mod:`unittest.mock` to increase test coverage.
+
+.. _`#92`: https://github.com/desihub/desiutil/pull/92
 
 1.9.8 (2017-11-09)
 ------------------

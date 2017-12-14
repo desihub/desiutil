@@ -12,13 +12,8 @@ from __future__ import (absolute_import, division,
 # The line above will help with 2to3 support.
 
 
-def last_revision(product):
+def last_revision():
     """Get the svn revision number.
-
-    Parameters
-    ----------
-    product : :class:`str`
-        The name of the package.
 
     Returns
     -------
@@ -101,10 +96,10 @@ def version(productname, url=None):
     from .install import known_products
     if productname in known_products:
         myversion = (last_tag(known_products[productname]+'/tags') + '.dev' +
-                     last_revision(productname))
+                     last_revision())
     elif url is not None:
         myversion = (last_tag(url+'/tags') + '.dev' +
-                     last_revision(productname))
+                     last_revision())
     else:
         myversion = '0.0.1.dev0'
     return myversion
