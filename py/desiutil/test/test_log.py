@@ -6,7 +6,7 @@ from __future__ import absolute_import, print_function
 import os
 import re
 import unittest
-from logging import NullHandler
+from logging import getLogger, NullHandler
 from logging.handlers import MemoryHandler
 from warnings import catch_warnings, simplefilter
 
@@ -76,7 +76,8 @@ class TestLog(unittest.TestCase):
     def assertLog(self, logger, order=-1, message=''):
         """Examine the log messages.
         """
-        handler = logger.handlers[0]
+        root_logger = getLogger(logger.name.rsplit('.', 1)[0])
+        handler = root_logger.handlers[0]
         record = handler.buffer[order]
         self.assertEqual(record.getMessage(), message)
         formatted = handler.format(record)
@@ -88,15 +89,14 @@ class TestLog(unittest.TestCase):
         """Get the actual logging object, but swap out its default handler.
         """
         logger = dul.get_logger(level, **kwargs)
-        # actual_level = logger.level
-        while len(logger.handlers) > 0:
-            h = logger.handlers[0]
+        root_logger = getLogger(logger.name.rsplit('.', 1)[0])
+        while len(root_logger.handlers) > 0:
+            h = root_logger.handlers[0]
             fmt = h.formatter
-            logger.removeHandler(h)
+            root_logger.removeHandler(h)
         mh = TestHandler()
         mh.setFormatter(fmt)
-        logger.addHandler(mh)
-        # logger.setLevel(actual_level)
+        root_logger.addHandler(mh)
         return logger
 
     def run_logs(self, **kwargs):
@@ -126,7 +126,7 @@ class TestLog(unittest.TestCase):
                         self.assertTrue(issubclass(w[-1].category,
                                                    UserWarning))
                         # print(w[-1].message)
-                        self.assertTrue("Ignore level='FOOBAR'" in str(w[-1].message))
+                        self.assertIn("Invalid level='FOOBAR' ignored.", str(w[-1].message))
                     else:
                         self.assertEqual(logger.level, dul.WARNING)
             logger.debug("This is a debugging message.")
@@ -171,8 +171,7 @@ class TestLog(unittest.TestCase):
                 self.assertLog(logger, 0, "This is a warning message.")
                 self.assertLog(logger, 1, "This is an error message.")
                 self.assertLog(logger, 2, "This is a critical error message.")
-            logger.handlers[0].flush()
-            dul.desi_logger = None
+            getLogger(logger.name.rsplit('.', 1)[0]).handlers[0].flush()
 
     def test_log(self):
         """Test basic logging functionality.
@@ -185,6 +184,12 @@ class TestLog(unittest.TestCase):
         log1 = dul.get_logger()
         log2 = dul.get_logger()
         self.assertIs(log1, log2)
+
+    def test_log_singleton(self):
+        """Test the default pseudo-singleton created by the module.
+        """
+        log2 = dul.get_logger()
+        self.assertIs(log2, dul.log)
 
     @unittest.skipIf(skipMock, "Skipping test that requires unittest.mock.")
     def test_log_with_desi_loglevel(self):

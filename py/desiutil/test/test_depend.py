@@ -127,6 +127,23 @@ class TestDepend(unittest.TestCase):
 
         for name, version in iterdep(hdr):
             self.assertEqual(version, getdep(hdr, name))
+        #
+        # Test dependency index starting from one.
+        #
+        hdr = dict()
+        for j in range(1, 20):
+            hdr["DEPNAM{0:02d}".format(i)] = "test{0:03d}".format(i)
+            hdr["DEPVER{0:02d}".format(i)] = "v{0:d}.0.1".format(i)
+        y = Dependencies(hdr)
+        for name in y:
+            self.assertEqual(y[name], getdep(hdr, name))
+
+        for name, version in y.items():
+            self.assertEqual(version, getdep(hdr, name))
+
+        for name, version in iterdep(hdr):
+            self.assertEqual(version, getdep(hdr, name))
+
 
     def test_class(self):
         """Test the Dependencies object.
@@ -166,9 +183,11 @@ class TestDepend(unittest.TestCase):
         self.assertFalse(hasdep(hdr, 'quatlarm'))
 
         # no .__version__
-        add_dependencies(hdr, ['os.path', 'sys'])
+        add_dependencies(hdr, ['os.path', 'unittest', 'sys'])
         self.assertTrue(hasdep(hdr, 'os.path'))
         self.assertTrue(getdep(hdr, 'os.path').startswith('unknown'))
+        self.assertTrue(hasdep(hdr, 'unittest'))
+        self.assertTrue(getdep(hdr, 'unittest').startswith('unknown'))
         self.assertTrue(hasdep(hdr, 'sys'))
         self.assertTrue(getdep(hdr, 'sys').startswith('unknown'))
 

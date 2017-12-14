@@ -27,6 +27,11 @@ Examples
 
 Simplest possible use:
 
+>>> from desiutil.log import log
+>>> log.info('This is some information.')
+
+This is exactly equivalent to:
+
 >>> from desiutil.log import get_logger
 >>> log = get_logger()
 >>> log.info('This is some information.')
@@ -51,12 +56,31 @@ Create the logger with a different log level:
 
 """
 from __future__ import absolute_import, division, print_function
+import os
+import sys
 import logging
-from os import environ
-from sys import stdout
 from warnings import warn
 
-desi_logger = None
+
+_desiutil_log_root = dict()
+_good_levels = {'DEBUG': logging.DEBUG,
+                'INFO': logging.INFO,
+                'WARNING': logging.WARNING,
+                'ERROR': logging.ERROR,
+                'CRITICAL': logging.CRITICAL,
+                logging.DEBUG: logging.DEBUG,
+                logging.INFO: logging.INFO,
+                logging.WARNING: logging.WARNING,
+                logging.ERROR: logging.ERROR,
+                logging.CRITICAL: logging.CRITICAL,
+                }
+_level_children = {logging.DEBUG: 'debug',
+                   logging.INFO: 'info',
+                   logging.WARNING: 'warning',
+                   logging.ERROR: 'error',
+                   logging.CRITICAL: 'critical',
+                   }
+
 
 # Just for convenience to avoid importing logging, we duplicate the logging levels
 DEBUG = logging.DEBUG        # Detailed information, typically of interest only when diagnosing problems.
@@ -112,17 +136,49 @@ class DesiLogContext(object):
         #     self.handler.close()
 
 
+def _configure_root_logger(timestamp=False, delimiter=':'):
+    """Configure a root logger.
+
+    Parameters
+    ----------
+    timestamp : :class:`bool`, optional
+        If ``True``, add a timestamp to the log message.
+    delimiter : :class:`str`, optional
+        Use `delimiter` to separate fields in the log message (default ``:``).
+
+    Returns
+    -------
+    :class:`str`
+        The name of the root logger, suitable for input to :func:`logging.getLogger`.
+    """
+    root_name = "desiutil.log.dlm" + ''.join(map(str, map(ord, delimiter)))
+    if timestamp:
+        root_name += 'timestamp'
+    if root_name not in _desiutil_log_root:
+        ch = logging.StreamHandler(sys.stdout)
+        fmtfields = ['%(levelname)s', '%(filename)s', '%(lineno)s', '%(funcName)s']
+        if timestamp:
+            fmtfields.append('%(asctime)s')
+        fmt = delimiter.join(fmtfields)
+        formatter = logging.Formatter(fmt + ': %(message)s', datefmt='%Y-%m-%dT%H:%M:%S')
+        ch.setFormatter(formatter)
+        _desiutil_log_root[root_name] = logging.getLogger(root_name)
+        _desiutil_log_root[root_name].addHandler(ch)
+        _desiutil_log_root[root_name].setLevel(logging.INFO)
+    return root_name
+
+
 def get_logger(level=None, timestamp=False, delimiter=':'):
     """Returns a default DESI logger.
 
     Parameters
     ----------
     level : :class:`int` or :class:`str`, optional
-        Debugging level.
+        Set the logging level (default ``INFO``).
     timestamp : :class:`bool`, optional
-        If set, include a time stamp in the log message.
+        If ``True``, add a timestamp to the log message.
     delimiter : :class:`str`, optional
-        Use this string to separate fields in the log messages, default ':'.
+        Use `delimiter` to separate fields in the log messages (default ``:``).
 
     Returns
     -------
@@ -140,59 +196,27 @@ def get_logger(level=None, timestamp=False, delimiter=':'):
     * If :envvar:`DESI_LOGLEVEL` is not set and `level` is ``None``,
       the default level is set to INFO.
     """
-    global desi_logger
-    good_levels = {"DEBUG": DEBUG,
-                   "INFO": INFO,
-                   "WARNING": WARNING,
-                   "ERROR": ERROR,
-                   "CRITICAL": CRITICAL,
-                   DEBUG: DEBUG,
-                   INFO: INFO,
-                   WARNING: WARNING,
-                   ERROR: ERROR,
-                   CRITICAL: CRITICAL}
+    root_name = _configure_root_logger(timestamp=timestamp, delimiter=delimiter)
     if level is None:
         try:
-            level = environ["DESI_LOGLEVEL"].upper()
+            ul = os.environ["DESI_LOGLEVEL"].upper()
         except KeyError:
-            level = INFO
+            ul = logging.INFO
     else:
         try:
-            level = level.upper()
+            ul = level.upper()
         except AttributeError:
             # level should be an integer in this case.
-            pass
-    if level not in good_levels:
-        message = ("Ignore level='{0}' " +
-                   "(only recognize {1}).").format(str(level),
-                                                   ', '.join(map(str, good_levels.keys())))
+            ul = level
+    try:
+        gl = _good_levels[ul]
+    except KeyError:
+        message = "Invalid level='{0}' ignored.  Setting INFO.".format(str(ul))
         warn(message, DesiLogWarning)
-        level = INFO
+        gl = logging.INFO
+    log = logging.getLogger(root_name + '.' + _level_children[gl])
+    log.setLevel(gl)
+    return log
 
-    if desi_logger is not None:
-        if level is not None:
-            desi_logger.setLevel(level)
-        return desi_logger
 
-    desi_logger = logging.getLogger("DESI")
-
-    desi_logger.setLevel(level)
-
-    while len(desi_logger.handlers) > 0:
-        h = desi_logger.handlers[0]
-        desi_logger.removeHandler(h)
-
-    ch = logging.StreamHandler(stdout)
-
-    fmtfields = ['%(levelname)s', '%(filename)s', '%(lineno)s', '%(funcName)s']
-    if timestamp:
-        fmtfields.append('%(asctime)s')
-    fmt = delimiter.join(fmtfields)
-
-    formatter = logging.Formatter(fmt + ': %(message)s', datefmt='%Y-%m-%dT%H:%M:%S')
-
-    ch.setFormatter(formatter)
-
-    desi_logger.addHandler(ch)
-
-    return desi_logger
+log = get_logger()
