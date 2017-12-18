@@ -35,7 +35,7 @@ class TestHandler(MemoryHandler):
 
 
 class TestLog(unittest.TestCase):
-    """Test desispec.log
+    """Test desiutil.log
     """
 
     @classmethod
@@ -55,7 +55,7 @@ class TestLog(unittest.TestCase):
         (:|\s--\s)                                        # delimiter
         (run_logs|test_log_context)                       # function
         ((:|\s--\s)\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}|)  # optional timetamp
-        :\s                                               # start of message
+        (:|\s--\s)\s                                      # start of message
         """, re.VERBOSE)
 
     @classmethod

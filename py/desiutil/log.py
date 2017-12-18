@@ -159,8 +159,9 @@ def _configure_root_logger(timestamp=False, delimiter=':'):
         fmtfields = ['%(levelname)s', '%(filename)s', '%(lineno)s', '%(funcName)s']
         if timestamp:
             fmtfields.append('%(asctime)s')
-        fmt = delimiter.join(fmtfields)
-        formatter = logging.Formatter(fmt + ': %(message)s', datefmt='%Y-%m-%dT%H:%M:%S')
+        fmtfields.append(' %(message)s')
+        formatter = logging.Formatter(delimiter.join(fmtfields),
+                                      datefmt='%Y-%m-%dT%H:%M:%S')
         ch.setFormatter(formatter)
         _desiutil_log_root[root_name] = logging.getLogger(root_name)
         _desiutil_log_root[root_name].addHandler(ch)
