@@ -11,6 +11,7 @@ from os.path import dirname, isdir, join
 from shutil import rmtree
 from argparse import Namespace
 from tempfile import mkdtemp
+from logging import getLogger
 from pkg_resources import resource_filename
 from ..log import DEBUG
 from ..install import DesiInstall, DesiInstallException, dependencies
@@ -41,13 +42,14 @@ class TestInstall(unittest.TestCase):
         # Create a "fresh" DesiInstall object for every test.
         self.desiInstall = DesiInstall()
         # Replace the log handler with something that writes to memory.
-        while len(self.desiInstall.log.handlers) > 0:
-            h = self.desiInstall.log.handlers[0]
+        root_logger = getLogger(self.desiInstall.log.name.rsplit('.', 1)[0])
+        while len(root_logger.handlers) > 0:
+            h = root_logger.handlers[0]
             fmt = h.formatter
-            self.desiInstall.log.removeHandler(h)
+            root_logger.removeHandler(h)
         mh = TestHandler()
         mh.setFormatter(fmt)
-        self.desiInstall.log.addHandler(mh)
+        root_logger.addHandler(mh)
         self.desiInstall.log.setLevel(DEBUG)
         # Create a temporary directory.
         self.data_dir = mkdtemp()
@@ -58,7 +60,7 @@ class TestInstall(unittest.TestCase):
     def assertLog(self, order=-1, message=''):
         """Examine the log messages.
         """
-        handler = self.desiInstall.log.handlers[0]
+        handler = getLogger(self.desiInstall.log.name.rsplit('.', 1)[0]).handlers[0]
         record = handler.buffer[order]
         self.assertEqual(record.getMessage(), message)
 

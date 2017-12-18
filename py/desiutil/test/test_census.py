@@ -64,21 +64,23 @@ class TestCensus(unittest.TestCase):
         """Test error-handling function for os.walk().
         """
         from ..census import walk_error
-        with patch('desiutil.log.desi_logger') as mock:
+        with patch('desiutil.log.get_logger') as mock_get_logger:
+            mock = Mock()
+            mock_get_logger.return_value = mock
             try:
                 raise OSError(2, 'File not found', 'foo.txt')
             except OSError as e:
                 walk_error(e)
-            calls = [call.setLevel(20),
-                     call.error("[Errno 2] File not found: 'foo.txt'")]
+            calls = [call.error("[Errno 2] File not found: 'foo.txt'")]
             self.assertListEqual(mock.mock_calls, calls)
-        with patch('desiutil.log.desi_logger') as mock:
+        with patch('desiutil.log.get_logger') as mock_get_logger:
+            mock = Mock()
+            mock_get_logger.return_value = mock
             try:
                 raise OSError(2, 'File not found', 'foo.txt', None, 'bar.txt')
             except OSError as e:
                 walk_error(e)
-            calls = [call.setLevel(20),
-                     call.error("[Errno 2] File not found: 'foo.txt' -> " +
+            calls = [call.error("[Errno 2] File not found: 'foo.txt' -> " +
                                 "'bar.txt'")]
             self.assertListEqual(mock.mock_calls, calls)
 
@@ -110,12 +112,13 @@ class TestCensus(unittest.TestCase):
         #
         # Simulate a simple file.
         #
-        calls = [call.setLevel(20),
-                 call.debug("os.stat('{0}')".format(fd)),
+        calls = [call.debug("os.stat('{0}')".format(fd)),
                  call.warning("{0} does not have correct group id!".format(fd))]
-        with patch('desiutil.log.desi_logger') as mock_log:
+        mock_log = Mock()
+        with patch('desiutil.log.get_logger') as mock_get_logger:
             with patch.dict('sys.modules', {'os': mock_os,
                                             'os.path': mock_os.path}):
+                mock_get_logger.return_value = mock_log
                 mock_os.environ = dict()
                 mock_os.stat.return_value = s
                 mock_os.path.islink.return_value = False
@@ -128,15 +131,16 @@ class TestCensus(unittest.TestCase):
         #
         # Simulate an internal link.
         #
-        calls = [call.setLevel(20),
-                 call.debug("os.stat('{0}')".format(fd)),
+        calls = [call.debug("os.stat('{0}')".format(fd)),
                  call.warning("{0} does not have correct group id!".format(fd)),
                  call.debug("os.lstat('{0}')".format(fd)),
                  call.warning("{0} does not have correct group id!".format(fd)),
                  call.debug("Found internal link {0} -> {0}.link.".format(fd))]
-        with patch('desiutil.log.desi_logger') as mock_log:
+        mock_log = Mock()
+        with patch('desiutil.log.get_logger') as mock_get_logger:
             with patch.dict('sys.modules', {'os': mock_os,
                                             'os.path': mock_os.path}):
+                mock_get_logger.return_value = mock_log
                 mock_os.environ = dict()
                 mock_os.stat.return_value = s
                 mock_os.lstat.return_value = s
@@ -154,15 +158,16 @@ class TestCensus(unittest.TestCase):
         #
         # Simulate an external link.
         #
-        calls = [call.setLevel(20),
-                 call.debug("os.stat('{0}')".format(fd)),
+        calls = [call.debug("os.stat('{0}')".format(fd)),
                  call.warning("{0} does not have correct group id!".format(fd)),
                  call.debug("os.lstat('{0}')".format(fd)),
                  call.warning("{0} does not have correct group id!".format(fd)),
                  call.debug("Found external link {0} -> {1}.".format(fd, extlink))]
-        with patch('desiutil.log.desi_logger') as mock_log:
+        mock_log = Mock()
+        with patch('desiutil.log.get_logger') as mock_get_logger:
             with patch.dict('sys.modules', {'os': mock_os,
                                             'os.path': mock_os.path}):
+                mock_get_logger.return_value = mock_log
                 mock_os.environ = dict()
                 mock_os.stat.return_value = s
                 mock_os.lstat.return_value = s
