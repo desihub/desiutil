@@ -7,9 +7,13 @@ Change Log
 
 * Enhance :mod:`desiutil.log` with a context manager (PR `#92`_), and
   change the way the log level is set.
+* Avoid logging interference with :func:`desiutil.log.get_logger` is called
+  with different log levels (PR `#93`_).
 * Use :mod:`unittest.mock` to increase test coverage.
 
 .. _`#92`: https://github.com/desihub/desiutil/pull/92
+.. _`#93`: https://github.com/desihub/desiutil/pull/93
+
 
 1.9.8 (2017-11-09)
 ------------------
