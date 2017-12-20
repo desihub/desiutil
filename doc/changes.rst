@@ -2,7 +2,12 @@
 Change Log
 ==========
 
-1.9.9 (unreleased)
+1.9.10 (unreleased)
+-------------------
+
+* No changes yet.
+
+1.9.9 (2017-12-20)
 ------------------
 
 * Enhance :mod:`desiutil.log` with a context manager (PR `#92`_), and
