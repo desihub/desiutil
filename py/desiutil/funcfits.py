@@ -97,6 +97,9 @@ def func_fit(x, y, func, deg, xnorm=True, xmin=None, xmax=None, w=None, **kwargs
         Name of the fitting function:  polynomial, legendre, chebyshev, bspline.
     deg : :class:`int` or :class:`dict`
         Order of the fit.
+    xnorm : bool, optional
+      Normalize the x-values from -1 to 1?
+      This is *never* done for bspline
     xmin : :class:`float`, optional
         Minimum value in the array (or the left limit for a
         legendre/chebyshev polynomial).
@@ -113,12 +116,15 @@ def func_fit(x, y, func, deg, xnorm=True, xmin=None, xmax=None, w=None, **kwargs
     """
     # Normalize x values?
     if xnorm:
-        if xmin is None or xmax is None:
-            if x.size == 1:
-                xmin, xmax = -1.0, 1.0
-            else:
-                xmin, xmax = x.min(), x.max()
-        xv = 2.0 * (x-xmin)/(xmax-xmin) - 1.0
+        if func == 'bspline':  # Never normalized
+            xv = x
+        else:
+            if xmin is None or xmax is None:
+                if x.size == 1:
+                    xmin, xmax = -1.0, 1.0
+                else:
+                    xmin, xmax = x.min(), x.max()
+            xv = 2.0 * (x-xmin)/(xmax-xmin) - 1.0
     else:
         xv = x
     # Fit

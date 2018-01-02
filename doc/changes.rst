@@ -5,7 +5,7 @@ Change Log
 1.9.10 (unreleased)
 -------------------
 
-* No changes yet.
+* Add bspline to funcfits
 
 1.9.9 (2017-12-20)
 ------------------

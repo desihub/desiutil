@@ -39,6 +39,11 @@ class TestFuncFits(unittest.TestCase):
         x2 = np.linspace(0, np.pi, 100)
         y2 = func_val(x2, dfit)
         np.testing.assert_allclose(y2[50], 0.97854984428713754)
+        # Without xnorm
+        dfit = func_fit(x, y, 'polynomial', 3, xnorm=False)
+        x2 = np.linspace(0, np.pi, 100)
+        y2 = func_val(x2, dfit)
+        np.testing.assert_allclose(y2[50], 0.97854984428713698)
 
     def test_legendre_fit(self):
         """Test Legendre fit.
