@@ -23,27 +23,27 @@ def bspline_fit(x,y,order=3,knots=None,everyn=20,xmin=None,xmax=None,w=None,bksp
     """ bspline fit to x,y
     Primarily a wrapper to the scipy function
 
-    Parameters:
-    ---------
-    x: ndarray
-    y: ndarray
-    order: int
+    Parameters
+    ----------
+    x : :class:`~numpy.ndarray`
+    y : :class:`~numpy.ndarray`
+    order : :class:`int`
       deg of the spline.  Default=3 (cubic)
-    knots: ndarray, optional
+    knots : :class:`~numpy.ndarray`, optional
       Internal knots only.  External ones are added by scipy
-    everyn: int, optional
+    everyn : :class:`int`, optional
       Knot everyn good pixels, if used
-    xmin: float, optional
+    xmin : :class:`float`, optional
       Minimum value in the array  [both must be set to normalize]
-    xmax: float, optional
+    xmax: :class:`float`, optional
       Maximum value in the array  [both must be set to normalize]
-    w: ndarray, optional
+    w : :class:`~numpy.ndarray`, optional
       weights to be used in the fitting (weights = 1/sigma)
-    bkspace: float, optional
+    bkspace: :class:`float`, optional
       Spacing of breakpoints in units of x
 
-    Returns:
-    ---------
+    Returns
+    -------
     tck : tuple
       describes the bspline
     """
@@ -97,7 +97,7 @@ def func_fit(x, y, func, deg, xnorm=True, xmin=None, xmax=None, w=None, **kwargs
         Name of the fitting function:  polynomial, legendre, chebyshev, bspline.
     deg : :class:`int` or :class:`dict`
         Order of the fit.
-    xnorm : bool, optional
+    xnorm : :class:`bool`, optional
       Normalize the x-values from -1 to 1?
       This is *never* done for bspline
     xmin : :class:`float`, optional
