@@ -83,6 +83,7 @@ before_install:
 install:
     - if [[ $MAIN_CMD == 'pycodestyle' ]]; then pip install pycodestyle; fi
     - if [[ $SETUP_CMD == build_sphinx* ]]; then pip install Sphinx; fi
+    - if [[ $SETUP_CMD == build_sphinx* ]]; then pip install scipy; fi  # Ugly kludge by JXP
     - if [[ $MAIN_CMD == 'coverage' ]]; then pip install coverage coveralls; fi
     - if [[ $SETUP_CMD == 'test' || $MAIN_CMD == 'coverage' ]]; then pip install -r requirements.txt; fi
 
