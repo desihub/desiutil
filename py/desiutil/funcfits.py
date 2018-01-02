@@ -82,7 +82,7 @@ def bspline_fit(x,y,order=3,knots=None,everyn=20,xmin=None,xmax=None,w=None,bksp
     return tck
 
 
-def func_fit(x, y, func, deg, xmin=None, xmax=None, w=None, **kwargs):
+def func_fit(x, y, func, deg, xnorm=True, xmin=None, xmax=None, w=None, **kwargs):
     """Simple function fit to 2 arrays.
 
     Modified code originally from Ryan Cooke (PYPIT).
@@ -111,26 +111,30 @@ def func_fit(x, y, func, deg, xmin=None, xmax=None, w=None, **kwargs):
     :class:`dict`
         Dictionary describing the Fit including the coefficients.
     """
-    # Normalize
-    if xmin is None or xmax is None:
-        if x.size == 1:
-            xmin, xmax = -1.0, 1.0
-        else:
-            xmin, xmax = x.min(), x.max()
-    xv = 2.0 * (x-xmin)/(xmax-xmin) - 1.0
+    # Normalize x values?
+    if xnorm:
+        if xmin is None or xmax is None:
+            if x.size == 1:
+                xmin, xmax = -1.0, 1.0
+            else:
+                xmin, xmax = x.min(), x.max()
+        xv = 2.0 * (x-xmin)/(xmax-xmin) - 1.0
+    else:
+        xv = x
     # Fit
     fitters = {'polynomial': np.polynomial.polynomial.polyfit,
                'legendre': np.polynomial.legendre.legfit,
                'chebyshev': np.polynomial.chebyshev.chebfit}
 
     if func == "bspline":
-        fit = bspline_fit(x, y, order=deg, w=w, **kwargs) # Not using normalized xv
+        xnorm = False
+        fit = bspline_fit(xv, y, order=deg, w=w, **kwargs) # Not using normalized xv
     else:
         if func not in fitters.keys():
             raise ValueError("Not prepare for this type of fit")
         fit = fitters[func](xv, y, deg, w=w)
     # Finish
-    fit_dict = dict(coeff=fit, order=deg, func=func, xmin=xmin, xmax=xmax,
+    fit_dict = dict(coeff=fit, order=deg, func=func, xnorm=xnorm, xmin=xmin, xmax=xmax,
                 **kwargs)
     return fit_dict
 
@@ -150,7 +154,10 @@ def func_val(x, fit_dict):
     :class:`~numpy.ndarray`
         Array containing the values.
     """
-    xv = 2.0 * (x-fit_dict['xmin'])/(fit_dict['xmax']-fit_dict['xmin']) - 1.0
+    if fit_dict['xnorm']:
+        xv = 2.0 * (x-fit_dict['xmin'])/(fit_dict['xmax']-fit_dict['xmin']) - 1.0
+    else:
+        xv = x
     values = {'polynomial': np.polynomial.polynomial.polyval,
               'legendre': np.polynomial.legendre.legval,
               'chebyshev': np.polynomial.chebyshev.chebval}
