@@ -50,7 +50,6 @@ known_products = {
     'desisim': 'https://github.com/desihub/desisim',
     'desispec': 'https://github.com/desihub/desispec',
     'desisurvey': 'https://github.com/desihub/desisurvey',
-    'surveysim': 'https://github.com/desihub/surveysim',
     'desitarget': 'https://github.com/desihub/desitarget',
     'desitemplate': 'https://github.com/desihub/desitemplate',
     'desitemplate_cpp': 'https://github.com/desihub/desitemplate_cpp',
@@ -59,12 +58,14 @@ known_products = {
     'fiberassign': 'https://github.com/desihub/fiberassign',
     'fiberassign_sqlite': 'https://github.com/desihub/fiberassign_sqlite',
     'imaginglss': 'https://github.com/desihub/imaginglss',
+    'qlf': 'https://github.com/desihub/qlf',
     'redmonster': 'https://github.com/desihub/redmonster',
     'redrock': 'https://github.com/desihub/redrock',
     'specex': 'https://github.com/desihub/specex',
     'speclite': 'https://github.com/dkirkby/speclite',
     'specsim': 'https://github.com/desihub/specsim',
     'specter': 'https://github.com/desihub/specter',
+    'surveysim': 'https://github.com/desihub/surveysim',
     'bbspecsim': 'https://desi.lbl.gov/svn/code/spectro/bbspecsim',
     'desiAdmin': 'https://desi.lbl.gov/svn/code/tools/desiAdmin',
     'dspecsim': 'https://desi.lbl.gov/svn/code/spectro/dspecsim',
@@ -95,26 +96,14 @@ def dependencies(modulefile):
     ValueError
         If `modulefile` can't be found.
     """
-    nersc = 'NERSC_HOST' in environ
     if exists(modulefile):
         with open(modulefile) as m:
             lines = m.readlines()
-        raw_deps = [l.strip().split()[2] for l in lines if
-                    l.strip().startswith('module load')]
+        deps = [l.strip().split()[2] for l in lines if
+                l.strip().startswith('module load')]
     else:
         raise ValueError("Modulefile {0} does not exist!".format(modulefile))
-    if nersc:
-        hpcp_deps = [d for d in raw_deps if '-hpcp' in d]
-        for d in hpcp_deps:
-            nd = d.replace("-hpcp", "")
-            try:
-                raw_deps.remove(nd)
-            except ValueError:
-                pass
-        return raw_deps
-    else:
-        deps = [d for d in raw_deps if '-hpcp' not in d]
-        return deps
+    return deps
 
 
 class DesiInstallException(Exception):
@@ -136,8 +125,6 @@ class DesiInstall(object):
     config : :class:`~ConfigParser.SafeConfigParser`
         If an *optional* configuration file is specified on the command-line,
         this holds the object that reads it.
-    cross_install_host : :class:`str`
-        The NERSC host on which to perform cross-installs.
     default_nersc_dir_templates : :class:`dict`
         The default code and Modules install directory for every NERSC host.
     executable : :class:`str`
@@ -155,8 +142,6 @@ class DesiInstall(object):
         The log level.
     nersc : :class:`str`
         Holds the value of :envvar:`NERSC_HOST`, or ``None`` if not defined.
-    nersc_hosts : :func:`tuple`
-        The list of NERSC host names to be used for cross-installs.
     options : :class:`argparse.Namespace`
         The parsed command-line options.
     product_url : :class:`str`
@@ -165,12 +150,7 @@ class DesiInstall(object):
     test : :class:`bool`
         Captures the value of the `test` argument passed to the constructor.
     """
-    cross_install_host = 'edison'
-    nersc_hosts = ('cori', 'edison', 'datatran', 'scigate')
-    default_nersc_dir_templates = {'edison': '/global/common/software/desi/edison{knl}/desiconda/{desiconda_version}',
-                                   'cori': '/global/common/software/desi/cori{knl}/desiconda/{desiconda_version}',
-                                   'datatran': '/global/common/software/desi/datatran/desiconda/{desiconda_version}',
-                                   'scigate': '/global/common/software/desi/scigate/desiconda/{desiconda_version}'}
+    default_nersc_dir_template = '/global/common/software/desi/{nersc_host}{knl}/desiconda/{desiconda_version}'
 
     def __init__(self):
         """Bare-bones initialization.
@@ -198,20 +178,14 @@ class DesiInstall(object):
         """
         from argparse import ArgumentParser
         check_env = {'MODULESHOME': None,
-                     'DESI_PRODUCT_ROOT': None,
                      'USER': None,
                      'LANG': None}
         for e in check_env:
             try:
                 check_env[e] = environ[e]
             except KeyError:
-                if e == 'DESI_PRODUCT_ROOT' and 'NERSC_HOST' in environ:
-                    self.log.info('The environment variable DESI_PRODUCT_ROOT ' +
-                                  'is not set, but this is probably not a ' +
-                                  'problem at NERSC.')
-                else:
-                    self.log.warning('The environment variable %s is not set!',
-                                     e)
+                self.log.warning('The environment variable %s is not set!',
+                                 e)
         parser = ArgumentParser(description="Install DESI software.",
                                 prog=basename(argv[0]))
         parser.add_argument('-a', '--anaconda', action='store', dest='anaconda',
@@ -255,10 +229,9 @@ class DesiInstall(object):
                             help="Install module files in DIR.")
         parser.add_argument('-r', '--root', action='store',
                             dest='root',
-                            default=check_env['DESI_PRODUCT_ROOT'],
                             metavar='DIR',
-                            help=('Set or override the value of ' +
-                                  '$DESI_PRODUCT_ROOT'))
+                            help=('Override the root install directory.' +
+                                  '(e.g. if installing into $SCRATCH).'))
         parser.add_argument('-t', '--test', action='store_true',
                             dest='test',
                             help=('Test Mode..  Do not actually install ' +
@@ -273,10 +246,6 @@ class DesiInstall(object):
                             help='Print extra information.')
         parser.add_argument('-V', '--version', action='version',
                             version='%(prog)s ' + desiutilVersion)
-        parser.add_argument('-x', '--cross-install', action='store_true',
-                            dest='cross_install',
-                            help=('Make the install available on multiple ' +
-                                  'systems (e.g. NERSC).'))
         parser.add_argument('product', nargs='?',
                             default='NO PACKAGE',
                             help='Name of product to install.')
@@ -632,8 +601,12 @@ class DesiInstall(object):
             Path to the host-specific install directory.
         """
         if nersc_host is None:
-            return self.default_nersc_dir_templates[self.nersc].format(knl=self.knl, desiconda_version=self.options.anaconda)
-        return self.default_nersc_dir_templates[nersc_host].format(knl=self.knl, desiconda_version=self.options.anaconda)
+            return self.default_nersc_dir_template.format(nersc_host=self.nersc,
+                                                          knl=self.knl,
+                                                          desiconda_version=self.options.anaconda)
+        return self.default_nersc_dir_template.format(nersc_host=nersc_host,
+                                                      knl=self.knl,
+                                                      desiconda_version=self.options.anaconda)
 
     def set_install_dir(self):
         """Decide on an install directory.
@@ -651,7 +624,7 @@ class DesiInstall(object):
             if self.nersc is not None:
                 self.options.root = self.default_nersc_dir()
             else:
-                message = "DESI_PRODUCT_ROOT is missing or not set."
+                message = "Root install directory is missing or not set."
                 self.log.critical(message)
                 raise DesiInstallException(message)
         self.install_dir = join(self.options.root, 'code', self.baseproduct,
@@ -734,7 +707,7 @@ class DesiInstall(object):
             return None
         else:
             if self.baseproduct == 'desimodules':
-                nersc_module = join(self.default_nersc_dir_templates[self.nersc].format(knl=self.knl, desiconda_version='startup'),
+                nersc_module = join(self.default_nersc_dir_template.format(nersc_host=self.nersc, knl=self.knl, desiconda_version='startup'),
                                     'modulefiles')
             else:
                 nersc_module = join(self.default_nersc_dir(),
@@ -997,57 +970,6 @@ class DesiInstall(object):
                         raise DesiInstallException(message)
         return
 
-    def cross_install(self):
-        """Make package available on multiple hosts.
-
-        Returns
-        -------
-        :class:`list`
-            A list of the symlinks created.
-        """
-        links = list()
-        if self.options.cross_install:
-            cross_install_host = self.cross_install_host
-            nersc_hosts = self.nersc_hosts
-            if self.config is not None:
-                if self.config.has_option("Cross Install",
-                                          'cross_install_host'):
-                    cross_install_host = self.config.get("Cross Install",
-                                                         'cross_install_host')
-                    self.log.debug("cross_install_host set to %s.",
-                                   cross_install_host)
-                if self.config.has_option("Cross Install", 'nersc_hosts'):
-                    nersc_hosts = self.config.get("Cross Install",
-                                                  'nersc_hosts').split(',')
-                    self.log.debug("nersc_hosts set to %s.",
-                                   ", ".join(nersc_hosts))
-            if self.nersc is None:
-                self.log.error("Cross-installs are only supported at NERSC.")
-            elif self.nersc != cross_install_host:
-                self.log.error("Cross-installs should be performed on %s.",
-                               cross_install_host)
-            else:
-                for nh in nersc_hosts:
-                    if nh == cross_install_host:
-                        continue
-                    dst = join(self.default_nersc_dir(nh), 'code',
-                               self.baseproduct)
-                    if not islink(dst):
-                        src = join('..', cross_install_host,
-                                   self.baseproduct)
-                        links.append((src, dst))
-                    dst = join(self.default_nersc_dir(nh), 'modulefiles',
-                               self.baseproduct)
-                    if not islink(dst):
-                        src = join('..', cross_install_host,
-                                   self.baseproduct)
-                        links.append((src, dst))
-                for s, d in links:
-                    self.log.debug("symlink('%s', '%s')", s, d)
-                    if not self.options.test:
-                        symlink(s, d)
-        return links
-
     def permissions(self):
         """Fix possible install permission errors.
 
@@ -1112,7 +1034,6 @@ class DesiInstall(object):
             self.get_extra()
             self.copy_install()
             self.install()
-            self.cross_install()
             self.permissions()
         except DesiInstallException:
             return 1
