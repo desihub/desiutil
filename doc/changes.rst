@@ -5,7 +5,8 @@ Change Log
 1.9.10 (unreleased)
 -------------------
 
-* No changes yet.
+* Remove support for :command:`desiInstall` in environments other than
+  NERSC.
 
 1.9.9 (2017-12-20)
 ------------------
@@ -39,7 +40,7 @@ Change Log
 * Fixed bugs that could cause bricks to be slightly too big, and that
   incorrectly special-cased the north pole with brick sizes that don't
   evenly divide 180 degrees (PR `#84`_).
-* Adds ``return_grid_data``` option to :func:``desiutil.plots.plot_sky_binned``
+* Adds ``return_grid_data`` option to :func:`desiutil.plots.plot_sky_binned`
   (PR `#85`_).
 * Added tests of :mod:`desiutil.sklearn` (PR `#86`_).
 

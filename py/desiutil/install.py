@@ -96,14 +96,12 @@ def dependencies(modulefile):
     ValueError
         If `modulefile` can't be found.
     """
-    if exists(modulefile):
-        with open(modulefile) as m:
-            lines = m.readlines()
-        deps = [l.strip().split()[2] for l in lines if
-                l.strip().startswith('module load')]
-    else:
+    if not exists(modulefile):
         raise ValueError("Modulefile {0} does not exist!".format(modulefile))
-    return deps
+    with open(modulefile) as m:
+        lines = m.readlines()
+    return [l.strip().split()[2] for l in lines if
+            l.strip().startswith('module load')]
 
 
 class DesiInstallException(Exception):
@@ -125,7 +123,7 @@ class DesiInstall(object):
     config : :class:`~ConfigParser.SafeConfigParser`
         If an *optional* configuration file is specified on the command-line,
         this holds the object that reads it.
-    default_nersc_dir_templates : :class:`dict`
+    default_nersc_dir_template : :class:`str`
         The default code and Modules install directory for every NERSC host.
     executable : :class:`str`
         The command used to invoke the script.
@@ -138,8 +136,8 @@ class DesiInstall(object):
         ``True`` if a branch has been selected.
     is_trunk : :class:`bool`
         ``True`` if trunk or the master branch has been selected.
-    ll : :class:`int`
-        The log level.
+    log : :class:`logging.Logger`
+        Logging object.
     nersc : :class:`str`
         Holds the value of :envvar:`NERSC_HOST`, or ``None`` if not defined.
     options : :class:`argparse.Namespace`
@@ -179,7 +177,9 @@ class DesiInstall(object):
         from argparse import ArgumentParser
         check_env = {'MODULESHOME': None,
                      'USER': None,
-                     'LANG': None}
+                     'LANG': None,
+                     'DESICONDA': None,
+                     'NERSC_HOST': None}
         for e in check_env:
             try:
                 check_env[e] = environ[e]
@@ -201,7 +201,7 @@ class DesiInstall(object):
                                   "setup.py file is detected (WARNING: " +
                                   "this is for experts only)."))
         parser.add_argument('-c', '--configuration', action='store',
-                            dest='config_file', default='',
+                            dest='config_file',
                             metavar='FILE',
                             help=("Override built-in configuration with " +
                                   "data from FILE."))
@@ -224,7 +224,6 @@ class DesiInstall(object):
                             help='Set or override the value of $MODULESHOME')
         parser.add_argument('-M', '--module-dir', action='store',
                             dest='moduledir',
-                            default='',
                             metavar='DIR',
                             help="Install module files in DIR.")
         parser.add_argument('-r', '--root', action='store',
@@ -261,7 +260,7 @@ class DesiInstall(object):
             self.log.setLevel(DEBUG)
             self.log.debug('Set log level to DEBUG.')
         self.config = None
-        if self.options.config_file:
+        if self.options.config_file is not None:
             self.log.debug("Detected configuration file: %s.",
                            self.options.config_file)
             c = SafeConfigParser()
@@ -748,7 +747,7 @@ class DesiInstall(object):
                                                 join(self.options.root, 'code'),
                                                 working_dir=self.working_dir,
                                                 dev=dev)
-        if self.options.moduledir == '':
+        if self.options.moduledir is None:
             #
             # We didn't set a module dir, so derive it from options.root
             #
@@ -757,7 +756,7 @@ class DesiInstall(object):
             else:
                 self.options.moduledir = self.nersc_module_dir
                 self.log.debug("nersc_module_dir set to %s.",
-                          self.options.moduledir)
+                               self.options.moduledir)
             if not self.options.test:
                 if not isdir(self.options.moduledir):
                     self.log.info("Creating Modules directory %s.",
@@ -839,20 +838,6 @@ class DesiInstall(object):
                     self.log.critical(message)
                     raise DesiInstallException(message)
         return
-
-    def copy_install(self):
-        """Simply copying the files from the checkout to the install.
-
-        Returns
-        -------
-        :class:`bool`
-            Returns ``True``.
-        """
-        self.log.debug("copytree('%s', '%s')", self.working_dir,
-                       self.install_dir)
-        if not self.options.test:
-            copytree(self.working_dir, self.install_dir)
-        return True
 
     def install(self):
         """Run setup.py, etc.
@@ -1025,14 +1010,12 @@ class DesiInstall(object):
             self.identify_branch()
             self.verify_url()
             self.get_code()
-            # build_type = self.set_build_type()
             self.set_install_dir()
             self.start_modules()
             self.module_dependencies()
             self.install_module()
             self.prepare_environment()
             self.get_extra()
-            self.copy_install()
             self.install()
             self.permissions()
         except DesiInstallException:
