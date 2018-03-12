@@ -19,7 +19,7 @@ from datetime import date
 from types import MethodType
 from os import chdir, environ, getcwd, makedirs, remove, symlink
 from os.path import abspath, basename, exists, isdir, join
-from shutil import copyfile, copytree, rmtree
+from shutil import copytree, rmtree
 from .git import last_tag
 from .log import get_logger, DEBUG, INFO
 from .modules import (init_modules, configure_module,
@@ -837,26 +837,27 @@ class DesiInstall(object):
                     raise DesiInstallException(message)
         return
 
+    def copy_install(self):
+        """For certain installs, all that is needed is to copy the
+        downloaded code to the install directory.
+        """
+
     def install(self):
         """Run setup.py, etc.
         """
-        if (self.is_trunk or self.is_branch):
-            if 'src' in self.build_type:
-                if self.options.test:
-                    self.log.debug("Test Mode. Skipping 'make'.")
-                else:
-                    chdir(self.install_dir)
-                    command = ['make', '-C', 'src', 'all']
-                    self.log.info('Running "%s" in %s.',
-                                  ' '.join(command), self.install_dir)
-                    proc = Popen(command, universal_newlines=True,
-                                 stdout=PIPE, stderr=PIPE)
-                    out, err = proc.communicate()
-                    self.log.debug(out)
-                    if len(err) > 0:
-                        message = "Error during compile: {0}".format(err)
-                        self.log.critical(message)
-                        raise DesiInstallException(message)
+        if (self.build_type == set(['plain']) or
+            self.is_trunk or self.is_branch):
+            #
+            # For certain installs, all that is needed is to copy the
+            # downloaded code to the install directory.
+            #
+            self.log.debug("copytree('%s', '%s')",
+                           self.working_dir, self.install_dir)
+            if self.options.test:
+                self.log.debug("Test mode. Skipping copy of %s to %s.",
+                               self.working_dir, self.install_dir)
+            else:
+                copytree(self.working_dir, self.install_dir)
         else:
             #
             # Run a 'real' install

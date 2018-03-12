@@ -299,6 +299,13 @@ If the build-type 'py' is detected, a site-packages directory will be
 created in :envvar:`INSTALL_DIR`.  If necessary, this directory will be
 added to Python's :data:`sys.path`.
 
+Can We Just Copy the Download?
+------------------------------
+
+If the build-type is *only* 'plain', or if a trunk or branch install is
+requested, the downloaded code will be copied to :envvar:`INSTALL_DIR`.
+Further Python or C/C++ install steps described below will be skipped.
+
 Run setup.py
 ------------
 
