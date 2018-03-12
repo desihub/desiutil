@@ -515,7 +515,7 @@ class DesiInstall(object):
                                        self.baseproduct, self.baseversion[1:]))
                             if exists(nov):
                                 self.working_dir = nov
-                    except:
+                    except tarfile.TarError as e:
                         message = "tar error while expanding product code!"
                         self.log.critical(message)
                         raise DesiInstallException(message)
@@ -845,8 +845,7 @@ class DesiInstall(object):
     def install(self):
         """Run setup.py, etc.
         """
-        if (self.build_type == set(['plain']) or
-            self.is_trunk or self.is_branch):
+        if (self.build_type == set(['plain']) or self.is_trunk or self.is_branch):
             #
             # For certain installs, all that is needed is to copy the
             # downloaded code to the install directory.

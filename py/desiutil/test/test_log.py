@@ -9,6 +9,8 @@ import unittest
 from logging import getLogger, NullHandler
 from logging.handlers import MemoryHandler
 from warnings import catch_warnings, simplefilter
+import ..log as dul
+
 
 skipMock = False
 try:
@@ -16,8 +18,6 @@ try:
 except ImportError:
     # Python 2
     skipMock = True
-
-import desiutil.log as dul
 
 
 class TestHandler(MemoryHandler):
