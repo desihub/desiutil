@@ -11,7 +11,7 @@ Configuring desiInstall
 =======================
 
 desiInstall has many options, which are best viewed by typing
-``desiInstall -h``.
+``desiInstall --help``.
 
 In addition, it is possible to override certain internal settings of
 the :class:`~desiutil.install.DesiInstall` object using an
@@ -52,9 +52,9 @@ Finally, desiInstall both reads and sets several environment variables.
 Environment variables that strongly affect the behavior of desiInstall.
 
 :envvar:`DESICONDA`
-    This variable contains the path to the DESI+Anaconda infrastructure.
+    This variable contains the path to the `DESI+Anaconda infrastructure`_.
 :envvar:`DESICONDA_VERSION`
-    This variable should contain the version of the DESI+Anaconda infrastructure.
+    This variable should contain the version of the `DESI+Anaconda infrastructure`_.
 :envvar:`DESIUTIL`
     This variable contains the path to the installed version of desiutil_.
     It is needed to find the ``etc/desiutil.module`` file.
@@ -228,15 +228,10 @@ edison
     ``/global/common/software/desi/edison/desiconda/${DESICONDA_VERSION}``
 cori
     ``/global/common/software/desi/cori/desiconda/${DESICONDA_VERSION}``
-coriknl
-    ``/global/common/software/desi/coriknl/desiconda/${DESICONDA_VERSION}``
 datatran
     ``/global/common/software/desi/datatran/desiconda/${DESICONDA_VERSION}``
 scigate
     ``/global/common/software/desi/scigate/desiconda/${DESICONDA_VERSION}``
-
-Note that to support KNL (`Knights Landing`_) versions of desiconda_,
-the ``--knl`` option must be passed to :command:`desiInstall`.
 
 The actual install directory is determined by appending ``/code/product/verson``
 to the combining the top-level directory listed above.
@@ -247,7 +242,7 @@ If the install directory already exists, desiInstall will exit, unless the
 desiInstall will set the environment variable :envvar:`INSTALL_DIR` to point to the
 install directory.
 
-.. _`Knights Landing`: http://www.nersc.gov/news-publications/nersc-news/nersc-center-news/2016/nersc-staff-users-readying-for-delivery-of-cori-phase-2-knights-landing-based-system-in-july/
+.. _`DESI+Anaconda infrastructure`: https://github.com/desihub/desiconda
 .. _desiconda: https://github.com/desihub/desiconda
 
 Module Infrastructure

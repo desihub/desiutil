@@ -44,10 +44,12 @@ except ImportError:
 known_products = {
     'desiBackup': 'https://github.com/desihub/desiBackup',
     'desidatamodel': 'https://github.com/desihub/desidatamodel',
+    'desidithering': 'https://github.com/desihub/desidithering',
     'desietc': 'https://github.com/desihub/desietc',
     'desimodel': 'https://github.com/desihub/desimodel',
     'desimodules': 'https://github.com/desihub/desimodules',
     'desisim': 'https://github.com/desihub/desisim',
+    'desisim-testdata': 'https://github.com/desihub/desisim-testdata',
     'desispec': 'https://github.com/desihub/desispec',
     'desisurvey': 'https://github.com/desihub/desisurvey',
     'desitarget': 'https://github.com/desihub/desitarget',
@@ -57,15 +59,21 @@ known_products = {
     'desiutil': 'https://github.com/desihub/desiutil',
     'fiberassign': 'https://github.com/desihub/fiberassign',
     'fiberassign_sqlite': 'https://github.com/desihub/fiberassign_sqlite',
+    'gcr-catalogs': 'https://github.com/desihub/gcr-catalogs',
     'imaginglss': 'https://github.com/desihub/imaginglss',
     'qlf': 'https://github.com/desihub/qlf',
+    'qlf-ui': 'https://github.com/desihub/qlf-ui',
+    'quicksurvey_example': 'https://github.com/desihub/quicksurvey_example',
     'redmonster': 'https://github.com/desihub/redmonster',
     'redrock': 'https://github.com/desihub/redrock',
+    'redrock-templates': 'https://github.com/desihub/redrock-templates',
     'specex': 'https://github.com/desihub/specex',
-    'speclite': 'https://github.com/dkirkby/speclite',
     'specsim': 'https://github.com/desihub/specsim',
     'specter': 'https://github.com/desihub/specter',
     'surveysim': 'https://github.com/desihub/surveysim',
+    'two_percent_DESI': 'https://github.com/desihub/two_percent_DESI',
+    'simqso': 'https://github.com/imcgreer/simqso',
+    'speclite': 'https://github.com/dkirkby/speclite',
     'bbspecsim': 'https://desi.lbl.gov/svn/code/spectro/bbspecsim',
     'desiAdmin': 'https://desi.lbl.gov/svn/code/tools/desiAdmin',
     'dspecsim': 'https://desi.lbl.gov/svn/code/spectro/dspecsim',
@@ -148,7 +156,7 @@ class DesiInstall(object):
     test : :class:`bool`
         Captures the value of the `test` argument passed to the constructor.
     """
-    default_nersc_dir_template = '/global/common/software/desi/{nersc_host}{knl}/desiconda/{desiconda_version}'
+    default_nersc_dir_template = '/global/common/software/desi/{nersc_host}/desiconda/{desiconda_version}'
 
     def __init__(self):
         """Bare-bones initialization.
@@ -212,8 +220,6 @@ class DesiInstall(object):
                             dest='force',
                             help=('Overwrite any existing installation of ' +
                                   'this product/version.'))
-        parser.add_argument('-K', '--knl', action='store_true', dest='knl',
-                            help='Support KNL versions of desiconda (e.g. coriknl).')
         parser.add_argument('-k', '--keep', action='store_true',
                             dest='keep',
                             help='Keep the exported build directory.')
@@ -562,12 +568,6 @@ class DesiInstall(object):
                     build_type.add('src')
         return build_type
 
-    @property
-    def knl(self):
-        """String for use in specifying the name of KNL-based installs.
-        """
-        return ('', 'knl')[int(self.options.knl)]
-
     def anaconda_version(self):
         """Try to determine the exact DESI+Anaconda version from the
         environment.
@@ -601,10 +601,8 @@ class DesiInstall(object):
         """
         if nersc_host is None:
             return self.default_nersc_dir_template.format(nersc_host=self.nersc,
-                                                          knl=self.knl,
                                                           desiconda_version=self.options.anaconda)
         return self.default_nersc_dir_template.format(nersc_host=nersc_host,
-                                                      knl=self.knl,
                                                       desiconda_version=self.options.anaconda)
 
     def set_install_dir(self):
@@ -706,7 +704,7 @@ class DesiInstall(object):
             return None
         else:
             if self.baseproduct == 'desimodules':
-                nersc_module = join(self.default_nersc_dir_template.format(nersc_host=self.nersc, knl=self.knl, desiconda_version='startup'),
+                nersc_module = join(self.default_nersc_dir_template.format(nersc_host=self.nersc, desiconda_version='startup'),
                                     'modulefiles')
             else:
                 nersc_module = join(self.default_nersc_dir(),

@@ -6,7 +6,9 @@ Change Log
 -------------------
 
 * Remove support for :command:`desiInstall` in environments other than
-  NERSC.
+  NERSC (PR `#101`_).
+
+.. _`#101`: https://github.com/desihub/desiutil/pull/101
 
 1.9.9 (2017-12-20)
 ------------------

@@ -91,7 +91,6 @@ class TestInstall(unittest.TestCase):
                 force=False,
                 force_build_type=False,
                 keep=False,
-                knl=False,
                 moduledir=None,
                 moduleshome='/fake/module/directory',
                 product=u'NO PACKAGE',
@@ -274,14 +273,6 @@ class TestInstall(unittest.TestCase):
             v = self.desiInstall.anaconda_version()
             self.assertEqual(v, 'current')
 
-    def test_knl(self):
-        """Test the knl property.
-        """
-        options = self.desiInstall.get_options(['desiutil', 'master'])
-        self.assertEqual(self.desiInstall.knl, '')
-        options = self.desiInstall.get_options(['--knl', 'desiutil', 'master'])
-        self.assertEqual(self.desiInstall.knl, 'knl')
-
     def test_default_nersc_dir(self):
         """Test determination of the NERSC installation root.
         """
@@ -376,20 +367,17 @@ class TestInstall(unittest.TestCase):
         self.desiInstall.nersc = None
         self.assertIsNone(self.desiInstall.nersc_module_dir)
         test_args = ['desiutil', '1.9.5']
-        for knl in (False, True):
-            if knl:
-                test_args.insert(0, '--knl')
-            options = self.desiInstall.get_options(test_args)
-            for n in ('edison', 'cori', 'datatran', 'scigate'):
-                self.desiInstall.nersc = n
-                self.desiInstall.baseproduct = 'desiutil'
-                self.assertEqual(self.desiInstall.nersc_module_dir,
-                                 join(self.desiInstall.default_nersc_dir(n),
-                                      "modulefiles"))
-                self.desiInstall.baseproduct = 'desimodules'
-                self.assertEqual(self.desiInstall.nersc_module_dir,
-                                 join(self.desiInstall.default_nersc_dir_template.format(nersc_host=n, knl=('', 'knl')[int(knl)], desiconda_version='startup'),
-                                      "modulefiles"))
+        options = self.desiInstall.get_options(test_args)
+        for n in ('edison', 'cori', 'datatran', 'scigate'):
+            self.desiInstall.nersc = n
+            self.desiInstall.baseproduct = 'desiutil'
+            self.assertEqual(self.desiInstall.nersc_module_dir,
+                             join(self.desiInstall.default_nersc_dir(n),
+                                  "modulefiles"))
+            self.desiInstall.baseproduct = 'desimodules'
+            self.assertEqual(self.desiInstall.nersc_module_dir,
+                             join(self.desiInstall.default_nersc_dir_template.format(nersc_host=n, desiconda_version='startup'),
+                                  "modulefiles"))
         options = self.desiInstall.get_options(['--configuration',
                                                 ini, 'my_new_product', '1.2.3'])
         self.desiInstall.nersc = 'edison'
