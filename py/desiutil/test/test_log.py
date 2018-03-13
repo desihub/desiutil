@@ -9,7 +9,9 @@ import unittest
 from logging import getLogger, NullHandler
 from logging.handlers import MemoryHandler
 from warnings import catch_warnings, simplefilter
-import ..log as dul
+from ..log import (DEBUG, INFO, WARNING, ERROR, CRITICAL,
+                   DesiLogContext, get_logger, log,
+                   _desiutil_log_root)
 
 
 skipMock = False
@@ -23,7 +25,7 @@ except ImportError:
 class TestHandler(MemoryHandler):
     """Capture log messages in memory.
     """
-    def __init__(self, capacity=1000000, flushLevel=dul.CRITICAL):
+    def __init__(self, capacity=1000000, flushLevel=CRITICAL):
         nh = NullHandler()
         MemoryHandler.__init__(self, capacity,
                                flushLevel=flushLevel, target=nh)
@@ -68,7 +70,7 @@ class TestLog(unittest.TestCase):
     def setUp(self):
         """Reset the cached logging object for each test.
         """
-        dul.desi_logger = None
+        _desiutil_log_root = dict()
 
     def tearDown(self):
         pass
@@ -88,7 +90,7 @@ class TestLog(unittest.TestCase):
     def get_logger(self, level, **kwargs):
         """Get the actual logging object, but swap out its default handler.
         """
-        logger = dul.get_logger(level, **kwargs)
+        logger = get_logger(level, **kwargs)
         root_logger = getLogger(logger.name.rsplit('.', 1)[0])
         while len(root_logger.handlers) > 0:
             h = root_logger.handlers[0]
@@ -102,19 +104,19 @@ class TestLog(unittest.TestCase):
     def run_logs(self, **kwargs):
         """Loop over log levels.
         """
-        str2level = {'debug': dul.DEBUG, 'info': dul.INFO, 'warning': dul.WARNING, 'error': dul.ERROR, 'critical': dul.CRITICAL}
+        str2level = {'debug': DEBUG, 'info': INFO, 'warning': WARNING, 'error': ERROR, 'critical': CRITICAL}
         try:
             desi_loglevel = os.environ['DESI_LOGLEVEL']
         except KeyError:
             desi_loglevel = None
-        for level in (None, dul.DEBUG, dul.INFO, dul.WARNING, dul.ERROR, dul.CRITICAL,
+        for level in (None, DEBUG, INFO, WARNING, ERROR, CRITICAL,
                       'debug', 'info', 'warning', 'error', 'critical'):
             with catch_warnings(record=True) as w:
                 simplefilter('always')
                 if desi_loglevel is None:
                     logger = self.get_logger(level, **kwargs)
                     if level is None:
-                        self.assertEqual(logger.level, dul.INFO)
+                        self.assertEqual(logger.level, INFO)
                     elif level in ('debug', 'info', 'warning', 'error', 'critical'):
                         self.assertEqual(logger.level, str2level[level])
                     else:
@@ -128,7 +130,7 @@ class TestLog(unittest.TestCase):
                         # print(w[-1].message)
                         self.assertIn("Invalid level='FOOBAR' ignored.", str(w[-1].message))
                     else:
-                        self.assertEqual(logger.level, dul.WARNING)
+                        self.assertEqual(logger.level, WARNING)
             logger.debug("This is a debugging message.")
             logger.info("This is an informational message.")
             logger.warning("This is a warning message.")
@@ -141,25 +143,25 @@ class TestLog(unittest.TestCase):
                     self.assertLog(logger, 1, "This is a warning message.")
                     self.assertLog(logger, 2, "This is an error message.")
                     self.assertLog(logger, 3, "This is a critical error message.")
-                if level == dul.DEBUG or level == 'debug':
+                if level == DEBUG or level == 'debug':
                     self.assertLog(logger, 0, "This is a debugging message.")
                     self.assertLog(logger, 1, "This is an informational message.")
                     self.assertLog(logger, 2, "This is a warning message.")
                     self.assertLog(logger, 3, "This is an error message.")
                     self.assertLog(logger, 4, "This is a critical error message.")
-                if level == dul.INFO or level == 'info':
+                if level == INFO or level == 'info':
                     self.assertLog(logger, 0, "This is an informational message.")
                     self.assertLog(logger, 1, "This is a warning message.")
                     self.assertLog(logger, 2, "This is an error message.")
                     self.assertLog(logger, 3, "This is a critical error message.")
-                if level == dul.WARNING or level == 'warning':
+                if level == WARNING or level == 'warning':
                     self.assertLog(logger, 0, "This is a warning message.")
                     self.assertLog(logger, 1, "This is an error message.")
                     self.assertLog(logger, 2, "This is a critical error message.")
-                if level == dul.ERROR or level == 'error':
+                if level == ERROR or level == 'error':
                     self.assertLog(logger, 0, "This is an error message.")
                     self.assertLog(logger, 1, "This is a critical error message.")
-                if level == dul.CRITICAL or level == 'critical':
+                if level == CRITICAL or level == 'critical':
                     self.assertLog(logger, 0, "This is a critical error message.")
             elif desi_loglevel == 'foobar':
                 # Should be the same as INFO.
@@ -181,15 +183,15 @@ class TestLog(unittest.TestCase):
     def test_log_multiple(self):
         """Test multiple calls to return the logger.
         """
-        log1 = dul.get_logger()
-        log2 = dul.get_logger()
+        log1 = get_logger()
+        log2 = get_logger()
         self.assertIs(log1, log2)
 
     def test_log_singleton(self):
         """Test the default pseudo-singleton created by the module.
         """
-        log2 = dul.get_logger()
-        self.assertIs(log2, dul.log)
+        log2 = get_logger()
+        self.assertIs(log2, log)
 
     @unittest.skipIf(skipMock, "Skipping test that requires unittest.mock.")
     def test_log_with_desi_loglevel(self):
@@ -212,11 +214,11 @@ class TestLog(unittest.TestCase):
     def test_log_context(self):
         """Test logging within a temporary context.
         """
-        logger = self.get_logger(dul.WARNING)
+        logger = self.get_logger(WARNING)
         logger.debug("This is a debugging message.")
         logger.warning("This is a warning message.")
         self.assertLog(logger, 0, "This is a warning message.")
-        with dul.DesiLogContext(logger, dul.DEBUG):
+        with DesiLogContext(logger, DEBUG):
             logger.debug("This is a debugging message.")
             logger.info("This is an informational message.")
             logger.warning("This is a warning message.")
@@ -229,7 +231,7 @@ class TestLog(unittest.TestCase):
         self.assertLog(logger, 4, "This is a warning message.")
         with catch_warnings(record=True) as w:
             simplefilter('always')
-            with dul.DesiLogContext(logger):
+            with DesiLogContext(logger):
                 logger.debug("This is a debugging message.")
             self.assertEqual(len(w), 1)
             self.assertTrue(issubclass(w[-1].category,
