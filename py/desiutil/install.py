@@ -837,11 +837,6 @@ class DesiInstall(object):
                     raise DesiInstallException(message)
         return
 
-    def copy_install(self):
-        """For certain installs, all that is needed is to copy the
-        downloaded code to the install directory.
-        """
-
     def install(self):
         """Run setup.py, etc.
         """
@@ -948,9 +943,19 @@ class DesiInstall(object):
                     out, err = proc.communicate()
                     self.log.debug(out)
                     if len(err) > 0:
-                        message = "Error during compile: {0}".format(err)
-                        self.log.critical(message)
-                        raise DesiInstallException(message)
+                        #
+                        # specex emits warnings that should be ignored.
+                        # lines with -Wunused-value are emitted on all systems
+                        # lines with remark: are emitted on cori
+                        #
+                        lines = [l for l in err.split('\n') if len(l) > 0 and
+                                 '-Wunused-value' not in l and
+                                 'remark:' not in l]
+                        if len(lines) > 0:
+                            message = ("Error during compile: " +
+                                       "{0}").format("\n".join(lines))
+                            self.log.critical(message)
+                            raise DesiInstallException(message)
         return
 
     def permissions(self):
