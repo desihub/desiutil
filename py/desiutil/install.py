@@ -817,15 +817,21 @@ class DesiInstall(object):
     def get_extra(self):
         """Download any additional data not included in the code repository.
 
-        This is done here so that :envvar:`WORKING_DIR` is defined.
+        This is done here so that :envvar:`INSTALL_DIR` is defined.
         """
         extra_script = join(self.working_dir, 'etc',
                             '{0}_data.sh'.format(self.baseproduct))
-        if self.options.test:
-            self.log.debug('Test Mode. Skipping install of extra data.')
-        else:
-            if exists(extra_script):
-                self.log.debug("Detected extra script: %s.", extra_script)
+        if exists(extra_script):
+            self.log.debug("Detected extra script: %s.", extra_script)
+            self.log.debug("makedirs('%s')", self.install_dir)
+            if self.options.test:
+                self.log.debug('Test Mode. Skipping install of extra data.')
+            else:
+                try:
+                    makedirs(self.install_dir)
+                except OSError as ose:
+                    self.log.critical(ose.strerror)
+                    raise DesiInstallException(ose.strerror)
                 proc = Popen([extra_script], universal_newlines=True,
                              stdout=PIPE, stderr=PIPE)
                 out, err = proc.communicate()
