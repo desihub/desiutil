@@ -144,7 +144,6 @@ class TestDepend(unittest.TestCase):
         for name, version in iterdep(hdr):
             self.assertEqual(version, getdep(hdr, name))
 
-
     def test_class(self):
         """Test the Dependencies object.
         """

@@ -55,6 +55,15 @@ so that it can be used in subsequent I/O
 ('foo', '3.4')
 
 """
+#
+# default possible dependencies to check in add_dependencies()
+#
+possible_dependencies = [
+    'numpy', 'scipy', 'astropy', 'yaml', 'matplotlib',
+    'requests', 'fitsio', 'h5py', 'mpi4py', 'psycopg2', 'healpy',
+    'desiutil', 'desispec', 'desitarget', 'desimodel', 'desisim', 'desisurvey',
+    'redmonster', 'specter', 'speclite', 'specsim', 'surveysim', 'redrock',
+    ]
 
 
 def setdep(header, name, version):
@@ -129,14 +138,6 @@ def iterdep(header):
         else:
             return
     return
-
-# default possible dependencies to check in add_dependencies()
-possible_dependencies = [
-    'numpy', 'scipy', 'astropy', 'yaml', 'matplotlib',
-    'requests', 'fitsio', 'h5py', 'mpi4py', 'psycopg2', 'healpy',
-    'desiutil', 'desispec', 'desitarget', 'desimodel', 'desisim', 'desisurvey',
-    'redmonster', 'specter', 'speclite', 'specsim', 'surveysim', 'redrock',
-    ]
 
 
 def add_dependencies(header, module_names=None, long_python=False):

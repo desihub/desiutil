@@ -83,12 +83,17 @@ _level_children = {logging.DEBUG: 'debug',
 
 
 # Just for convenience to avoid importing logging, we duplicate the logging levels
-DEBUG = logging.DEBUG        # Detailed information, typically of interest only when diagnosing problems.
-INFO = logging.INFO          # Confirmation that things are working as expected.
-WARNING = logging.WARNING    # An indication that something unexpected happened, or indicative of some problem
-                             # in the near future (e.g. "disk space low"). The software is still working as expected.
-ERROR = logging.ERROR        # Due to a more serious problem, the software has not been able to perform some function.
-CRITICAL = logging.CRITICAL  # A serious error, indicating that the program itself may be unable to continue running.
+# Detailed information, typically of interest only when diagnosing problems.
+DEBUG = logging.DEBUG
+# Confirmation that things are working as expected.
+INFO = logging.INFO
+# An indication that something unexpected happened, or indicative of some problem
+# in the near future (e.g. "disk space low"). The software is still working as expected.
+WARNING = logging.WARNING
+# Due to a more serious problem, the software has not been able to perform some function.
+ERROR = logging.ERROR
+# A serious error, indicating that the program itself may be unable to continue running.
+CRITICAL = logging.CRITICAL
 
 # see example of usage in test/test_log.py
 

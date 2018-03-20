@@ -24,6 +24,7 @@ from __future__ import absolute_import, division, print_function
 
 import numpy as np
 
+
 class Bricks(object):
     """The Bricks object describes bricks of a certain size.
 
@@ -37,7 +38,7 @@ class Bricks(object):
     bricksize
     """
     def __init__(self, bricksize=0.25):
-        #- Brick row centers and edges
+        # Brick row centers and edges
         center_dec = np.arange(-90.0, +90.0+bricksize/2, bricksize)
         # clip the north pole to +90
         center_dec[-1] = min(90., center_dec[-1])
@@ -48,7 +49,7 @@ class Bricks(object):
 
         nrow = len(center_dec)
 
-        #- How many columns per row: even number, no bigger than bricksize
+        # How many columns per row: even number, no bigger than bricksize
         ncol_per_row = np.zeros(nrow, dtype=int)
         for i in range(nrow):
             # The widest part of the brick is at the Dec closest to
@@ -58,31 +59,31 @@ class Bricks(object):
             n = (360/bricksize * np.cos(np.deg2rad(declo)))
             ncol_per_row[i] = int(np.ceil(n/2)*2)
 
-        #- special cases at the poles
+        # special cases at the poles
         ncol_per_row[0] = 1
         if center_dec[-1] == 90.:
             ncol_per_row[-1] = 1
 
-        #- ra
+        # ra
         center_ra = list()
         edges_ra = list()
         for i in range(nrow):
             edges = np.linspace(0, 360, ncol_per_row[i]+1)
-            edges_ra.append( edges )
-            center_ra.append( 0.5*(edges[0:-1]+edges[1:]) )
+            edges_ra.append(edges)
+            center_ra.append(0.5*(edges[0:-1] + edges[1:]))
             # dra = edges[1]-edges[0]
             # center_ra.append(dra/2 + np.arange(ncol_per_row[i])*dra)
 
-        #- More special cases at the poles
+        # More special cases at the poles
         edges_ra[0] = np.array([0, 360])
-        center_ra[0] = np.array([180,])
+        center_ra[0] = np.array([180, ])
         if center_dec[-1] == 90.:
             edges_ra[-1] = np.array([0, 360])
-            center_ra[-1] = np.array([180,])
+            center_ra[-1] = np.array([180, ])
 
-        #- Brick names [row, col]
+        # Brick names [row, col]
         brickname = list()
-        #ADM brick areas [row, col]
+        # ADM brick areas [row, col]
         brickarea = list()
 
         for i in range(nrow):
@@ -97,7 +98,7 @@ class Bricks(object):
                 ra = "{0:07.0f}".format(center_ra[i][j]*10000)
                 names.append(ra[0:4]+pm+dec[0:3])
             brickname.append(names)
-            #ADM integrate area factors between Dec edges and RA edges in degrees
+            # ADM integrate area factors between Dec edges and RA edges in degrees
             decfac = np.diff(np.degrees(np.sin(np.radians(edges_dec[i:i+2]))))
             rafac = np.diff(edges_ra[i])
             brickarea.append(list(rafac*decfac))
@@ -177,11 +178,11 @@ class Bricks(object):
         """
         ara, adec = self._array_radec(ra, dec)
         irow, icol = self._row_col(ara, adec)
-        #ADM the total number of BRICKIDs at the START of a given row
+        # ADM the total number of BRICKIDs at the START of a given row
         ncolsum = np.cumsum(np.append(0, self._ncol_per_row))
-        #ADM the BRICKID is just the sum of the number of columns up until
-        #ADM the row of interest, and the number of columns along that row
-        #ADM accounting for the indexes of the columns starting at 0
+        # ADM the BRICKID is just the sum of the number of columns up until
+        # ADM the row of interest, and the number of columns along that row
+        # ADM accounting for the indexes of the columns starting at 0
         brickid = ncolsum[irow] + icol + 1
         if np.isscalar(ra):
             return brickid[0]
@@ -227,9 +228,9 @@ class Bricks(object):
         """
         ara, adec = self._array_radec(ra, dec)
         irow, icol = self._row_col(ara, adec)
-        #ADM the list of areas to return
+        # ADM the list of areas to return
         areas = np.empty(len(ara), dtype='<f4')
-        #ADM grab the areas from the class
+        # ADM grab the areas from the class
         for row in set(irow):
             cols = np.where(row == irow)
             areas[cols] = np.array(self._brickarea[row])[icol[cols]]
@@ -259,7 +260,7 @@ class Bricks(object):
         """
         ara, adec = self._array_radec(ra, dec)
         irow, icol = self._row_col(ara, adec)
-        #ADM grab the edges from the class
+        # ADM grab the edges from the class
         ramin, ramax = np.array([self._edges_ra[row][col:col+2]
                                  for row, col in zip(irow, icol)]).T
         decmin, decmax = self._edges_dec[irow], self._edges_dec[irow+1]
@@ -268,7 +269,7 @@ class Bricks(object):
                                          ramax, decmax,
                                          ramin, decmax]).T,
                               (len(ara), 4, 2))
-        #ADM return the vertex array with one less dimension if a scalar was passed
+        # ADM return the vertex array with one less dimension if a scalar was passed
         if np.isscalar(ra):
             return vertices[0]
         return vertices
@@ -294,7 +295,7 @@ class Bricks(object):
             xra = self._center_ra[irow[0]][icol]
             xdec = self._center_dec[irow]
         else:
-            xra = np.array([self._center_ra[i][j] for i,j in zip(irow, icol)])
+            xra = np.array([self._center_ra[i][j] for i, j in zip(irow, icol)])
             xdec = self._center_dec[irow]
         return xra, xdec
 
@@ -343,13 +344,14 @@ class Bricks(object):
             for n in dtype:
                 brick_data[n[0]] = brick_dict[n[0]]
             self._brick_table = Table(brick_data,
-                                meta={'bricksize': self._bricksize})
+                                      meta={'bricksize': self._bricksize})
             for n in ('RA', 'DEC', 'RA1', 'RA2', 'DEC1', 'DEC2'):
                 self._brick_table[n].unit = 'deg'
         return self._brick_table
 
 
 _bricks = None
+
 
 def brickname(ra, dec, bricksize=0.25):
     """Return brick name of brick covering (`ra`, `dec`).

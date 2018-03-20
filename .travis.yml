@@ -76,9 +76,9 @@ matrix:
           python: 3.5
           env: MAIN_CMD='pycodestyle' SETUP_CMD='--count py/desiutil'
 
-before_install:
-    - curl ipinfo.io
-    - python -c 'import setuptools; print(setuptools.__version__)'
+# before_install:
+#     - curl ipinfo.io
+#     - python -c 'import setuptools; print(setuptools.__version__)'
 
 install:
     - if [[ $MAIN_CMD == 'pycodestyle' ]]; then pip install pycodestyle; fi

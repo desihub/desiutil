@@ -5,7 +5,7 @@
 function usage() {
     local execName=$(basename $0)
     (
-    echo "${execName} [-a VERSION] [-b BRANCH] [-c CONFIG] [-h] [-K] [-m MODULESHOME] [-p PYTHON] [-t] [-v]"
+    echo "${execName} [-a VERSION] [-b BRANCH] [-c CONFIG] [-h] [-m MODULESHOME] [-p PYTHON] [-t] [-v]"
     echo ""
     echo "Install desiutil on a bare system."
     echo ""
@@ -13,7 +13,6 @@ function usage() {
     echo "    -b = Switch to desiutil BRANCH before installing."
     echo "    -c = Pass CONFIG to desiInstall."
     echo "    -h = Print this message and exit."
-    echo "    -K = Install in a 'knl' version, e.g. coriknl."
     echo "    -m = Look for the Modules install in MODULESHOME."
     echo "    -p = Use the Python executable PYTHON (e.g. /opt/local/bin/python2.7)."
     echo "    -t = Test mode.  Do not make any changes.  Implies -v."
@@ -26,18 +25,16 @@ function usage() {
 anaconda='current'
 branch=''
 config=''
-knl=''
 modules=''
 py=''
 test=''
 verbose=''
-while getopts a:b:c:hKm:p:tv argname; do
+while getopts a:b:c:hm:p:tv argname; do
     case ${argname} in
         a) anaconda=${OPTARG} ;;
         b) branch=${OPTARG} ;;
         c) config="-c ${OPTARG}" ;;
         h) usage; exit 0 ;;
-        K) knl='knl' ;;
         m) modules=${OPTARG} ;;
         p) py=${OPTARG} ;;
         t) test='-t'; verbose='-v' ;;
@@ -66,27 +63,22 @@ if [[ -n "${NERSC_HOST}" && -z "${py}" ]]; then
     # Make certain we are using the Python version associated with the
     # specified DESI+Anaconda stack.
     #
-    common_root=/global/common/software/desi/${NERSC_HOST}${knl}/desiconda/${anaconda}
-    # common_root=/global/common/${NERSC_HOST}/contrib/desi/desiconda/${anaconda}
-    # software_root=/global/project/projectdirs/desi/software/${NERSC_HOST}/desiconda/${anaconda}
-    software_root=${common_root}
-    for d in ${common_root} ${software_root}; do
-        if [[ -d ${d} ]]; then
-            if [[ "${anaconda}" == "current" ]]; then
-                anaconda=$(readlink ${d})
-                dd=$(dirname ${d})/${anaconda}
-            else
-                dd=${d}
-            fi
-            py=${dd}/conda/bin/python
-            if [[ ! -x ${py} ]]; then
-                echo "Python executable ${py} not found!"
-                exit 1
-            fi
+    desiconda=/global/common/software/desi/${NERSC_HOST}/desiconda/${anaconda}
+    if [[ -d ${desiconda} ]]; then
+        if [[ "${anaconda}" == "current" ]]; then
+            anaconda=$(readlink ${desiconda})
+            dd=$(dirname ${desiconda})/${anaconda}
+        else
+            dd=${desiconda}
         fi
-    done
+        py=${dd}/conda/bin/python
+        if [[ ! -x ${py} ]]; then
+            echo "Python executable ${py} not found!"
+            exit 1
+        fi
+    fi
     if [[ -z "${py}" ]]; then
-        echo "Could not find Python executable associated with '${anaconda}' on ${NERSC_HOST}${knl}!"
+        echo "Could not find Python executable associated with '${anaconda}' on ${NERSC_HOST}!"
         exit 1
     fi
 fi
@@ -108,17 +100,12 @@ if [[ -z "${PYTHONPATH}" ]]; then
 else
     export PYTHONPATH=${DESIUTIL}/py:${PYTHONPATH}
 fi
-if [[ -n "${knl}" ]]; then
-    knlOpt='--knl'
-else
-    knlOpt=''
-fi
 if [[ -z "${py}" ]]; then
-    [[ -n "${verbose}" ]] && echo desiInstall -a ${anaconda} -b ${config} ${knlOpt} ${test} ${verbose}
-    desiInstall -a ${anaconda} -b ${config} ${knlOpt} ${test} ${verbose}
+    [[ -n "${verbose}" ]] && echo desiInstall -a ${anaconda} -b ${config} ${test} ${verbose}
+    desiInstall -a ${anaconda} -b ${config} ${test} ${verbose}
 else
-    [[ -n "${verbose}" ]] && echo ${py} ${DESIUTIL}/bin/desiInstall -a ${anaconda} -b ${config} ${knlOpt} ${test} ${verbose}
-    ${py} ${DESIUTIL}/bin/desiInstall -a ${anaconda} -b ${config} ${knlOpt} ${test} ${verbose}
+    [[ -n "${verbose}" ]] && echo ${py} ${DESIUTIL}/bin/desiInstall -a ${anaconda} -b ${config} ${test} ${verbose}
+    ${py} ${DESIUTIL}/bin/desiInstall -a ${anaconda} -b ${config} ${test} ${verbose}
 fi
 [[ -n "${verbose}" ]] && echo /bin/rm -rf ${DESIUTIL}
 /bin/rm -rf ${DESIUTIL}

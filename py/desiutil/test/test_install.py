@@ -64,7 +64,6 @@ class TestInstall(unittest.TestCase):
         record = handler.buffer[order]
         self.assertEqual(record.getMessage(), message)
 
-    @unittest.skipIf(skipMock, "Skipping test that requires unittest.mock.")
     def test_dependencies(self):
         """Test dependency processing.
         """
@@ -73,42 +72,30 @@ class TestInstall(unittest.TestCase):
             dependencies("foo/bar/baz.module")
         self.assertEqual(str(cm.exception),
                          "Modulefile foo/bar/baz.module does not exist!")
-        # Manipulate the environment.
-        with patch.dict('os.environ', {'NERSC_HOST': 'FAKE'}):
-            # NERSC dependencies.
-            deps = dependencies(resource_filename('desiutil.test',
-                                                  't/nersc_dependencies.txt'))
-            self.assertEqual(set(deps),
-                             set(['astropy-hpcp', 'setuptools-hpcp',
-                                  'desiutil/1.0.0']))
-            # Standard dependencies.
-            del environ['NERSC_HOST']
-            deps = dependencies(resource_filename('desiutil.test',
-                                                  't/generic_dependencies.txt'))
-            self.assertEqual(set(deps), set(['astropy', 'desiutil/1.0.0']))
+        # Standard dependencies.
+        deps = dependencies(resource_filename('desiutil.test',
+                                              't/generic_dependencies.txt'))
+        self.assertEqual(set(deps), set(['astropy', 'desiutil/1.0.0']))
 
     @unittest.skipIf(skipMock, "Skipping test that requires unittest.mock.")
     def test_get_options(self):
         """Test the processing of desiInstall command-line arguments.
         """
         # Set a few environment variables for testing purposes.
-        with patch.dict('os.environ', {'MODULESHOME': '/fake/module/directory',
-                                       'DESI_PRODUCT_ROOT': '/fake/desi/directory'}):
+        with patch.dict('os.environ', {'MODULESHOME': '/fake/module/directory'}):
             default_namespace = Namespace(
                 anaconda=self.desiInstall.anaconda_version(),
                 bootstrap=False,
-                config_file='',
-                cross_install=False,
+                config_file=None,
                 default=False,
                 force=False,
                 force_build_type=False,
                 keep=False,
-                knl=False,
-                moduledir=u'',
+                moduledir=None,
                 moduleshome='/fake/module/directory',
                 product=u'NO PACKAGE',
                 product_version=u'NO VERSION',
-                root='/fake/desi/directory',
+                root=None,
                 test=False,
                 username=environ['USER'],
                 verbose=False)
@@ -131,14 +118,6 @@ class TestInstall(unittest.TestCase):
             self.assertLog(order=-1, message="Set log level to DEBUG.")
             self.assertLog(order=-2,
                            message="Called parse_args() with: -v product version")
-        # Test missing environment:
-        with patch.dict('os.environ', {'MODULESHOME': '/fake/module/directory'}):
-            if 'DESI_PRODUCT_ROOT' in environ:
-                del environ['DESI_PRODUCT_ROOT']
-            options = self.desiInstall.get_options(['-v', 'product', 'version'])
-            default_namespace.root = None
-            self.assertEqual(options, default_namespace)
-        # self.assertIn('DESI_PRODUCT_ROOT', environ)
 
     @unittest.skipIf(skipMock, "Skipping test that requires unittest.mock.")
     def test_sanity_check(self):
@@ -294,14 +273,6 @@ class TestInstall(unittest.TestCase):
             v = self.desiInstall.anaconda_version()
             self.assertEqual(v, 'current')
 
-    def test_knl(self):
-        """Test the knl property.
-        """
-        options = self.desiInstall.get_options(['desiutil', 'master'])
-        self.assertEqual(self.desiInstall.knl, '')
-        options = self.desiInstall.get_options(['--knl', 'desiutil', 'master'])
-        self.assertEqual(self.desiInstall.knl, 'knl')
-
     def test_default_nersc_dir(self):
         """Test determination of the NERSC installation root.
         """
@@ -396,20 +367,17 @@ class TestInstall(unittest.TestCase):
         self.desiInstall.nersc = None
         self.assertIsNone(self.desiInstall.nersc_module_dir)
         test_args = ['desiutil', '1.9.5']
-        for knl in (False, True):
-            if knl:
-                test_args.insert(0, '--knl')
-            options = self.desiInstall.get_options(test_args)
-            for n in ('edison', 'cori', 'datatran', 'scigate'):
-                self.desiInstall.nersc = n
-                self.desiInstall.baseproduct = 'desiutil'
-                self.assertEqual(self.desiInstall.nersc_module_dir,
-                                 join(self.desiInstall.default_nersc_dir(n),
-                                      "modulefiles"))
-                self.desiInstall.baseproduct = 'desimodules'
-                self.assertEqual(self.desiInstall.nersc_module_dir,
-                                 join(self.desiInstall.default_nersc_dir_templates[n].format(knl=('', 'knl')[int(knl)], desiconda_version='startup'),
-                                      "modulefiles"))
+        options = self.desiInstall.get_options(test_args)
+        for n in ('edison', 'cori', 'datatran', 'scigate'):
+            self.desiInstall.nersc = n
+            self.desiInstall.baseproduct = 'desiutil'
+            self.assertEqual(self.desiInstall.nersc_module_dir,
+                             join(self.desiInstall.default_nersc_dir(n),
+                                  "modulefiles"))
+            self.desiInstall.baseproduct = 'desimodules'
+            self.assertEqual(self.desiInstall.nersc_module_dir,
+                             join(self.desiInstall.default_nersc_dir_template.format(nersc_host=n, desiconda_version='startup'),
+                                  "modulefiles"))
         options = self.desiInstall.get_options(['--configuration',
                                                 ini, 'my_new_product', '1.2.3'])
         self.desiInstall.nersc = 'edison'

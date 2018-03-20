@@ -14,7 +14,7 @@
 
 import sys
 import os
-import os.path
+from importlib import import_module
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -25,17 +25,6 @@ sys.path.insert(0, os.path.abspath('../py'))
 
 # If your documentation needs a minimal Sphinx version, state it here.
 
-try:
-    import sphinx.ext.napoleon
-    napoleon_extension = 'sphinx.ext.napoleon'
-except ImportError:
-    try:
-        import sphinxcontrib.napoleon
-        napoleon_extension = 'sphinxcontrib.napoleon'
-        needs_sphinx = '1.2'
-    except ImportError:
-        needs_sphinx = '1.3'
-
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
@@ -45,7 +34,7 @@ extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
-    napoleon_extension
+    'sphinx.ext.napoleon'
 ]
 
 # Configuration for intersphinx, copied from astropy.
@@ -73,7 +62,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'desiutil'
-copyright = u'2014-2016, DESI Collaboration'
+copyright = u'2014-2018, DESI Collaboration'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -131,7 +120,12 @@ napoleon_include_private_with_doc = True
 # This value contains a list of modules to be mocked up. This is useful when
 # some external dependencies are not met at build time and break the
 # building process.
-autodoc_mock_imports = ['numpy', 'numpy.ma']
+autodoc_mock_imports = []
+for missing in ('numpy',):
+    try:
+        foo = import_module(missing)
+    except ImportError:
+        autodoc_mock_imports.append(missing)
 
 # -- Options for HTML output ----------------------------------------------
 

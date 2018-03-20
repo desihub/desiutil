@@ -11,7 +11,7 @@ Configuring desiInstall
 =======================
 
 desiInstall has many options, which are best viewed by typing
-``desiInstall -h``.
+``desiInstall --help``.
 
 In addition, it is possible to override certain internal settings of
 the :class:`~desiutil.install.DesiInstall` object using an
@@ -25,15 +25,6 @@ file::
     # This file provides an example of how to override certain internal settings
     # in desiInstall (desiutil.install).  You can copy this file, edit your copy
     # and supply it to desiInstall with the --configuration option.
-    #
-    #
-    # This section can be used to override built-in names of NERSC hosts.
-    # Specifically, these will override the cross_install_host and
-    # nersc_hosts attributes of the DesiInstall object.
-    #
-    [Cross Install]
-    cross_install_host = cori
-    nersc_hosts = cori,edison,datatran
     #
     # This section can be used to append to or override values in the
     # known_products dictionary in desiutil.install.
@@ -60,9 +51,10 @@ Finally, desiInstall both reads and sets several environment variables.
 
 Environment variables that strongly affect the behavior of desiInstall.
 
-:envvar:`DESI_PRODUCT_ROOT`
-    This variable is used to determine the path to DESI software when
-    desiInstall is *not* run at NERSC.
+:envvar:`DESICONDA`
+    This variable contains the path to the `DESI+Anaconda infrastructure`_.
+:envvar:`DESICONDA_VERSION`
+    This variable should contain the version of the `DESI+Anaconda infrastructure`_.
 :envvar:`DESIUTIL`
     This variable contains the path to the installed version of desiutil_.
     It is needed to find the ``etc/desiutil.module`` file.
@@ -127,8 +119,7 @@ install on any other system that has a Modules infrastructure installed.
 do this yourself, if your system does not already have this.
 
 For the purposes of this section, we define ``$product_root`` as the
-directory that desiInstall will be writing to.  This directory could be the
-same as :envvar:`DESI_PRODUCT_ROOT`, but for standard NERSC installs it
+directory that desiInstall will be writing to.  For standard NERSC installs it
 defaults to a pre-defined value. ``$product_root`` may contain the following
 directories:
 
@@ -237,18 +228,10 @@ edison
     ``/global/common/software/desi/edison/desiconda/${DESICONDA_VERSION}``
 cori
     ``/global/common/software/desi/cori/desiconda/${DESICONDA_VERSION}``
-coriknl
-    ``/global/common/software/desi/coriknl/desiconda/${DESICONDA_VERSION}``
 datatran
     ``/global/common/software/desi/datatran/desiconda/${DESICONDA_VERSION}``
 scigate
     ``/global/common/software/desi/scigate/desiconda/${DESICONDA_VERSION}``
-
-Note that to support KNL (`Knights Landing`_) versions of desiconda_,
-the ``--knl`` option must be passed to :command:`desiInstall`.
-
-At other locations, the user must set the environment variable
-:envvar:`DESI_PRODUCT_ROOT` to point to the equivalent directory.
 
 The actual install directory is determined by appending ``/code/product/verson``
 to the combining the top-level directory listed above.
@@ -259,7 +242,7 @@ If the install directory already exists, desiInstall will exit, unless the
 desiInstall will set the environment variable :envvar:`INSTALL_DIR` to point to the
 install directory.
 
-.. _`Knights Landing`: http://www.nersc.gov/news-publications/nersc-news/nersc-center-news/2016/nersc-staff-users-readying-for-delivery-of-cori-phase-2-knights-landing-based-system-in-july/
+.. _`DESI+Anaconda infrastructure`: https://github.com/desihub/desiconda
 .. _desiconda: https://github.com/desihub/desiconda
 
 Module Infrastructure
@@ -280,19 +263,15 @@ Load Dependencies
 -----------------
 
 desiInstall will scan the module file identified in the previous stage, and
-will module load any dependencies found in the file.  desiInstall will
-purge modules whose name contains ``-hpcp`` if it detects it is not running
-at NERSC.  Similarly, it will purge modules *not* containing ``-hpcp`` if
-it detects a NERSC environment.
+will module load any dependencies found in the file.
 
 Configure Module File
 ---------------------
 
 desiInstall will scan :envvar:`WORKING_DIR` to determine the details that need
 to be added to the module file.  The final module file will then be written
-into the DESI module directory at NERSC or the module directory associated
-with :envvar:`DESI_PRODUCT_ROOT`.  If ``--default`` is specified on the command
-line, an appropriate .version file will be created.
+into the DESI module directory at NERSC.  If ``--default`` is specified
+on the command line, an appropriate .version file will be created.
 
 Load Module
 -----------
@@ -313,21 +292,19 @@ not bundled with the code, so that it can be installed in
 with desiInstall and Travis tests.  There are other, better ways to
 install and manipulate data that is bundled *with* the package.
 
-Copy All Files
---------------
-
-The entire contents of :envvar:`WORKING_DIR` will be copied to :envvar:`INSTALL_DIR`.
-If this is a trunk or branch install and a src/ directory is detected,
-desiInstall will attempt to run :command:`make -C src all` in :envvar:`INSTALL_DIR`.
-For trunk or branch installs, no further processing is performed past this
-point.
-
 Create site-packages
 --------------------
 
 If the build-type 'py' is detected, a site-packages directory will be
 created in :envvar:`INSTALL_DIR`.  If necessary, this directory will be
 added to Python's :data:`sys.path`.
+
+Can We Just Copy the Download?
+------------------------------
+
+If the build-type is *only* 'plain', or if a trunk or branch install is
+requested, the downloaded code will be copied to :envvar:`INSTALL_DIR`.
+Further Python or C/C++ install steps described below will be skipped.
 
 Run setup.py
 ------------
@@ -342,12 +319,10 @@ If the build-type 'make' is detected, :command:`make install` will be run in
 :envvar:`WORKING_DIR`.  If the build-type 'src' is detected, :command:`make -C src all`
 will be run in :envvar:`INSTALL_DIR`.
 
-Cross Install
--------------
+Fix Permissions
+---------------
 
-If the ``--cross-install`` option is specified, and the NERSC environment is
-detected, symlinks will be created to make the package available on all
-NERSC platforms.
+The script :command:`fix_permissions.sh` will be run on :envvar:`INSTALL_DIR`.
 
 Clean Up
 --------
