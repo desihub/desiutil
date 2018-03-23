@@ -10,16 +10,15 @@ This package contains code for installing DESI software products.
 from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 # The line above will help with 2to3 support.
-from sys import argv, executable, path, version_info
-import requests
+import sys
 import tarfile
 import re
+import shutil
+import requests
 from subprocess import Popen, PIPE
-from datetime import date
 from types import MethodType
 from os import chdir, environ, getcwd, makedirs, remove, symlink
 from os.path import abspath, basename, exists, isdir, join
-from shutil import copytree, rmtree
 from .git import last_tag
 from .log import get_logger, DEBUG, INFO
 from .modules import (init_modules, configure_module,
@@ -133,8 +132,6 @@ class DesiInstall(object):
         this holds the object that reads it.
     default_nersc_dir_template : :class:`str`
         The default code and Modules install directory for every NERSC host.
-    executable : :class:`str`
-        The command used to invoke the script.
     fullproduct : :class:`str`
         The path to the product including its URL, *e.g.*,
         "https://github.com/desihub/desiutil".
@@ -153,8 +150,6 @@ class DesiInstall(object):
     product_url : :class:`str`
         The URL that will be used to download the code.  This differs from
         `fullproduct` in that it includes the tag or branch name.
-    test : :class:`bool`
-        Captures the value of the `test` argument passed to the constructor.
     """
     default_nersc_dir_template = '/global/common/software/desi/{nersc_host}/desiconda/{desiconda_version}'
 
@@ -195,7 +190,7 @@ class DesiInstall(object):
                 self.log.warning('The environment variable %s is not set!',
                                  e)
         parser = ArgumentParser(description="Install DESI software.",
-                                prog=basename(argv[0]))
+                                prog=basename(sys.argv[0]))
         parser.add_argument('-a', '--anaconda', action='store', dest='anaconda',
                             default=self.anaconda_version(), metavar='VERSION',
                             help="Set the version of the DESI+Anaconda software stack.")
@@ -434,9 +429,9 @@ class DesiInstall(object):
         if isdir(self.working_dir):
             self.log.info("Detected old working directory, %s. Deleting...",
                           self.working_dir)
-            self.log.debug("rmtree('%s')", self.working_dir)
+            self.log.debug("shutil.rmtree('%s')", self.working_dir)
             if not self.options.test:
-                rmtree(self.working_dir)
+                shutil.rmtree(self.working_dir)
         if self.github:
             if self.is_trunk or self.is_branch:
                 if self.is_branch:
@@ -582,7 +577,7 @@ class DesiInstall(object):
         except KeyError:
             return 'current'
         try:
-            return basename(desiconda[:desiconda.index('/code/desiconda')])
+            return basename(desiconda[:desiconda.index('/conda')])
         except ValueError:
             return 'current'
 
@@ -628,9 +623,9 @@ class DesiInstall(object):
                                 self.baseversion)
         if isdir(self.install_dir) and not self.options.test:
             if self.options.force:
-                self.log.debug("rmtree('%s')", self.install_dir)
+                self.log.debug("shutil.rmtree('%s')", self.install_dir)
                 if not self.options.test:
-                    rmtree(self.install_dir)
+                    shutil.rmtree(self.install_dir)
             else:
                 message = ("Install directory, {0}, already exists!".format(
                            self.install_dir))
@@ -851,13 +846,13 @@ class DesiInstall(object):
             # For certain installs, all that is needed is to copy the
             # downloaded code to the install directory.
             #
-            self.log.debug("copytree('%s', '%s')",
+            self.log.debug("shutil.copytree('%s', '%s')",
                            self.working_dir, self.install_dir)
             if self.options.test:
                 self.log.debug("Test mode. Skipping copy of %s to %s.",
                                self.working_dir, self.install_dir)
             else:
-                copytree(self.working_dir, self.install_dir)
+                shutil.copytree(self.working_dir, self.install_dir)
         else:
             #
             # Run a 'real' install
@@ -882,18 +877,18 @@ class DesiInstall(object):
                     except OSError as ose:
                         self.log.critical(ose.strerror)
                         raise DesiInstallException(ose.strerror)
-                    if lib_dir not in path:
+                    if lib_dir not in sys.path:
                         try:
                             newpythonpath = (lib_dir + ':' +
                                              environ['PYTHONPATH'])
                         except KeyError:
                             newpythonpath = lib_dir
                         environ['PYTHONPATH'] = newpythonpath
-                        path.insert(int(path[0] == ''), lib_dir)
+                        sys.path.insert(int(sys.path[0] == ''), lib_dir)
                 #
                 # Ready to python setup.py
                 #
-                command = [executable, 'setup.py', 'install',
+                command = [sys.executable, 'setup.py', 'install',
                            '--prefix={0}'.format(self.install_dir)]
                 self.log.debug(' '.join(command))
                 if self.options.test:
@@ -998,9 +993,9 @@ class DesiInstall(object):
         if not self.options.test:
             chdir(self.original_dir)
         if not self.options.keep:
-            self.log.debug("rmtree('%s')", self.working_dir)
+            self.log.debug("shutil.rmtree('%s')", self.working_dir)
             if not self.options.test:
-                rmtree(self.working_dir)
+                shutil.rmtree(self.working_dir)
         return True
 
     def run(self):  # pragma: no cover
