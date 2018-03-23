@@ -7,8 +7,11 @@ Change Log
 
 * Remove support for :command:`desiInstall` in environments other than
   NERSC (PR `#101`_).
+* Try as best as possible that Python executable scripts are installed with
+  an explicit desiconda version (PR `#105`_).
 
 .. _`#101`: https://github.com/desihub/desiutil/pull/101
+.. _`#105`: https://github.com/desihub/desiutil/pull/105
 
 1.9.9 (2017-12-20)
 ------------------
