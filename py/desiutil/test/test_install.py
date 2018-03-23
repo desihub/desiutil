@@ -266,10 +266,10 @@ class TestInstall(unittest.TestCase):
         with patch.dict('os.environ', {'DESICONDA': 'FOO'}):
             v = self.desiInstall.anaconda_version()
             self.assertEqual(v, 'current')
-            environ['DESICONDA'] = '/global/common/software/desi/cori/desiconda/20170613-1.1.4-spectro/code/desiconda/20170613-1.1.4-spectro_conda'
+            environ['DESICONDA'] = '/global/common/software/desi/cori/desiconda/20170613-1.1.4-spectro/conda'
             v = self.desiInstall.anaconda_version()
             self.assertEqual(v, '20170613-1.1.4-spectro')
-            environ['DESICONDA'] = '/global/common/software/desi/cori/desiconda/20170613-1.1.4-spectro/CODE/desiconda/20170613-1.1.4-spectro_conda'
+            environ['DESICONDA'] = '/global/common/software/desi/cori/desiconda/20170613-1.1.4-spectro/code/desiconda/20170613-1.1.4-spectro_conda'
             v = self.desiInstall.anaconda_version()
             self.assertEqual(v, 'current')
 
