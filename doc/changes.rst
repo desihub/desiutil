@@ -2,7 +2,12 @@
 Change Log
 ==========
 
-1.9.10 (unreleased)
+1.9.11 (unreleased)
+-------------------
+
+* No changes yet.
+
+1.9.10 (2018-03-29)
 -------------------
 
 * Remove support for :command:`desiInstall` in environments other than
