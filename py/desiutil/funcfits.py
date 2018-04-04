@@ -16,9 +16,73 @@ from __future__ import (print_function, absolute_import, division,
 import numpy as np
 import copy
 import warnings
+from scipy import interpolate
 
 
-def func_fit(x, y, func, deg, xmin=None, xmax=None, w=None, **kwargs):
+def bspline_fit(x,y,order=3,knots=None,everyn=20,xmin=None,xmax=None,w=None,bkspace=None):
+    """ bspline fit to x,y
+    Primarily a wrapper to the scipy function
+
+    Parameters
+    ----------
+    x : :class:`~numpy.ndarray`
+    y : :class:`~numpy.ndarray`
+    order : :class:`int`
+      deg of the spline.  Default=3 (cubic)
+    knots : :class:`~numpy.ndarray`, optional
+      Internal knots only.  External ones are added by scipy
+    everyn : :class:`int`, optional
+      Knot everyn good pixels, if used
+    xmin : :class:`float`, optional
+      Minimum value in the array  [both must be set to normalize]
+    xmax: :class:`float`, optional
+      Maximum value in the array  [both must be set to normalize]
+    w : :class:`~numpy.ndarray`, optional
+      weights to be used in the fitting (weights = 1/sigma)
+    bkspace: :class:`float`, optional
+      Spacing of breakpoints in units of x
+
+    Returns
+    -------
+    tck : tuple
+      describes the bspline
+    """
+    #
+    task = 0  # Default of splrep
+    if w is None:
+        ngd = x.size
+        gd = np.arange(ngd)
+        weights = None
+    else:
+        gd = np.where(w > 0.)[0]
+        weights = w[gd]
+        ngd = len(gd)
+    # Make the knots
+    if knots is None:
+        if bkspace is not None:
+            xrnge = (np.max(x[gd]) - np.min(x[gd]))
+            startx = np.min(x[gd])
+            nbkpts = max(int(xrnge/bkspace) + 1,2)
+            tempbkspace = xrnge/(nbkpts-1)
+            knots = np.arange(1, nbkpts-1)*tempbkspace + startx
+        elif everyn is not None:
+            # A knot every good N pixels
+            idx_knots = np.arange(everyn//2, ngd-everyn//2, everyn)
+            knots = x[gd[idx_knots]]
+        else:
+            raise IOError("No method specified to generate knots")
+    else:
+        task = -1
+    # Generate spline
+    try:
+        tck = interpolate.splrep(x[gd], y[gd], w=weights, k=order, xb=xmin, xe=xmax, t=knots, task=task)
+    except ValueError:
+        # Knot problem (usually)
+        raise ValueError("Likely problem in the bspline knots")
+    return tck
+
+
+def func_fit(x, y, func, deg, xnorm=True, xmin=None, xmax=None, w=None, **kwargs):
     """Simple function fit to 2 arrays.
 
     Modified code originally from Ryan Cooke (PYPIT).
@@ -30,9 +94,12 @@ def func_fit(x, y, func, deg, xmin=None, xmax=None, w=None, **kwargs):
     y : :class:`~numpy.ndarray`
         Dependent data to fit.
     func : :class:`str`
-        Name of the fitting function:  polynomial, legendre, chebyshev.
+        Name of the fitting function:  polynomial, legendre, chebyshev, bspline.
     deg : :class:`int` or :class:`dict`
         Order of the fit.
+    xnorm : :class:`bool`, optional
+      Normalize the x-values from -1 to 1?
+      This is *never* done for bspline
     xmin : :class:`float`, optional
         Minimum value in the array (or the left limit for a
         legendre/chebyshev polynomial).
@@ -47,24 +114,34 @@ def func_fit(x, y, func, deg, xmin=None, xmax=None, w=None, **kwargs):
     :class:`dict`
         Dictionary describing the Fit including the coefficients.
     """
-    # Normalize
-    if xmin is None or xmax is None:
-        if x.size == 1:
-            xmin, xmax = -1.0, 1.0
+    # Normalize x values?
+    if xnorm:
+        if func == 'bspline':  # Never normalized
+            xv = x
         else:
-            xmin, xmax = x.min(), x.max()
-    xv = 2.0 * (x-xmin)/(xmax-xmin) - 1.0
+            if xmin is None or xmax is None:
+                if x.size == 1:
+                    xmin, xmax = -1.0, 1.0
+                else:
+                    xmin, xmax = x.min(), x.max()
+            xv = 2.0 * (x-xmin)/(xmax-xmin) - 1.0
+    else:
+        xv = x
     # Fit
     fitters = {'polynomial': np.polynomial.polynomial.polyfit,
                'legendre': np.polynomial.legendre.legfit,
                'chebyshev': np.polynomial.chebyshev.chebfit}
-    try:
+
+    if func == "bspline":
+        xnorm = False
+        fit = bspline_fit(xv, y, order=deg, w=w, **kwargs) # Not using normalized xv
+    else:
+        if func not in fitters.keys():
+            raise ValueError("Not prepare for this type of fit")
         fit = fitters[func](xv, y, deg, w=w)
-    except KeyError:
-        raise ValueError("Fitting function '{0:s}' is not implemented yet.".format(func))
     # Finish
-    fit_dict = dict(coeff=fit, order=deg, func=func, xmin=xmin, xmax=xmax,
-                    **kwargs)
+    fit_dict = dict(coeff=fit, order=deg, func=func, xnorm=xnorm, xmin=xmin, xmax=xmax,
+                **kwargs)
     return fit_dict
 
 
@@ -83,10 +160,15 @@ def func_val(x, fit_dict):
     :class:`~numpy.ndarray`
         Array containing the values.
     """
-    xv = 2.0 * (x-fit_dict['xmin'])/(fit_dict['xmax']-fit_dict['xmin']) - 1.0
+    if fit_dict['xnorm']:
+        xv = 2.0 * (x-fit_dict['xmin'])/(fit_dict['xmax']-fit_dict['xmin']) - 1.0
+    else:
+        xv = x
     values = {'polynomial': np.polynomial.polynomial.polyval,
               'legendre': np.polynomial.legendre.legval,
               'chebyshev': np.polynomial.chebyshev.chebval}
+    if fit_dict['func'] == "bspline":
+        return interpolate.splev(x, fit_dict['coeff'], ext=1)
     try:
         val = values[fit_dict['func']](xv, fit_dict['coeff'])
     except KeyError:

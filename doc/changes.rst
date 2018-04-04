@@ -5,7 +5,7 @@ Change Log
 1.9.11 (unreleased)
 -------------------
 
-* No changes yet.
+* Add bspline to funcfits.  scipy is now a dependency
 
 1.9.10 (2018-03-29)
 -------------------

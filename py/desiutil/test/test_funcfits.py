@@ -39,6 +39,11 @@ class TestFuncFits(unittest.TestCase):
         x2 = np.linspace(0, np.pi, 100)
         y2 = func_val(x2, dfit)
         np.testing.assert_allclose(y2[50], 0.97854984428713754)
+        # Without xnorm
+        dfit = func_fit(x, y, 'polynomial', 3, xnorm=False)
+        x2 = np.linspace(0, np.pi, 100)
+        y2 = func_val(x2, dfit)
+        np.testing.assert_allclose(y2[50], 0.97854984428713698)
 
     def test_legendre_fit(self):
         """Test Legendre fit.
@@ -63,6 +68,18 @@ class TestFuncFits(unittest.TestCase):
         x2 = np.linspace(0, np.pi, 100)
         y2 = func_val(x2, dfit)
         np.testing.assert_allclose(y2[50], 0.99940823486206942)
+
+    def test_bspline_fit(self):
+        """Test bspline fit.
+        """
+        # Generate data
+        x = np.linspace(0, np.pi, 50)
+        y = np.sin(x)
+        # Fit
+        dfit = func_fit(x, y, 'bspline', 3)
+        x2 = np.linspace(0, np.pi, 100)
+        y2 = func_val(x2, dfit)
+        np.testing.assert_allclose(y2[50], 0.99837522123593681)
 
     def test_fit_with_sigma(self):
         """Test fit with sigma.
