@@ -5,7 +5,12 @@ Change Log
 1.9.11 (unreleased)
 -------------------
 
-* No changes yet.
+* Installing extra data happens *after* the main install, to prevent
+  collisions in creating the install directory (Issue `#102`_).
+* ``fix_permissions.sh`` ignores the group-write bit (Issue `#108`_).
+
+.. _`#108`: https://github.com/desihub/desiutil/issues/108
+.. _`#102`: https://github.com/desihub/desiutil/issues/102
 
 1.9.10 (2018-03-29)
 -------------------

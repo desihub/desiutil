@@ -806,30 +806,6 @@ class DesiInstall(object):
         self.original_dir = os.getcwd()
         return self.original_dir
 
-    def get_extra(self):
-        """Download any additional data not included in the code repository.
-
-        This is done here so that :envvar:`INSTALL_DIR` is defined.
-        """
-        extra_script = os.path.join(self.working_dir, 'etc',
-                                    '{0}_data.sh'.format(self.baseproduct))
-        if os.path.exists(extra_script):
-            self.log.debug("Detected extra script: %s.", extra_script)
-            self.log.debug("os.makedirs('%s')", self.install_dir)
-            if self.options.test:
-                self.log.debug('Test Mode. Skipping install of extra data.')
-            else:
-                proc = Popen([extra_script], universal_newlines=True,
-                             stdout=PIPE, stderr=PIPE)
-                out, err = proc.communicate()
-                status = proc.returncode
-                self.log.debug(out)
-                if status != 0 and len(err) > 0:
-                    message = "Error grabbing extra data: {0}".format(err)
-                    self.log.critical(message)
-                    raise DesiInstallException(message)
-        return
-
     def install(self):
         """Run setup.py, etc.
         """
@@ -951,6 +927,30 @@ class DesiInstall(object):
                             raise DesiInstallException(message)
         return
 
+    def get_extra(self):
+        """Download any additional data not included in the code repository.
+
+        This is done here so that :envvar:`INSTALL_DIR` is defined *and*
+        exists.
+        """
+        extra_script = os.path.join(self.working_dir, 'etc',
+                                    '{0}_data.sh'.format(self.baseproduct))
+        if os.path.exists(extra_script):
+            self.log.debug("Detected extra script: %s.", extra_script)
+            if self.options.test:
+                self.log.debug('Test Mode. Skipping install of extra data.')
+            else:
+                proc = Popen([extra_script], universal_newlines=True,
+                             stdout=PIPE, stderr=PIPE)
+                out, err = proc.communicate()
+                status = proc.returncode
+                self.log.debug(out)
+                if status != 0 and len(err) > 0:
+                    message = "Error grabbing extra data: {0}".format(err)
+                    self.log.critical(message)
+                    raise DesiInstallException(message)
+        return
+
     def verify_bootstrap(self):
         """Make sure that desiutil/desiInstall was installed with
         an explicit Python executable path.
@@ -1036,8 +1036,8 @@ class DesiInstall(object):
             self.module_dependencies()
             self.install_module()
             self.prepare_environment()
-            self.get_extra()
             self.install()
+            self.get_extra()
             self.verify_bootstrap()
             self.permissions()
         except DesiInstallException:

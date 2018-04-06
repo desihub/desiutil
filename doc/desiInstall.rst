@@ -222,16 +222,9 @@ Determine Install Directory
 
 The install directory is where the code will live permanently.  If the
 install is taking place at NERSC, the top-level install directory is
-predetermined based on the value of :envvar:`NERSC_HOST`.
+predetermined based on the value of :envvar:`NERSC_HOST`::
 
-edison
-    ``/global/common/software/desi/edison/desiconda/${DESICONDA_VERSION}``
-cori
-    ``/global/common/software/desi/cori/desiconda/${DESICONDA_VERSION}``
-datatran
-    ``/global/common/software/desi/datatran/desiconda/${DESICONDA_VERSION}``
-scigate
-    ``/global/common/software/desi/scigate/desiconda/${DESICONDA_VERSION}``
+    /global/common/software/desi/${NERSC_HOST}/desiconda/${DESICONDA_VERSION}
 
 The actual install directory is determined by appending ``/code/product/verson``
 to the combining the top-level directory listed above.
@@ -282,16 +275,6 @@ the environment variables :envvar:`WORKING_DIR` and :envvar:`INSTALL_DIR` exist.
 It will also set :envvar:`PRODUCT_VERSION`, where ``PRODUCT`` will be replaced
 by the actual name of the package, *e.g.*, :envvar:`DESIMODEL_VERSION`.
 
-Download Extra Data
--------------------
-
-If desiInstall detects ``etc/product_data.sh``, where ``product`` should be
-replaced by the actual name of the package, it will download extra data
-not bundled with the code, so that it can be installed in
-:envvar:`INSTALL_DIR` in the next stage.  The script should *only* be used
-with desiInstall and Travis tests.  There are other, better ways to
-install and manipulate data that is bundled *with* the package.
-
 Create site-packages
 --------------------
 
@@ -318,6 +301,16 @@ Build C/C++ Code
 If the build-type 'make' is detected, :command:`make install` will be run in
 :envvar:`WORKING_DIR`.  If the build-type 'src' is detected, :command:`make -C src all`
 will be run in :envvar:`INSTALL_DIR`.
+
+Download Extra Data
+-------------------
+
+If desiInstall detects ``etc/product_data.sh``, where ``product`` should be
+replaced by the actual name of the package, it will download extra data
+not bundled with the code.  The script should download data *directly* to
+:envvar:`INSTALL_DIR`. The script should *only* be used
+with desiInstall and Travis tests.  Note that here are other, better ways to
+install and manipulate data that is bundled *with* a Python package.
 
 Fix Permissions
 ---------------
