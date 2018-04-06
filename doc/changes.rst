@@ -8,9 +8,12 @@ Change Log
 * Installing extra data happens *after* the main install, to prevent
   collisions in creating the install directory (Issue `#102`_).
 * ``fix_permissions.sh`` ignores the group-write bit (Issue `#108`_).
+* Remove support for a desiInstall configuration file.  All options
+  are specified on the command-line (Issue `#103`_)
 
-.. _`#108`: https://github.com/desihub/desiutil/issues/108
 .. _`#102`: https://github.com/desihub/desiutil/issues/102
+.. _`#103`: https://github.com/desihub/desiutil/issues/103
+.. _`#108`: https://github.com/desihub/desiutil/issues/108
 
 1.9.10 (2018-03-29)
 -------------------
