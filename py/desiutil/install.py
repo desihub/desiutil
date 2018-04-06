@@ -32,13 +32,6 @@ except ImportError:
     # Python 2
     from cStringIO import StringIO
 
-try:
-    # Python 3
-    from configparser import ConfigParser as SafeConfigParser
-except ImportError:
-    # Python 2
-    from ConfigParser import SafeConfigParser
-
 
 known_products = {
     'desiBackup': 'https://github.com/desihub/desiBackup',
@@ -127,9 +120,6 @@ class DesiInstall(object):
         The bare name of the product, *e.g.* "desiutil".
     baseversion : :class:`str`
         The bare version, without any ``branches/`` qualifiers.
-    config : :class:`~ConfigParser.SafeConfigParser`
-        If an *optional* configuration file is specified on the command-line,
-        this holds the object that reads it.
     default_nersc_dir_template : :class:`str`
         The default code and Modules install directory for every NERSC host.
     fullproduct : :class:`str`
@@ -203,11 +193,6 @@ class DesiInstall(object):
                             help=("Force C/C++ install mode, even if a " +
                                   "setup.py file is detected (WARNING: " +
                                   "this is for experts only)."))
-        parser.add_argument('-c', '--configuration', action='store',
-                            dest='config_file',
-                            metavar='FILE',
-                            help=("Override built-in configuration with " +
-                                  "data from FILE."))
         parser.add_argument('-d', '--default', action='store_true',
                             dest='default',
                             help='Make this version the default version.')
@@ -223,10 +208,6 @@ class DesiInstall(object):
                             default=check_env['MODULESHOME'],
                             metavar='DIR',
                             help='Set or override the value of $MODULESHOME')
-        parser.add_argument('-M', '--module-dir', action='store',
-                            dest='moduledir',
-                            metavar='DIR',
-                            help="Install module files in DIR.")
         parser.add_argument('-p', '--additional-products', action='append',
                             dest='additional',
                             metavar='PRODUCT:URL',
@@ -265,16 +246,6 @@ class DesiInstall(object):
         if self.options.verbose or self.options.test:
             self.log.setLevel(DEBUG)
             self.log.debug('Set log level to DEBUG.')
-        self.config = None
-        if self.options.config_file is not None:
-            self.log.debug("Detected configuration file: %s.",
-                           self.options.config_file)
-            c = SafeConfigParser()
-            status = c.read([self.options.config_file])
-            if status[0] == self.options.config_file:
-                self.config = c
-                self.log.debug("Successfully parsed %s.",
-                               self.options.config_file)
         return self.options
 
     def sanity_check(self):
@@ -695,29 +666,15 @@ class DesiInstall(object):
     def nersc_module_dir(self):
         """The directory that contains Module directories at NERSC.
         """
+        if hasattr(self, 'options'):
+            if self.options.root is not None:
+                return os.path.join(self.options.root, 'modulefiles')
         if not hasattr(self, 'nersc'):
             return None
         if self.nersc is None:
             return None
         else:
-            if self.baseproduct == 'desimodules':
-                nersc_module = os.path.join(self.default_nersc_dir_template.format(nersc_host=self.nersc, desiconda_version='startup'),
-                                            'modulefiles')
-            else:
-                nersc_module = os.path.join(self.default_nersc_dir(),
-                                            'modulefiles')
-        if not hasattr(self, 'config'):
-            return nersc_module
-        if self.config is not None:
-            if self.config.has_option("Module Processing",
-                                      'nersc_module_dir'):
-                nersc_module = self.config.get("Module Processing",
-                                               'nersc_module_dir')
-            if self.config.has_option("Module Processing",
-                                      '{0}_module_dir'.format(self.nersc)):
-                nersc_module = self.config.get("Module Processing",
-                                               '{0}_module_dir'.format(self.nersc))
-        return nersc_module
+            return os.path.join(self.default_nersc_dir(), 'modulefiles')
 
     def install_module(self):
         """Process the module file.
@@ -742,26 +699,13 @@ class DesiInstall(object):
                                                 os.path.join(self.options.root, 'code'),
                                                 working_dir=self.working_dir,
                                                 dev=dev)
-        if self.options.moduledir is None:
-            #
-            # We didn't set a module dir, so derive it from options.root
-            #
-            if self.nersc is None:
-                self.options.moduledir = os.path.join(self.options.root, 'modulefiles')
-            else:
-                self.options.moduledir = self.nersc_module_dir
-                self.log.debug("nersc_module_dir set to %s.",
-                               self.options.moduledir)
-            if not self.options.test:
-                if not os.path.isdir(self.options.moduledir):
-                    self.log.info("Creating Modules directory %s.",
-                                  self.options.moduledir)
-                    self.log.debug("os.makedirs('%s')", self.options.moduledir)
-                    try:
-                        os.makedirs(self.options.moduledir)
-                    except OSError as ose:
-                        self.log.critical(ose.strerror)
-                        raise DesiInstallException(ose.strerror)
+        if self.nersc is None:
+            module_directory = os.path.join(self.options.root, 'modulefiles')
+        else:
+            module_directory = self.nersc_module_dir
+        #
+        # process_module() will handle the creation of the module directory.
+        #
         if self.options.test:
             self.log.debug("Test Mode. Skipping Module file installation.")
             mod = ''
@@ -769,17 +713,17 @@ class DesiInstall(object):
             try:
                 self.log.debug(("process_module('%s', self.module_keywords, " +
                                 "'%s')"), self.module_file,
-                               self.options.moduledir)
+                               module_directory)
                 mod = process_module(self.module_file, self.module_keywords,
-                                     self.options.moduledir)
+                                     module_directory)
             except OSError as ose:
                 self.log.critical(ose.strerror)
                 raise DesiInstallException(ose.strerror)
             if self.options.default:
                 self.log.debug("default_module(self.module_keywords, '%s')",
-                               self.options.moduledir)
+                               module_directory)
                 dot_version = default_module(self.module_keywords,
-                                             self.options.moduledir)
+                                             module_directory)
         return mod
 
     def prepare_environment(self):

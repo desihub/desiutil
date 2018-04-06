@@ -87,12 +87,10 @@ class TestInstall(unittest.TestCase):
                 additional=None,
                 anaconda=self.desiInstall.anaconda_version(),
                 bootstrap=False,
-                config_file=None,
                 default=False,
                 force=False,
                 force_build_type=False,
                 keep=False,
-                moduledir=None,
                 moduleshome='/fake/module/directory',
                 product=u'NO PACKAGE',
                 product_version=u'NO VERSION',
@@ -371,12 +369,10 @@ class TestInstall(unittest.TestCase):
     def test_nersc_module_dir(self):
         """Test the nersc_module_dir property.
         """
-        ini = resource_filename('desiutil.test',
-                                't/desiInstall_configuration.ini')
         self.assertIsNone(self.desiInstall.nersc_module_dir)
         self.desiInstall.nersc = None
         self.assertIsNone(self.desiInstall.nersc_module_dir)
-        test_args = ['desiutil', '1.9.5']
+        test_args = ['--anaconda', '20180102-1.2.3-spec', 'desiutil', '1.9.5']
         options = self.desiInstall.get_options(test_args)
         for n in ('edison', 'cori', 'datatran', 'scigate'):
             self.desiInstall.nersc = n
@@ -384,18 +380,10 @@ class TestInstall(unittest.TestCase):
             self.assertEqual(self.desiInstall.nersc_module_dir,
                              join(self.desiInstall.default_nersc_dir(n),
                                   "modulefiles"))
-            self.desiInstall.baseproduct = 'desimodules'
-            self.assertEqual(self.desiInstall.nersc_module_dir,
-                             join(self.desiInstall.default_nersc_dir_template.format(nersc_host=n, desiconda_version='startup'),
-                                  "modulefiles"))
-        options = self.desiInstall.get_options(['--configuration',
-                                                ini, 'desiutil', '1.9.5'])
-        self.desiInstall.nersc = 'edison'
+        options = self.desiInstall.get_options(['--root', '/project/projectdirs/desi/test',
+                                                'desiutil', '1.9.5'])
         self.assertEqual(self.desiInstall.nersc_module_dir,
-                         '/project/projectdirs/desi/test/modules')
-        self.desiInstall.nersc = 'cori'
-        self.assertEqual(self.desiInstall.nersc_module_dir,
-                         '/global/common/cori/contrib/desi/test/modules')
+                         '/project/projectdirs/desi/test/modulefiles')
 
     def test_cleanup(self):
         """Test the cleanup stage of the install.

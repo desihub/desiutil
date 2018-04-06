@@ -7,40 +7,17 @@ Introduction
 
 This document describes the desiInstall process and the logic behind it.
 
+The primary purpose of desiInstall is to install DESI software **at NERSC**.
+Using it to install software at locations other than NERSC is theoretically
+possible, but not supported.
+
 Configuring desiInstall
 =======================
 
 desiInstall has many options, which are best viewed by typing
 ``desiInstall --help``.
 
-In addition, it is possible to override certain internal settings of
-the :class:`~desiutil.install.DesiInstall` object using an
-INI-style configuration file, supplying the name of the file with the
-``--configuration`` option.  Here is an example of the contents of such a
-file::
-
-    #
-    # READ ME FIRST
-    #
-    # This file provides an example of how to override certain internal settings
-    # in desiInstall (desiutil.install).  You can copy this file, edit your copy
-    # and supply it to desiInstall with the --configuration option.
-    #
-    # This section can override details of Module file installation.
-    #
-    [Module Processing]
-    #
-    # nersc_module_dir overrides the Module file install directory for
-    # ALL NERSC hosts.
-    #
-    nersc_module_dir = /project/projectdirs/desi/test/modules
-    #
-    # cori_module_dir overrides the Module file install directory only
-    # on cori.
-    #
-    cori_module_dir = /global/common/software/desi/cori/test/modules
-
-Finally, desiInstall both reads and sets several environment variables.
+In addition, desiInstall both reads and sets several environment variables.
 
 Environment variables that strongly affect the behavior of desiInstall.
 
@@ -105,8 +82,7 @@ Directory Structure Assumed by the Install
 ==========================================
 
 desiInstall is primarily intended to run in a production environment that
-supports Module files.  In practice, this means NERSC, though it can also
-install on any other system that has a Modules infrastructure installed.
+supports Module files, *i.e.* at NERSC.
 
 *desiInstall does not install a Modules infrastructure for you.* You have to
 do this yourself, if your system does not already have this.
@@ -126,7 +102,15 @@ modulefiles/
     file is almost always named ``product/version``.  For example, the
     Module file for desiutil might be ``$product_root/modulefiles/desiutil/1.8.0``.
 
-.. _Anaconda: https://www.continuum.io
+The ``--root`` option can override the built-in default value of ``$product_root``,
+which is useful for testing::
+
+    desiInstall --root $SCRATCH/test_install desispec 0.20.0
+
+In the example above, desispec would be installed in
+``$SCRATCH/test_install/code/desispec/0.20.0``,
+with a corresponding Module file at
+``$SCRATCH/test_install/modulefiles/desispec/0.20.0``
 
 Within a ``$product_root/code/product/version`` directory, you might see the
 following:
@@ -173,7 +157,7 @@ command line::
 
     desiInstall -p new_product:https://github.com/me/new_product new_product 1.2.3
 
-    desiInstall -p desiutil:https://github.com/alternate_repository/desiutil
+    desiInstall -p desiutil:https://github.com/alternate_repository/desiutil desiutil 1.9.9
 
 The ``-p`` option can be specified multiple times, though in practice, it only
 matters to the product actually being installed.
