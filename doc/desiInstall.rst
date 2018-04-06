@@ -26,13 +26,6 @@ file::
     # in desiInstall (desiutil.install).  You can copy this file, edit your copy
     # and supply it to desiInstall with the --configuration option.
     #
-    # This section can be used to append to or override values in the
-    # known_products dictionary in desiutil.install.
-    #
-    [Known Products]
-    my_new_product = https://github.com/me/my_new_product
-    desiutil = https://github.com/you/new_path_to_desiutil
-    #
     # This section can override details of Module file installation.
     #
     [Module Processing]
@@ -174,6 +167,16 @@ a list of known products, but it is not necessarily complete. desiInstall parses
 the input to determine the base name and base version to install.  At this
 stage desiInstall also determines whether a trunk or branch install has
 been requested.
+
+The internal list of known products can be added to or overridden on the
+command line::
+
+    desiInstall -p new_product:https://github.com/me/new_product new_product 1.2.3
+
+    desiInstall -p desiutil:https://github.com/alternate_repository/desiutil
+
+The ``-p`` option can be specified multiple times, though in practice, it only
+matters to the product actually being installed.
 
 Product Existence
 -----------------

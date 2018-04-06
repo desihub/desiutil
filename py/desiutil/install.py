@@ -227,6 +227,11 @@ class DesiInstall(object):
                             dest='moduledir',
                             metavar='DIR',
                             help="Install module files in DIR.")
+        parser.add_argument('-p', '--additional-products', action='append',
+                            dest='additional',
+                            metavar='PRODUCT:URL',
+                            help=("Add or override known products " +
+                                  "(e.g. new_product:https://github.com/mystuff/new_product)."))
         parser.add_argument('-r', '--root', action='store',
                             dest='root',
                             metavar='DIR',
@@ -317,10 +322,10 @@ class DesiInstall(object):
         DesiInstallException
             If the product and version inputs didn't make sense.
         """
-        if self.config is not None:
-            if self.config.has_section("Known Products"):
-                for name, value in self.config.items("Known Products"):
-                    known_products[name] = value
+        if self.options.additional is not None:
+            for k in self.options.additional:
+                a = k.split(':', 1)
+                known_products[a[0]] = a[1]
         if '/' in self.options.product:
             self.baseproduct = os.path.basename(self.options.product)
         else:
