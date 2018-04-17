@@ -102,7 +102,7 @@ else
     [ "${verbose}" = "True" ] && vflag='-c'
     run ${verbose} "${findbase} -not -group ${group} -exec chgrp ${vflag} -h ${group} {} ;"
     run ${verbose} "${findbase} -type f -not -perm /g+r -exec chmod ${vflag} g+r {} ;"
-    run ${verbose} "${findbase} -type f -not -perm -g+rx -exec chmod ${vflag} g+rx {} ;"
+    run ${verbose} "${findbase} -type d -not -perm -g+rx -exec chmod ${vflag} g+rx {} ;"
     run ${verbose} "${findbase} -perm /o+rwx -exec chmod ${vflag} o-rwx {} ;"
     if [ -n "${apache}" ]; then
         run ${verbose} "${findbase} -exec ${setfacl} -m ${apache} {} ;"
