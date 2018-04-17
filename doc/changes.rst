@@ -5,7 +5,7 @@ Change Log
 1.9.11 (unreleased)
 -------------------
 
-* No changes yet.
+* Added scatter option to desiutil.plots.plot_slices (avoid slow PNG generation for large data samples)
 
 1.9.10 (2018-03-29)
 -------------------
