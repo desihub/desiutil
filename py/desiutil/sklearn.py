@@ -51,10 +51,16 @@ class GaussianMixtureModel(object):
         from astropy.io import fits
         hdus = fits.HDUList()
         hdr = fits.Header()
-        hdr['covtype'] = model.covtype
-        hdus.append(fits.ImageHDU(model.weights, name='weights', header=hdr))
-        hdus.append(fits.ImageHDU(model.means, name='means'))
-        hdus.append(fits.ImageHDU(model.covars, name='covars'))
+        try:
+            hdr['covtype'] = model.covariance_type
+            hdus.append(fits.ImageHDU(model.weights_, name='weights', header=hdr))
+            hdus.append(fits.ImageHDU(model.means_, name='means'))
+            hdus.append(fits.ImageHDU(model.covariances_, name='covars'))
+        except:
+            hdr['covtype'] = model.covtype
+            hdus.append(fits.ImageHDU(model.weights, name='weights', header=hdr))
+            hdus.append(fits.ImageHDU(model.means, name='means'))
+            hdus.append(fits.ImageHDU(model.covars, name='covars'))
         hdus.writeto(filename, overwrite=True)
 
     @staticmethod
