@@ -10,11 +10,14 @@ Change Log
 * ``fix_permissions.sh`` ignores the group-write bit (Issue `#108`_, PR `#109`_).
 * Remove support for a desiInstall configuration file.  All options
   are specified on the command-line (Issue `#103`_, PR `#109`_).
+* Update sklearn module to support updates to sklearn.mixture.GaussianMixture
+  (PR `#111`_).
 
 .. _`#102`: https://github.com/desihub/desiutil/issues/102
 .. _`#103`: https://github.com/desihub/desiutil/issues/103
 .. _`#108`: https://github.com/desihub/desiutil/issues/108
 .. _`#109`: https://github.com/desihub/desiutil/pull/109
+.. _`#111`: https://github.com/desihub/desiutil/pull/111
 
 1.9.10 (2018-03-29)
 -------------------
