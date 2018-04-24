@@ -19,12 +19,12 @@ for k in $(seq 0 3); do
     touch Dir${k}/File${k}
     echo chmod ${filePerm[$k]} Dir${k}/File${k}
     chmod ${filePerm[$k]} Dir${k}/File${k}
-    echo fix_permissions.sh Dir${k}
-    fix_permissions.sh Dir${k}
+    echo fix_permissions.sh -v Dir${k}
+    fix_permissions.sh -v Dir${k}
     [[ $(stat -c %a Dir${k}) == ${fixedDirPerm[$k]} ]] || echo "Dir${k}/ permission not set properly!"
     [[ $(stat -c %G Dir${k}) == desi ]] || echo "Dir${k}/ group ID not set properly!"
     [[ $(getfacl -c Dir${k} | grep desi) == user:desi:rwx ]] || echo "Dir${k}/ ACL not set properly!"
-    [[ $(stat -c %a Dir${k}/File${k}) == ${fixedFilePerm[$k]} ]] || echo "Dir${k}/File${k} not set properly!"
+    [[ $(stat -c %a Dir${k}/File${k}) == ${fixedFilePerm[$k]} ]] || echo "Dir${k}/File${k} permission not set properly!"
     [[ $(stat -c %G Dir${k}/File${k}) == desi ]] || echo "Dir${k}/File${k} group ID not set properly!"
     [[ $(getfacl -c Dir${k}/File${k} | grep desi) == user:desi:rw- ]] || echo "Dir${k}/File${k} ACL not set properly!"
 done
