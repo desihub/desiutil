@@ -2,6 +2,9 @@
 #
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 #
+# See https://desi.lbl.gov/trac/wiki/Computing/NerscFileSystem#FileSystemAccess
+# for the detailed requirements that motivate this script.
+#
 function usage() {
     local execName=$(basename $0)
     (
@@ -29,15 +32,15 @@ function run() {
 #
 # Get options
 #
-apache=''
-apache_uid=48
-group=desi
+apacheACL=''
+apacheUID=48
+desiGID=desi
 test=False
 verbose=False
 while getopts ag:htv argname; do
     case ${argname} in
-        a) apache="u:${apache_uid}:rX" ;;
-        g) group=${OPTARG} ;;
+        a) apacheACL="u:${apacheUID}:rX" ;;
+        g) desiGID=${OPTARG} ;;
         h) usage; exit 0 ;;
         t) test=True; verbose=True ;;
         v) verbose=True ;;
@@ -54,10 +57,12 @@ if [ ! -x "${find}" ]; then
     exit 1
 fi
 setfacl=/usr/bin/setfacl
+desiACL="u:${desiGID}:rwX"
 if [ ! -x "${setfacl}" ]; then
     echo "Could not find the 'setfacl' command (tried ${setfacl})!" >&2
-    echo "Skipping apache ACL changes." >&2
-    apache=''
+    echo "Skipping all ACL changes." >&2
+    desiACL=''
+    apacheACL=''
 fi
 #
 # Make sure directory exists, and check consistency.
@@ -87,12 +92,15 @@ fi
 findbase="${find} ${directory} -user ${USER}"
 [ "${verbose}" = "True" ] && echo "Fixing permissions on ${directory} ..."
 if [ "${test}" = "True" ]; then
-    run ${verbose} "${findbase} -not -group ${group} -ls"
+    run ${verbose} "${findbase} -not -group ${desiGID} -ls"
     run ${verbose} "${findbase} -type f -not -perm /g+r -ls"
     run ${verbose} "${findbase} -type d -not -perm -g+rxs -ls"
     run ${verbose} "${findbase} -perm /o+rwx -ls"
-    if [ -n "${apache}" ]; then
-        run ${verbose} "${findbase} -exec ${setfacl} --test -m ${apache} {} ;"
+    if [ -n "${desiACL}" ]; then
+        run ${verbose} "${findbase} -exec ${setfacl} --test --modify ${desiACL} {} ;"
+    fi
+    if [ -n "${apacheACL}" ]; then
+        run ${verbose} "${findbase} -exec ${setfacl} --test --modify ${apacheACL} {} ;"
     fi
 else
     vflag=''
@@ -100,11 +108,14 @@ else
     # Instruct chgrp & chmod to only report files that change.
     #
     [ "${verbose}" = "True" ] && vflag='-c'
-    run ${verbose} "${findbase} -not -group ${group} -exec chgrp ${vflag} -h ${group} {} ;"
+    run ${verbose} "${findbase} -not -group ${desiGID} -exec chgrp ${vflag} -h ${desiGID} {} ;"
     run ${verbose} "${findbase} -type f -not -perm /g+r -exec chmod ${vflag} g+r {} ;"
     run ${verbose} "${findbase} -type d -not -perm -g+rxs -exec chmod ${vflag} g+rxs {} ;"
     run ${verbose} "${findbase} -perm /o+rwx -exec chmod ${vflag} o-rwx {} ;"
-    if [ -n "${apache}" ]; then
-        run ${verbose} "${findbase} -exec ${setfacl} -m ${apache} {} ;"
+    if [ -n "${desiACL}" ]; then
+        run ${verbose} "${findbase} -exec ${setfacl} --modify ${desiACL} {} ;"
+    fi
+    if [ -n "${apacheACL}" ]; then
+        run ${verbose} "${findbase} -exec ${setfacl} --modify ${apacheACL} {} ;"
     fi
 fi
