@@ -5,7 +5,11 @@ Change Log
 1.9.11 (unreleased)
 -------------------
 
+* Update sklearn module to support updates to sklearn.mixture.GaussianMixture
+  (PR `#111`_).
 * Added scatter option to desiutil.plots.plot_slices (avoid slow PNG generation for large data samples)
+
+.. _`#111`: https://github.com/desihub/desiutil/pull/111
 
 1.9.10 (2018-03-29)
 -------------------
