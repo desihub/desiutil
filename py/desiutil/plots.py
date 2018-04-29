@@ -22,7 +22,7 @@ except NameError:  # For Python 3
 
 
 def plot_slices(x, y, x_lo, x_hi, y_cut, num_slices=5, min_count=100, axis=None,
-                set_ylim_from_stats=True):
+                set_ylim_from_stats=True, scatter=True):
     """Scatter plot with 68, 95 percentiles superimposed in slices.
     Modified from code written by D. Kirkby
 
@@ -55,6 +55,9 @@ def plot_slices(x, y, x_lo, x_hi, y_cut, num_slices=5, min_count=100, axis=None,
         Uses the current axis if this is not set.
     set_ylim_from_stats : :class:`bool`, optional
         Set ylim of plot from 95% stat.
+    scatter : bool, optional
+        Show the data as a scatter plot.
+        Best to limit to small datasets
 
     Returns
     -------
@@ -82,9 +85,9 @@ def plot_slices(x, y, x_lo, x_hi, y_cut, num_slices=5, min_count=100, axis=None,
     limits = np.array(limits)
     counts = np.array(counts)
 
-    # Plot scatter of all fits.
-    axis.scatter(x, y, s=15, marker='.', lw=0, color='b', alpha=0.5)
-    # axis.scatter(x[~ok], y[~ok], s=15, marker='x', lw=0, color='k', alpha=0.5)
+    # Plot points
+    if scatter:
+        axis.scatter(x, y, s=15, marker='.', lw=0, color='b', alpha=0.5, zorder=1)
 
     # Plot quantiles in slices with enough fits.
     stepify = lambda y: np.vstack([y, y]).transpose().flatten()
@@ -99,9 +102,9 @@ def plot_slices(x, y, x_lo, x_hi, y_cut, num_slices=5, min_count=100, axis=None,
         s = slice(2 * i, 2 * i + 2)
         if counts[i] >= min_count:
             axis.fill_between(
-                xstack[s], y_m2[s], y_p2[s], alpha=0.15, color='red')
+                xstack[s], y_m2[s], y_p2[s], alpha=0.15, color='red', zorder=10)
             axis.fill_between(
-                xstack[s], y_m1[s], y_p1[s], alpha=0.25, color='red')
+                xstack[s], y_m1[s], y_p1[s], alpha=0.25, color='red', zorder=10)
             axis.plot(xstack[s], y_med[s], 'r-', lw=2.)
             # For ylim
             max_yr = max(max_yr, np.max(y_p2[s]-y_m2[s]))
@@ -115,6 +118,7 @@ def plot_slices(x, y, x_lo, x_hi, y_cut, num_slices=5, min_count=100, axis=None,
     # ylim
     if set_ylim_from_stats:
         axis.set_ylim(min_m2-max_yr/2., max_p2+max_yr/2.)
+
 
     # Plot cut lines.
     axis.axhline(+y_cut, ls=':', color='k')
