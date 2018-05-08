@@ -56,14 +56,14 @@ for k in $(seq 0 9); do
     [[ -n "${verbose}" ]] && echo chmod ${filePerm[$k]} Dir${k}/File${k}
     chmod ${filePerm[$k]} Dir${k}/File${k}
     [[ -n "${verbose}" ]] && echo fix_permissions.sh ${verbose} Dir${k}
-    if [[ $k >= 8 ]]; then
+    if (( $k >= 8 )); then
         fix_permissions.sh -a ${verbose} Dir${k}
     else
         fix_permissions.sh ${verbose} Dir${k}
     fi
     [[ $(stat -c %a Dir${k}) == ${fixedDirPerm[$k]} ]] || echo "Dir${k}/ permission not set properly!"
     [[ $(stat -c %G Dir${k}) == desi ]] || echo "Dir${k}/ group ID not set properly!"
-    if [[ $k >= 8 ]]; then
+    if (( k >= 8 )); then
         [[ $(getfacl -c Dir${k} | grep 48) == user:48:r-x ]] || echo "Dir${k}/ ACL not set properly!"
         [[ $(getfacl -c Dir${k}/File${k} | grep desi) == user:48:r-- ]] || echo "Dir${k}/File${k} ACL not set properly!"
     fi
