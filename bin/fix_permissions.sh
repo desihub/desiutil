@@ -57,11 +57,11 @@ if [ ! -x "${find}" ]; then
     exit 1
 fi
 setfacl=/usr/bin/setfacl
-desiACL="u:${desiGID}:rwX"
+# desiACL="u:${desiGID}:rwX"
 if [ ! -x "${setfacl}" ]; then
     echo "Could not find the 'setfacl' command (tried ${setfacl})!" >&2
     echo "Skipping all ACL changes." >&2
-    desiACL=''
+    # desiACL=''
     apacheACL=''
 fi
 #
@@ -83,7 +83,7 @@ if [ -z "${USER}" ]; then
     exit 1
 fi
 if [ -z "${NERSC_HOST}" ]; then
-    echo "Unable to determine NERSC environment.  Are you running this script at NERSC?"
+    echo "Unable to determine NERSC environment.  Are you running this script at NERSC?" >&2
     exit 1
 fi
 #
@@ -92,13 +92,15 @@ fi
 findbase="${find} ${directory} -user ${USER}"
 [ "${verbose}" = "True" ] && echo "Fixing permissions on ${directory} ..."
 if [ "${test}" = "True" ]; then
+    run ${verbose} "${findbase} -not -group ${desiGID} -not -type l -perm /g+w -ls"
+    run ${verbose} "${findbase} -not -group ${desiGID} -not -type l -perm /o+rwx -ls"
+    run ${verbose} "${findbase} -group ${desiGID} -not -type l -perm /o+w -ls"
     run ${verbose} "${findbase} -not -group ${desiGID} -ls"
     run ${verbose} "${findbase} -type f -not -perm /g+r -ls"
-    run ${verbose} "${findbase} -type d -not -perm -g+rxs -ls"
-    run ${verbose} "${findbase} -perm /o+rwx -ls"
-    if [ -n "${desiACL}" ]; then
-        run ${verbose} "${findbase} -exec ${setfacl} --test --modify ${desiACL} {} ;"
-    fi
+    run ${verbose} "${findbase} -type d -not -perm /g+rxs -ls"
+    # if [ -n "${desiACL}" ]; then
+    #     run ${verbose} "${findbase} -exec ${setfacl} --test --modify ${desiACL} {} ;"
+    # fi
     if [ -n "${apacheACL}" ]; then
         run ${verbose} "${findbase} -exec ${setfacl} --test --modify ${apacheACL} {} ;"
     fi
@@ -108,13 +110,20 @@ else
     # Instruct chgrp & chmod to only report files that change.
     #
     [ "${verbose}" = "True" ] && vflag='-c'
+    # Remove group write access from things not in the group.
+    run ${verbose} "${findbase} -not -group ${desiGID} -not -type l -perm /g+w -exec chmod ${vflag} o-w {} ;"
+    # Remove all world access from things not in the group.
+    run ${verbose} "${findbase} -not -group ${desiGID} -not -type l -perm /o+rwx -exec chmod ${vflag} o-rwx {} ;"
+    # Remove world write access from things already in the group.
+    run ${verbose} "${findbase} -group ${desiGID} -not -type l -perm /o+w -exec chmod ${vflag} o-w {} ;"
+    # Change group.
     run ${verbose} "${findbase} -not -group ${desiGID} -exec chgrp ${vflag} -h ${desiGID} {} ;"
+    # Set group read access.
     run ${verbose} "${findbase} -type f -not -perm /g+r -exec chmod ${vflag} g+r {} ;"
-    run ${verbose} "${findbase} -type d -not -perm -g+rxs -exec chmod ${vflag} g+rxs {} ;"
-    run ${verbose} "${findbase} -perm /o+rwx -exec chmod ${vflag} o-rwx {} ;"
-    if [ -n "${desiACL}" ]; then
-        run ${verbose} "${findbase} -exec ${setfacl} --modify ${desiACL} {} ;"
-    fi
+    run ${verbose} "${findbase} -type d -not -perm /g+rxs -exec chmod ${vflag} g+rxs {} ;"
+    # if [ -n "${desiACL}" ]; then
+    #     run ${verbose} "${findbase} -exec ${setfacl} --modify ${desiACL} {} ;"
+    # fi
     if [ -n "${apacheACL}" ]; then
         run ${verbose} "${findbase} -exec ${setfacl} --modify ${apacheACL} {} ;"
     fi
