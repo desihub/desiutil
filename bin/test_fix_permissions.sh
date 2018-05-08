@@ -52,8 +52,8 @@ for k in $(seq 0 3); do
     fix_permissions.sh ${verbose} Dir${k}
     [[ $(getfacl -c Dir${k} | grep group) == ${fixedDirPerm[$k]} ]] || echo "Dir${k}/ permission not set properly!"
     [[ $(stat -c %G Dir${k}) == desi ]] || echo "Dir${k}/ group ID not set properly!"
-    [[ $(getfacl -c Dir${k} | grep desi) == user:desi:rwx ]] || echo "Dir${k}/ ACL not set properly!"
+    # [[ $(getfacl -c Dir${k} | grep desi) == user:desi:rwx ]] || echo "Dir${k}/ ACL not set properly!"
     [[ $(getfacl -c Dir${k}/File${k} | grep group) == ${fixedFilePerm[$k]} ]] || echo "Dir${k}/File${k} permission not set properly!"
     [[ $(stat -c %G Dir${k}/File${k}) == desi ]] || echo "Dir${k}/File${k} group ID not set properly!"
-    [[ $(getfacl -c Dir${k}/File${k} | grep desi) == user:desi:rw- ]] || echo "Dir${k}/File${k} ACL not set properly!"
+    # [[ $(getfacl -c Dir${k}/File${k} | grep desi) == user:desi:rw- ]] || echo "Dir${k}/File${k} ACL not set properly!"
 done
