@@ -97,7 +97,7 @@ if [ "${test}" = "True" ]; then
     run ${verbose} "${findbase} -group ${desiGID} -not -type l -perm /o+w -ls"
     run ${verbose} "${findbase} -not -group ${desiGID} -ls"
     run ${verbose} "${findbase} -type f -not -perm /g+r -ls"
-    run ${verbose} "${findbase} -type d -not -perm /g+rxs -ls"
+    run ${verbose} "${findbase} -type d -not -perm -g+rxs -ls"
     # if [ -n "${desiACL}" ]; then
     #     run ${verbose} "${findbase} -exec ${setfacl} --test --modify ${desiACL} {} ;"
     # fi
@@ -120,7 +120,7 @@ else
     run ${verbose} "${findbase} -not -group ${desiGID} -exec chgrp ${vflag} -h ${desiGID} {} ;"
     # Set group read access.
     run ${verbose} "${findbase} -type f -not -perm /g+r -exec chmod ${vflag} g+r {} ;"
-    run ${verbose} "${findbase} -type d -not -perm /g+rxs -exec chmod ${vflag} g+rxs {} ;"
+    run ${verbose} "${findbase} -type d -not -perm -g+rxs -exec chmod ${vflag} g+rxs {} ;"
     # if [ -n "${desiACL}" ]; then
     #     run ${verbose} "${findbase} -exec ${setfacl} --modify ${desiACL} {} ;"
     # fi
