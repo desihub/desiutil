@@ -111,7 +111,7 @@ else
     #
     [ "${verbose}" = "True" ] && vflag='-c'
     # Remove group write access from things not in the group.
-    run ${verbose} "${findbase} -not -group ${desiGID} -not -type l -perm /g+w -exec chmod ${vflag} o-w {} ;"
+    run ${verbose} "${findbase} -not -group ${desiGID} -not -type l -perm /g+w -exec chmod ${vflag} g-w {} ;"
     # Remove all world access from things not in the group.
     run ${verbose} "${findbase} -not -group ${desiGID} -not -type l -perm /o+rwx -exec chmod ${vflag} o-rwx {} ;"
     # Remove world write access from things already in the group.
