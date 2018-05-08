@@ -33,10 +33,10 @@ shift $((OPTIND-1))
 g=(${GROUP} ${GROUP} ${GROUP} ${GROUP} desi desi desi desi ${GROUP} desi)
 dirPerm=(0777 0775 0750 0700 0777 0775 0750 0700 0700 0700)
 filePerm=(0666 0664 0640 0600 0666 0664 0640 0600 0600 0600)
-fixedDirPerm=(2750 2750 2750 2750 2750 2750 2750 2750 2750 2750)
+fixedDirPerm=(2750 2750 2750 2750 2775 2775 2750 2750 2750 2750)
 # fixedDirPerm=(group::rwx group::rwx group::r-x group::r-x)
 # fixedFilePerm=(group::rw- group::rw- group::r-- group::r--)
-fixedFilePerm=(640 640 640 640 640 640 640 640 640 640)
+fixedFilePerm=(640 640 640 640 664 664 640 640 640 640)
 #
 # Run tests.
 #
@@ -65,7 +65,7 @@ for k in $(seq 0 9); do
     [[ $(stat -c %G Dir${k}) == desi ]] || echo "Dir${k}/ group ID not set properly!"
     if (( k >= 8 )); then
         [[ $(getfacl -c Dir${k} | grep 48) == user:48:r-x ]] || echo "Dir${k}/ ACL not set properly!"
-        [[ $(getfacl -c Dir${k}/File${k} | grep desi) == user:48:r-- ]] || echo "Dir${k}/File${k} ACL not set properly!"
+        [[ $(getfacl -c Dir${k}/File${k} | grep 48) == user:48:r-- ]] || echo "Dir${k}/File${k} ACL not set properly!"
     fi
     [[ $(stat -c %a Dir${k}/File${k}) == ${fixedFilePerm[$k]} ]] || echo "Dir${k}/File${k} permission not set properly!"
     [[ $(stat -c %G Dir${k}/File${k}) == desi ]] || echo "Dir${k}/File${k} group ID not set properly!"
