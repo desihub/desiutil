@@ -30,35 +30,40 @@ shift $((OPTIND-1))
 #
 # Set up test cases.
 #
-dirPerm=(0777 0775 0750 0700 0700)
-filePerm=(0666 0664 0640 0600 0600)
-fixedDirPerm=(2750 2750 2750 2750 2750)
+g=(${GROUP} ${GROUP} ${GROUP} ${GROUP} desi desi desi desi ${GROUP} desi)
+dirPerm=(0777 0775 0750 0700 0777 0775 0750 0700 0700 0700)
+filePerm=(0666 0664 0640 0600 0666 0664 0640 0600 0600 0600)
+fixedDirPerm=(2750 2750 2750 2750 2750 2750 2750 2750 2750 2750)
 # fixedDirPerm=(group::rwx group::rwx group::r-x group::r-x)
 # fixedFilePerm=(group::rw- group::rw- group::r-- group::r--)
-fixedFilePerm=(640 640 640 640 640)
+fixedFilePerm=(640 640 640 640 640 640 640 640 640 640)
 #
 # Run tests.
 #
-for k in $(seq 0 3); do
+for k in $(seq 0 9); do
     [[ -n "${verbose}" ]] && echo /bin/rm -rf Dir${k}
     /bin/rm -rf Dir${k}
     [[ -n "${verbose}" ]] && echo mkdir Dir${k}
     mkdir Dir${k}
+    [[ -n "${verbose}" ]] && echo chgrp ${g[$k]} Dir${k}
+    chgrp ${g[$k]} Dir${k}
     [[ -n "${verbose}" ]] && echo chmod ${dirPerm[$k]} Dir${k}
     chmod ${dirPerm[$k]} Dir${k}
     [[ -n "${verbose}" ]] && echo touch Dir${k}/File${k}
     touch Dir${k}/File${k}
+    [[ -n "${verbose}" ]] && echo chgrp ${g[$k]} Dir${k}/File${k}
+    chgrp ${g[$k]} Dir${k}/File${k}
     [[ -n "${verbose}" ]] && echo chmod ${filePerm[$k]} Dir${k}/File${k}
     chmod ${filePerm[$k]} Dir${k}/File${k}
     [[ -n "${verbose}" ]] && echo fix_permissions.sh ${verbose} Dir${k}
-    if [[ $k == 4 ]]; then
+    if [[ $k >= 8 ]]; then
         fix_permissions.sh -a ${verbose} Dir${k}
     else
         fix_permissions.sh ${verbose} Dir${k}
     fi
     [[ $(stat -c %a Dir${k}) == ${fixedDirPerm[$k]} ]] || echo "Dir${k}/ permission not set properly!"
     [[ $(stat -c %G Dir${k}) == desi ]] || echo "Dir${k}/ group ID not set properly!"
-    if [[ $k == 4 ]]; then
+    if [[ $k >= 8 ]]; then
         [[ $(getfacl -c Dir${k} | grep 48) == user:48:r-x ]] || echo "Dir${k}/ ACL not set properly!"
         [[ $(getfacl -c Dir${k}/File${k} | grep desi) == user:48:r-- ]] || echo "Dir${k}/File${k} ACL not set properly!"
     fi
