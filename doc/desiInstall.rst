@@ -7,47 +7,17 @@ Introduction
 
 This document describes the desiInstall process and the logic behind it.
 
+The primary purpose of desiInstall is to install DESI software **at NERSC**.
+Using it to install software at locations other than NERSC is theoretically
+possible, but not supported.
+
 Configuring desiInstall
 =======================
 
 desiInstall has many options, which are best viewed by typing
 ``desiInstall --help``.
 
-In addition, it is possible to override certain internal settings of
-the :class:`~desiutil.install.DesiInstall` object using an
-INI-style configuration file, supplying the name of the file with the
-``--configuration`` option.  Here is an example of the contents of such a
-file::
-
-    #
-    # READ ME FIRST
-    #
-    # This file provides an example of how to override certain internal settings
-    # in desiInstall (desiutil.install).  You can copy this file, edit your copy
-    # and supply it to desiInstall with the --configuration option.
-    #
-    # This section can be used to append to or override values in the
-    # known_products dictionary in desiutil.install.
-    #
-    [Known Products]
-    my_new_product = https://github.com/me/my_new_product
-    desiutil = https://github.com/you/new_path_to_desiutil
-    #
-    # This section can override details of Module file installation.
-    #
-    [Module Processing]
-    #
-    # nersc_module_dir overrides the Module file install directory for
-    # ALL NERSC hosts.
-    #
-    nersc_module_dir = /project/projectdirs/desi/test/modules
-    #
-    # cori_module_dir overrides the Module file install directory only
-    # on cori.
-    #
-    cori_module_dir = /global/common/software/desi/cori/test/modules
-
-Finally, desiInstall both reads and sets several environment variables.
+In addition, desiInstall both reads and sets several environment variables.
 
 Environment variables that strongly affect the behavior of desiInstall.
 
@@ -112,8 +82,7 @@ Directory Structure Assumed by the Install
 ==========================================
 
 desiInstall is primarily intended to run in a production environment that
-supports Module files.  In practice, this means NERSC, though it can also
-install on any other system that has a Modules infrastructure installed.
+supports Module files, *i.e.* at NERSC.
 
 *desiInstall does not install a Modules infrastructure for you.* You have to
 do this yourself, if your system does not already have this.
@@ -133,7 +102,15 @@ modulefiles/
     file is almost always named ``product/version``.  For example, the
     Module file for desiutil might be ``$product_root/modulefiles/desiutil/1.8.0``.
 
-.. _Anaconda: https://www.continuum.io
+The ``--root`` option can override the built-in default value of ``$product_root``,
+which is useful for testing::
+
+    desiInstall --root $SCRATCH/test_install desispec 0.20.0
+
+In the example above, desispec would be installed in
+``$SCRATCH/test_install/code/desispec/0.20.0``,
+with a corresponding Module file at
+``$SCRATCH/test_install/modulefiles/desispec/0.20.0``
 
 Within a ``$product_root/code/product/version`` directory, you might see the
 following:
@@ -174,6 +151,16 @@ a list of known products, but it is not necessarily complete. desiInstall parses
 the input to determine the base name and base version to install.  At this
 stage desiInstall also determines whether a trunk or branch install has
 been requested.
+
+The internal list of known products can be added to or overridden on the
+command line::
+
+    desiInstall -p new_product:https://github.com/me/new_product new_product 1.2.3
+
+    desiInstall -p desiutil:https://github.com/alternate_repository/desiutil desiutil 1.9.9
+
+The ``-p`` option can be specified multiple times, though in practice, it only
+matters to the product actually being installed.
 
 Product Existence
 -----------------
@@ -222,16 +209,9 @@ Determine Install Directory
 
 The install directory is where the code will live permanently.  If the
 install is taking place at NERSC, the top-level install directory is
-predetermined based on the value of :envvar:`NERSC_HOST`.
+predetermined based on the value of :envvar:`NERSC_HOST`::
 
-edison
-    ``/global/common/software/desi/edison/desiconda/${DESICONDA_VERSION}``
-cori
-    ``/global/common/software/desi/cori/desiconda/${DESICONDA_VERSION}``
-datatran
-    ``/global/common/software/desi/datatran/desiconda/${DESICONDA_VERSION}``
-scigate
-    ``/global/common/software/desi/scigate/desiconda/${DESICONDA_VERSION}``
+    /global/common/software/desi/${NERSC_HOST}/desiconda/${DESICONDA_VERSION}
 
 The actual install directory is determined by appending ``/code/product/verson``
 to the combining the top-level directory listed above.
@@ -282,16 +262,6 @@ the environment variables :envvar:`WORKING_DIR` and :envvar:`INSTALL_DIR` exist.
 It will also set :envvar:`PRODUCT_VERSION`, where ``PRODUCT`` will be replaced
 by the actual name of the package, *e.g.*, :envvar:`DESIMODEL_VERSION`.
 
-Download Extra Data
--------------------
-
-If desiInstall detects ``etc/product_data.sh``, where ``product`` should be
-replaced by the actual name of the package, it will download extra data
-not bundled with the code, so that it can be installed in
-:envvar:`INSTALL_DIR` in the next stage.  The script should *only* be used
-with desiInstall and Travis tests.  There are other, better ways to
-install and manipulate data that is bundled *with* the package.
-
 Create site-packages
 --------------------
 
@@ -318,6 +288,16 @@ Build C/C++ Code
 If the build-type 'make' is detected, :command:`make install` will be run in
 :envvar:`WORKING_DIR`.  If the build-type 'src' is detected, :command:`make -C src all`
 will be run in :envvar:`INSTALL_DIR`.
+
+Download Extra Data
+-------------------
+
+If desiInstall detects ``etc/product_data.sh``, where ``product`` should be
+replaced by the actual name of the package, it will download extra data
+not bundled with the code.  The script should download data *directly* to
+:envvar:`INSTALL_DIR`. The script should *only* be used
+with desiInstall and Travis tests.  Note that here are other, better ways to
+install and manipulate data that is bundled *with* a Python package.
 
 Fix Permissions
 ---------------

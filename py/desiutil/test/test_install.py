@@ -84,14 +84,13 @@ class TestInstall(unittest.TestCase):
         # Set a few environment variables for testing purposes.
         with patch.dict('os.environ', {'MODULESHOME': '/fake/module/directory'}):
             default_namespace = Namespace(
+                additional=None,
                 anaconda=self.desiInstall.anaconda_version(),
                 bootstrap=False,
-                config_file=None,
                 default=False,
                 force=False,
                 force_build_type=False,
                 keep=False,
-                moduledir=None,
                 moduleshome='/fake/module/directory',
                 product=u'NO PACKAGE',
                 product_version=u'NO VERSION',
@@ -140,30 +139,39 @@ class TestInstall(unittest.TestCase):
             self.assertEqual(str(cm.exception),
                              "You do not appear to have Modules set up.")
 
+    @unittest.skipIf(skipMock, "Skipping test that requires unittest.mock.")
     def test_get_product_version(self):
         """Test resolution of product/version input.
         """
-        ini = resource_filename('desiutil.test',
-                                't/desiInstall_configuration.ini')
-        options = self.desiInstall.get_options(['foo', 'bar'])
-        out = self.desiInstall.get_product_version()
-        self.assertEqual(out, (u'https://github.com/desihub/foo',
-                         'foo', 'bar'))
-        options = self.desiInstall.get_options(['desiutil', '1.0.0'])
-        out = self.desiInstall.get_product_version()
-        self.assertEqual(out, (u'https://github.com/desihub/desiutil',
-                         'desiutil', '1.0.0'))
-        options = self.desiInstall.get_options(['desihub/desispec', '2.0.0'])
-        out = self.desiInstall.get_product_version()
-        self.assertEqual(out, (u'https://github.com/desihub/desispec',
-                         'desispec', '2.0.0'))
-        options = self.desiInstall.get_options(['--configuration',
-                                                ini, 'my_new_product', '1.2.3'])
-        out = self.desiInstall.get_product_version()
-        self.assertEqual(out, (u'https://github.com/me/my_new_product',
-                         'my_new_product', '1.2.3'))
-        # Reset the config attribute after testing.
-        self.desiInstall.config = None
+        with patch.dict('desiutil.install.known_products',
+            {'desiutil': 'https://github.com/desihub/desiutil',
+             'desispec': 'https://github.com/desihub/desispec'}):
+            options = self.desiInstall.get_options(['foo', 'bar'])
+            out = self.desiInstall.get_product_version()
+            self.assertEqual(out, (u'https://github.com/desihub/foo',
+                             'foo', 'bar'))
+            options = self.desiInstall.get_options(['desiutil', '1.0.0'])
+            out = self.desiInstall.get_product_version()
+            self.assertEqual(out, (u'https://github.com/desihub/desiutil',
+                             'desiutil', '1.0.0'))
+            options = self.desiInstall.get_options(['desihub/desispec', '2.0.0'])
+            out = self.desiInstall.get_product_version()
+            self.assertEqual(out, (u'https://github.com/desihub/desispec',
+                             'desispec', '2.0.0'))
+            options = self.desiInstall.get_options(['-p',
+                                                    'my_new_product:https://github.com/me/my_new_product',
+                                                    'my_new_product',
+                                                    '1.2.3'])
+            out = self.desiInstall.get_product_version()
+            self.assertEqual(out, (u'https://github.com/me/my_new_product',
+                                   'my_new_product', '1.2.3'))
+            options = self.desiInstall.get_options(['-p',
+                                                    'desiutil:https://github.com/me/desiutil',
+                                                    'desiutil',
+                                                    '1.2.3'])
+            out = self.desiInstall.get_product_version()
+            self.assertEqual(out, (u'https://github.com/me/desiutil',
+                                   'desiutil', '1.2.3'))
 
     def test_identify_branch(self):
         """Test identification of branch installs.
@@ -361,12 +369,10 @@ class TestInstall(unittest.TestCase):
     def test_nersc_module_dir(self):
         """Test the nersc_module_dir property.
         """
-        ini = resource_filename('desiutil.test',
-                                't/desiInstall_configuration.ini')
         self.assertIsNone(self.desiInstall.nersc_module_dir)
         self.desiInstall.nersc = None
         self.assertIsNone(self.desiInstall.nersc_module_dir)
-        test_args = ['desiutil', '1.9.5']
+        test_args = ['--anaconda', '20180102-1.2.3-spec', 'desiutil', '1.9.5']
         options = self.desiInstall.get_options(test_args)
         for n in ('edison', 'cori', 'datatran', 'scigate'):
             self.desiInstall.nersc = n
@@ -374,18 +380,10 @@ class TestInstall(unittest.TestCase):
             self.assertEqual(self.desiInstall.nersc_module_dir,
                              join(self.desiInstall.default_nersc_dir(n),
                                   "modulefiles"))
-            self.desiInstall.baseproduct = 'desimodules'
-            self.assertEqual(self.desiInstall.nersc_module_dir,
-                             join(self.desiInstall.default_nersc_dir_template.format(nersc_host=n, desiconda_version='startup'),
-                                  "modulefiles"))
-        options = self.desiInstall.get_options(['--configuration',
-                                                ini, 'my_new_product', '1.2.3'])
-        self.desiInstall.nersc = 'edison'
+        options = self.desiInstall.get_options(['--root', '/project/projectdirs/desi/test',
+                                                'desiutil', '1.9.5'])
         self.assertEqual(self.desiInstall.nersc_module_dir,
-                         '/project/projectdirs/desi/test/modules')
-        self.desiInstall.nersc = 'cori'
-        self.assertEqual(self.desiInstall.nersc_module_dir,
-                         '/global/common/cori/contrib/desi/test/modules')
+                         '/project/projectdirs/desi/test/modulefiles')
 
     def test_cleanup(self):
         """Test the cleanup stage of the install.
