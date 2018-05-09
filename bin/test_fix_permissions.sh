@@ -7,10 +7,11 @@
 function usage() {
     local execName=$(basename $0)
     (
-    echo "${execName} [-h] [-v]"
+    echo "${execName} [-g GROUP] [-h] [-v]"
     echo ""
     echo "Test the fix_permissions.sh script."
     echo ""
+    echo "    -g = Override the starting group (default `id -ng`)."
     echo "    -h = Print this message and exit."
     echo "    -v = Verbose mode. Print lots of extra information."
     ) >&2
@@ -19,8 +20,10 @@ function usage() {
 # Get options
 #
 verbose=''
-while getopts hv argname; do
+GROUP=$(id -ng)
+while getopts g:hv argname; do
     case ${argname} in
+        g) GROUP=${OPTARG} ;;
         h) usage; exit 0 ;;
         v) verbose='-v' ;;
         *) usage; exit 1 ;;
@@ -56,7 +59,7 @@ for k in $(seq 0 9); do
     [[ -n "${verbose}" ]] && echo chmod ${filePerm[$k]} Dir${k}/File${k}
     chmod ${filePerm[$k]} Dir${k}/File${k}
     [[ -n "${verbose}" ]] && echo fix_permissions.sh ${verbose} Dir${k}
-    if (( $k >= 8 )); then
+    if (( k >= 8 )); then
         fix_permissions.sh -a ${verbose} Dir${k}
     else
         fix_permissions.sh ${verbose} Dir${k}
