@@ -2,6 +2,16 @@
 Change Log
 ==========
 
+2.0.0 (planned)
+---------------
+
+* This version will drop support for Python 2.
+
+1.9.12 (unreleased)
+-------------------
+
+* No changes yet.
+
 1.9.11 (2018-05-10)
 -------------------
 
