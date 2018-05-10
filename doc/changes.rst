@@ -2,18 +2,18 @@
 Change Log
 ==========
 
-1.9.11 (unreleased)
+1.9.11 (2018-05-10)
 -------------------
 
 * Installing extra data happens *after* the main install, to prevent
   collisions in creating the install directory (Issue `#102`_, PR `#109`_).
 * ``fix_permissions.sh`` ignores the group-write bit (Issue `#108`_, PR `#109`_).
-* Remove support for a desiInstall configuration file.  All options
+* Remove support for a :command:`desiInstall` configuration file.  All options
   are specified on the command-line (Issue `#103`_, PR `#109`_).
-* Update sklearn module to support updates to sklearn.mixture.GaussianMixture
+* Update sklearn module to support updates to ``sklearn.mixture.GaussianMixture``
   (PR `#111`_).
-* Added scatter option to desiutil.plots.plot_slices (avoid slow PNG generation
-  for large data samples) (PR `#112`_)
+* Added scatter option to :func:`desiutil.plots.plot_slices`;
+  avoid slow PNG generation for large data samples (PR `#112`_).
 
 .. _`#102`: https://github.com/desihub/desiutil/issues/102
 .. _`#103`: https://github.com/desihub/desiutil/issues/103
