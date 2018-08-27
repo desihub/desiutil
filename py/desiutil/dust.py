@@ -66,6 +66,7 @@ def _isiterable(obj):
 # from astropy.coordinates here.
 
 # Create rotation matrix about a given axis (x, y, z)
+
 def zrotmat(angle):
     s = np.sin(angle)
     c = np.cos(angle)
@@ -301,9 +302,9 @@ class SFDMap(object):
         interpolate = kwargs.get('interpolate', True)
 
         # compatibility: treat single argument 2-tuple as (RA, Dec)
-        if ((len(args) == 1) and (type(args[0]) is tuple) and
-            (len(args[0]) == 2)):
-                args = args[0]
+        if ((len(args) == 1) and (type(args[0]) is tuple) 
+            and (len(args[0]) == 2)):
+            args = args[0]
 
         if len(args) == 1:
             # treat object as an astropy.coordinates.SkyCoords
