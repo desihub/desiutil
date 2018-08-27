@@ -41,6 +41,9 @@ desiutil API
 .. automodule:: desiutil.setup
     :members:
 
+.. automodule:: desiutil.sfdmap
+    :members:
+
 .. automodule:: desiutil.sklearn
     :members:
 
