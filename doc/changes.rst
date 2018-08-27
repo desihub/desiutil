@@ -10,7 +10,9 @@ Change Log
 1.9.12 (unreleased)
 -------------------
 
-* No changes yet.
+* Port the dust map code from desitarget to desiutil (PR `#116`_).
+
+.. _`#116`: https://github.com/desihub/desiutil/pull/116
 
 1.9.11 (2018-05-10)
 -------------------
