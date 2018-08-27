@@ -4,23 +4,23 @@
 
 # Copyright (c) 2016 Kyle Barbary
 
-#Permission is hereby granted, free of charge, to any person obtaining a copy
-#of this software and associated documentation files (the "Software"), to deal
-#in the Software without restriction, including without limitation the rights
-#to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-#copies of the Software, and to permit persons to whom the Software is
-#furnished to do so, subject to the following conditions:
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
 
-#The above copyright notice and this permission notice shall be included in all
-#copies or substantial portions of the Software.
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
 
-#THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-#IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-#FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-#AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-#LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-#OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-#SOFTWARE.
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
 
 """
 desiutil.dust
@@ -73,6 +73,7 @@ def zrotmat(angle):
                      (-s, c, 0),
                      (0, 0, 1)))
 
+
 def yrotmat(angle):
     s = np.sin(angle)
     c = np.cos(angle)
@@ -80,12 +81,14 @@ def yrotmat(angle):
                      (0, 1, 0),
                      (s, 0, c)))
 
+
 def xrotmat(angle):
     s = np.sin(angle)
     c = np.cos(angle)
     return np.array(((1, 0, 0),
                      (0, c, s),
                      (0, -s, c)))
+
 
 # constant ICRS --> FK5J2000 (See USNO Circular 179, section 3.5)
 try:
@@ -300,7 +303,7 @@ class SFDMap(object):
         # compatibility: treat single argument 2-tuple as (RA, Dec)
         if ((len(args) == 1) and (type(args[0]) is tuple) and
             (len(args[0]) == 2)):
-            args = args[0]
+                args = args[0]
 
         if len(args) == 1:
             # treat object as an astropy.coordinates.SkyCoords
@@ -336,7 +339,6 @@ class SFDMap(object):
 
         else:
             raise ValueError("too many arguments")
-
 
         # Check if l, b are scalar. If so, convert to 1-d arrays.
         return_scalar = False
