@@ -35,6 +35,8 @@ class TestSFDmap(unittest.TestCase):
         ebvtest = sfdmap.ebv(self.ra,self.dec).astype('<f4')
         self.assertTrue(np.all(ebvtest==self.ebv))
 
+    @unittest.skipIf('DUST_DIR' not in os.environ,
+                     "Skipping test that requires DUST_DIR to point to SFD maps")
     def test_ebv_scaling(self):
         """Test E(B-V) map code default scaling is 1
         """
