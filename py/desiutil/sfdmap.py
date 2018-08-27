@@ -231,7 +231,7 @@ class SFDMap(object):
 
         Directory in which to find dust map FITS images, named
         ``SFD_dust_4096_ngp.fits`` and ``SFD_dust_4096_sgp.fits`` by
-        default. If not specified, the value of the ``SFD_DIR``
+        default. If not specified, the value of the ``DUST_DIR``
         environment variable is used, otherwise an empty string is
         used.
 
@@ -250,7 +250,7 @@ class SFDMap(object):
                  south="SFD_dust_4096_sgp.fits", scaling=0.86):
 
         if mapdir is None:
-            mapdir = os.environ.get('SFD_DIR', '')
+            mapdir = os.environ.get('DUST_DIR', '')
         mapdir = os.path.expanduser(mapdir)
         mapdir = os.path.expandvars(mapdir)
         self.mapdir = mapdir
