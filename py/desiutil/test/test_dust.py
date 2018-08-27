@@ -1,20 +1,20 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
 """
-desiutil.test.test_sfdmap
-=========================
+desiutil.test.test_dust
+=======================
 
-Test desiutil.sfdmap.
+Test desiutil.dust.
 """
 from __future__ import absolute_import, division, unicode_literals
 # The line above will help with 2to3 support.
 import unittest
 import os
 import numpy as np
-from .. import sfdmap
+from .. import dust
 
-class TestSFDmap(unittest.TestCase):
-    """Test desiutil.brick.
+class TestDust(unittest.TestCase):
+    """Test desiutil.dust.
     """
 
     def setUp(self):
@@ -32,7 +32,7 @@ class TestSFDmap(unittest.TestCase):
     def test_ebv(self):
         """Test E(B-V) map code gives correct results
         """
-        ebvtest = sfdmap.ebv(self.ra,self.dec).astype('<f4')
+        ebvtest = dust.ebv(self.ra,self.dec).astype('<f4')
         self.assertTrue(np.all(ebvtest==self.ebv))
 
     @unittest.skipIf('DUST_DIR' not in os.environ,
@@ -42,8 +42,8 @@ class TestSFDmap(unittest.TestCase):
         """
         #ADM a useful scaling to test as it's the Schlafly/Finkbeiner (2011) value
         scaling = 0.86
-        ebvtest1 = sfdmap.ebv(self.ra,self.dec,scaling=scaling)
-        ebvtest2 = scaling*sfdmap.ebv(self.ra,self.dec)
+        ebvtest1 = dust.ebv(self.ra,self.dec,scaling=scaling)
+        ebvtest2 = scaling*dust.ebv(self.ra,self.dec)
         self.assertTrue(np.all(np.abs(ebvtest1-ebvtest2) < 1e-8))
 
 def test_suite():

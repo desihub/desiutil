@@ -17,6 +17,9 @@ desiutil API
 .. automodule:: desiutil.depend
     :members:
 
+.. automodule:: desiutil.dust
+    :members:
+
 .. automodule:: desiutil.funcfits
     :members:
 
@@ -39,9 +42,6 @@ desiutil API
     :members:
 
 .. automodule:: desiutil.setup
-    :members:
-
-.. automodule:: desiutil.sfdmap
     :members:
 
 .. automodule:: desiutil.sklearn
