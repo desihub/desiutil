@@ -13,6 +13,7 @@ import os
 import numpy as np
 from .. import dust
 
+
 class TestDust(unittest.TestCase):
     """Test desiutil.dust.
     """
@@ -26,25 +27,25 @@ class TestDust(unittest.TestCase):
                              0.032212332, 0.031226717, 0.028192421,
                              0.027784575], dtype='<f4')
 
-
     @unittest.skipIf('DUST_DIR' not in os.environ,
                      "Skipping test that requires DUST_DIR to point to SFD maps")
     def test_ebv(self):
         """Test E(B-V) map code gives correct results
         """
-        ebvtest = dust.ebv(self.ra,self.dec).astype('<f4')
-        self.assertTrue(np.all(ebvtest==self.ebv))
+        ebvtest = dust.ebv(self.ra, self.dec).astype('<f4')
+        self.assertTrue(np.all(ebvtest == self.ebv))
 
     @unittest.skipIf('DUST_DIR' not in os.environ,
                      "Skipping test that requires DUST_DIR to point to SFD maps")
     def test_ebv_scaling(self):
         """Test E(B-V) map code default scaling is 1
         """
-        #ADM a useful scaling to test as it's the Schlafly/Finkbeiner (2011) value
+        # ADM a useful scaling to test as it's the Schlafly/Finkbeiner (2011) value
         scaling = 0.86
-        ebvtest1 = dust.ebv(self.ra,self.dec,scaling=scaling)
-        ebvtest2 = scaling*dust.ebv(self.ra,self.dec)
+        ebvtest1 = dust.ebv(self.ra, self.dec, scaling=scaling)
+        ebvtest2 = scaling*dust.ebv(self.ra, self.dec)
         self.assertTrue(np.all(np.abs(ebvtest1-ebvtest2) < 1e-8))
+
 
 def test_suite():
     """Allows testing of only this module with the command::
