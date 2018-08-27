@@ -242,12 +242,13 @@ class SFDMap(object):
         respectively.
 
     scaling : float, optional
-        Scale all E(B-V) map values by this factor. Default is 0.86,
-        corresponding to recalibration from Schlafly & Finkbeiner (2011).
+        Scale all E(B-V) map values by this factor. Default is 1.,
+        corresponding to no recalibration. Pass scaling=0.86 for the
+        recalibration from Schlafly & Finkbeiner (2011).
     """
 
     def __init__(self, mapdir=None, north="SFD_dust_4096_ngp.fits",
-                 south="SFD_dust_4096_sgp.fits", scaling=0.86):
+                 south="SFD_dust_4096_sgp.fits", scaling=1.):
 
         if mapdir is None:
             mapdir = os.environ.get('DUST_DIR', '')
@@ -376,5 +377,5 @@ def ebv(*args, **kwargs):
     m = SFDMap(mapdir=kwargs.get('mapdir', None),
                north=kwargs.get('north', "SFD_dust_4096_ngp.fits"),
                south=kwargs.get('south', "SFD_dust_4096_sgp.fits"),
-               scaling=kwargs.get('scaling', 0.86))
+               scaling=kwargs.get('scaling', 1.))
     return m.ebv(*args, **kwargs)
