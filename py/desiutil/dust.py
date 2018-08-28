@@ -121,8 +121,8 @@ class _Hemisphere(object):
         self.sign = header['LAM_NSGP']  # north = 1, south = -1
 
     def ebv(self, l, b, interpolate):
-        # Project from galactic longitude/latitude to lambert pixels.
-        # (See SFD98 or SFD data FITS header).
+        """Project Galactic longitude/latitude to lambert pixels (See SFD98).
+        """
         x = (self.crpix1 - 1.0 +
              self.lam_scal * np.cos(l) *
              np.sqrt(1.0 - self.sign * np.sin(b)))
@@ -151,34 +151,31 @@ class SFDMap(object):
     a reference to the FITS data from the maps so that each FITS image
     is read only once.
 
-    Parameters
+    Attributes
     ----------
-
-    mapdir : str, optional
-
+    mapdir : :class:`str`, optional, defaults to DUST_DIR
         Directory in which to find dust map FITS images, named
-        ``SFD_dust_4096_ngp.fits`` and ``SFD_dust_4096_sgp.fits`` by
-        default. If not specified, the value of the ``DUST_DIR``
-        environment variable is used, otherwise an empty string is
-        used.
-
-    north, south : str, optional
-
+        ``SFD_dust_4096_ngp.fits`` and ``SFD_dust_4096_sgp.fits``. 
+        If not specified, the value of the ``DUST_DIR`` environment 
+        variable is used, otherwise an empty string is used.
+    north, south : :class:`str`, optional
         Names of north and south galactic pole FITS files. Defaults are
         ``SFD_dust_4096_ngp.fits`` and ``SFD_dust_4096_sgp.fits``
         respectively.
+    scaling : :class:`float`, optional, defaults to 1
+        Scale all E(B-V) map values by this multiplicative factor.
+        Pass scaling=0.86 for the recalibration from Schlafly & Finkbeiner 
+        (2011; http://adsabs.harvard.edu/abs/2011ApJ...737..103S).
 
-    scaling : float, optional
-        Scale all E(B-V) map values by this factor. Default is 1.,
-        corresponding to no recalibration. Pass scaling=0.86 for the
-        recalibration from Schlafly & Finkbeiner (2011).
+    Notes
+    -----
+        Modified from https://github.com/kbarbary/sfdmap/
     """
-
     def __init__(self, mapdir=None, north="SFD_dust_4096_ngp.fits",
                  south="SFD_dust_4096_sgp.fits", scaling=1.):
 
         if mapdir is None:
-            mapdir = os.environ.get('DUST_DIR')
+            mapdir = os.environ.get('DUST_DIR','')
         self.mapdir = mapdir
 
         # don't load maps initially
@@ -192,32 +189,29 @@ class SFDMap(object):
 
         Parameters
         ----------
-        coordinates or ra, dec: SkyCoord or numpy.ndarray
-            If one argument is passed, assumed to be an (ra,dec) tuple 
-             or an `astropy.coordinates.SkyCoords` instance. In the
-            `astropy.coordinates.SkyCoords` case
-            the ``frame`` and ``unit`` keyword arguments are
-            ignored. If two arguments are passed, they are treated as
-            ``latitute, longitude`` (can be scalars or arrays).  In
-            the two argument case, the frame and unit is taken from
-            the keywords.
-        frame : {'icrs', 'fk5j2000', 'galactic'}, optional
-            Coordinate frame, if two arguments are passed. Default is
-            ``'icrs'``.
-        unit : {'degree', 'radian'}, optional
-            Unit of coordinates, if two arguments are passed. Default
-            is ``'degree'``.
-        interpolate : bool, optional
+        coordinates or ra, dec : :class:`astropy.coordinates.SkyCoord` or `numpy.ndarray`
+            If one argument is passed, assumed to be an `astropy.coordinates.SkyCoord` 
+            instance, in which case the ``frame`` and ``unit`` keyword arguments are 
+            ignored. If two arguments are passed, they are treated as 
+            ``latitute, longitude`` (can be scalars or arrays or a tuple), in which 
+            case the frame and unit are taken from the passed keywords.
+        frame : :class:`str`, optional, defaults to ``'icrs'``
+            Coordinate frame, if two arguments are passed. Allowed values are any
+            `astropy.coordinates.SkyCoord` frame, and ``'fk5j2000'`` and ``'j2000'``.
+        unit : :class:`str`, optional, defaults to ``'degree'``
+            Any `astropy.coordinates.SkyCoord` unit.
+        interpolate : :class:`bool`, optional, defaults to ``True``
             Interpolate between the map values using bilinear interpolation.
-            Default is True.
 
         Returns
         -------
         `~numpy.ndarray`
             Specific extinction E(B-V) at the given locations.
 
+        Notes
+        -----
+        Modified from https://github.com/kbarbary/sfdmap/
         """
-
         # collect kwargs
         frame = kwargs.get('frame', 'icrs')
         unit = kwargs.get('unit', 'degree')
