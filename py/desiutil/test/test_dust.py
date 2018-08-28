@@ -57,17 +57,18 @@ class TestDust(unittest.TestCase):
     def test_inputs(self):
         """Test E(B-V) code works with alternative input formats
         """
-        # ADM tuple (and scalar) format
-        ebvtest1 = dust.ebv( (self.ra[0], self.dec[0]), 
-                           mapdir=self.mapdir).astype('<f4')
+        # ADM tuple (and scalar) format 
+        # ADM with no interpolation and a strange fk5 system
+        ebvtest1 = dust.ebv((self.ra[0], self.dec[0]), frame='fk5j2000',
+                            mapdir=self.mapdir, interpolate=False).astype('<f4')
 
         # ADM astropy Sky Coordinate format
-        cobjs = SkyCoord(self.ra*u.degree, self.dec*u.degree)
-        ebvtest2 = dust.ebv( cobjs, 
-                           mapdir=self.mapdir).astype('<f4')
+        # ADM with no interpolation and a strange fk5 system
+        cobjs = SkyCoord(self.ra*u.degree, self.dec*u.degree, frame='fk5')
+        ebvtest2 = dust.ebv(cobjs, 
+                            mapdir=self.mapdir, interpolate=False).astype('<f4')
 
         self.assertTrue(ebvtest2[0] == ebvtest1)
-        self.assertTrue(np.all(ebvtest2 == self.ebv))
 
 
 def test_suite():
