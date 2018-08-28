@@ -37,7 +37,7 @@ See, e.g.: http://adsabs.harvard.edu/abs/1998ApJ...500..525S for SFD98.
 
 import os
 import numpy as np
-from astropy.fits import getdata
+from astropy.io.fits import getdata
 
 # -----------------------------------------------------------------------------
 # Coordinate conversion
