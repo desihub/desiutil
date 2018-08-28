@@ -42,16 +42,16 @@ from astropy import units as u
 
 def _bilinear_interpolate(data, y, x):
     """Map a two-dimensional integer pixel-array at float coordinates.
-    
+
     Parameters
     ----------
     data : :class:`~numpy.ndarray`
         Pixelized array of values.
     y : :class:`float` or :class:`~numpy.ndarray`
-        y coordinates (each integer y is a row) of 
+        y coordinates (each integer y is a row) of
         location in pixel-space at which to interpolate.
     x : :class:`float` or :class:`~numpy.ndarray`
-        x coordinates (each integer x is a column) of 
+        x coordinates (each integer x is a column) of
         location in pixel-space at which to interpolate.
 
     Returns
@@ -86,6 +86,7 @@ def _bilinear_interpolate(data, y, x):
             (1.0-xw) * yw       * data[y1, x0] +
             xw       * yw       * data[y1, x1])
 
+
 class _Hemisphere(object):
     """Represents one of the hemispheres (in a single file)
 
@@ -101,13 +102,13 @@ class _Hemisphere(object):
     data : :class:`~numpy.ndarray`
         Pixelated array of dust map values.
     crpix1, crpix2 : :class:`float`
-        World Coordinate System: Represent the 1-indexed 
+        World Coordinate System: Represent the 1-indexed
         X and Y pixel numbers of the poles
     lam_scal : :class:`int`
         number of pixels from b=0 to b=90 deg
     lam_nsgp : :class:`int`
         +1 for the northern hemisphere, -1 for the south
-    
+
     Notes
     -----
         Taken in full from https://github.com/kbarbary/sfdmap/
@@ -155,8 +156,8 @@ class SFDMap(object):
     ----------
     mapdir : :class:`str`, optional, defaults to DUST_DIR
         Directory in which to find dust map FITS images, named
-        ``SFD_dust_4096_ngp.fits`` and ``SFD_dust_4096_sgp.fits``. 
-        If not specified, the value of the ``DUST_DIR`` environment 
+        ``SFD_dust_4096_ngp.fits`` and ``SFD_dust_4096_sgp.fits``.
+        If not specified, the value of the ``DUST_DIR`` environment
         variable is used, otherwise an empty string is used.
     north, south : :class:`str`, optional
         Names of north and south galactic pole FITS files. Defaults are
@@ -164,7 +165,7 @@ class SFDMap(object):
         respectively.
     scaling : :class:`float`, optional, defaults to 1
         Scale all E(B-V) map values by this multiplicative factor.
-        Pass scaling=0.86 for the recalibration from Schlafly & Finkbeiner 
+        Pass scaling=0.86 for the recalibration from Schlafly & Finkbeiner
         (2011; http://adsabs.harvard.edu/abs/2011ApJ...737..103S).
 
     Notes
@@ -175,7 +176,7 @@ class SFDMap(object):
                  south="SFD_dust_4096_sgp.fits", scaling=1.):
 
         if mapdir is None:
-            mapdir = os.environ.get('DUST_DIR','')
+            mapdir = os.environ.get('DUST_DIR', '')
         self.mapdir = mapdir
 
         # don't load maps initially
@@ -190,10 +191,10 @@ class SFDMap(object):
         Parameters
         ----------
         coordinates or ra, dec : :class:`astropy.coordinates.SkyCoord` or `numpy.ndarray`
-            If one argument is passed, assumed to be an `astropy.coordinates.SkyCoord` 
-            instance, in which case the ``frame`` and ``unit`` keyword arguments are 
-            ignored. If two arguments are passed, they are treated as 
-            ``latitute, longitude`` (can be scalars or arrays or a tuple), in which 
+            If one argument is passed, assumed to be an `astropy.coordinates.SkyCoord`
+            instance, in which case the ``frame`` and ``unit`` keyword arguments are
+            ignored. If two arguments are passed, they are treated as
+            ``latitute, longitude`` (can be scalars or arrays or a tuple), in which
             case the frame and unit are taken from the passed keywords.
         frame : :class:`str`, optional, defaults to ``'icrs'``
             Coordinate frame, if two arguments are passed. Allowed values are any
@@ -217,14 +218,14 @@ class SFDMap(object):
         unit = kwargs.get('unit', 'degree')
         interpolate = kwargs.get('interpolate', True)
 
-        #ADM convert to a frame understood by SkyCoords
-        #ADM (for backwards-compatibility)
+        # ADM convert to a frame understood by SkyCoords
+        # ADM (for backwards-compatibility)
         if frame in ('fk5j2000', 'j2000'):
             frame = 'fk5'
 
         # compatibility: treat single argument 2-tuple as (RA, Dec)
-        if ((len(args) == 1) and (type(args[0]) is tuple) 
-            and (len(args[0]) == 2)):
+        if ((len(args) == 1) and (type(args[0]) is tuple)
+                             and (len(args[0]) == 2)):
             args = args[0]
 
         if len(args) == 1:
@@ -242,7 +243,7 @@ class SFDMap(object):
         else:
             raise ValueError("too many arguments")
 
-        #ADM extract Galactic coordinates from astropy
+        # ADM extract Galactic coordinates from astropy
         l, b = c.galactic.l.radian, c.galactic.b.radian
 
         # Check if l, b are scalar. If so, convert to 1-d arrays.
