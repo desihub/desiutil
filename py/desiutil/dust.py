@@ -194,8 +194,7 @@ class SFDMap(object):
         # compatibility: treat single argument 2-tuple as (RA, Dec)
         if ((len(args) == 1) and (type(args[0]) is tuple) 
             and (len(args[0]) == 2)):
-            # ADM instantiate a SkyCoord object
-            c = SkyCoord(args[0], args[1], unit=unit, frame=frame)
+            args = args[0]
 
         if len(args) == 1:
             # treat object as already an astropy.coordinates.SkyCoords
