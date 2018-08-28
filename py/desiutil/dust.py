@@ -288,10 +288,12 @@ class SFDMap(object):
         if ((len(args) == 1) and (type(args[0]) is tuple) 
             and (len(args[0]) == 2)):
             args = args[0]
+            print('tuple')
 
         if len(args) == 1:
             # treat object as an astropy.coordinates.SkyCoords
             try:
+                print('skycoord')
                 coordinates = args[0].galactic
                 l = coordinates.l.radian
                 b = coordinates.b.radian
@@ -329,6 +331,7 @@ class SFDMap(object):
         # ADM passed values were scalars or not
         return_scalar = not np.atleast_1d(l) is l
         l, b = np.atleast_1d(l), np.atleast_1d(b)
+
         # Initialize return array
         values = np.empty_like(l)
 

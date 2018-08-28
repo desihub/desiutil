@@ -13,7 +13,8 @@ import os
 import numpy as np
 from .. import dust
 from pkg_resources import resource_filename
-
+from astropy.coordinates import SkyCoord
+from astropy import units as u
 
 class TestDust(unittest.TestCase):
     """Test desiutil.dust.
@@ -52,6 +53,21 @@ class TestDust(unittest.TestCase):
                                     mapdir=self.mapdir)
         # ADM 1e-7 is fine. We don't know dust values to 0.00001%
         self.assertTrue(np.all(np.abs(ebvtest1-ebvtest2) < 1e-7))
+
+    def test_inputs(self):
+        """Test E(B-V) code works with alternative input formats
+        """
+        # ADM tuple (and scalar) format
+        ebvtest1 = dust.ebv( (self.ra[0], self.dec[0]), 
+                           mapdir=self.mapdir).astype('<f4')
+
+        # ADM astropy Sky Coordinate format
+        cobjs = SkyCoord(self.ra*u.degree, self.dec*u.degree)
+        ebvtest2 = dust.ebv( cobjs, 
+                           mapdir=self.mapdir).astype('<f4')
+
+        self.assertTrue(ebvtest2[0] == ebvtest1)
+        self.assertTrue(np.all(ebvtest2 == self.ebv))
 
 
 def test_suite():
