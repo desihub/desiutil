@@ -325,7 +325,9 @@ class SFDMap(object):
             raise ValueError("too many arguments")
 
         # Check if l, b are scalar. If so, convert to 1-d arrays.
-        # ADM use numpy.atleast_1d
+        # ADM use numpy.atleast_1d. Store whether the
+        # ADM passed values were scalars or not
+        return_scalar = not np.atleast_1d(l) is l
         l, b = np.atleast_1d(l), np.atleast_1d(b)
 
         # Initialize return array
