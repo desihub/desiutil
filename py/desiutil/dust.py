@@ -38,105 +38,8 @@ See, e.g.: http://adsabs.harvard.edu/abs/1998ApJ...500..525S for SFD98.
 import os
 import numpy as np
 from astropy.io.fits import getdata
-
-# -----------------------------------------------------------------------------
-# Coordinate conversion
-#
-# astropy's coordinate conversions have a gigantic overhead of about
-# 20ms.  This kills performance in situations where you need to get a
-# single position at a time. We can do better (well under 0.1ms!) for
-# common static systems (IRCS, FK5J2000) by including a bit of code
-# from astropy.coordinates here.
-
-# Create rotation matrix about a given axis (x, y, z)
-
-def zrotmat(angle):
-    s = np.sin(angle)
-    c = np.cos(angle)
-    return np.array(((c, s, 0),
-                     (-s, c, 0),
-                     (0, 0, 1)))
-
-
-def yrotmat(angle):
-    s = np.sin(angle)
-    c = np.cos(angle)
-    return np.array(((c, 0, -s),
-                     (0, 1, 0),
-                     (s, 0, c)))
-
-
-def xrotmat(angle):
-    s = np.sin(angle)
-    c = np.cos(angle)
-    return np.array(((1, 0, 0),
-                     (0, c, s),
-                     (0, -s, c)))
-
-
-# constant ICRS --> FK5J2000 (See USNO Circular 179, section 3.5)
-try:
-    eta0 = np.deg2rad(-19.9 / 3600000.)
-    xi0 = np.deg2rad(9.1 / 3600000.)
-    da0 = np.deg2rad(-22.9 / 3600000.)
-    ICRS_TO_FK5J2000 = np.dot(np.dot(xrotmat(-eta0), yrotmat(xi0)), zrotmat(da0))
-except TypeError:
-    #
-    # This can happen during documentation builds.  There's no real
-    # reason to define all of this at the module level anyway.
-    #
-    eta0 = None
-    xi0 = None
-    da0 = None
-    ICRS_TO_FK5J2000 = None
-
-# FK5J2000 --> Gal
-# Note that galactic pole and zeropoint of l are somewhat arbitrary
-# and not officially defined (as far as I know). The values below are
-# from astropy.coordinates, which includes the following comment:
-# | "This gives better consistency with other codes than using the values
-# |  from Reid & Brunthaler 2004 and the best self-consistency between FK5
-# |  -> Galactic and FK5 -> FK4 -> Galactic. The lon0 angle was found by
-# |  optimizing the self-consistency."
-try:
-    ngp_fk5j2000_ra = np.deg2rad(192.8594812065348)
-    ngp_fk5j2000_dec = np.deg2rad(27.12825118085622)
-    lon0_fk5j2000 = np.deg2rad(122.9319185680026)
-    FK5J2000_TO_GAL = np.dot(np.dot(zrotmat(np.pi - lon0_fk5j2000),
-                                    yrotmat(np.pi/2. - ngp_fk5j2000_dec)),
-                             zrotmat(ngp_fk5j2000_ra))
-except TypeError:
-    #
-    # See above.
-    #
-    ngp_fk5j2000_ra = None
-    ngp_fk5j2000_dec = None
-    lon0_fk5j2000 = None
-    FK5J2000_TO_GAL = None
-
-# ICRS --> Gal: simply chain through FK5J2000
-ICRS_TO_GAL = np.dot(FK5J2000_TO_GAL, ICRS_TO_FK5J2000)
-
-
-# (lon, lat) -> [x, y, z] unit vector
-def coords2cart(lon, lat):
-    coslat = np.cos(lat)
-    return np.array((coslat * np.cos(lon), coslat * np.sin(lon), np.sin(lat)))
-
-
-# [x, y, z] unit vector -> (lon, lat)
-def cart2coords(xyz):
-    x, y, z = xyz
-    return np.arctan2(y, x), np.arctan2(z, np.sqrt(x*x + y*y))
-
-
-def _icrs_to_gal(lon, lat):
-    return cart2coords(np.dot(ICRS_TO_GAL, coords2cart(lon, lat)))
-
-
-def _fk5j2000_to_gal(lon, lat):
-    return cart2coords(np.dot(FK5J2000_TO_GAL, coords2cart(lon, lat)))
-
+from astropy.coordinates import SkyCoord
+from astropy import units as u
 
 # -----------------------------------------------------------------------------
 # bilinear interpolation (because scipy.ndimage.map_coordinates is really slow
@@ -238,9 +141,7 @@ class SFDMap(object):
                  south="SFD_dust_4096_sgp.fits", scaling=1.):
 
         if mapdir is None:
-            mapdir = os.environ.get('DUST_DIR', '')
-        mapdir = os.path.expanduser(mapdir)
-        mapdir = os.path.expandvars(mapdir)
+            mapdir = os.environ.get('DUST_DIR')
         self.mapdir = mapdir
 
         # don't load maps initially
@@ -255,8 +156,9 @@ class SFDMap(object):
         Parameters
         ----------
         coordinates or ra, dec: SkyCoord or numpy.ndarray
-            If one argument is passed, assumed to be a
-            `astropy.coordinates.SkyCoords` instance. In this case,
+            If one argument is passed, assumed to be an (ra,dec) tuple 
+             or an `astropy.coordinates.SkyCoords` instance. In the
+            `astropy.coordinates.SkyCoords` case
             the ``frame`` and ``unit`` keyword arguments are
             ignored. If two arguments are passed, they are treated as
             ``latitute, longitude`` (can be scalars or arrays).  In
@@ -284,47 +186,34 @@ class SFDMap(object):
         unit = kwargs.get('unit', 'degree')
         interpolate = kwargs.get('interpolate', True)
 
+        #ADM convert to a frame understood by SkyCoords
+        #ADM (for backwards-compatibility)
+        if frame in ('fk5j2000', 'j2000'):
+            frame = 'fk5'
+
         # compatibility: treat single argument 2-tuple as (RA, Dec)
         if ((len(args) == 1) and (type(args[0]) is tuple) 
             and (len(args[0]) == 2)):
-            args = args[0]
-            print('tuple')
+            # ADM instantiate a SkyCoord object
+            c = SkyCoord(args[0], args[1], unit=unit, frame=frame)
 
         if len(args) == 1:
-            # treat object as an astropy.coordinates.SkyCoords
+            # treat object as already an astropy.coordinates.SkyCoords
             try:
-                print('skycoord')
-                coordinates = args[0].galactic
-                l = coordinates.l.radian
-                b = coordinates.b.radian
+                c = args[0]
             except AttributeError:
                 raise ValueError("single argument must be "
                                  "astropy.coordinates.SkyCoord")
 
         elif len(args) == 2:
             lat, lon = args
-
-            # convert to radians
-            if unit in ('deg', 'degree'):
-                lat = np.deg2rad(lat)
-                lon = np.deg2rad(lon)
-            elif unit in ('rad', 'radian'):
-                pass
-            else:
-                raise ValueError("unit not understood")
-
-            # convert to galactic
-            if frame == 'icrs':
-                l, b = _icrs_to_gal(lat, lon)
-            elif frame == 'galactic':
-                l, b = lat, lon
-            elif frame in ('fk5j2000', 'j2000'):
-                l, b = _fk5j2000_to_gal(lat, lon)
-            else:
-                raise ValueError("frame not understood")
+            c = SkyCoord(lat, lon, unit=unit, frame=frame)
 
         else:
             raise ValueError("too many arguments")
+
+        #ADM extract Galactic coordinates from astropy
+        l, b = c.galactic.l.radian, c.galactic.b.radian
 
         # Check if l, b are scalar. If so, convert to 1-d arrays.
         # ADM use numpy.atleast_1d. Store whether the
