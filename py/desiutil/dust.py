@@ -1,3 +1,7 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+# -*- coding: utf-8 -*-
+#
+# ORIGINAL LICENSE:
 # Copied on Nov/20/2016 from https://github.com/kbarbary/sfdmap/ commit: bacdbbd
 
 # Licensed under an MIT "Expat" license
@@ -23,10 +27,12 @@
 # SOFTWARE.
 
 """
+=============
 desiutil.dust
 =============
 
 Get E(B-V) values from the Schlegel, Finkbeiner & Davis (1998) dust map.
+See, e.g.: http://adsabs.harvard.edu/abs/1998ApJ...500..525S for SFD98.
 """
 
 import os
