@@ -1,10 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
-#
-# ORIGINAL LICENSE:
-# Copied on Nov/20/2016 from https://github.com/kbarbary/sfdmap/ commit: bacdbbd
 
-# Licensed under an MIT "Expat" license
+# Some code was copied on Nov/20/2016 from https://github.com/kbarbary/sfdmap/ commit: bacdbbd
+# which was originally Licensed under an MIT "Expat" license:
 
 # Copyright (c) 2016 Kyle Barbary
 
@@ -41,11 +39,30 @@ from astropy.io.fits import getdata
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 
-# -----------------------------------------------------------------------------
-# bilinear interpolation (because scipy.ndimage.map_coordinates is really slow
-# for this)
 
 def _bilinear_interpolate(data, y, x):
+    """Map a two-dimensional integer pixel-array at float coordinates.
+    
+    Parameters
+    ----------
+    data : :class:`~numpy.ndarray`
+        Pixelized array of values.
+    y : :class:`float` or :class:`~numpy.ndarray`
+        y coordinates (each integer y is a row) of 
+        location in pixel-space at which to interpolate.
+    x : :class:`float` or :class:`~numpy.ndarray`
+        x coordinates (each integer x is a column) of 
+        location in pixel-space at which to interpolate.
+
+    Returns
+    -------
+    :class:`float` or :class:`~numpy.ndarray`
+        Interpolated data values at the passed locations.
+
+    Notes
+    -----
+        Taken in full from https://github.com/kbarbary/sfdmap/
+    """
     yfloor = np.floor(y)
     xfloor = np.floor(x)
     yw = y - yfloor
@@ -69,12 +86,32 @@ def _bilinear_interpolate(data, y, x):
             (1.0-xw) * yw       * data[y1, x0] +
             xw       * yw       * data[y1, x1])
 
-
-# -----------------------------------------------------------------------------
-
 class _Hemisphere(object):
-    """Represents one of the hemispheres (in a single fle)"""
+    """Represents one of the hemispheres (in a single file)
 
+    Parameters
+    ----------
+    fname : :class:`str`
+        File name containing one hemisphere of the dust map
+    scaling : :class:`float`
+        Multiplicative factor by which to scale the dust map
+
+    Attributes
+    -------
+    data : :class:`~numpy.ndarray`
+        Pixelated array of dust map values.
+    crpix1, crpix2 : :class:`float`
+        World Coordinate System: Represent the 1-indexed 
+        X and Y pixel numbers of the poles
+    lam_scal : :class:`int`
+        number of pixels from b=0 to b=90 deg
+    lam_nsgp : :class:`int`
+        +1 for the northern hemisphere, -1 for the south
+    
+    Notes
+    -----
+        Taken in full from https://github.com/kbarbary/sfdmap/
+    """
     def __init__(self, fname, scaling):
         self.data, header = getdata(fname, header=True)
         self.data *= scaling
