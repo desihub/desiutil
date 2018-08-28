@@ -329,7 +329,6 @@ class SFDMap(object):
         # ADM passed values were scalars or not
         return_scalar = not np.atleast_1d(l) is l
         l, b = np.atleast_1d(l), np.atleast_1d(b)
-
         # Initialize return array
         values = np.empty_like(l)
 

@@ -12,6 +12,7 @@ import unittest
 import os
 import numpy as np
 from .. import dust
+from pkg_resources import resource_filename
 
 
 class TestDust(unittest.TestCase):
@@ -19,32 +20,38 @@ class TestDust(unittest.TestCase):
     """
 
     def setUp(self):
-        n = 10
-        self.ra = np.linspace(0, 3, n) - 1.5
-        self.dec = np.linspace(0, 3, n) - 1.5
-        self.ebv = np.array([0.027391933, 0.024605898, 0.027694058,
-                             0.040832218, 0.036266338, 0.033251308,
-                             0.032212332, 0.031226717, 0.028192421,
-                             0.027784575], dtype='<f4')
+        self.mapdir = resource_filename('desiutil.test', 't')
+        # ADM these RAs/DECs are set to be in the 0-10 pixel column
+        # ADM in the dust map files to correspond to
+        # ADM the test data made by make_testmaps.py
+        # ADM the corresponding b values are
+        # [ 0.00606523  0.00370056 -0.00511865  0.00139846 -0.0003694 ]
+        # ADM to test both the SGP and the NGP
+        self.ra = np.array([ 84.56347552,  88.25858593,  
+                             85.18114653,  84.04246538, 83.22215524])
+        self.dec = np.array([ 32.14649459,  26.61522843,  30.10225407,  
+                              32.34100748, 33.22330424])
+        self.ebv = np.array([ 1.45868814,  1.59562695,  1.78565359,  
+                               0.95239526,  0.87789094], dtype='<f4')
 
-    @unittest.skipIf('DUST_DIR' not in os.environ,
-                     "Skipping test that requires DUST_DIR to point to SFD maps")
     def test_ebv(self):
         """Test E(B-V) map code gives correct results
         """
-        ebvtest = dust.ebv(self.ra, self.dec).astype('<f4')
+        ebvtest = dust.ebv(self.ra, self.dec, 
+                           mapdir=self.mapdir).astype('<f4')
         self.assertTrue(np.all(ebvtest == self.ebv))
 
-    @unittest.skipIf('DUST_DIR' not in os.environ,
-                     "Skipping test that requires DUST_DIR to point to SFD maps")
     def test_ebv_scaling(self):
         """Test E(B-V) map code default scaling is 1
         """
         # ADM a useful scaling to test as it's the Schlafly/Finkbeiner (2011) value
         scaling = 0.86
-        ebvtest1 = dust.ebv(self.ra, self.dec, scaling=scaling)
-        ebvtest2 = scaling*dust.ebv(self.ra, self.dec)
-        self.assertTrue(np.all(np.abs(ebvtest1-ebvtest2) < 1e-8))
+        ebvtest1 = dust.ebv(self.ra, self.dec, 
+                            mapdir=self.mapdir, scaling=scaling)
+        ebvtest2 = scaling*dust.ebv(self.ra, self.dec, 
+                                    mapdir=self.mapdir)
+        # ADM 1e-7 is fine. We don't know dust values to 0.00001%
+        self.assertTrue(np.all(np.abs(ebvtest1-ebvtest2) < 1e-7))
 
 
 def test_suite():
