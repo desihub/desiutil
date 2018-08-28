@@ -36,22 +36,8 @@ See, e.g.: http://adsabs.harvard.edu/abs/1998ApJ...500..525S for SFD98.
 """
 
 import os
-
 import numpy as np
-
-# require a FITS reader of some sort.
-try:
-    import fitsio
-    getdata = fitsio.read
-except ImportError:
-    try:
-        from astropy.io.fits import getdata
-    except ImportError:
-        raise ImportError("could not import fitsio or astropy.io.fits")
-
-__all__ = ['SFDMap', 'ebv']
-__version__ = "0.1.0"
-
+from astropy.fits import getdata
 
 def _isiterable(obj):
     """Returns `True` if the given object is iterable."""
