@@ -39,15 +39,6 @@ import os
 import numpy as np
 from astropy.fits import getdata
 
-def _isiterable(obj):
-    """Returns `True` if the given object is iterable."""
-
-    try:
-        iter(obj)
-        return True
-    except TypeError:
-        return False
-
 # -----------------------------------------------------------------------------
 # Coordinate conversion
 #
@@ -334,10 +325,8 @@ class SFDMap(object):
             raise ValueError("too many arguments")
 
         # Check if l, b are scalar. If so, convert to 1-d arrays.
-        return_scalar = False
-        if not _isiterable(l):
-            return_scalar = True
-            l, b = np.array([l]), np.array([b])
+        # ADM use numpy.atleast_1d
+        l, b = np.atleast_1d(l), np.atleast_1d(b)
 
         # Initialize return array
         values = np.empty_like(l)
