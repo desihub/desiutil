@@ -224,8 +224,10 @@ class SFDMap(object):
             frame = 'fk5'
 
         # compatibility: treat single argument 2-tuple as (RA, Dec)
-        if ((len(args) == 1) and (type(args[0]) is tuple)
-                             and (len(args[0]) == 2)):
+        if (
+                (len(args) == 1) and (type(args[0]) is tuple)
+                and (len(args[0]) == 2)
+        ):
             args = args[0]
 
         if len(args) == 1:

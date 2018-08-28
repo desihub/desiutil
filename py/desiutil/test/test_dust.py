@@ -29,7 +29,7 @@ class TestDust(unittest.TestCase):
         # ADM the corresponding b values are
         # [ 0.00606523  0.00370056 -0.00511865  0.00139846 -0.0003694 ]
         # ADM to test both the SGP and the NGP
-        self.ra = np.array([84.56347552,  88.25858593,  
+        self.ra = np.array([84.56347552,  88.25858593,
                             85.18114653,  84.04246538, 83.22215524])
         self.dec = np.array([32.14649459,  26.61522843,  30.10225407,
                              32.34100748, 33.22330424])
