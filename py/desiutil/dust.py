@@ -29,8 +29,9 @@
 desiutil.dust
 =============
 
-Get E(B-V) values from the Schlegel, Finkbeiner & Davis (1998) dust map.
-See, e.g.: http://adsabs.harvard.edu/abs/1998ApJ...500..525S for SFD98.
+Get :math:`E(B-V)` values from the `Schlegel, Finkbeiner & Davis (1998; SFD98)`_ dust map.
+
+.. _`Schlegel, Finkbeiner & Davis (1998; SFD98)`: http://adsabs.harvard.edu/abs/1998ApJ...500..525S.
 """
 
 import os
@@ -61,7 +62,7 @@ def _bilinear_interpolate(data, y, x):
 
     Notes
     -----
-        Taken in full from https://github.com/kbarbary/sfdmap/
+    Taken in full from https://github.com/kbarbary/sfdmap/
     """
     yfloor = np.floor(y)
     xfloor = np.floor(x)
@@ -88,30 +89,30 @@ def _bilinear_interpolate(data, y, x):
 
 
 class _Hemisphere(object):
-    """Represents one of the hemispheres (in a single file)
+    """Represents one of the hemispheres (in a single file).
 
     Parameters
     ----------
     fname : :class:`str`
-        File name containing one hemisphere of the dust map
+        File name containing one hemisphere of the dust map.
     scaling : :class:`float`
-        Multiplicative factor by which to scale the dust map
+        Multiplicative factor by which to scale the dust map.
 
     Attributes
-    -------
+    ----------
     data : :class:`~numpy.ndarray`
         Pixelated array of dust map values.
     crpix1, crpix2 : :class:`float`
         World Coordinate System: Represent the 1-indexed
-        X and Y pixel numbers of the poles
+        X and Y pixel numbers of the poles.
     lam_scal : :class:`int`
-        number of pixels from b=0 to b=90 deg
+        Number of pixels from b=0 to b=90 deg.
     lam_nsgp : :class:`int`
-        +1 for the northern hemisphere, -1 for the south
+        +1 for the northern hemisphere, -1 for the south.
 
     Notes
     -----
-        Taken in full from https://github.com/kbarbary/sfdmap/
+    Taken in full from https://github.com/kbarbary/sfdmap/
     """
     def __init__(self, fname, scaling):
         self.data, header = getdata(fname, header=True)
@@ -123,6 +124,18 @@ class _Hemisphere(object):
 
     def ebv(self, l, b, interpolate):
         """Project Galactic longitude/latitude to lambert pixels (See SFD98).
+
+        Parameters
+        ----------
+        l, b : :class:`numpy.ndarray`
+            Galactic longitude and latitude.
+        interpolate : :class:`bool`
+            If ``True`` use bilinear interpolation to obtain values.
+
+        Returns
+        -------
+        :class:`~numpy.ndarray`
+            Reddening values.
         """
         x = (self.crpix1 - 1.0 +
              self.lam_scal * np.cos(l) *
@@ -152,12 +165,12 @@ class SFDMap(object):
     a reference to the FITS data from the maps so that each FITS image
     is read only once.
 
-    Attributes
+    Parameters
     ----------
-    mapdir : :class:`str`, optional, defaults to DUST_DIR
+    mapdir : :class:`str`, optional, defaults to :envvar:`DUST_DIR`.
         Directory in which to find dust map FITS images, named
         ``SFD_dust_4096_ngp.fits`` and ``SFD_dust_4096_sgp.fits``.
-        If not specified, the value of the ``DUST_DIR`` environment
+        If not specified, the value of the :envvar:`DUST_DIR` environment
         variable is used, otherwise an empty string is used.
     north, south : :class:`str`, optional
         Names of north and south galactic pole FITS files. Defaults are
@@ -165,12 +178,12 @@ class SFDMap(object):
         respectively.
     scaling : :class:`float`, optional, defaults to 1
         Scale all E(B-V) map values by this multiplicative factor.
-        Pass scaling=0.86 for the recalibration from Schlafly & Finkbeiner
-        (2011; http://adsabs.harvard.edu/abs/2011ApJ...737..103S).
+        Pass scaling=0.86 for the recalibration from
+        `Schlafly & Finkbeiner (2011) <http://adsabs.harvard.edu/abs/2011ApJ...737..103S)>`_.
 
     Notes
     -----
-        Modified from https://github.com/kbarbary/sfdmap/
+    Modified from https://github.com/kbarbary/sfdmap/
     """
     def __init__(self, mapdir=None, north="SFD_dust_4096_ngp.fits",
                  south="SFD_dust_4096_sgp.fits", scaling=1.):
@@ -190,23 +203,23 @@ class SFDMap(object):
 
         Parameters
         ----------
-        coordinates or ra, dec : :class:`astropy.coordinates.SkyCoord` or `numpy.ndarray`
-            If one argument is passed, assumed to be an `astropy.coordinates.SkyCoord`
+        coordinates : :class:`~astropy.coordinates.SkyCoord` or :class:`~numpy.ndarray`
+            If one argument is passed, assumed to be an :class:`~astropy.coordinates.SkyCoord`
             instance, in which case the ``frame`` and ``unit`` keyword arguments are
             ignored. If two arguments are passed, they are treated as
             ``latitute, longitude`` (can be scalars or arrays or a tuple), in which
             case the frame and unit are taken from the passed keywords.
         frame : :class:`str`, optional, defaults to ``'icrs'``
             Coordinate frame, if two arguments are passed. Allowed values are any
-            `astropy.coordinates.SkyCoord` frame, and ``'fk5j2000'`` and ``'j2000'``.
+            :class:`~astropy.coordinates.SkyCoord` frame, and ``'fk5j2000'`` and ``'j2000'``.
         unit : :class:`str`, optional, defaults to ``'degree'``
-            Any `astropy.coordinates.SkyCoord` unit.
+            Any :class:`~astropy.coordinates.SkyCoord` unit.
         interpolate : :class:`bool`, optional, defaults to ``True``
             Interpolate between the map values using bilinear interpolation.
 
         Returns
         -------
-        `~numpy.ndarray`
+        :class:`~numpy.ndarray`
             Specific extinction E(B-V) at the given locations.
 
         Notes
@@ -282,7 +295,8 @@ class SFDMap(object):
 
 
 def ebv(*args, **kwargs):
-    """Convenience function, equivalent to ``SFDMap().ebv(*args)``"""
+    """Convenience function, equivalent to ``SFDMap().ebv(*args)``.
+    """
 
     m = SFDMap(mapdir=kwargs.get('mapdir', None),
                north=kwargs.get('north', "SFD_dust_4096_ngp.fits"),
