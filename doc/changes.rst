@@ -10,7 +10,7 @@ Change Log
 1.9.13 (unreleased)
 -------------------
 
-* Add ``/maps`` to the default dust directory. (PR `#119`_).
+* Add ``/maps`` to the default dust directory (PR `#119`_).
 
 .. _`#119`: https://github.com/desihub/desiutil/pull/119
 
