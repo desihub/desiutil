@@ -7,7 +7,7 @@ Change Log
 
 * This version will drop support for Python 2.
 
-1.9.12 (unreleased)
+1.9.12 (2018-09-05)
 -------------------
 
 * Port the dust map code from desitarget to desiutil (PR `#116`_).
