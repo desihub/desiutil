@@ -17,6 +17,9 @@ desiutil API
 .. automodule:: desiutil.depend
     :members:
 
+.. automodule:: desiutil.dust
+    :members:
+
 .. automodule:: desiutil.funcfits
     :members:
 
