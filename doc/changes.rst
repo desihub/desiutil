@@ -7,7 +7,7 @@ Change Log
 
 * This version will drop support for Python 2.
 
-1.9.13 (unreleased)
+1.9.13 (2018-09-06)
 -------------------
 
 * Add ``/maps`` to the default dust directory (PR `#119`_).
