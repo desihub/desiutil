@@ -40,6 +40,8 @@ from astropy.io.fits import getdata
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 
+from .log import get_logger
+log = get_logger()
 
 def _bilinear_interpolate(data, y, x):
     """Map a two-dimensional integer pixel-array at float coordinates.
@@ -190,8 +192,17 @@ class SFDMap(object):
                  south="SFD_dust_4096_sgp.fits", scaling=1.):
 
         if mapdir is None:
-            dustdir = os.environ.get('DUST_DIR', '')
-            mapdir = "{}/maps".format(dustdir)
+            dustdir = os.environ.get('DUST_DIR')
+            if dustdir is None:
+                log.critical('Pass mapdir or set $DUST_DIR')
+                raise IOError
+            else:
+                mapdir = os.path.join(dustdir, 'maps')
+ 
+        if not os.path.exists(mapdir):
+            log.critical('Dust maps not found in directory'.format(mapdir))
+            raise IOError
+
         self.mapdir = mapdir
 
         # don't load maps initially
