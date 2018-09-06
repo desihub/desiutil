@@ -200,7 +200,7 @@ class SFDMap(object):
                 mapdir = os.path.join(dustdir, 'maps')
  
         if not os.path.exists(mapdir):
-            log.critical('Dust maps not found in directory'.format(mapdir))
+            log.critical('Dust maps not found in directory {}'.format(mapdir))
             raise IOError
 
         self.mapdir = mapdir
