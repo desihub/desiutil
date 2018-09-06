@@ -40,6 +40,8 @@ from astropy.io.fits import getdata
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 
+from .log import get_logger
+log = get_logger()
 
 def _bilinear_interpolate(data, y, x):
     """Map a two-dimensional integer pixel-array at float coordinates.
@@ -167,11 +169,12 @@ class SFDMap(object):
 
     Parameters
     ----------
-    mapdir : :class:`str`, optional, defaults to :envvar:`DUST_DIR`.
+    mapdir : :class:`str`, optional, defaults to :envvar:`DUST_DIR`+``/maps``.
         Directory in which to find dust map FITS images, named
         ``SFD_dust_4096_ngp.fits`` and ``SFD_dust_4096_sgp.fits``.
-        If not specified, the value of the :envvar:`DUST_DIR` environment
-        variable is used, otherwise an empty string is used.
+        If not specified, the map directory is derived from the value of 
+        the :envvar:`DUST_DIR` environment variable, otherwise an empty 
+        string is used.
     north, south : :class:`str`, optional
         Names of north and south galactic pole FITS files. Defaults are
         ``SFD_dust_4096_ngp.fits`` and ``SFD_dust_4096_sgp.fits``
@@ -189,7 +192,17 @@ class SFDMap(object):
                  south="SFD_dust_4096_sgp.fits", scaling=1.):
 
         if mapdir is None:
-            mapdir = os.environ.get('DUST_DIR', '')
+            dustdir = os.environ.get('DUST_DIR')
+            if dustdir is None:
+                log.critical('Pass mapdir or set $DUST_DIR')
+                raise ValueError('Pass mapdir or set $DUST_DIR')
+            else:
+                mapdir = os.path.join(dustdir, 'maps')
+ 
+        if not os.path.exists(mapdir):
+            log.critical('Dust maps not found in directory {}'.format(mapdir))
+            raise ValueError('Dust maps not found in directory {}'.format(mapdir))
+
         self.mapdir = mapdir
 
         # don't load maps initially

@@ -37,14 +37,14 @@ class TestDust(unittest.TestCase):
                              0.95239526,  0.87789094], dtype='<f4')
 
     def test_ebv(self):
-        """Test E(B-V) map code gives correct results
+        """Test E(B-V) map code gives correct results.
         """
         ebvtest = dust.ebv(self.ra, self.dec,
                            mapdir=self.mapdir).astype('<f4')
         self.assertTrue(np.all(ebvtest == self.ebv))
 
     def test_ebv_scaling(self):
-        """Test E(B-V) map code default scaling is 1
+        """Test E(B-V) map code default scaling is 1.
         """
         # ADM a useful scaling to test as it's the Schlafly/Finkbeiner (2011) value
         scaling = 0.86
@@ -56,7 +56,7 @@ class TestDust(unittest.TestCase):
         self.assertTrue(np.all(np.abs(ebvtest1-ebvtest2) < 1e-7))
 
     def test_inputs(self):
-        """Test E(B-V) code works with alternative input formats
+        """Test E(B-V) code works with alternative input formats.
         """
         # ADM tuple (and scalar) format
         # ADM with no interpolation and a strange fk5 system
@@ -71,6 +71,35 @@ class TestDust(unittest.TestCase):
 
         self.assertTrue(ebvtest2[0] == ebvtest1)
 
+    def test_class(self):
+        """Test E(B-V) class initialization fails appropriately.
+        """
+        # ADM count the tests that work
+        testcnt = 0
+
+        # ADM initially unset the DUST_DIR environment variable
+        dustdir = os.environ.get('DUST_DIR')
+        if dustdir is not None:
+            del os.environ['DUST_DIR']
+
+        # ADM check calling the class without 'DUST_DIR' or a map directory
+        try: 
+            ss = dust.SFDMap()
+        except ValueError:
+            testcnt += 1
+
+        # ADM reset the DUST_DIR environment variable
+        if dustdir is not None:
+            os.environ["DUST_DIR"] = dustdir
+
+        # ADM test calling the class with a non-existent directory
+        try: 
+            ss = dust.SFDMap(mapdir='blatfoo')
+        except ValueError:
+            testcnt += 1
+
+        # ADM assert that the tests worked 
+        self.assertTrue(testcnt == 2)
 
 def test_suite():
     """Allows testing of only this module with the command::
