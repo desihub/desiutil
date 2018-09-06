@@ -195,13 +195,13 @@ class SFDMap(object):
             dustdir = os.environ.get('DUST_DIR')
             if dustdir is None:
                 log.critical('Pass mapdir or set $DUST_DIR')
-                raise IOError
+                raise ValueError('Pass mapdir or set $DUST_DIR')
             else:
                 mapdir = os.path.join(dustdir, 'maps')
  
         if not os.path.exists(mapdir):
             log.critical('Dust maps not found in directory {}'.format(mapdir))
-            raise IOError
+            raise ValueError('Dust maps not found in directory {}'.format(mapdir))
 
         self.mapdir = mapdir
 
