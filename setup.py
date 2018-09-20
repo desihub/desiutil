@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import absolute_import, division, print_function
 #
 # Standard imports
 #
@@ -51,8 +50,8 @@ if os.path.isdir('bin'):
     setup_keywords['scripts'] = [fname for fname in glob.glob(os.path.join('bin', '*'))
         if not os.path.basename(fname).endswith('.rst')]
 setup_keywords['provides'] = [setup_keywords['name']]
-setup_keywords['requires'] = ['Python (>2.7.0)']
-# setup_keywords['install_requires'] = ['Python (>2.7.0)']
+setup_keywords['requires'] = ['Python (>3.5.0)']
+# setup_keywords['install_requires'] = ['Python (>3.5.0)']
 setup_keywords['zip_safe'] = False
 setup_keywords['use_2to3'] = False
 setup_keywords['packages'] = find_packages('py')
@@ -62,7 +61,7 @@ setup_keywords['cmdclass'] = {'module_file': ds.DesiModule,
                               'test': ds.DesiTest,
                               'api': ds.DesiAPI,
                               'sdist': DistutilsSdist}
-setup_keywords['test_suite']='{name}.test.{name}_test_suite.{name}_test_suite'.format(**setup_keywords)
+setup_keywords['test_suite']='{name}.test.{name}_test_suite'.format(**setup_keywords)
 #
 # Autogenerate command-line scripts.
 #

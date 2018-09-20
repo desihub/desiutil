@@ -2,9 +2,6 @@
 # -*- coding: utf-8 -*-
 """Test desiutil.funcfits.
 """
-from __future__ import (absolute_import, division,
-                        print_function, unicode_literals)
-# The line above will help with 2to3 support.
 import unittest
 import numpy as np
 from warnings import catch_warnings, simplefilter

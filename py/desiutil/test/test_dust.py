@@ -6,8 +6,6 @@ desiutil.test.test_dust
 
 Test desiutil.dust.
 """
-from __future__ import absolute_import, division, unicode_literals
-# The line above will help with 2to3 support.
 import unittest
 import os
 import numpy as np
@@ -83,7 +81,7 @@ class TestDust(unittest.TestCase):
             del os.environ['DUST_DIR']
 
         # ADM check calling the class without 'DUST_DIR' or a map directory
-        try: 
+        try:
             ss = dust.SFDMap()
         except ValueError:
             testcnt += 1
@@ -93,12 +91,12 @@ class TestDust(unittest.TestCase):
             os.environ["DUST_DIR"] = dustdir
 
         # ADM test calling the class with a non-existent directory
-        try: 
+        try:
             ss = dust.SFDMap(mapdir='blatfoo')
         except ValueError:
             testcnt += 1
 
-        # ADM assert that the tests worked 
+        # ADM assert that the tests worked
         self.assertTrue(testcnt == 2)
 
     def test_extinction(self):
