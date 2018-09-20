@@ -7,9 +7,6 @@ desiutil.git
 
 This package contains code for interacting with DESI git products.
 """
-from __future__ import (absolute_import, division,
-                        print_function, unicode_literals)
-# The line above will help with 2to3 support.
 
 
 def last_tag(owner, repo):

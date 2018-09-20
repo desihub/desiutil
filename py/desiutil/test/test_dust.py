@@ -97,7 +97,8 @@ class TestDust(unittest.TestCase):
             testcnt += 1
 
         # ADM assert that the tests worked
-        self.assertTrue(testcnt == 2)
+        self.assertEqual(testcnt, 2)
+
 
     def test_extinction(self):
         """Test ext_odonnel and ext_ccm functions"""

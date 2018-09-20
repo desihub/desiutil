@@ -7,15 +7,13 @@ desiutil.install
 
 This package contains code for installing DESI software products.
 """
-from __future__ import (absolute_import, division,
-                        print_function, unicode_literals)
-# The line above will help with 2to3 support.
 import os
 import sys
 import tarfile
 import re
 import shutil
 import requests
+from io import BytesIO
 from subprocess import Popen, PIPE
 from types import MethodType
 from pkg_resources import resource_filename
@@ -24,13 +22,6 @@ from .log import get_logger, DEBUG, INFO
 from .modules import (init_modules, configure_module,
                       process_module, default_module)
 from . import __version__ as desiutilVersion
-
-try:
-    # Python 3
-    from io import BytesIO as StringIO
-except ImportError:
-    # Python 2
-    from cStringIO import StringIO
 
 
 known_products = {
@@ -475,7 +466,7 @@ class DesiInstall(object):
                         self.log.critical(message)
                         raise DesiInstallException(message)
                     try:
-                        tgz = StringIO(r.content)
+                        tgz = BytesIO(r.content)
                         tf = tarfile.open(fileobj=tgz, mode='r:gz')
                         tf.extractall()
                         tf.close()

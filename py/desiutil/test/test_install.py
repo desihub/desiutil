@@ -131,8 +131,8 @@ class TestInstall(unittest.TestCase):
         """Test resolution of product/version input.
         """
         with patch.dict('desiutil.install.known_products',
-            {'desiutil': 'https://github.com/desihub/desiutil',
-             'desispec': 'https://github.com/desihub/desispec'}):
+                        {'desiutil': 'https://github.com/desihub/desiutil',
+                         'desispec': 'https://github.com/desihub/desispec'}):
             options = self.desiInstall.get_options(['foo', 'bar'])
             out = self.desiInstall.get_product_version()
             self.assertEqual(out, (u'https://github.com/desihub/foo',

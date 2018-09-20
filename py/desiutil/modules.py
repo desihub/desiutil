@@ -9,16 +9,7 @@ This package contains code for processing and installing `Module files`_.
 
 .. _`Module files`: http://modules.sourceforge.net
 """
-from __future__ import (absolute_import, division,
-                        print_function, unicode_literals)
-# The line above will help with 2to3 support.
-
-
-try:
-    from shutil import which
-except ImportError:
-    # shutil.which() is Python 3.
-    from distutils.spawn import find_executable as which
+from shutil import which
 
 
 def init_modules(moduleshome=None, method=False, command=False):

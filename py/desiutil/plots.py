@@ -7,18 +7,9 @@ desiutil.plots
 
 Module for code plots.
 """
-from __future__ import (print_function, absolute_import, division,
-                        unicode_literals)
-
 import os
-
 import numpy as np
 import numpy.ma
-
-try:
-    basestring
-except NameError:  # For Python 3
-    basestring = str
 
 
 def plot_slices(x, y, x_lo, x_hi, y_cut, num_slices=5, min_count=100, axis=None,
@@ -118,7 +109,6 @@ def plot_slices(x, y, x_lo, x_hi, y_cut, num_slices=5, min_count=100, axis=None,
     # ylim
     if set_ylim_from_stats:
         axis.set_ylim(min_m2-max_yr/2., max_p2+max_yr/2.)
-
 
     # Plot cut lines.
     axis.axhline(+y_cut, ls=':', color='k')
@@ -293,7 +283,7 @@ def prepare_data(data, mask=None, clip_lo=None, clip_hi=None,
     # Convert percentile clip values to absolute values.
     def get_clip(value):
         clip_mask = False
-        if isinstance(value, basestring):
+        if isinstance(value, str):
             if value.startswith('!'):
                 clip_mask = True
                 value = value[1:]

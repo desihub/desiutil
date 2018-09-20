@@ -7,8 +7,6 @@ desiutil.sklearn
 
 Useful functions from the sklearn python package.
 """
-from __future__ import (print_function, absolute_import, division,
-                        unicode_literals)
 
 
 class GaussianMixtureModel(object):
@@ -56,7 +54,7 @@ class GaussianMixtureModel(object):
             hdus.append(fits.ImageHDU(model.weights_, name='weights', header=hdr))
             hdus.append(fits.ImageHDU(model.means_, name='means'))
             hdus.append(fits.ImageHDU(model.covariances_, name='covars'))
-        except:
+        except AttributeError:
             hdr['covtype'] = model.covtype
             hdus.append(fits.ImageHDU(model.weights, name='weights', header=hdr))
             hdus.append(fits.ImageHDU(model.means, name='means'))

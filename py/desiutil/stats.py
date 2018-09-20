@@ -7,8 +7,6 @@ desiutil.stats
 
 Just contains a dead-simple wrapper on :func:`numpy.percentile`.
 """
-from __future__ import (print_function, absolute_import, division,
-                        unicode_literals)
 
 
 def perc(x, per=68.2):
