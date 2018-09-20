@@ -128,7 +128,12 @@ class TestIO(unittest.TestCase):
         self.assertIsInstance(ydict['flt32'], float)
         self.assertIsInstance(ydict['array'], list)
         for key in ydict.keys():
-            self.assertIsInstance(key, str)
+            if isinstance(key, str):
+                # This looks a little silly, but in fact, some of the keys
+                # are integers not strings.
+                self.assertIsInstance(key, str)
+            else:
+                self.assertIsInstance(key, int)
 
     def test_combinedicts(self):
         """Test combining dicts

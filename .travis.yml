@@ -29,7 +29,7 @@ addons:
 python:
     - 3.5
     - 3.6
-    - 3.7
+    # - 3.7
 env:
     global:
         # The following versions are the 'default' for tests, unless

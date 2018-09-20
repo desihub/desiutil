@@ -75,9 +75,7 @@ class TestLog(unittest.TestCase):
         record = handler.buffer[order]
         self.assertEqual(record.getMessage(), message)
         formatted = handler.format(record)
-        if not skipMock:
-            # Cheating on Python 3 detection.
-            self.assertRegex(formatted, self.fmtre)
+        self.assertRegex(formatted, self.fmtre)
 
     def get_logger(self, level, **kwargs):
         """Get the actual logging object, but swap out its default handler.
