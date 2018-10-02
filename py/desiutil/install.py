@@ -716,6 +716,11 @@ class DesiInstall(object):
                                module_directory)
                 mod = process_module(self.module_file, self.module_keywords,
                                      module_directory)
+                # Remove write permission to avoid accidental changes
+                outfile = os.path.join(module_directory,
+                                       self.module_keywords['name'],
+                                       self.module_keywords['version'])
+                os.chmod(outfile, 0o440)
             except OSError as ose:
                 self.log.critical(ose.strerror)
                 raise DesiInstallException(ose.strerror)
@@ -724,6 +729,7 @@ class DesiInstall(object):
                                module_directory)
                 dot_version = default_module(self.module_keywords,
                                              module_directory)
+
         return mod
 
     def prepare_environment(self):
@@ -945,6 +951,16 @@ class DesiInstall(object):
         out, err = proc.communicate()
         status = proc.returncode
         self.log.debug(out)
+
+        # Remove write permission to avoid accidental changes
+        command = ['chmod', '-R', 'a-w', self.install_dir]
+        self.log.debug(' '.join(command))
+        proc = Popen(command, universal_newlines=True,
+                     stdout=PIPE, stderr=PIPE)
+        out, err = proc.communicate()
+        chmod_status = proc.returncode
+        self.log.debug(out)
+
         return status
 
     def cleanup(self):
