@@ -953,7 +953,11 @@ class DesiInstall(object):
         self.log.debug(out)
 
         # Remove write permission to avoid accidental changes
-        command = ['chmod', '-R', 'a-w', self.install_dir]
+        if self.is_trunk or self.is_branch:
+            chmod_mode = 'g-w,o-w'
+        else:
+            chmod_mode = 'a-w'
+        command = ['chmod', '-R', chmod_mode, self.install_dir]
         self.log.debug(' '.join(command))
         proc = Popen(command, universal_newlines=True,
                      stdout=PIPE, stderr=PIPE)
