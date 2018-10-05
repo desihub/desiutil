@@ -10,7 +10,9 @@ Change Log
 1.9.14 (unreleased)
 -------------------
 
-* No changes yet.
+* Restrict write access on software installed with :command:`desiInstall` (PR `#122`_).
+
+.. _`#122`: https://github.com/desihub/desiutil/pull/122
 
 1.9.13 (2018-09-06)
 -------------------
