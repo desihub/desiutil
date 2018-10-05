@@ -7,7 +7,7 @@ Change Log
 
 * This version will drop support for Python 2.
 
-1.9.14 (unreleased)
+1.9.14 (2018-10-05)
 -------------------
 
 * Restrict write access on software installed with :command:`desiInstall` (PR `#122`_).
