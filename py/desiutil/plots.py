@@ -330,7 +330,7 @@ def prepare_data(data, mask=None, clip_lo=None, clip_hi=None,
 
 
 def init_sky(projection='eck4', ra_center=120, galactic_plane_color='red',
-             ecliptic_color=None, ra_labels=np.arange(0, 360, 60),
+             ecliptic_color='red', ra_labels=np.arange(0, 360, 60),
              dec_labels=np.arange(-60, 90, 30), ax=None):
     """Initialize a basemap projection of the full sky.
 
