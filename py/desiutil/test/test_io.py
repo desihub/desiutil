@@ -10,7 +10,6 @@ import os
 import stat
 import sys
 import numpy as np
-from tempfile import TemporaryDirectory
 from astropy.table import Table
 from ..io import combine_dicts, decode_table, encode_table, yamlify, unlock_file
 
@@ -18,6 +17,12 @@ try:
     basestring
 except NameError:  # For Python 3
     basestring = str
+
+skipTemp = False
+try:
+    from tempfile import TemporaryDirectory
+except NameError:
+    skipTemp = True
 
 
 class TestIO(unittest.TestCase):
@@ -181,6 +186,7 @@ class TestIO(unittest.TestCase):
         self.assertEqual(dict1, {'a': {'b': {'x': 1, 'y': 2}}})
         self.assertEqual(dict2, {'a': {'b': {'p': 3, 'q': 4}}})
 
+    @unittest.skipIf(skipTemp, "Skipping test that requires tempfile.TemporaryDirectory.")
     def test_unlock_file(self):
         """Test the permission unlock file manager.
         """
