@@ -21,7 +21,7 @@ except NameError:  # For Python 3
 skipTemp = False
 try:
     from tempfile import TemporaryDirectory
-except NameError:
+except ImportError:
     skipTemp = True
 
 

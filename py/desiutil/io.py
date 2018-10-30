@@ -227,12 +227,17 @@ def unlock_file(*args, **kwargs):
     """Unlock a read-only file, return a file-like object, and restore the
     read-only state when done.  Arguments are the same as :func:`open`.
 
+
     This assumes that the user of this function is also the owner of the
     file. :func:`os.chmod` would not be expected to work in any other
     circumstance.
 
     Technically, this restores the *original* permissions of the file, it
     does not care what the original permissions were.
+
+    If the named file does not exist, this function effectively does not
+    attempt to guess what the final permissions of the file would be.  In
+    other words, it just does whatever :func:`open` would do.
     """
     import os
     import stat
@@ -240,8 +245,10 @@ def unlock_file(*args, **kwargs):
     # Get original permissions, unlock permissions
     #
     # uid = os.getuid()
-    s = os.stat(args[0])
-    os.chmod(args[0], s.st_mode | stat.S_IWUSR)
+    old_mode = None
+    if os.path.exists(args[0]):
+        s = os.stat(args[0])
+        os.chmod(args[0], old_mode | stat.S_IWUSR)
     f = open(*args, **kwargs)
     try:
         yield f
@@ -250,4 +257,5 @@ def unlock_file(*args, **kwargs):
         # Restore original permissions
         #
         f.close()
-        os.chmod(args[0], s.st_mode)
+        if old_mode is not None:
+            os.chmod(args[0], old_mode)
