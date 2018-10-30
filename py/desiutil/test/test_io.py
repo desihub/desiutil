@@ -191,6 +191,7 @@ class TestIO(unittest.TestCase):
         """Test the permission unlock file manager.
         """
         fff = stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH
+        www = stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH
         with TemporaryDirectory() as dirname:
             filename = os.path.join(dirname, 'tempfile')
             with open(filename, 'wb') as f:
@@ -206,6 +207,11 @@ class TestIO(unittest.TestCase):
                 self.assertEqual(stat.S_IMODE(s2.st_mode), fff | stat.S_IWUSR)
             s3 = os.stat(filename)
             self.assertEqual(stat.S_IMODE(s3.st_mode), fff)
+            filename = os.path.join(dirname, 'newfile')
+            with unlock_file(filename, 'wb') as f:
+                f.write(b'Some content\n')
+            s0 = os.stat(filename)
+            self.assertEqual(stat.S_IMODE(s0.st_mode) & www, 0)
 
 
 def test_suite():
