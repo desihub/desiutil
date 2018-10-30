@@ -247,7 +247,7 @@ def unlock_file(*args, **kwargs):
     # uid = os.getuid()
     old_mode = None
     if os.path.exists(args[0]):
-        s = os.stat(args[0])
+        old_mode = os.stat(args[0]).st_mode
         os.chmod(args[0], old_mode | stat.S_IWUSR)
     f = open(*args, **kwargs)
     try:

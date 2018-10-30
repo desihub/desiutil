@@ -278,6 +278,7 @@ def default_module(module_keywords, module_dir):
     """
     from os import chmod
     from os.path import join
+    from stat import S_IRUSR, S_IRGRP
     from .io import unlock_file
     dot_template = '#%Module1.0\nset ModulesVersion "{version}"\n'
     install_version_file = join(module_dir, module_keywords['name'],
