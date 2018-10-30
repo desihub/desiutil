@@ -9,6 +9,8 @@ Module for I/O related code.
 """
 from __future__ import (print_function, absolute_import, division,
                         unicode_literals)
+from contextlib import contextmanager
+
 
 try:
     basestring
@@ -218,3 +220,34 @@ def decode_table(data, encoding='ascii', native=True):
 
     table.meta['ENCODING'] = encoding
     return table
+
+
+@contextmanager
+def unlock_file(*args, **kwargs):
+    """Unlock a read-only file, return a file-like object, and restore the
+    read-only state when done.  Arguments are the same as :func:`open`.
+
+    This assumes that the user of this function is also the owner of the
+    file. :func:`os.chmod` would not be expected to work in any other
+    circumstance.
+
+    Technically, this restores the *original* permissions of the file, it
+    does not care what the original permissions were.
+    """
+    import os
+    import stat
+    #
+    # Get original permissions, unlock permissions
+    #
+    # uid = os.getuid()
+    s = os.stat(args[0])
+    os.chmod(args[0], s.st_mode | stat.S_IWUSR)
+    f = open(*args, **kwargs)
+    try:
+        yield f
+    finally:
+        #
+        # Restore original permissions
+        #
+        f.close()
+        os.chmod(args[0], s.st_mode)
