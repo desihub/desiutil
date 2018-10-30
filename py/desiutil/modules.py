@@ -245,16 +245,19 @@ def process_module(module_file, module_keywords, module_dir):
     :class:`str`
         The text of the processed Module file.
     """
-    from os import makedirs
+    from os import chmod, makedirs
     from os.path import isdir, join
+    from stat import S_IRUSR, S_IRGRP
+    from .io import unlock_file
     if not isdir(join(module_dir, module_keywords['name'])):
         makedirs(join(module_dir, module_keywords['name']))
     install_module_file = join(module_dir, module_keywords['name'],
                                module_keywords['version'])
     with open(module_file) as m:
         mod = m.read().format(**module_keywords)
-    with open(install_module_file, 'w') as m:
+    with unlock_file(install_module_file, 'w') as m:
         m.write(mod)
+    chmod(install_module_file, S_IRUSR | S_IRGRP)
     return mod
 
 
@@ -273,11 +276,14 @@ def default_module(module_keywords, module_dir):
     :class:`str`
         The text of the processed .version file.
     """
+    from os import chmod
     from os.path import join
+    from .io import unlock_file
     dot_template = '#%Module1.0\nset ModulesVersion "{version}"\n'
     install_version_file = join(module_dir, module_keywords['name'],
                                 '.version')
     dot_version = dot_template.format(**module_keywords)
-    with open(install_version_file, 'w') as v:
+    with unlock_file(install_version_file, 'w') as v:
         v.write(dot_version)
+    chmod(install_version_file, S_IRUSR | S_IRGRP)
     return dot_version
