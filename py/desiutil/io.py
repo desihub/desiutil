@@ -227,17 +227,28 @@ def unlock_file(*args, **kwargs):
     """Unlock a read-only file, return a file-like object, and restore the
     read-only state when done.  Arguments are the same as :func:`open`.
 
+    Returns
+    -------
+    file-like
+        A file-like object, as returned by :func:`open`.
 
-    This assumes that the user of this function is also the owner of the
-    file. :func:`os.chmod` would not be expected to work in any other
-    circumstance.
+    Notes
+    -----
+    * This assumes that the user of this function is also the owner of the
+      file. :func:`os.chmod` would not be expected to work in any other
+      circumstance.
+    * Technically, this restores the *original* permissions of the file, it
+      does not care what the original permissions were.
+    * If the named file does not exist, this function effectively does not
+      attempt to guess what the final permissions of the file would be.  In
+      other words, it just does whatever :func:`open` would do.  In this case
+      it is the user's responsibilty to change permissions as needed after
+      creating the file.
 
-    Technically, this restores the *original* permissions of the file, it
-    does not care what the original permissions were.
-
-    If the named file does not exist, this function effectively does not
-    attempt to guess what the final permissions of the file would be.  In
-    other words, it just does whatever :func:`open` would do.
+    Examples
+    --------
+    >>> with unlock_file('read-only.txt', 'w') as f:
+    ...     f.write(new_data)
     """
     import os
     import stat
@@ -247,7 +258,7 @@ def unlock_file(*args, **kwargs):
     # uid = os.getuid()
     old_mode = None
     if os.path.exists(args[0]):
-        old_mode = os.stat(args[0]).st_mode
+        old_mode = stat.S_IMODE(os.stat(args[0]).st_mode)
         os.chmod(args[0], old_mode | stat.S_IWUSR)
     f = open(*args, **kwargs)
     try:
