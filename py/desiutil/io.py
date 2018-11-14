@@ -227,13 +227,28 @@ def unlock_file(*args, **kwargs):
     """Unlock a read-only file, return a file-like object, and restore the
     read-only state when done.  Arguments are the same as :func:`open`.
 
-    This assumes that the user of this function is also the owner of the
-    file. :func:`os.chmod` would not be expected to work in any other
-    circumstance.
+    Returns
+    -------
+    file-like
+        A file-like object, as returned by :func:`open`.
 
-    After the file is closed existing write permission bits will be removed.
-    This will be true even if the file did not initially exist.  Any
-    other bits (read, execute) are not touched.
+    Notes
+    -----
+    * This assumes that the user of this function is also the owner of the
+      file. :func:`os.chmod` would not be expected to work in any other
+      circumstance.
+    * Technically, this restores the *original* permissions of the file, it
+      does not care what the original permissions were.
+    * If the named file does not exist, this function effectively does not
+      attempt to guess what the final permissions of the file would be.  In
+      other words, it just does whatever :func:`open` would do.  In this case
+      it is the user's responsibilty to change permissions as needed after
+      creating the file.
+
+    Examples
+    --------
+    >>> with unlock_file('read-only.txt', 'w') as f:
+    ...     f.write(new_data)
     """
     import os
     import stat

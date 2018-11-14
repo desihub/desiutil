@@ -245,19 +245,15 @@ def process_module(module_file, module_keywords, module_dir):
     :class:`str`
         The text of the processed Module file.
     """
-    from os import chmod, makedirs
+    from os import makedirs
     from os.path import isdir, join
-    from stat import S_IRUSR, S_IRGRP
-    from .io import unlock_file
     if not isdir(join(module_dir, module_keywords['name'])):
         makedirs(join(module_dir, module_keywords['name']))
     install_module_file = join(module_dir, module_keywords['name'],
                                module_keywords['version'])
     with open(module_file) as m:
         mod = m.read().format(**module_keywords)
-    with unlock_file(install_module_file, 'w') as m:
-        m.write(mod)
-    chmod(install_module_file, S_IRUSR | S_IRGRP)
+    _write_module_data(install_module_file, mod)
     return mod
 
 
@@ -276,15 +272,23 @@ def default_module(module_keywords, module_dir):
     :class:`str`
         The text of the processed .version file.
     """
-    from os import chmod
     from os.path import join
-    from stat import S_IRUSR, S_IRGRP
-    from .io import unlock_file
     dot_template = '#%Module1.0\nset ModulesVersion "{version}"\n'
     install_version_file = join(module_dir, module_keywords['name'],
                                 '.version')
     dot_version = dot_template.format(**module_keywords)
-    with unlock_file(install_version_file, 'w') as v:
-        v.write(dot_version)
-    chmod(install_version_file, S_IRUSR | S_IRGRP)
+    _write_module_data(install_version_file, dot_version)
     return dot_version
+
+
+def _write_module_data(filename, data):
+    """Write and permission-lock Module file data.  This is intended
+    to consolidate some duplicated code.
+    """
+    from os import chmod
+    from stat import S_IRUSR, S_IRGRP
+    from .io import unlock_file
+    with unlock_file(filename, 'w') as f:
+        f.write(data)
+    chmod(filename, S_IRUSR | S_IRGRP)
+    return
