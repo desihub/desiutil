@@ -10,9 +10,11 @@ Change Log
 1.9.15 (unreleased)
 -------------------
 
+* Update permissions set by :command:`fix_permissions.sh` (PR `#126`_).
 * Set read-only permissions on all Module files, and unlock them as needed (PR `#125`_).
 * Draw ecliptic in all-sky plots (PR `#124`_).
 
+.. _`#126`: https://github.com/desihub/desiutil/pull/126
 .. _`#125`: https://github.com/desihub/desiutil/pull/125
 .. _`#124`: https://github.com/desihub/desiutil/pull/124
 
