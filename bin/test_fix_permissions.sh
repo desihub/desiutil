@@ -36,10 +36,10 @@ shift $((OPTIND-1))
 g=(${GROUP} ${GROUP} ${GROUP} ${GROUP} desi desi desi desi ${GROUP} desi)
 dirPerm=(0777 0775 0750 0700 0777 0775 0750 0700 0700 0700)
 filePerm=(0666 0664 0640 0600 0666 0664 0640 0600 0600 0600)
-fixedDirPerm=(2750 2750 2750 2750 2775 2775 2750 2750 2750 2750)
+fixedDirPerm=(2777 2775 2750 2750 2775 2775 2750 2750 2750 2750)
 # fixedDirPerm=(group::rwx group::rwx group::r-x group::r-x)
 # fixedFilePerm=(group::rw- group::rw- group::r-- group::r--)
-fixedFilePerm=(640 640 640 640 664 664 640 640 640 640)
+fixedFilePerm=(666 664 640 640 664 664 640 640 640 640)
 #
 # Run tests.
 #
