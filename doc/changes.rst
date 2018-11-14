@@ -10,7 +10,7 @@ Change Log
 1.9.15 (unreleased)
 -------------------
 
-* No changes yet.
+* Draw ecliptic in all-sky plots.
 
 1.9.14 (2018-10-05)
 -------------------
