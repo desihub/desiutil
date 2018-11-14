@@ -10,9 +10,13 @@ Change Log
 1.9.15 (unreleased)
 -------------------
 
+<<<<<<< HEAD
 * Set read-only permissions on all Module files, and unlock them as needed (PR `#125`_).
 
 .. _`#125`: https://github.com/desihub/desiutil/pull/125
+=======
+* Draw ecliptic in all-sky plots.
+>>>>>>> master
 
 1.9.14 (2018-10-05)
 -------------------

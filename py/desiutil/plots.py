@@ -330,7 +330,7 @@ def prepare_data(data, mask=None, clip_lo=None, clip_hi=None,
 
 
 def init_sky(projection='eck4', ra_center=120, galactic_plane_color='red',
-             ra_labels=np.arange(0, 360, 60),
+             ecliptic_color='red', ra_labels=np.arange(0, 360, 60),
              dec_labels=np.arange(-60, 90, 30), ax=None):
     """Initialize a basemap projection of the full sky.
 
@@ -361,7 +361,10 @@ def init_sky(projection='eck4', ra_center=120, galactic_plane_color='red',
         Map is centered at this RA in degrees. Default is +120, which
         avoids splitting the DESI northern and southern regions.
     galactic_plane_color : color name or None
-        Draw a line representing the galactic plane using the specified
+        Draw a curve representing the galactic plane using the specified
+        color, or do nothing when None.
+    ecliptic_color : color name or None
+        Draw a dotted curve representing the ecliptic plane using the specified
         color, or do nothing when None.
     ra_labels : iterable or None
         List of RA values in degrees that will be labeled on the map.
@@ -384,7 +387,7 @@ def init_sky(projection='eck4', ra_center=120, galactic_plane_color='red',
     from matplotlib.patches import Polygon
     from mpl_toolkits.basemap import pyproj
     from mpl_toolkits.basemap import Basemap
-    from astropy.coordinates import SkyCoord
+    from astropy.coordinates import SkyCoord, HeliocentricTrueEcliptic, ICRS
     import astropy.units as u
 
     # Define a Basemap subclass with an ellipse() method.
@@ -488,6 +491,17 @@ def init_sky(projection='eck4', ra_center=120, galactic_plane_color='red',
             galactic_x, galactic_y, marker='.', s=20, lw=0, alpha=0.75,
             c=galactic_plane_color)
         # Make sure the galactic plane stays above other displayed objects.
+        paths.set_zorder(20)
+
+    # Draw the optional ecliptic plane.
+    if ecliptic_color is not None:
+        lon = np.linspace(0, 2 * np.pi, 50) * u.rad
+        ecliptic = HeliocentricTrueEcliptic(
+            lon=lon, lat=0 * u.radian, distance=1 * u.Mpc).transform_to(ICRS)
+        ecliptic_x, ecliptic_y = m(ecliptic.ra.degree, ecliptic.dec.degree)
+        paths = m.scatter(
+            ecliptic_x, ecliptic_y, marker='.', s=20, lw=0, alpha=0.75,
+            c=ecliptic_color)
         paths.set_zorder(20)
 
     return m
