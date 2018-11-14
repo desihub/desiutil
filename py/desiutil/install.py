@@ -720,7 +720,6 @@ class DesiInstall(object):
                 outfile = os.path.join(module_directory,
                                        self.module_keywords['name'],
                                        self.module_keywords['version'])
-                os.chmod(outfile, 0o440)
             except OSError as ose:
                 self.log.critical(ose.strerror)
                 raise DesiInstallException(ose.strerror)

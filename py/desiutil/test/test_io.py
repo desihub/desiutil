@@ -6,15 +6,23 @@ from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 # The line above will help with 2to3 support.
 import unittest
+import os
+import stat
 import sys
 import numpy as np
 from astropy.table import Table
-from ..io import combine_dicts, decode_table, encode_table, yamlify
+from ..io import combine_dicts, decode_table, encode_table, yamlify, unlock_file
 
 try:
     basestring
 except NameError:  # For Python 3
     basestring = str
+
+skipTemp = False
+try:
+    from tempfile import TemporaryDirectory
+except ImportError:
+    skipTemp = True
 
 
 class TestIO(unittest.TestCase):
@@ -177,6 +185,33 @@ class TestIO(unittest.TestCase):
         self.assertEqual(dict3, {'a': {'b': {'x': 1, 'y': 2, 'p': 3, 'q': 4}}})
         self.assertEqual(dict1, {'a': {'b': {'x': 1, 'y': 2}}})
         self.assertEqual(dict2, {'a': {'b': {'p': 3, 'q': 4}}})
+
+    @unittest.skipIf(skipTemp, "Skipping test that requires tempfile.TemporaryDirectory.")
+    def test_unlock_file(self):
+        """Test the permission unlock file manager.
+        """
+        fff = stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH
+        www = stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH
+        with TemporaryDirectory() as dirname:
+            filename = os.path.join(dirname, 'tempfile')
+            with open(filename, 'wb') as f:
+                f.write(b'Content\n')
+            s0 = os.stat(filename)
+            ro = stat.S_IFMT(s0.st_mode) | fff
+            os.chmod(filename, ro)
+            s1 = os.stat(filename)
+            self.assertEqual(stat.S_IMODE(s1.st_mode), fff)
+            with unlock_file(filename, 'ab') as f:
+                f.write(b'More content\n')
+                s2 = os.stat(filename)
+                self.assertEqual(stat.S_IMODE(s2.st_mode), fff | stat.S_IWUSR)
+            s3 = os.stat(filename)
+            self.assertEqual(stat.S_IMODE(s3.st_mode), fff)
+            filename = os.path.join(dirname, 'newfile')
+            with unlock_file(filename, 'wb') as f:
+                f.write(b'Some content\n')
+            s0 = os.stat(filename)
+            self.assertEqual(stat.S_IMODE(s0.st_mode) & www, 0)
 
 
 def test_suite():

@@ -253,8 +253,7 @@ def process_module(module_file, module_keywords, module_dir):
                                module_keywords['version'])
     with open(module_file) as m:
         mod = m.read().format(**module_keywords)
-    with open(install_module_file, 'w') as m:
-        m.write(mod)
+    _write_module_data(install_module_file, mod)
     return mod
 
 
@@ -278,6 +277,18 @@ def default_module(module_keywords, module_dir):
     install_version_file = join(module_dir, module_keywords['name'],
                                 '.version')
     dot_version = dot_template.format(**module_keywords)
-    with open(install_version_file, 'w') as v:
-        v.write(dot_version)
+    _write_module_data(install_version_file, dot_version)
     return dot_version
+
+
+def _write_module_data(filename, data):
+    """Write and permission-lock Module file data.  This is intended
+    to consolidate some duplicated code.
+    """
+    from os import chmod
+    from stat import S_IRUSR, S_IRGRP
+    from .io import unlock_file
+    with unlock_file(filename, 'w') as f:
+        f.write(data)
+    chmod(filename, S_IRUSR | S_IRGRP)
+    return
