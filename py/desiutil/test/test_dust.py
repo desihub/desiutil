@@ -101,6 +101,30 @@ class TestDust(unittest.TestCase):
         # ADM assert that the tests worked 
         self.assertTrue(testcnt == 2)
 
+    def test_extinction(self):
+        """Test ext_odonnel and ext_ccm functions"""
+        wave = np.arange(2000,10001,100)
+        ext_odl_31 = dust.ext_odonnell(wave, Rv=3.1)
+        ext_odl_33 = dust.ext_odonnell(wave, Rv=3.3)
+        ext_ccm_31 = dust.ext_ccm(wave, Rv=3.1)
+        ext_ccm_33 = dust.ext_ccm(wave, Rv=3.3)
+
+        #- Sanity check on ranges
+        self.assertTrue(np.all(0.4<ext_odl_31) and np.all(ext_odl_31<4.0))
+        self.assertTrue(np.all(0.4<ext_odl_33) and np.all(ext_odl_33<4.0))
+        self.assertTrue(np.all(0.4<ext_ccm_31) and np.all(ext_ccm_31<4.0))
+        self.assertTrue(np.all(0.4<ext_ccm_33) and np.all(ext_ccm_33<4.0))
+
+        #- Changing Rv should change answer
+        self.assertTrue(np.all(ext_odl_31 != ext_odl_33))
+        self.assertTrue(np.all(ext_ccm_31 != ext_ccm_33))
+
+        #- Odonnell == CCM for some but not all wavelengths
+        self.assertTrue(np.any(ext_odl_31 == ext_ccm_31))
+        self.assertTrue(np.any(ext_odl_31 != ext_ccm_31))
+        self.assertTrue(np.any(ext_odl_33 == ext_ccm_33))
+        self.assertTrue(np.any(ext_odl_33 != ext_ccm_33))
+
 def test_suite():
     """Allows testing of only this module with the command::
 
