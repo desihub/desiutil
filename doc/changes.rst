@@ -11,7 +11,7 @@ Change Log
 -------------------
 
 * Add :func:`desiutil.dust.ext_odonnell` and :func:`desiutil.dust.ext_ccm`
-  originally from desispec (PR `#128`).
+  originally from desispec (PR `#128`_).
 * Update permissions set by :command:`fix_permissions.sh` (PR `#126`_).
 * Set read-only permissions on all Module files, and unlock them as needed (PR `#125`_).
 * Draw ecliptic in all-sky plots (PR `#124`_).
