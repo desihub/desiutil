@@ -12,7 +12,7 @@ Change Log
 
 * No changes yet.
 
-1.9.15 (unreleased)
+1.9.15 (2018-12-14)
 -------------------
 
 * Add :func:`desiutil.dust.ext_odonnell` and :func:`desiutil.dust.ext_ccm`
