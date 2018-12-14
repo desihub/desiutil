@@ -7,6 +7,11 @@ Change Log
 
 * This version will drop support for Python 2.
 
+1.9.16 (unreleased)
+-------------------
+
+* No changes yet.
+
 1.9.15 (unreleased)
 -------------------
 
