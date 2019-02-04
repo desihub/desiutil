@@ -7,6 +7,7 @@ desiutil.io
 
 Module for I/O related code.
 """
+from contextlib import contextmanager
 
 
 def combine_dicts(dict1, dict2):
