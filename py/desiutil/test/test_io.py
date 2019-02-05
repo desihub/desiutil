@@ -6,6 +6,7 @@ import unittest
 import os
 import stat
 import sys
+from tempfile import TemporaryDirectory
 import numpy as np
 from astropy.table import Table
 from ..io import combine_dicts, decode_table, encode_table, yamlify, unlock_file
@@ -173,7 +174,6 @@ class TestIO(unittest.TestCase):
         self.assertEqual(dict1, {'a': {'b': {'x': 1, 'y': 2}}})
         self.assertEqual(dict2, {'a': {'b': {'p': 3, 'q': 4}}})
 
-    @unittest.skipIf(skipTemp, "Skipping test that requires tempfile.TemporaryDirectory.")
     def test_unlock_file(self):
         """Test the permission unlock file manager.
         """
