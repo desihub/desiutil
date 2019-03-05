@@ -1,9 +1,41 @@
 #!/bin/bash
-user=$1
-uid=$(id -u ${user})
-date=$2
+#
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+#
+function usage() {
+    local execName=$(basename $0)
+    (
+    echo "${execName} [-g GROUP] [-h] USER YYYY-MM-DD"
+    echo ""
+    echo "Extract a user's files from the metadata snapshots."
+    echo ""
+    echo "        -g = Use GROUP instead of desi."
+    echo "        -h = Print this message and exit."
+    echo "      USER = NERSC user name."
+    echo "YYYY-MM-DD = Snapshot date."
+    ) >&2
+}
+#
+# Options.
+#
 group=desi
-gid=58102
+while getopts g:h argname; do
+    case ${argname} in
+        g) group=${OPTARG} ;;
+        h) usage; exit 0 ;;
+        *) usage; exit 1 ;;
+    esac
+done
+shift $((OPTIND-1))
+if [[ $# < 2 ]]; then
+    echo "Missing required arguments!" >&2
+    usage
+    exit 1
+fi
+user=$1
+date=$2
+uid=$(id -u ${user})
+gid=$(id -g ${group})
 root=/global/project/projectdirs/${group}/metadata
 for f in 2 a; do
     grep -E "${uid}\|${desi}" ${root}/${date}.tlproject${f}.${group}.txt | \
