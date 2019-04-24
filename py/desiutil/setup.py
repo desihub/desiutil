@@ -38,7 +38,7 @@ class DesiAPI(Command):
                     ('overwrite', 'o',
                      'Overwrite the existing API file.')]
     boolean_options = ['overwrite']
-    _exclude = ('_version.py',)
+    _exclude_file = ('_version.py',)
 
     def initialize_options(self):
         self.overwrite = False
@@ -48,15 +48,20 @@ class DesiAPI(Command):
         pass
 
     def run(self):
-        meta = self.distribution.metadata
-        n = meta.get_name()
+        n = self.distribution.metadata.get_name()
         productroot = find_version_directory(n)
         modules = []
         for dirpath, dirnames, filenames in walk(productroot):
-            d = dirpath.replace(productroot + '/', '')
+            if dirpath == productroot:
+                d = ''
+            else:
+                d = dirpath.replace(productroot + '/', '')
+            self.announce(d, level=DEBUG)
             for f in filenames:
                 mod = [n]
-                if f.endswith('.py') and f not in self._exclude and not self._test_file(d, f):
+                if f.endswith('.py') and f not in self._exclude_file and not self._test_file(d, f):
+                    if d:
+                        mod += d.split('/')
                     if f != '__init__.py':
                         mod.append(f.replace('.py', ''))
                     modules.append('.'.join(mod))
