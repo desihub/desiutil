@@ -10,7 +10,10 @@ Change Log
 1.9.16 (unreleased)
 -------------------
 
-* No changes yet.
+* Add support for auto-generating API documentation via
+  :command:`python setup.py api` (PR `#131`_).
+
+.. _`#131`: https://github.com/desihub/desiutil/pull/131
 
 1.9.15 (2018-12-14)
 -------------------
