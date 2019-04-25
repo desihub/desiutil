@@ -12,8 +12,8 @@ from __future__ import absolute_import, division, print_function
 # unicode_literals.
 import re
 import unittest
-from os import environ
-from os.path import abspath, exists, isdir, isfile, join
+from os import environ, walk
+from os.path import abspath, basename, exists, isdir, isfile, join
 from sys import exit, version_info
 from setuptools import Command
 try:
@@ -23,10 +23,70 @@ except ImportError:
 # from setuptools.py31compat import unittest_main
 from setuptools.command.test import test as BaseTest
 from pkg_resources import _namespace_packages
-from distutils.log import INFO, WARN, ERROR
+from distutils.log import DEBUG, INFO, WARN, ERROR
 from .svn import version as svn_version
 from .git import version as git_version
 from .modules import configure_module, process_module, default_module
+
+
+class DesiAPI(Command):
+    """Generate an api.rst file.
+    """
+    description = "create/update doc/api.rst"
+    user_options = [('api=', 'a',
+                     'Set the name of the API file (default doc/api.rst).'),
+                    ('overwrite', 'o',
+                     'Overwrite the existing API file.')]
+    boolean_options = ['overwrite']
+    _exclude_file = ('_version.py',)
+
+    def initialize_options(self):
+        self.overwrite = False
+        self.api = join(abspath('.'), 'doc', 'api.rst')
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        n = self.distribution.metadata.get_name()
+        productroot = find_version_directory(n)
+        modules = []
+        for dirpath, dirnames, filenames in walk(productroot):
+            if dirpath == productroot:
+                d = ''
+            else:
+                d = dirpath.replace(productroot + '/', '')
+            self.announce(d, level=DEBUG)
+            for f in filenames:
+                mod = [n]
+                if f.endswith('.py') and f not in self._exclude_file and not self._test_file(d, f):
+                    if d:
+                        mod += d.split('/')
+                    if f != '__init__.py':
+                        mod.append(f.replace('.py', ''))
+                    modules.append('.'.join(mod))
+                    self.announce('.'.join(mod), level=DEBUG)
+        self._print(n, modules)
+
+    def _print(self, name, modules):
+        lines = []
+        title = "{0} API".format(name)
+        lines = ['='*len(title), title, '='*len(title), '']
+        for m in sorted(modules):
+            lines += ['.. automodule:: {0}'.format(m), '    :members:', '']
+        if exists(self.api):
+            if self.overwrite:
+                self.announce("{0} will be overwritten!".format(self.api),
+                              level=WARN)
+            else:
+                self.announce("{0} already exists!".format(self.api),
+                              level=ERROR)
+                exit(1)
+        with open(self.api, 'w') as a:
+            a.write('\n'.join(lines))
+
+    def _test_file(self, d, f):
+        return basename(d) == 'test' or basename(d) == 'tests'
 
 
 class DesiModule(Command):

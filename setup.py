@@ -15,8 +15,8 @@ from setuptools import setup, find_packages
 #
 # desiutil needs to import some of its own code.
 #
-sys.path.insert(int(sys.path[0] == ''),os.path.abspath('./py'))
-from desiutil.setup import DesiModule, DesiTest, DesiVersion, get_version
+sys.path.insert(int(sys.path[0] == ''), os.path.abspath('./py'))
+import desiutil.setup as ds
 #
 # Begin setup
 #
@@ -33,7 +33,7 @@ setup_keywords['url'] = 'https://github.com/desihub/desiutil'
 #
 # END OF SETTINGS THAT NEED TO BE CHANGED.
 #
-setup_keywords['version'] = get_version(setup_keywords['name'])
+setup_keywords['version'] = ds.get_version(setup_keywords['name'])
 #
 # Use README.rst as long_description.
 #
@@ -56,8 +56,12 @@ setup_keywords['requires'] = ['Python (>2.7.0)']
 setup_keywords['zip_safe'] = False
 setup_keywords['use_2to3'] = False
 setup_keywords['packages'] = find_packages('py')
-setup_keywords['package_dir'] = {'':'py'}
-setup_keywords['cmdclass'] = {'module_file': DesiModule, 'version': DesiVersion, 'test': DesiTest, 'sdist': DistutilsSdist}
+setup_keywords['package_dir'] = {'': 'py'}
+setup_keywords['cmdclass'] = {'module_file': ds.DesiModule,
+                              'version': ds.DesiVersion,
+                              'test': ds.DesiTest,
+                              'api': ds.DesiAPI,
+                              'sdist': DistutilsSdist}
 setup_keywords['test_suite']='{name}.test.{name}_test_suite.{name}_test_suite'.format(**setup_keywords)
 #
 # Autogenerate command-line scripts.
