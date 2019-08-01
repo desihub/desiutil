@@ -120,8 +120,10 @@ class TestPlots(unittest.TestCase):
         from ..plots import plot_slices
         x = np.random.rand(1000)
         y = np.random.randn(1000)
+        # Create new labels axes so test won't reuse gca from previous test
+        axis = plt.axes(label='test-plot-slices')
         # Run
-        ax_slices = plot_slices(x, y, 0., 1., 0.)
+        ax_slices = plot_slices(x, y, 0., 1., 0., axis=axis)
         ax_slices.set_ylabel('N sigma')
         ax_slices.set_xlabel('x')
         if 'TRAVIS_JOB_ID' not in os.environ:
