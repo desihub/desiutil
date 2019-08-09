@@ -7,13 +7,20 @@ Change Log
 
 * This version will drop support for Python 2.
 
-1.9.16 (unreleased)
+1.9.17 (unreleased)
+-------------------
+
+* No changes yet.
+
+1.9.16 (2019-08-09)
 -------------------
 
 * Add support for auto-generating API documentation via
   :command:`python setup.py api` (PR `#131`_).
+* Fix basemap plot tests by using unique axes (PR `#135`_).
 
 .. _`#131`: https://github.com/desihub/desiutil/pull/131
+.. _`#135`: https://github.com/desihub/desiutil/pull/135
 
 1.9.15 (2018-12-14)
 -------------------
