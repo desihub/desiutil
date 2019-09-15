@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """Test desiutil.sklearn.
 """
-from __future__ import absolute_import, print_function
 import unittest
 from tempfile import NamedTemporaryFile
 from pkg_resources import resource_filename

@@ -10,9 +10,6 @@ Module for fitting simple functions to 1D arrays
 J. Xavier Prochaska, UC Santa Cruz
 Fall 2015
 """
-from __future__ import (print_function, absolute_import, division,
-                        unicode_literals)
-
 import numpy as np
 import copy
 import warnings

@@ -2,18 +2,9 @@
 # -*- coding: utf-8 -*-
 """Test desiutil.git.
 """
-from __future__ import (absolute_import, division,
-                        print_function, unicode_literals)
-# The line above will help with 2to3 support.
 import unittest
+from unittest.mock import call, patch, Mock, PropertyMock
 from ..git import last_tag, version
-
-skipMock = False
-try:
-    from unittest.mock import call, patch, Mock, PropertyMock
-except ImportError:
-    # Python 2
-    skipMock = True
 
 
 class TestGit(unittest.TestCase):
@@ -28,7 +19,6 @@ class TestGit(unittest.TestCase):
     def tearDownClass(cls):
         pass
 
-    @unittest.skipIf(skipMock, "Skipping test that requires unittest.mock.")
     def test_last_tag(self):
         """Test determination of the last git tag.
         """
@@ -44,7 +34,6 @@ class TestGit(unittest.TestCase):
                 t = last_tag('foo', 'bar')
                 self.assertEqual(t, '0.0.0')
 
-    @unittest.skipIf(skipMock, "Skipping test that requires unittest.mock.")
     def test_version(self):
         """Test automated determination of git version.
         """

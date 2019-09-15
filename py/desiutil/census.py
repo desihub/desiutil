@@ -28,8 +28,6 @@ Notes
   file itself belongs to the other subdirectory.
 * Physical directories count toward inode and size total.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 
 
 class ScannedFile(object):

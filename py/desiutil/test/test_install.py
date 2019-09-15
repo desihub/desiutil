@@ -2,10 +2,8 @@
 # -*- coding: utf-8 -*-
 """Test desiutil.install.
 """
-from __future__ import (absolute_import, division,
-                        print_function, unicode_literals)
-# The line above will help with 2to3 support.
 import unittest
+from unittest.mock import patch
 from os import chdir, environ, getcwd, mkdir, remove, rmdir
 from os.path import dirname, isdir, join
 from shutil import rmtree
@@ -16,14 +14,6 @@ from pkg_resources import resource_filename
 from ..log import DEBUG
 from ..install import DesiInstall, DesiInstallException, dependencies
 from .test_log import TestHandler
-
-
-skipMock = False
-try:
-    from unittest.mock import patch
-except ImportError:
-    # Python 2
-    skipMock = True
 
 
 class TestInstall(unittest.TestCase):
@@ -77,7 +67,6 @@ class TestInstall(unittest.TestCase):
                                               't/generic_dependencies.txt'))
         self.assertEqual(set(deps), set(['astropy', 'desiutil/1.0.0']))
 
-    @unittest.skipIf(skipMock, "Skipping test that requires unittest.mock.")
     def test_get_options(self):
         """Test the processing of desiInstall command-line arguments.
         """
@@ -118,7 +107,6 @@ class TestInstall(unittest.TestCase):
             self.assertLog(order=-2,
                            message="Called parse_args() with: -v product version")
 
-    @unittest.skipIf(skipMock, "Skipping test that requires unittest.mock.")
     def test_sanity_check(self):
         """Test the validation of command-line options.
         """
@@ -139,13 +127,12 @@ class TestInstall(unittest.TestCase):
             self.assertEqual(str(cm.exception),
                              "You do not appear to have Modules set up.")
 
-    @unittest.skipIf(skipMock, "Skipping test that requires unittest.mock.")
     def test_get_product_version(self):
         """Test resolution of product/version input.
         """
         with patch.dict('desiutil.install.known_products',
-            {'desiutil': 'https://github.com/desihub/desiutil',
-             'desispec': 'https://github.com/desihub/desispec'}):
+                        {'desiutil': 'https://github.com/desihub/desiutil',
+                         'desispec': 'https://github.com/desihub/desispec'}):
             options = self.desiInstall.get_options(['foo', 'bar'])
             out = self.desiInstall.get_product_version()
             self.assertEqual(out, (u'https://github.com/desihub/foo',
@@ -267,7 +254,6 @@ class TestInstall(unittest.TestCase):
         else:
             self.desiInstall.working_dir = old_working_dir
 
-    @unittest.skipIf(skipMock, "Skipping test that requires unittest.mock.")
     def test_anaconda_version(self):
         """Test determination of the DESI+Anaconda version.
         """
@@ -298,7 +284,6 @@ class TestInstall(unittest.TestCase):
         nersc_dir = self.desiInstall.default_nersc_dir()
         self.assertEqual(nersc_dir, '/global/common/software/desi/datatran/desiconda/frobulate')
 
-    @unittest.skipIf(skipMock, "Skipping test that requires unittest.mock.")
     def test_set_install_dir(self):
         """Test the determination of the install directory.
         """

@@ -2,22 +2,8 @@
 # -*- coding: utf-8 -*-
 """Test desiutil.census.
 """
-from __future__ import (absolute_import, division,
-                        print_function, unicode_literals)
-# The line above will help with 2to3 support.
 import unittest
-
-has_mock = True
-try:
-    from unittest.mock import call, patch, Mock
-except ImportError:
-    has_mock = False
-
-has_commonpath = True
-try:
-    from os.path import commonpath
-except ImportError:
-    has_commonpath = False
+from unittest.mock import call, patch, Mock
 
 
 class TestCensus(unittest.TestCase):
@@ -58,8 +44,6 @@ class TestCensus(unittest.TestCase):
         options = get_options(['-c', 'foo.yaml'])
         self.assertEqual(options.config, 'foo.yaml')
 
-    @unittest.skipUnless(has_mock,
-                         "Skipping test that requires unittest.mock.")
     def test_walk_error(self):
         """Test error-handling function for os.walk().
         """
@@ -93,8 +77,6 @@ class TestCensus(unittest.TestCase):
         self.assertEqual(year(mtime), 2017)
         self.assertEqual(year(mtime, fy=False), 2016)
 
-    @unittest.skipUnless(has_mock,
-                         "Skipping test that requires unittest.mock.")
     def test_scan_file(self):
         """Test analysis of a single file.
         """
@@ -183,8 +165,6 @@ class TestCensus(unittest.TestCase):
         self.assertTrue(f.isexternal)
         self.assertEqual(f.linkname, extlink)
 
-    @unittest.skipUnless(has_commonpath,
-                         "Skipping test that requires os.path.commonpath().")
     def test_in_path(self):
         """Test directory hierarchy checker.
         """

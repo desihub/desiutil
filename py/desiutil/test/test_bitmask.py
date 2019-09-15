@@ -2,9 +2,6 @@
 # -*- coding: utf-8 -*-
 """Test desiutil.bitmask.
 """
-from __future__ import (absolute_import, division,
-                        print_function, unicode_literals)
-# The line above will help with 2to3 support.
 import sys
 import unittest
 from ..bitmask import BitMask, _MaskBit
@@ -107,9 +104,6 @@ class TestBitMask(unittest.TestCase):
             self.assertEqual(bitmask[name].bitnum, self.ccdmask[name].bitnum)
             self.assertEqual(bitmask[name]._extra, self.ccdmask[name]._extra)
 
-    @unittest.skipIf(sys.version_info.major == 2,
-                     "Known issue: highest mask bits don't work under " +
-                     "Python 2")
     def test_highbit(self):
         _bitdefs = dict(ccdmask=list())
         _bitdefs['ccdmask'].append(['LOWEST',   0, "bit 0"])

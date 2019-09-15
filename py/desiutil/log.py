@@ -55,7 +55,6 @@ Create the logger with a different log level:
 ...     log = get_logger()
 
 """
-from __future__ import absolute_import, division, print_function
 import os
 import sys
 import logging

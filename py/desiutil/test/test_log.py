@@ -2,24 +2,16 @@
 # -*- coding: utf-8 -*-
 """Test desiutil.log.
 """
-from __future__ import absolute_import, print_function
 import os
 import re
 import unittest
+from unittest.mock import patch
 from logging import getLogger, NullHandler
 from logging.handlers import MemoryHandler
 from warnings import catch_warnings, simplefilter
 from ..log import (DEBUG, INFO, WARNING, ERROR, CRITICAL,
                    DesiLogContext, get_logger, log,
                    _desiutil_log_root)
-
-
-skipMock = False
-try:
-    from unittest.mock import patch
-except ImportError:
-    # Python 2
-    skipMock = True
 
 
 class TestHandler(MemoryHandler):
@@ -83,9 +75,7 @@ class TestLog(unittest.TestCase):
         record = handler.buffer[order]
         self.assertEqual(record.getMessage(), message)
         formatted = handler.format(record)
-        if not skipMock:
-            # Cheating on Python 3 detection.
-            self.assertRegex(formatted, self.fmtre)
+        self.assertRegex(formatted, self.fmtre)
 
     def get_logger(self, level, **kwargs):
         """Get the actual logging object, but swap out its default handler.
@@ -193,7 +183,6 @@ class TestLog(unittest.TestCase):
         log2 = get_logger()
         self.assertIs(log2, log)
 
-    @unittest.skipIf(skipMock, "Skipping test that requires unittest.mock.")
     def test_log_with_desi_loglevel(self):
         """Test basic logging functionality with DESI_LOGLEVEL set.
         """

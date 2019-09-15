@@ -7,15 +7,7 @@ desiutil.io
 
 Module for I/O related code.
 """
-from __future__ import (print_function, absolute_import, division,
-                        unicode_literals)
 from contextlib import contextmanager
-
-
-try:
-    basestring
-except NameError:  # For Python 3
-    basestring = str
 
 
 def combine_dicts(dict1, dict2):
@@ -74,7 +66,7 @@ def yamlify(obj, debug=False):
         obj = int(obj)
     elif isinstance(obj, np.bool_):
         obj = bool(obj)
-    elif isinstance(obj, (np.string_, basestring)):
+    elif isinstance(obj, (np.string_, str)):
         obj = str(obj)
     # elif isinstance(obj, Quantity):
     #     obj = dict(value=obj.value, unit=obj.unit.to_string())
@@ -84,10 +76,7 @@ def yamlify(obj, debug=False):
         # First convert keys
         nobj = {}
         for key, value in obj.items():
-            if isinstance(key, basestring):
-                nobj[str(key)] = value
-            else:
-                nobj[key] = value
+            nobj[str(key)] = value
         # Now recursive
         obj = nobj
         for key, value in obj.items():

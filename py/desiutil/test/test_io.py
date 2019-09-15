@@ -2,27 +2,14 @@
 # -*- coding: utf-8 -*-
 """Test desiutil.io.
 """
-from __future__ import (absolute_import, division,
-                        print_function, unicode_literals)
-# The line above will help with 2to3 support.
 import unittest
 import os
 import stat
 import sys
+from tempfile import TemporaryDirectory
 import numpy as np
 from astropy.table import Table
 from ..io import combine_dicts, decode_table, encode_table, yamlify, unlock_file
-
-try:
-    basestring
-except NameError:  # For Python 3
-    basestring = str
-
-skipTemp = False
-try:
-    from tempfile import TemporaryDirectory
-except ImportError:
-    skipTemp = True
 
 
 class TestIO(unittest.TestCase):
@@ -136,17 +123,18 @@ class TestIO(unittest.TestCase):
                  'lst': ['tst2', np.int16(2)],
                  'tup': (1, 3), 'dct': {'a': 'tst3', 'b': np.float32(6.)},
                  'array': np.zeros(10)}
-        if sys.version_info >= (3, 0, 0):
-            self.assertIsInstance(fdict['name'], str)
-        else:
-            self.assertIsInstance(fdict['name'], unicode)
+        self.assertIsInstance(fdict['name'], str)
         # Run
         ydict = yamlify(fdict)
         self.assertIsInstance(ydict['flt32'], float)
         self.assertIsInstance(ydict['array'], list)
         for key in ydict.keys():
-            if isinstance(key, basestring):
+            if isinstance(key, str):
+                # This looks a little silly, but in fact, some of the keys
+                # are integers not strings.
                 self.assertIsInstance(key, str)
+            else:
+                self.assertIsInstance(key, int)
 
     def test_combinedicts(self):
         """Test combining dicts
@@ -186,7 +174,6 @@ class TestIO(unittest.TestCase):
         self.assertEqual(dict1, {'a': {'b': {'x': 1, 'y': 2}}})
         self.assertEqual(dict2, {'a': {'b': {'p': 3, 'q': 4}}})
 
-    @unittest.skipIf(skipTemp, "Skipping test that requires tempfile.TemporaryDirectory.")
     def test_unlock_file(self):
         """Test the permission unlock file manager.
         """

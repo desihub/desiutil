@@ -19,9 +19,6 @@ info from input targeting, not recalculating brick locations and names.
 Note that this code was originally in desispec_, so earlier commit information
 is in the desispec_ repository.
 """
-
-from __future__ import absolute_import, division, print_function
-
 import numpy as np
 
 

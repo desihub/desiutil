@@ -181,10 +181,10 @@ def _bilinear_interpolate(data, y, x):
     x0 = np.maximum(x0, 0)
     x1 = np.minimum(x1, nx-1)
 
-    return ((1.0-xw) * (1.0-yw) * data[y0, x0] +
-            xw       * (1.0-yw) * data[y0, x1] +
-            (1.0-xw) * yw       * data[y1, x0] +
-            xw       * yw       * data[y1, x1])
+    return ((1.0 - xw) * (1.0 - yw) * data[y0, x0] +
+            xw * (1.0-yw) * data[y0, x1] +
+            (1.0 - xw) * yw * data[y1, x0] +
+            xw * yw * data[y1, x1])
 
 
 class _Hemisphere(object):
@@ -269,8 +269,8 @@ class SFDMap(object):
     mapdir : :class:`str`, optional, defaults to :envvar:`DUST_DIR`+``/maps``.
         Directory in which to find dust map FITS images, named
         ``SFD_dust_4096_ngp.fits`` and ``SFD_dust_4096_sgp.fits``.
-        If not specified, the map directory is derived from the value of 
-        the :envvar:`DUST_DIR` environment variable, otherwise an empty 
+        If not specified, the map directory is derived from the value of
+        the :envvar:`DUST_DIR` environment variable, otherwise an empty
         string is used.
     north, south : :class:`str`, optional
         Names of north and south galactic pole FITS files. Defaults are
@@ -295,7 +295,7 @@ class SFDMap(object):
                 raise ValueError('Pass mapdir or set $DUST_DIR')
             else:
                 mapdir = os.path.join(dustdir, 'maps')
- 
+
         if not os.path.exists(mapdir):
             log.critical('Dust maps not found in directory {}'.format(mapdir))
             raise ValueError('Dust maps not found in directory {}'.format(mapdir))

@@ -2,26 +2,16 @@
 # -*- coding: utf-8 -*-
 """Test desiutil.setup.
 """
-from __future__ import (absolute_import, division,
-                        print_function, unicode_literals)
-# The line above will help with 2to3 support.
 import os
 import sys
 import shutil
 import unittest
+from unittest.mock import call, patch
 from tempfile import mkdtemp
 from distutils import log
 from setuptools import sandbox
 from ..setup import find_version_directory, get_version, update_version
 from .. import __version__ as desiutil_version
-
-
-skipMock = False
-try:
-    from unittest.mock import call, patch
-except ImportError:
-    # Python 2
-    skipMock = True
 
 
 class TestSetup(unittest.TestCase):
@@ -63,11 +53,9 @@ class TestSetup(unittest.TestCase):
         try:
             return sandbox.run_setup(*args, **kwargs)
         finally:
-            if sys.version_info[:2] >= (3, 3):
-                import importlib
-                importlib.invalidate_caches()
+            import importlib
+            importlib.invalidate_caches()
 
-    @unittest.skipIf(skipMock, "Skipping test that requires unittest.mock.")
     def test_version(self):
         """Test python setup.py version.
         """

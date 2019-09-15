@@ -2,9 +2,6 @@
 # -*- coding: utf-8 -*-
 """Test desiutil.modules.
 """
-from __future__ import (absolute_import, division,
-                        print_function, unicode_literals)
-# The line above will help with 2to3 support.
 import unittest
 from stat import S_IXUSR
 from types import MethodType

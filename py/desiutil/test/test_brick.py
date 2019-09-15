@@ -6,8 +6,6 @@ desiutil.test.test_brick
 
 Test desiutil.brick.
 """
-from __future__ import absolute_import, division, unicode_literals
-# The line above will help with 2to3 support.
 import unittest
 import os
 import numpy as np

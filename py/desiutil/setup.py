@@ -7,20 +7,12 @@ desiutil.setup
 
 This package contains code that might be useful in DESI setup.py files.
 """
-from __future__ import absolute_import, division, print_function
-# Note: distutils can be sensitive to unicode, so don't import
-# unicode_literals.
 import re
 import unittest
 from os import environ, walk
 from os.path import abspath, basename, exists, isdir, isfile, join
 from sys import exit, version_info
 from setuptools import Command
-try:
-    from setuptools.compat import PY3
-except ImportError:
-    PY3 = version_info >= (3,)
-# from setuptools.py31compat import unittest_main
 from setuptools.command.test import test as BaseTest
 from pkg_resources import _namespace_packages
 from distutils.log import DEBUG, INFO, WARN, ERROR
@@ -169,7 +161,7 @@ class DesiTest(BaseTest, object):
         # Purge modules under test from sys.modules. The test loader will
         # re-import them from the build location. Required when 2to3 is used
         # with namespace packages.
-        if PY3 and getattr(self.distribution, 'use_2to3', False):
+        if getattr(self.distribution, 'use_2to3', False):
             module = self.test_args[-1].split('.')[0]
             if module in _namespace_packages:
                 del_modules = []

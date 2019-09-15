@@ -2,19 +2,10 @@
 # -*- coding: utf-8 -*-
 """Test desiutil.svn.
 """
-from __future__ import (absolute_import, division,
-                        print_function, unicode_literals)
-# The line above will help with 2to3 support.
 import unittest
+from unittest.mock import call, DEFAULT, patch, Mock, PropertyMock
 # from pkg_resources import resource_filename
 from ..svn import last_revision, last_tag, version
-
-skipMock = False
-try:
-    from unittest.mock import call, DEFAULT, patch, Mock, PropertyMock
-except ImportError:
-    # Python 2
-    skipMock = True
 
 
 class TestSvn(unittest.TestCase):
@@ -29,7 +20,6 @@ class TestSvn(unittest.TestCase):
     def tearDownClass(cls):
         pass
 
-    @unittest.skipIf(skipMock, "Skipping test that requires unittest.mock.")
     def test_last_revision(self):
         """Test svn revision number determination.
         """
@@ -68,7 +58,6 @@ class TestSvn(unittest.TestCase):
             self.assertEqual(n, '345')
             MockPopen.assert_has_calls(calls)
 
-    @unittest.skipIf(skipMock, "Skipping test that requires unittest.mock.")
     def test_last_tag(self):
         """Test the processing of svn tag lists.
         """
@@ -107,7 +96,6 @@ class TestSvn(unittest.TestCase):
             self.assertEqual(n, '0.0.0')
             MockPopen.assert_has_calls(calls)
 
-    @unittest.skipIf(skipMock, "Skipping test that requires unittest.mock.")
     def test_version(self):
         """Test svn version parser.
         """
