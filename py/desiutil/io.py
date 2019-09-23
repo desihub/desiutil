@@ -26,7 +26,7 @@ def combine_dicts(dict1, dict2):
     for item, value in dict1.items():
         if item in cdict2:
             if (not isinstance(cdict2[item], dict)) or (not isinstance(dict1[item], dict)):
-                    raise ValueError("Overlapping leafs must both be dicts")
+                raise ValueError("Overlapping leafs must both be dicts")
             try:
                 output[item] = combine_dicts(value, cdict2.pop(item))
             except AttributeError:
