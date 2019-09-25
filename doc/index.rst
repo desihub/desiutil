@@ -17,10 +17,11 @@ Required Dependencies
 
 These packages must be installed for desiutil to work properly:
 
-* `pyyaml <http://pyyaml.org/>`_
-* `astropy <http://www.astropy.org/>`_
+* `pyyaml <https://pyyaml.org/>`_
+* `requests <https://2.python-requests.org/en/master/>`_
+* `astropy <https://www.astropy.org/>`_
 
-  - This implies a dependency on `NumPy <http://www.numpy.org>`_
+  - This implies a dependency on `NumPy <https://numpy.org>`_
 
 Optional Dependencies
 +++++++++++++++++++++
@@ -28,12 +29,13 @@ Optional Dependencies
 If you want to use the plotting utilities in :mod:`desiutil.plots`, you will
 need:
 
-* `matplotlib <http://matplotlib.org/>`_
+* `matplotlib <https://matplotlib.org/>`_
 * `healpy <https://healpy.readthedocs.io/en/latest/>`_
-* `basemap <http://matplotlib.org/basemap/>`_
+* `basemap <https://matplotlib.org/basemap/>`_
 
-  - Note that basemap's installation is non-trivial.  See the documentation
+  - Note that ``basemap``'s installation is non-trivial.  See the documentation
     linked to above.
+  - Also, ``basemap`` is currently deprecated.
 
 Contents
 ========

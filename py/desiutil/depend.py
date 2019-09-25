@@ -55,6 +55,8 @@ so that it can be used in subsequent I/O
 ('foo', '3.4')
 
 """
+import sys
+import importlib
 #
 # default possible dependencies to check in add_dependencies()
 #
@@ -67,13 +69,21 @@ possible_dependencies = [
 
 
 def setdep(header, name, version):
-    '''
-    Set dependency version for code name.
+    '''Set dependency `version` for code `name`.
 
-    Args:
-        header : dict-like object to store dependencies
-        name : code name string
-        version : version string
+    Parameters
+    ----------
+    header : dict-like
+        A dict-like object, *e.g.* :class:`astropy.io.fits.Header`.
+    name : :class:`str`
+        Code name string.
+    version : :class:`str`
+        Code version string.
+
+    Raises
+    ------
+    IndexError
+        If there are more than 100 dependencies to track.
     '''
     for i in range(100):
         namekey = 'DEPNAM{:02d}'.format(i)
@@ -92,16 +102,24 @@ def setdep(header, name, version):
 
 
 def getdep(header, name):
-    '''
-    Get dependency version for code name.
+    '''Get dependency version for code `name`.
 
-    Args:
-        header : dict-like object to store dependencies
-        name : code name string
+    Parameters
+    ----------
+    header : dict-like
+        A dict-like object, *e.g.* :class:`astropy.io.fits.Header`.
+    name : :class:`str`
+        Code name string.
 
-    Returns version string for name
+    Returns
+    -------
+    :class:`str`
+        The version string for `name`.
 
-    Raises KeyError if name not tracked in header
+    Raises
+    ------
+    KeyError
+        If `name` not tracked in `header`.
     '''
     for i in range(100):
         namekey = 'DEPNAM{:02d}'.format(i)
@@ -116,8 +134,19 @@ def getdep(header, name):
 
 
 def hasdep(header, name):
-    '''
-    Returns ``True`` if version for name is tracked in header, otherwise ``False``.
+    '''Check if `name` is defined in `header`.
+
+    Parameters
+    ----------
+    header : dict-like
+        A dict-like object, *e.g.* :class:`astropy.io.fits.Header`.
+    name : :class:`str`
+        Code name string.
+
+    Returns
+    -------
+    :class:`bool`
+        ``True`` if version for `name` is tracked in `header`, otherwise ``False``.
     '''
     try:
         version = getdep(header, name)
@@ -127,7 +156,13 @@ def hasdep(header, name):
 
 
 def iterdep(header):
-    '''Returns iterator over (codename, version) tuples'''
+    '''Returns iterator over (codename, version) tuples.
+
+    Parameters
+    ----------
+    header : dict-like
+        A dict-like object, *e.g.* :class:`astropy.io.fits.Header`.
+    '''
     for i in range(100):
         namekey = 'DEPNAM{:02d}'.format(i)
         verkey = 'DEPVER{:02d}'.format(i)
@@ -141,25 +176,26 @@ def iterdep(header):
 
 
 def add_dependencies(header, module_names=None, long_python=False):
-    '''Adds DEPNAMnn, DEPVERnn keywords to header for imported modules
+    '''Adds ``DEPNAMnn``, ``DEPVERnn`` keywords to header for imported modules.
 
-    Args:
-        header : dict-like object, *e.g.* :class:`astropy.io.fits.Header`.
+    Parameters
+    ----------
+    header : dict-like
+        A dict-like object, *e.g.* :class:`astropy.io.fits.Header`.
+    module_names : :class:`list`, optional
+        List of of module names to check; if ``None``,
+        checks ``desiutil.depend.possible_dependencies``.
+    long_python : :class:`bool`, optional
+        If ``True`` use the full, verbose ``sys.version``
+        string for the Python version.  Otherwise, use a short
+        version, *e.g.*, ``3.5.2``.
 
-    Options:
-        module_names : list of module names to check
-            if None, checks desiutil.depend.possible_dependencies
-        long_python : If ``True`` use the full, verbose ``sys.version``
-            string for the Python version.  Otherwise, use a short
-            version, *e.g.*, ``3.5.2``.
-
+    Notes
+    -----
     Only adds the dependency keywords if the module has already been
-    previously loaded in this python session.  Uses module.__version__
-    if available, otherwise "unknown (/path/to/module/)".
+    previously loaded in this python session.  Uses ``module.__version__``
+    if available, otherwise ``unknown (/path/to/module/)``.
     '''
-    import sys
-    import importlib
-
     py_version = ".".join(map(str, sys.version_info[0:3]))
     if long_python:
         py_version = sys.version.replace('\n', ' ')

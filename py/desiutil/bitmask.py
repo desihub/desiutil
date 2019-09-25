@@ -142,7 +142,7 @@ class BitMask(object):
         return self._bits[bitname]
 
     def bitnum(self, bitname):
-        """Return bit number (int) for bitname (string).
+        """Return bit number (int) for this `bitname` (string).
 
         Parameters
         ----------
@@ -157,7 +157,7 @@ class BitMask(object):
         return self._bits[bitname].bitnum
 
     def bitname(self, bitnum):
-        """Return bit name (string) for this bitnum (integer).
+        """Return bit name (string) for this `bitnum` (integer).
 
         Parameters
         ----------

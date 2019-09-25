@@ -29,10 +29,6 @@ class Bricks(object):
     ----------
     bricksize : :class:`float`, optional
         Brick size in degrees.  Default 0.25 degrees.
-
-    Attributes
-    ----------
-    bricksize
     """
     def __init__(self, bricksize=0.25):
         # Brick row centers and edges

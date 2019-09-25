@@ -7,26 +7,43 @@ desiutil.io
 
 Module for I/O related code.
 """
+import os
+import stat
+import warnings
 from contextlib import contextmanager
+import numpy as np
+from astropy.table import Table
 
 
 def combine_dicts(dict1, dict2):
-    """ Combine two dicts into one, respecting common keys
-    If dict1 and dict2 both have key a, then x[a] and y[a] must both
-    be dictionaries to recursively merge.
+    """Combine two :class:`dict` objects into one, respecting common keys.
 
-    Args:
-        dictionary1 : dict
-        dictionary2 : dict
-    Returns:
-        output : dict
+    If `dict1` and `dict2` both have key ``a``, then ``dict1[a]`` and
+    ``dict2[a]`` must both be dictionaries to recursively merge.
+
+    Parameters
+    ----------
+    dict1 : :class:`dict`
+        First dictionary.
+    dict2 : :class:`dict`
+        Second dictionary.
+
+    Returns
+    -------
+    :class:`dict`
+        The combined dictionary.
+
+    Raises
+    ------
+    ValueError
+        If the values for a common key are not both :class:`dict`.
     """
     output = {}
     cdict2 = dict2.copy()
     for item, value in dict1.items():
         if item in cdict2:
             if (not isinstance(cdict2[item], dict)) or (not isinstance(dict1[item], dict)):
-                    raise ValueError("Overlapping leafs must both be dicts")
+                raise ValueError("Overlapping leafs must both be dicts")
             try:
                 output[item] = combine_dicts(value, cdict2.pop(item))
             except AttributeError:
@@ -59,7 +76,6 @@ def yamlify(obj, debug=False):
        :class:`numpy.ndarray` is converted to :class:`list`,
        :class:`numpy.int64` is converted to :class:`int`, etc.
     """
-    import numpy as np
     if isinstance(obj, (np.float64, np.float32)):
         obj = float(obj)
     elif isinstance(obj, (np.int32, np.int64, np.int16)):
@@ -99,23 +115,51 @@ def yamlify(obj, debug=False):
 
 
 def _dtype_size(dtype):
-    '''
-    Parse dtype like '<Un' into int(n)
-    Note that this is different from dtype.itemsize, which is number of bytes
+    '''Parse `dtype` to find its size.
+
+    For example, ``<U14`` returns 14.
+
+    Parameters
+    ----------
+    dtype : :class:`numpy.dtype`
+        Dtype object.
+
+    Returns
+    -------
+    :class:`int`
+        The size of the type.
+
+    Notes
+    -----
+    This is different from ``dtype.itemsize``, which is number of bytes.
     '''
     i = dtype.str.find(dtype.kind)
     return int(dtype.str[i+1:])
 
 
 def _pick_encoding(table, encoding):
-    '''
-    pick which encoding to use; giving warning if options are in conflict
+    '''Pick which encoding to use; giving warning if options are in conflict.
 
-    Args:
-        table : astropy Table object
-        encoding : (str) encoding to use; None to use table.meta['ENCODING']
+    Parameters
+    ----------
+    table : :class:`astropy.table.Table`
+        Table object.
+    encoding : :class:`str`
+        Encoding to use.  If ``None``, use ``table.meta['ENCODING']``.
 
-    Note: `encoding` trumps `table.meta['ENCODING']`
+    Returns
+    -------
+    :class:`str`
+        The chosen encoding.
+
+    Raises
+    ------
+    UnicodeError
+        If no enoding could be found at all.
+
+    Notes
+    -----
+    `encoding` trumps ```table.meta['ENCODING']``.
     '''
     if encoding is None:
         if 'ENCODING' in table.meta:
@@ -123,7 +167,6 @@ def _pick_encoding(table, encoding):
         else:
             raise UnicodeError('No encoding given as argument or in table metadata')
     elif 'ENCODING' in table.meta and table.meta['ENCODING'] != encoding:
-        import warnings
         message = """data.metadata['ENCODING']=='{}' does not match option '{}';
 use encoding=None to use data.metadata['ENCODING'] instead""".format(table.meta['ENCODING'], encoding)
         warnings.warn(message)
@@ -132,29 +175,34 @@ use encoding=None to use data.metadata['ENCODING'] instead""".format(table.meta[
 
 
 def encode_table(data, encoding='ascii'):
+    '''Encode unicode strings in a table into bytes using ``numpy.char.encode``.
+
+    Parameters
+    ----------
+    data : numpy structured array or :class:`~astropy.table.Table`
+        Data for conversion.
+    encoding : :class:`str`, optional
+        Encoding to use for converting unicode to bytes;
+        default 'ascii' (FITS and HDF5 friendly);
+        if ``None``, try ``ENCODING`` keyword in `data` instead.
+
+    Returns
+    -------
+    :class:`~astropy.table.Table`
+        Table with unicode columns converted to bytes.
+
+    Raises
+    ------
+    UnicodeEncodeError
+        If any input strings cannot be encoded using the specified encoding.
+    UnicodeError
+        If no encoding is given as argument or in table metadata.
+
+    Notes
+    -----
+    `encoding` option overides ``data.meta['ENCODING']``;
+    use ``encoding=None`` to use ``data.meta['ENCODING']`` instead.
     '''
-    Encode unicode strings in a table into bytes using numpy.char.encode
-
-    Args:
-        data : numpy structured array or astropy Table
-
-    Options:
-        encoding : encoding to use for converting unicode to bytes.
-            Default 'ascii' (FITS and HDF5 friendly), but if None,
-            use ENCODING from table metadata if available
-
-    Returns astropy Table with unicode columns converted to bytes
-
-    Raises:
-        UnicodeEncodeError if any input strings cannot be encoded using
-            the specified encoding
-        UnicodeError if no encoding is given as argument or in table metadata
-
-    Note: `encoding` option overides data.meta['ENCODING'];
-        use encoding=None to use data.meta['ENCODING'] instead
-    '''
-    from astropy.table import Table
-    import numpy as np
 
     try:
         table = Table(data, copy=False)
@@ -174,23 +222,29 @@ def encode_table(data, encoding='ascii'):
 
 
 def decode_table(data, encoding='ascii', native=True):
+    '''Decode byte strings in a table into unicode strings.
+
+    Parameters
+    ----------
+    data : numpy structured array or :class:`~astropy.table.Table`
+        Data for conversion.
+    encoding : :class:`str`, optional
+        Encoding to use for converting bytes into unicode;
+        default 'ascii'; if ``None``, try ``ENCODING`` keyword in `data` instead.
+    native : :class:`bool`, optional
+        If `True` (default), only decode if native str type is unicode
+        (*i.e.* python3 but not python2)
+
+    Returns
+    -------
+    :class:`~astropy.table.Table`
+        Decoded data.
+
+    Notes
+    -----
+    `encoding` option overides ``data.meta['ENCODING']``;
+    use ``encoding=None`` to use ``data.meta['ENCODING']`` instead.
     '''
-    Decode byte strings in a table into unicode strings
-
-    Args:
-        data : numpy structured array or astropy Table
-
-    Options:
-        encoding : encoding to use for converting bytes into unicode;
-            default 'ascii'; if None, try ENCODING keyword in data instead
-        native : if True (default), only decode if native str type is unicode
-            (i.e. python3 but not python2)
-
-    Note: `encoding` option overides data.meta['ENCODING'];
-        use encoding=None to use data.meta['ENCODING'] instead
-    '''
-    from astropy.table import Table
-    import numpy as np
     try:
         table = Table(data, copy=False)
     except ValueError:  # https://github.com/astropy/astropy/issues/5298
@@ -239,8 +293,6 @@ def unlock_file(*args, **kwargs):
     >>> with unlock_file('read-only.txt', 'w') as f:
     ...     f.write(new_data)
     """
-    import os
-    import stat
     w = stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH
     #
     # Get original permissions, unlock permissions
