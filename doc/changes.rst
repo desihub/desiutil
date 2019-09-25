@@ -2,10 +2,15 @@
 Change Log
 ==========
 
-2.0.1 (unreleased)
+2.0.1 (2019-09-24)
 ------------------
 
-* No changes yet.
+* Updated to latest `ReadTheDocs configuration`_; standardized
+  some docstrings for better appearance (PR `#136`_).
+* No code changes.
+
+.. _`ReadTheDocs configuration`: https://docs.readthedocs.io/en/stable/config-file/v2.html
+.. _`#136`: https://github.com/desihub/desiutil/pull/136
 
 2.0.0 (2019-09-15)
 ------------------
