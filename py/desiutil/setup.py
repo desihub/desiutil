@@ -99,8 +99,11 @@ class DesiModule(Command):
     def finalize_options(self):
         if self.modules is None:
             try:
-                self.modules = join('/project/projectdirs/desi/software/modules',
-                                    environ['NERSC_HOST'])
+                self.modules = join('/global/common/software/desi',
+                                    environ['NERSC_HOST'],
+                                    'desiconda',
+                                    'current',
+                                    'modulefiles')
             except KeyError:
                 try:
                     self.modules = join(environ['DESI_PRODUCT_ROOT'],

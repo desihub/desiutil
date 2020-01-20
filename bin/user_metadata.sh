@@ -36,7 +36,7 @@ user=$1
 date=$2
 uid=$(id -u ${user})
 gid=$(id -g ${group})
-root=/global/project/projectdirs/${group}/metadata
+root=/global/cfs/cdirs/${group}/metadata
 for f in 2 a; do
     grep -E "${uid}\|${desi}" ${root}/${date}.tlproject${f}.${group}.txt | \
         cut -d\| -f16 | \

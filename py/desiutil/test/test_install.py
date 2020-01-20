@@ -365,10 +365,10 @@ class TestInstall(unittest.TestCase):
             self.assertEqual(self.desiInstall.nersc_module_dir,
                              join(self.desiInstall.default_nersc_dir(n),
                                   "modulefiles"))
-        options = self.desiInstall.get_options(['--root', '/project/projectdirs/desi/test',
+        options = self.desiInstall.get_options(['--root', '/global/cfs/cdirs/desi/test',
                                                 'desiutil', '1.9.5'])
         self.assertEqual(self.desiInstall.nersc_module_dir,
-                         '/project/projectdirs/desi/test/modulefiles')
+                         '/global/cfs/cdirs/desi/test/modulefiles')
 
     def test_cleanup(self):
         """Test the cleanup stage of the install.
