@@ -5,7 +5,9 @@ Change Log
 2.0.2 (unreleased)
 ------------------
 
-* Update NERSC paths for CFS.
+* Update NERSC paths for CFS (PR `#137`_).
+
+.. _`#137`: https://github.com/desihub/desiutil/pull/137
 
 2.0.1 (2019-09-24)
 ------------------
