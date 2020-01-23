@@ -38,7 +38,7 @@ uid=$(id -u ${user})
 gid=$(id -g ${group})
 root=/global/cfs/cdirs/${group}/metadata
 for filesystem in cfs tlprojecta; do
-    grep -E "${uid}\|${group}" ${root}/${date}.${filesystem}.${group}.txt | \
+    grep -E "${uid}\|${gid}" ${root}/${date}.${filesystem}.${group}.txt | \
         cut -d\| -f16 | \
         sed 's$%2F$/$g' | \
         sed "s%.snapshots/${date}/%%g"
