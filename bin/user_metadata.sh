@@ -41,5 +41,6 @@ for filesystem in cfs tlprojecta; do
     grep -E "${uid}\|${gid}" ${root}/${date}.${filesystem}.${group}.txt | \
         cut -d\| -f16 | \
         sed 's$%2F$/$g' | \
-        sed "s%.snapshots/${date}/%%g"
+        sed "s%.snapshots/${date}/%%g" | \
+        sed "s%^/cfs%/global/cfs%g"
 done
