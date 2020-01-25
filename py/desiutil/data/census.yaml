@@ -9,7 +9,7 @@ configuration:
     # Mapping from primary filesystem to auxilliary filesystem.
     #
     filesystems:
-        /global/project/projectdirs: /global/projecta/projectdirs
+        /global/cfs/cdirs: /global/projecta/projectdirs
     #
     # Map group name to group ID.
     #
@@ -21,7 +21,7 @@ configuration:
 # unless overridden.
 #
 data:
-    # - root: /global/project/projectdirs/desi/spectro
+    # - root: /global/cfs/cdirs/desi/spectro
     #   category: DESI Data
     #   description: DESI raw and reduced data.
     #   group: desi
@@ -32,11 +32,11 @@ data:
     #         description: DESI reduced data
     #       - root: sim
     #         description: DESI simulated data
-    # - root: /global/project/projectdirs/desi/users
+    # - root: /global/cfs/cdirs/desi/users
     #   category: Collaboration Workspace
     #   description: Working space for individual users.
     #   group: desi
-    - root: /global/project/projectdirs/cosmo/data/legacysurvey
+    - root: /global/cfs/cdirs/cosmo/data/legacysurvey
       category: Imaging Data
       description: Released data from DECaLS/MzLS/BASS.
       group: cosmo
@@ -49,7 +49,7 @@ data:
             description: DECaLS DR3.0.
           - root: dr3.1
             description: DECaLS DR3.1.
-    - root: /global/project/projectdirs/cosmo/staging/decam
+    - root: /global/cfs/cdirs/cosmo/staging/decam
       category: Imaging Data
       description: DECaLS data.
       group: cosmo
@@ -72,7 +72,7 @@ data:
             description: DECam data in the DECaLS footprint in preparation for DR5.
           - root: Stacks_Aug14
             description: No idea what this is.
-    - root: /global/project/projectdirs/cosmo/staging/mosaicz
+    - root: /global/cfs/cdirs/cosmo/staging/mosaicz
       category: Imaging Data
       description: MzLS data.
       group: cosmo
@@ -81,7 +81,7 @@ data:
             description: MzLS data processed by NOAO CP.
           - root: MZLS_Raw
             description: MzLS raw data.
-    - root: /global/project/projectdirs/cosmo/staging/bok
+    - root: /global/cfs/cdirs/cosmo/staging/bok
       category: Imaging Data
       description: BASS data.
       group: cosmo
@@ -98,7 +98,7 @@ data:
             description: No idea what this is.
           - root: reduced
             description: BASS data processed by BASS.
-    - root: /global/project/projectdirs/cosmo/data/wise
+    - root: /global/cfs/cdirs/cosmo/data/wise
       category: Imaging Data
       description: WISE images.
       group: cosmo
@@ -113,11 +113,11 @@ data:
             description: Post-reactivation imaging?
           - root: postcryo
             description: Imaging without functioning cryostat?
-    - root: /global/project/projectdirs/cosmo/staging/wise/neowiser2/neowiser
+    - root: /global/cfs/cdirs/cosmo/staging/wise/neowiser2/neowiser
       category: Imaging Data
       description: Unmerged post-reactivation WISE imaging.
       group: cosmo
-    - root: /global/project/projectdirs/cosmo/data/unwise
+    - root: /global/cfs/cdirs/cosmo/data/unwise
       category: Imaging Data
       description: WISE full-resolution coadds.
       group: cosmo
@@ -130,11 +130,11 @@ data:
             description: Original unWISE coadds.
           - root: unwise-phot
             description: Original unWISE coadds (photometry?).
-    - root: /global/project/projectdirs/cosmo/staging/decam-public
+    - root: /global/cfs/cdirs/cosmo/staging/decam-public
       category: Non-DESI Data
       description: DECam data outside of the DESI footprint.
       group: cosmo
-    # - root: /global/project/projectdirs/cosmo/work
+    # - root: /global/cfs/cdirs/cosmo/work
     #   category: Collaboration Workspace
     #   description: Working space for individual users.
     #   group: cosmo

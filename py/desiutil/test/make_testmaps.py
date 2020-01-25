@@ -8,7 +8,7 @@ import numpy as np
 from astropy.io import fits
 from time import time
 
-dustdir = "/project/projectdirs/desi/software/edison/dust/v0_1/maps"
+dustdir = "/global/cfs/cdirs/cosmo/data/dust/v0_1/maps"
 start = time()
 
 for pole in ["ngp", "sgp"]:

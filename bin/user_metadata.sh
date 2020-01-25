@@ -36,10 +36,11 @@ user=$1
 date=$2
 uid=$(id -u ${user})
 gid=$(id -g ${group})
-root=/global/project/projectdirs/${group}/metadata
-for f in 2 a; do
-    grep -E "${uid}\|${desi}" ${root}/${date}.tlproject${f}.${group}.txt | \
+root=/global/cfs/cdirs/${group}/metadata
+for filesystem in cfs tlprojecta; do
+    grep -E "${uid}\|${gid}" ${root}/${date}.${filesystem}.${group}.txt | \
         cut -d\| -f16 | \
         sed 's$%2F$/$g' | \
-        sed "s%.snapshots/${date}/%%g"
+        sed "s%.snapshots/${date}/%%g" | \
+        sed "s%^/cfs%/global/cfs%g"
 done
