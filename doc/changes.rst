@@ -2,7 +2,7 @@
 Change Log
 ==========
 
-2.0.2 (unreleased)
+2.0.2 (2020-01-25)
 ------------------
 
 * Update NERSC paths for CFS (PR `#137`_).
