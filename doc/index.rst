@@ -31,11 +31,6 @@ need:
 
 * `matplotlib <https://matplotlib.org/>`_
 * `healpy <https://healpy.readthedocs.io/en/latest/>`_
-* `basemap <https://matplotlib.org/basemap/>`_
-
-  - Note that ``basemap``'s installation is non-trivial.  See the documentation
-    linked to above.
-  - Also, ``basemap`` is currently deprecated.
 
 Contents
 ========

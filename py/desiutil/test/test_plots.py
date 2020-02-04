@@ -22,12 +22,6 @@ try:
 except ImportError:
     have_healpy = False
 
-try:
-    import mpl_toolkits.basemap
-    have_basemap = True
-except ImportError:
-    have_basemap = False
-
 
 class TestPlots(unittest.TestCase):
     """Test desiutil.plots
@@ -126,35 +120,34 @@ class TestPlots(unittest.TestCase):
         if 'TRAVIS_JOB_ID' not in os.environ:
             plt.savefig(self.plot_file)
 
-    @unittest.skipIf(not (have_matplotlib and have_basemap),
-                     'Skipping tests that require matplotlib and basemap.')
+    @unittest.skipUnless(have_matplotlib,
+                         'Skipping tests that require matplotlib.')
     def test_init_sky(self):
         """Test init_sky
         """
         from ..plots import init_sky
 
-    @unittest.skipIf(not (have_matplotlib and have_basemap),
-                     'Skipping tests that require matplotlib and basemap.')
+    @unittest.skipUnless(have_matplotlib,
+                         'Skipping tests that require matplotlib.')
     def test_plot_grid_map(self):
         from ..plots import plot_grid_map
 
-    @unittest.skipIf(not (have_matplotlib and have_basemap),
-                     'Skipping tests that require matplotlib and basemap.')
+    @unittest.skipUnless(have_matplotlib,
+                         'Skipping tests that require matplotlib.')
     def test_plot_sky_binned(self):
         """Test plot_sky_binned
         """
         from ..plots import plot_sky_binned
 
-    @unittest.skipIf(not (have_matplotlib and have_basemap),
-                     'Skipping tests that require matplotlib and basemap.')
+    @unittest.skipUnless(have_matplotlib,
+                         'Skipping tests that require matplotlib.')
     def test_plot_sky_circles(self):
         """Test plot_sky_circles
         """
         from ..plots import plot_sky_circles
 
-    @unittest.skipIf(not (have_matplotlib and have_healpy and have_basemap),
-                     ('Skipping tests that require matplotlib, healpy ' +
-                      'and basemap.'))
+    @unittest.skipUnless(have_matplotlib and have_healpy,
+                         'Skipping tests that require matplotlib and healpy')
     def test_plot_sky_binned(self):
         """Test plot_sky_binned
         """

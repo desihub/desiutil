@@ -111,3 +111,21 @@ else
         run ${verbose} "${findbase} -exec ${setfacl} --modify ${apacheACL} {} ;"
     fi
 fi
+#
+# Notes on searching for group-unreadable files.
+#
+# getfacl -R -t /global/cfs/cdirs//desi/spectro/ | grep -e '^# file:' -e '^GROUP' | sed -n 'h;n;G;p' | paste - - | awk '$3=="---" {print}'
+#
+# in a few minutes I didn't find any with "---" group ACL, but if I change to searching for things with a "r--" ACL, a sample of the output looks like:
+# sleak@cori06$ getfacl -R -t /global/cfs/cdirs//desi/spectro/ | grep -e '^# file:' -e '^GROUP' | sed -n 'h;n;G;p' | paste - - | awk '$3=="r--" {print}' | head
+# getfacl: Removing leading '/' from absolute path names
+# GROUP desi r-- # file: global/cfs/cdirs//desi/spectro//ql_calib/fiberflat-z7.fits
+# GROUP desi r-- # file: global/cfs/cdirs//desi/spectro//ql_calib/fiberflat-z3.fits
+# GROUP desi r-- # file: global/cfs/cdirs//desi/spectro//ql_calib/fiberflat-b2.fits
+# GROUP desi r-- # file: global/cfs/cdirs//desi/spectro//ql_calib/fiberflat-z4.fits
+# GROUP desi r-- # file: global/cfs/cdirs//desi/spectro//ql_calib/fiberflat-b7.fits
+# GROUP desi r-- # file: global/cfs/cdirs//desi/spectro//ql_calib/fiberflat-z6.fits
+# GROUP desi r-- # file: global/cfs/cdirs//desi/spectro//ql_calib/fiberflat-b4.fits
+# GROUP desi r-- # file: global/cfs/cdirs//desi/spectro//ql_calib/fiberflat-r7.fits
+# GROUP desi r-- # file: global/cfs/cdirs//desi/spectro//ql_calib/fiberflat-b9.fits
+# GROUP desi r-- # file: global/cfs/cdirs//desi/spectro//ql_calib/fiberflat-r0.fits
