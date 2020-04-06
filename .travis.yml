@@ -67,11 +67,11 @@ matrix:
 
         - os: linux
           python: 3.6
-          env: ASTROPY_VERSION='>=4.0'
+          env: SETUP_CMD='test' ASTROPY_VERSION='>=4.0'
 
         - os: linux
           python: 3.6
-          env: ASTROPY_VERSION='<4.0'
+          env: SETUP_CMD='test' ASTROPY_VERSION='<4.0'
 
         # Experimental OS X test.
         # As of March 2017, Python builds on OS X are not available.
