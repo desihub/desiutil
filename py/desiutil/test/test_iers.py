@@ -3,8 +3,10 @@
 """Test desiutil.iers.
 """
 import unittest
+import os
 from unittest.mock import call, patch, Mock, PropertyMock
-# from ..iers import last_tag, version
+from pkg_resources import resource_filename
+from astropy.time import Time
 import desiutil.iers as i
 
 
@@ -49,7 +51,7 @@ class TestIERS(unittest.TestCase):
         """Test freezing from package data/.
         """
         i.freeze_iers()
-        future = astropy.time.Time('2024-01-01', location=i.get_location())
+        future = Time('2024-01-01', location=i.get_location())
         lst = future.sidereal_time('apparent')
 
     def test_freeze_iers_bad_ext(self):
