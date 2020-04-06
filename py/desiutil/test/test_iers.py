@@ -5,7 +5,7 @@
 import unittest
 from unittest.mock import call, patch, Mock, PropertyMock
 # from ..iers import last_tag, version
-import ..iers as i
+import desiutil.iers as i
 
 
 class TestIERS(unittest.TestCase):
