@@ -109,19 +109,19 @@ def freeze_iers(name='iers_frozen.ecsv', ignore_warnings=True):
     astropy.utils.iers.conf.auto_max_age = None
     astropy.utils.iers.conf.iers_auto_url = 'frozen'
     # Sanity check.
-    if not (astropy.utils.iers.IERS_Auto.open() is iers):
+    if astropy.utils.iers.IERS_Auto.open() is not iers:
         raise RuntimeError('Frozen IERS is not installed as the default.')
 
     if ignore_warnings:
-        warnings.filterwarnings(
-            'ignore', category=astropy._erfa.core.ErfaWarning, message=
-            r'ERFA function \"[a-z0-9_]+\" yielded [0-9]+ of \"dubious year')
-        warnings.filterwarnings(
-            'ignore', category=astropy.utils.exceptions.AstropyWarning,
-            message=r'Tried to get polar motions for times after IERS data')
-        warnings.filterwarnings(
-            'ignore', category=astropy.utils.exceptions.AstropyWarning,
-            message=r'\(some\) times are outside of range covered by IERS')
+        warnings.filterwarnings('ignore',
+                                category=astropy._erfa.core.ErfaWarning,
+                                message=r'ERFA function \"[a-z0-9_]+\" yielded [0-9]+ of \"dubious year')
+        warnings.filterwarnings('ignore',
+                                category=astropy.utils.exceptions.AstropyWarning,
+                                message=r'Tried to get polar motions for times after IERS data')
+        warnings.filterwarnings('ignore',
+                                category=astropy.utils.exceptions.AstropyWarning,
+                                message=r'\(some\) times are outside of range covered by IERS')
 
     # Shortcircuit any subsequent calls to this function.
     _iers_is_frozen = True

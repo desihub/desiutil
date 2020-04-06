@@ -12,9 +12,9 @@ os:
     - linux
     # - osx
 
-# As of early 2017, the default Linux environment is Ubuntu 12.04 (precise).
-# This will soon change to 14.04 (trusty). To prepare, set it explicitly.
-dist: trusty
+# xenial = Ubuntu 16.04
+# bionic = Ubuntu 18.04
+dist: xenial
 # Setting sudo to false opts in to Travis-CI container-based builds.
 sudo: false
 
