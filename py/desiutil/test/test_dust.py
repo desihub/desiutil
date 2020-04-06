@@ -7,6 +7,7 @@ desiutil.test.test_dust
 Test desiutil.dust.
 """
 import unittest
+from unittest.mock import patch, call
 import os
 import numpy as np
 from .. import dust
@@ -69,7 +70,8 @@ class TestDust(unittest.TestCase):
 
         self.assertTrue(ebvtest2[0] == ebvtest1)
 
-    def test_class(self):
+    @patch('desiutil.dust.log')
+    def test_class(self, mock_logger):
         """Test E(B-V) class initialization fails appropriately.
         """
         # ADM count the tests that work
@@ -81,23 +83,19 @@ class TestDust(unittest.TestCase):
             del os.environ['DUST_DIR']
 
         # ADM check calling the class without 'DUST_DIR' or a map directory
-        try:
+        with self.assertRaisesRegex(ValueError, r'Pass mapdir or set \$DUST_DIR'):
             ss = dust.SFDMap()
-        except ValueError:
-            testcnt += 1
 
         # ADM reset the DUST_DIR environment variable
         if dustdir is not None:
             os.environ["DUST_DIR"] = dustdir
 
         # ADM test calling the class with a non-existent directory
-        try:
+        with self.assertRaisesRegex(ValueError, r'Dust maps not found in directory blatfoo'):
             ss = dust.SFDMap(mapdir='blatfoo')
-        except ValueError:
-            testcnt += 1
 
-        # ADM assert that the tests worked
-        self.assertEqual(testcnt, 2)
+        mock_logger.critical.assert_has_calls([call('Pass mapdir or set $DUST_DIR'),
+                                               call('Dust maps not found in directory blatfoo')])
 
     def test_extinction(self):
         """Test ext_odonnel and ext_ccm functions"""
