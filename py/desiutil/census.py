@@ -447,7 +447,7 @@ def main():
     #
     log.info("Reading configuration from {0}.".format(options.config))
     with open(options.config) as y:
-        config = yaml.load(y)
+        config = yaml.safe_load(y)
     log.debug(repr(config))
     summary = scan_directories(config['configuration'], config['data'])
     with open(options.raw, 'w') as y:

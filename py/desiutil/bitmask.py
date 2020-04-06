@@ -21,7 +21,7 @@ desispec_ could create a ccdmask like this:
 
 >>> from desiutil.bitmask import BitMask
 >>> import yaml
->>> _bitdefs = yaml.load('''
+>>> _bitdefs = yaml.safe_load('''
 ... ccdmask:
 ...     - [BAD,       0, "Pre-determined bad pixel (any reason)"]
 ...     - [HOT,       1, "Hot pixel"]
