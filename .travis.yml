@@ -27,9 +27,10 @@ addons:
             - texlive-latex-extra
             - dvipng
 python:
-    - 3.5
+    # - 3.5
     - 3.6
-    # - 3.7
+    - 3.7
+    - 3.8
 env:
     global:
         # The following versions are the 'default' for tests, unless
@@ -64,6 +65,14 @@ matrix:
           python: 3.6
           env: MAIN_CMD='coverage' SETUP_CMD='run --source=desiutil setup.py test'
 
+        - os: linux
+          python: 3.6
+          env: ASTROPY_VERSION='>=4.0'
+
+        - os: linux
+          python: 3.6
+          env: ASTROPY_VERSION='<4.0'
+
         # Experimental OS X test.
         # As of March 2017, Python builds on OS X are not available.
         # See https://docs.travis-ci.com/user/languages/python/
@@ -81,10 +90,11 @@ matrix:
 #     - python -c 'import setuptools; print(setuptools.__version__)'
 
 install:
-    - if [[ $MAIN_CMD == 'pycodestyle' ]]; then pip install pycodestyle; fi
-    - if [[ $SETUP_CMD == build_sphinx* ]]; then pip install Sphinx; fi
-    - if [[ $MAIN_CMD == 'coverage' ]]; then pip install coverage coveralls; fi
-    - if [[ $SETUP_CMD == 'test' || $MAIN_CMD == 'coverage' ]]; then pip install -r requirements.txt; fi
+    - if [[ "${MAIN_CMD}" == 'pycodestyle' ]]; then pip install pycodestyle; fi
+    - if [[ "${SETUP_CMD}" == build_sphinx* ]]; then pip install Sphinx; fi
+    - if [[ "${MAIN_CMD}" == 'coverage' ]]; then pip install coverage coveralls; fi
+    - if [[ "${SETUP_CMD}" == 'test' || $MAIN_CMD == 'coverage' ]]; then pip install -r requirements.txt; fi
+    - if [[ -n "${ASTROPY_VERSION}" ]]; then pip install -U "astropy${ASTROPY_VERSION}"; fi
 
 script:
     - $MAIN_CMD $SETUP_CMD
