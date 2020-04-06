@@ -103,7 +103,8 @@ def freeze_iers(name='iers_frozen.ecsv', ignore_warnings=True):
 
     # Create and register an instance of this class from the table.
     iers = IERS_Frozen(table)
-    astropy.utils.iers.IERS.iers_table = iers
+    # astropy.utils.iers.IERS.iers_table = iers
+    astropy.utils.iers.IERS_Auto.iers_table = iers
     # Prevent any attempts to automatically download updated IERS-A tables.
     astropy.utils.iers.conf.auto_download = False
     astropy.utils.iers.conf.auto_max_age = None
