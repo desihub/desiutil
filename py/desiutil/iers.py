@@ -27,6 +27,8 @@ _iers_is_frozen = False
 # Workaround for offline primary IERS server.
 #
 astropy.utils.iers.Conf.iers_auto_url.set('ftp://cddis.gsfc.nasa.gov/pub/products/iers/finals2000A.all')
+# astropy.utils.iers.conf.iers_auto_url = 'ftp://cddis.gsfc.nasa.gov/pub/products/iers/finals2000A.all'
+# astropy.utils.iers.conf.auto_download = False
 
 
 def freeze_iers(name='iers_frozen.ecsv', ignore_warnings=True):
@@ -103,15 +105,17 @@ def freeze_iers(name='iers_frozen.ecsv', ignore_warnings=True):
 
     # Create and register an instance of this class from the table.
     iers = IERS_Frozen(table)
-    # astropy.utils.iers.IERS.iers_table = iers
-    astropy.utils.iers.IERS_Auto.iers_table = iers
+    astropy.utils.iers.IERS.iers_table = iers
+    # astropy.utils.iers.IERS_Auto.iers_table = iers
     # Prevent any attempts to automatically download updated IERS-A tables.
     astropy.utils.iers.conf.auto_download = False
     astropy.utils.iers.conf.auto_max_age = None
     astropy.utils.iers.conf.iers_auto_url = 'frozen'
+    astropy.utils.iers.conf.iers_auto_url_mirror = 'frozen'
     # Sanity check.
-    if astropy.utils.iers.IERS_Auto.open() is not iers:
-        raise RuntimeError('Frozen IERS is not installed as the default.')
+    auto_class = astropy.utils.iers.IERS_Auto.open()
+    if auto_class is not iers:
+        raise RuntimeError('Frozen IERS is not installed as the default ({0} v. {1}).'.format(auto_class.__class__, iers.__class__))
 
     if ignore_warnings:
         warnings.filterwarnings('ignore',
