@@ -9,6 +9,7 @@ import shutil
 import tempfile
 from unittest.mock import call, patch, MagicMock
 from pkg_resources import resource_filename
+from astroy import __version__ as AstropyVersion
 import astropy.units as u
 import astropy.utils.iers
 from astropy.table import QTable
@@ -25,6 +26,8 @@ class TestIERS(unittest.TestCase):
     def setUpClass(cls):
         # Create a temporary directory.
         cls.tmpdir = tempfile.mkdtemp()
+        cls.ap2 = int(AstropyVersion.split('.')[0])
+        # Needed for time tests.
         cls.location = EarthLocation.from_geodetic(lat=31.963972222*u.deg,
                                                    lon=-111.599336111*u.deg,
                                                    height=2120*u.m)
@@ -97,7 +100,10 @@ class TestIERS(unittest.TestCase):
         self.assertTrue(os.path.exists(save_name))
         with open(save_name) as s:
             data = s.readlines()
-        self.assertIn('# - {data_url: frozen}\n', data)
+        if self.ap2 < 3:
+            self.assertIn('# - {data_url: frozen}\n', data)
+        else:
+            self.assertIn('#   data_url: frozen\n', data)
         mock_iers.assert_has_calls([call(astropy.utils.iers.conf.iers_auto_url)])
         mock_time.assert_has_calls([call(t["MJD"][-1], format='mjd')])
         mock_logger().info.assert_has_calls([call('Updating to current IERS-A table with coverage up to %s.', datetime.date(2018, 5, 12)),
