@@ -13,9 +13,12 @@ from astropy import __version__ as AstropyVersion
 import astropy.units as u
 import astropy.utils.iers
 from astropy.table import QTable
-from astropy.coordinates import EarthLocation
 from astropy.time import Time
 import desiutil.iers as i
+#
+# This import will trigger a download of the leap second file.
+#
+from astropy.coordinates import EarthLocation
 
 
 class TestIERS(unittest.TestCase):
@@ -44,13 +47,6 @@ class TestIERS(unittest.TestCase):
     def tearDown(self):
         i._iers_is_frozen = False
         # iers_conf.reset()
-
-    def test_top_level(self):
-        """Test configuration done at import time.
-        """
-        self.assertFalse(i._iers_is_frozen)
-        # self.assertFalse(astropy.utils.iers.conf.auto_download)
-        # self.assertEqual(astropy.utils.iers.conf.iers_auto_url, )
 
     @patch('desiutil.iers.get_logger')
     def test_update_iers_frozen(self, mock_logger):
@@ -108,7 +104,7 @@ class TestIERS(unittest.TestCase):
         mock_time.assert_has_calls([call(t["MJD"][-1], format='mjd')])
         mock_logger().info.assert_has_calls([call('Updating to current IERS-A table with coverage up to %s.', datetime.date(2018, 5, 12)),
                                              call('Wrote updated table to %s.', save_name)],
-                                             any_order=True)
+                                            any_order=True)
 
     @patch('desiutil.iers.get_logger')
     def test_freeze_iers(self, mock_logger):
