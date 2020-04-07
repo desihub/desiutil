@@ -9,7 +9,7 @@ import shutil
 import tempfile
 from unittest.mock import call, patch, MagicMock
 from pkg_resources import resource_filename
-from astroy import __version__ as AstropyVersion
+from astropy import __version__ as AstropyVersion
 import astropy.units as u
 import astropy.utils.iers
 from astropy.table import QTable
