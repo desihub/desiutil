@@ -26,6 +26,9 @@ desiutil API
 .. automodule:: desiutil.git
     :members:
 
+.. automodule:: desiutil.iers
+    :members:
+
 .. automodule:: desiutil.install
     :members:
 

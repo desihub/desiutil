@@ -15,10 +15,10 @@ ccdmask:
   - [DEAD,             2, "Dead pixel"]
   - [SATURATED,        3, "Saturated pixel from object"]
   - [COSMIC,           4, "Cosmic ray"]"""
-_bitdefs = yaml.load(_bitdefyaml)
+_bitdefs = yaml.safe_load(_bitdefyaml)
 
 # Has extra that isn't a dict
-_baddef1 = yaml.load("""
+_baddef1 = yaml.safe_load("""
 #- CCD pixel mask
 ccdmask:
     - [BAD,       0, "Pre-determined bad pixel (any reason)"]
@@ -96,7 +96,7 @@ class TestBitMask(unittest.TestCase):
 
     def test_str(self):
         """Verify yaml-ness of string representation"""
-        bitmask = BitMask('ccdmask', yaml.load(str(self.ccdmask)))
+        bitmask = BitMask('ccdmask', yaml.safe_load(str(self.ccdmask)))
         self.assertEqual(bitmask.names(), self.ccdmask.names())
         for name in bitmask.names():
             self.assertEqual(bitmask[name].mask, self.ccdmask[name].mask)

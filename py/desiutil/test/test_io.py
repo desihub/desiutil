@@ -74,7 +74,8 @@ class TestIO(unittest.TestCase):
         with self.assertRaises(UnicodeEncodeError):
             tx = encode_table(data, encoding='ascii')
         with self.assertRaises(UnicodeDecodeError):
-            tx = decode_table(t1, encoding='ascii', native=False)
+            with self.assertWarnsRegex(UserWarning, r"(?m)data\.metadata\['ENCODING'\]=='utf-8' does not match option 'ascii';\nuse encoding=None to use data\.metadata\['ENCODING'\] instead") as uw:
+                tx = decode_table(t1, encoding='ascii', native=False)
 
         # Table can specify encoding if option encoding=None
         data['x'][0] = 'p'
@@ -85,9 +86,11 @@ class TestIO(unittest.TestCase):
         self.assertEqual(t2.meta['ENCODING'], 'utf-8')
 
         # conflicting encodings print warning but still proceed
-        t1 = encode_table(data, encoding='ascii')
+        with self.assertWarnsRegex(UserWarning, r"(?m)data\.metadata\['ENCODING'\]=='utf-8' does not match option 'ascii';\nuse encoding=None to use data\.metadata\['ENCODING'\] instead") as uw:
+            t1 = encode_table(data, encoding='ascii')
         self.assertEqual(t1.meta['ENCODING'], 'ascii')
-        t2 = decode_table(t1, encoding='utf-8', native=False)
+        with self.assertWarnsRegex(UserWarning, r"(?m)data\.metadata\['ENCODING'\]=='ascii' does not match option 'utf-8';\nuse encoding=None to use data\.metadata\['ENCODING'\] instead") as uw:
+            t2 = decode_table(t1, encoding='utf-8', native=False)
         self.assertEqual(t2.meta['ENCODING'], 'utf-8')
 
         # native=True should retain native str type
