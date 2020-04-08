@@ -1026,6 +1026,7 @@ def plot_iers(which='auto', num_points=500, save=None):
     :func:`tuple`
         Tuple (figure, axes) returned by ``plt.subplots()``.
     """
+    from datetime import date
     import matplotlib.pyplot as plt
     import matplotlib.dates
     import matplotlib.ticker
@@ -1038,9 +1039,9 @@ def plot_iers(which='auto', num_points=500, save=None):
     # They may or may not reflect the latest configuration.
     #
     # Survey nominally starts on night of this date. Format is YYYY-MM-DD.
-    first_day = '2019-12-01'
+    first_day = date(2019, 12, 1)
     # Survey nominally ends on morning of this date. Format is YYYY-MM-DD.
-    last_day = '2024-11-30'
+    last_day = date(2024, 11, 30)
 
     # Calculate UTC midnight timestamps covering 2015 - 2025
     start = Time('2015-01-01 00:00')
