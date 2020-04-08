@@ -1030,6 +1030,7 @@ def plot_iers(which='auto', num_points=500, save=None):
     import matplotlib.pyplot as plt
     import matplotlib.dates
     import matplotlib.ticker
+    import astropy.units as u
     from astropy.time import Time
     from astropy.utils import iers
     from .iers import freeze_iers
