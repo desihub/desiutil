@@ -5,7 +5,10 @@ Change Log
 2.0.3 (unreleased)
 ------------------
 
-* No changes yet.
+* Add IERS functions originally in `desisurvey`_ (PR `#139`_).
+
+.. _`desisurvey`: https://github.com/desihub/desisurvey
+.. _`#139`: https://github.com/desihub/desiutil/pull/139
 
 2.0.2 (2020-01-25)
 ------------------
