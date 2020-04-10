@@ -2,7 +2,12 @@
 Change Log
 ==========
 
-2.0.3 (unreleased)
+2.0.4 (unreleased)
+------------------
+
+* No changes yet.
+
+2.0.3 (2020-04-10)
 ------------------
 
 * Add IERS functions originally in `desisurvey`_ (PR `#139`_).
