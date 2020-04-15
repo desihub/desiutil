@@ -392,11 +392,11 @@ def init_sky(projection='mollweide', ra_center=120,
         #
         # Shift RA values.
         #
-        r = np.remainder(ra+360-ra_center, 360)
+        r = np.remainder(ra + 360 - ra_center, 360)
         #
         # Scale conversion to [-180, 180].
         #
-        r[r>180] -= 360
+        r[r > 180] -= 360
         #
         # Reverse the scale: East to the left.
         #
