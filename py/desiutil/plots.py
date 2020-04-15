@@ -371,7 +371,7 @@ def init_sky(projection='mollweide', ra_center=120,
     # Internal functions.
     #
     def projection_ra(self, ra):
-        """Shift `ra` to the origin of the Axes object and convert to radians.
+        r"""Shift `ra` to the origin of the Axes object and convert to radians.
 
         Parameters
         ----------
@@ -603,7 +603,7 @@ def plot_healpix_map(data, nest=False, cmap='viridis', colorbar=True,
 
 def plot_grid_map(data, ra_edges, dec_edges, cmap='viridis', colorbar=True,
                   label=None, ax=None, **kwargs):
-    """Plot an array of 2D values using an all-sky projection.
+    r"""Plot an array of 2D values using an all-sky projection.
 
     Pass the data array through :func:`prepare_data` to select a subset to plot
     and clip the color map to specified values or percentiles.
