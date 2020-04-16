@@ -5,7 +5,9 @@ Change Log
 2.0.4 (unreleased)
 ------------------
 
-* No changes yet.
+* Remove all dependency on basemap_ (PR `#141`_).
+
+.. _`#141`: https://github.com/desihub/desiutil/pull/141
 
 2.0.3 (2020-04-10)
 ------------------

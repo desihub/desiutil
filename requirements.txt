@@ -4,4 +4,3 @@ pyyaml
 astropy==2.0.16
 healpy
 matplotlib
-# git+https://github.com/matplotlib/basemap.git
