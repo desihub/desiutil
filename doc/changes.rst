@@ -2,8 +2,17 @@
 Change Log
 ==========
 
-2.0.4 (unreleased)
+3.0.1 (unreleased)
 ------------------
+
+* No changes yet.
+
+3.0.0 (2020-04-15)
+------------------
+
+Note: minor :mod:`desiutil.plots` API and usage changes due to PR `#141`_
+so moving to major version 3.0.0, even though the majority of desiutil
+remains compatible with 2.x.x
 
 * Remove all dependency on basemap_ (PR `#141`_).
 
