@@ -5,7 +5,10 @@ Change Log
 3.0.1 (unreleased)
 ------------------
 
-* No changes yet.
+* Protect against running :command:`fix_permissions.sh` in :envvar:`HOME`
+  (PR `#142`_).
+
+.. _`#142`: https://github.com/desihub/desiutil/pull/142
 
 3.0.0 (2020-04-15)
 ------------------
