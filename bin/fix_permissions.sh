@@ -26,7 +26,7 @@ function usage() {
 function run() {
     local vrb=$1
     local cmd=$2
-    [ "${vrb}" = "True" ] && echo "${cmd}"
+    ${vrb} && echo "${cmd}"
     ${cmd}
 }
 #
@@ -35,15 +35,15 @@ function run() {
 apacheACL=''
 apacheUID=48
 desiGID=desi
-test=False
-verbose=False
+test=/usr/bin/false
+verbose=/usr/bin/false
 while getopts ag:htv argname; do
     case ${argname} in
         a) apacheACL="u:${apacheUID}:rX" ;;
         g) desiGID=${OPTARG} ;;
         h) usage; exit 0 ;;
-        t) test=True; verbose=True ;;
-        v) verbose=True ;;
+        t) test=/usr/bin/true; verbose=/usr/bin/true ;;
+        v) verbose=/usr/bin/true ;;
         *) usage; exit 1 ;;
     esac
 done
@@ -84,12 +84,16 @@ if [ -z "${NERSC_HOST}" ]; then
     echo "Unable to determine NERSC environment.  Are you running this script at NERSC?" >&2
     exit 1
 fi
+if [ $(realpath ${directory}) = $(realpath ${HOME}) ]; then
+    echo "You are attempting to change the permissions of HOME=${HOME}, which is dangerous.  Aborting." >&2
+    exit 1
+fi
 #
 # Proceed with permission changes.
 #
 findbase="${find} ${directory} -user ${USER}"
-[ "${verbose}" = "True" ] && echo "Fixing permissions on ${directory} ..."
-if [ "${test}" = "True" ]; then
+${verbose} && echo "Fixing permissions on ${directory} ..."
+if ${test}; then
     run ${verbose} "${findbase} -not -group ${desiGID} -ls"
     run ${verbose} "${findbase} -type f -not -perm /g+r -ls"
     run ${verbose} "${findbase} -type d -not -perm -g+rxs -ls"
@@ -101,7 +105,7 @@ else
     #
     # Instruct chgrp & chmod to only report files that change.
     #
-    [ "${verbose}" = "True" ] && vflag='-c'
+    ${verbose} && vflag='-c'
     # Change group.
     run ${verbose} "${findbase} -not -group ${desiGID} -exec chgrp ${vflag} -h ${desiGID} {} ;"
     # Set group read access.
