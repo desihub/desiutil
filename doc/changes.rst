@@ -5,9 +5,12 @@ Change Log
 3.0.1 (unreleased)
 ------------------
 
+* Update package list in :mod:`desiutil.install`;
+  enable parallel :command:`make` (PR `#143`_).
 * Protect against running :command:`fix_permissions.sh` in :envvar:`HOME`
   (PR `#142`_).
 
+.. _`#143`: https://github.com/desihub/desiutil/pull/143
 .. _`#142`: https://github.com/desihub/desiutil/pull/142
 
 3.0.0 (2020-04-15)

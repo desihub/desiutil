@@ -29,11 +29,9 @@ known_products = {
     'desidatamodel': 'https://github.com/desihub/desidatamodel',
     'desidithering': 'https://github.com/desihub/desidithering',
     'desietc': 'https://github.com/desihub/desietc',
-    'desici': 'https://github.com/desihub/desici',
     'desilamps': 'https://github.com/desihub/desilamps',
     'desimeter': 'https://github.com/desihub/desimeter',
     'desimodel': 'https://github.com/desihub/desimodel',
-    'desimodules': 'https://github.com/desihub/desimodules',
     'desisim': 'https://github.com/desihub/desisim',
     'desisim-testdata': 'https://github.com/desihub/desisim-testdata',
     'desispec': 'https://github.com/desihub/desispec',
@@ -49,6 +47,7 @@ known_products = {
     'gcr-catalogs': 'https://github.com/desihub/gcr-catalogs',
     'imaginglss': 'https://github.com/desihub/imaginglss',
     'nightwatch': 'https://github.com/desihub/nightwatch',
+    'prospect': 'https://github.com/desihub/prospect',
     'quicksurvey_example': 'https://github.com/desihub/quicksurvey_example',
     'redrock': 'https://github.com/desihub/redrock',
     'redrock-templates': 'https://github.com/desihub/redrock-templates',
@@ -58,17 +57,10 @@ known_products = {
     'surveysim': 'https://github.com/desihub/surveysim',
     'teststand': 'https://github.com/desihub/teststand',
     'tilepicker': 'https://github.com/desihub/tilepicker',
-    'two_percent_DESI': 'https://github.com/desihub/two_percent_DESI',
     'simqso': 'https://github.com/imcgreer/simqso',
-    'speclite': 'https://github.com/dkirkby/speclite',
-    'bbspecsim': 'https://desi.lbl.gov/svn/code/spectro/bbspecsim',
-    'desiAdmin': 'https://desi.lbl.gov/svn/code/tools/desiAdmin',
-    'dspecsim': 'https://desi.lbl.gov/svn/code/spectro/dspecsim',
-    'elg_deep2': 'https://desi.lbl.gov/svn/code/targeting/elg_deep2',
     'plate_layout': 'https://desi.lbl.gov/svn/code/focalplane/plate_layout',
     'positioner_control':
         'https://desi.lbl.gov/svn/code/focalplane/positioner_control',
-    'templates': 'https://desi.lbl.gov/svn/code/spectro/templates',
     }
 
 
