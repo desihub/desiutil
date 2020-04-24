@@ -31,6 +31,7 @@ known_products = {
     'desietc': 'https://github.com/desihub/desietc',
     'desici': 'https://github.com/desihub/desici',
     'desilamps': 'https://github.com/desihub/desilamps',
+    'desimeter': 'https://github.com/desihub/desimeter',
     'desimodel': 'https://github.com/desihub/desimodel',
     'desimodules': 'https://github.com/desihub/desimodules',
     'desisim': 'https://github.com/desihub/desisim',
@@ -47,6 +48,7 @@ known_products = {
     'fiberassign': 'https://github.com/desihub/fiberassign',
     'gcr-catalogs': 'https://github.com/desihub/gcr-catalogs',
     'imaginglss': 'https://github.com/desihub/imaginglss',
+    'nightwatch': 'https://github.com/desihub/nightwatch',
     'quicksurvey_example': 'https://github.com/desihub/quicksurvey_example',
     'redrock': 'https://github.com/desihub/redrock',
     'redrock-templates': 'https://github.com/desihub/redrock-templates',
@@ -845,7 +847,7 @@ class DesiInstall(object):
                 if 'src' in self.build_type:
                     command = ['make', '-C', 'src', 'all']
                 else:
-                    command = ['make', 'install']
+                    command = ['make', '-j', '8', 'install']
                 self.log.debug(' '.join(command))
                 if self.options.test:
                     self.log.debug("Test Mode.  Skipping 'make install'.")
