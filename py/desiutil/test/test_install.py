@@ -174,23 +174,23 @@ class TestInstall(unittest.TestCase):
         url = self.desiInstall.identify_branch()
         self.assertEqual(url,
                          'https://github.com/desihub/desiutil.git')
-        options = self.desiInstall.get_options(['desiAdmin', '1.0.0'])
+        options = self.desiInstall.get_options(['plate_layout', '1.0.0'])
         out = self.desiInstall.get_product_version()
         url = self.desiInstall.identify_branch()
         self.assertEqual(url,
-                         ('https://desi.lbl.gov/svn/code/tools/desiAdmin/' +
+                         ('https://desi.lbl.gov/svn/code/focalplane/plate_layout/' +
                           'tags/1.0.0'))
-        options = self.desiInstall.get_options(['desiAdmin', 'trunk'])
+        options = self.desiInstall.get_options(['plate_layout', 'trunk'])
         out = self.desiInstall.get_product_version()
         url = self.desiInstall.identify_branch()
         self.assertEqual(url,
-                         'https://desi.lbl.gov/svn/code/tools/desiAdmin/trunk')
-        options = self.desiInstall.get_options(['desiAdmin',
+                         'https://desi.lbl.gov/svn/code/focalplane/plate_layout/trunk')
+        options = self.desiInstall.get_options(['plate_layout',
                                                 'branches/testing'])
         out = self.desiInstall.get_product_version()
         url = self.desiInstall.identify_branch()
         self.assertEqual(url,
-                         ('https://desi.lbl.gov/svn/code/tools/desiAdmin/' +
+                         ('https://desi.lbl.gov/svn/code/focalplane/plate_layout/' +
                           'branches/testing'))
 
     def test_verify_url(self):
@@ -206,7 +206,7 @@ class TestInstall(unittest.TestCase):
         message = ("Error {0:d} querying GitHub URL: {1}.".format(
                    404, self.desiInstall.product_url))
         self.assertEqual(str(cm.exception), message)
-        options = self.desiInstall.get_options(['-v', 'desiAdmin', 'trunk'])
+        options = self.desiInstall.get_options(['-v', 'plate_layout', 'trunk'])
         out = self.desiInstall.get_product_version()
         url = self.desiInstall.identify_branch()
         self.desiInstall.verify_url(svn='echo')
