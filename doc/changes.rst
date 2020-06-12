@@ -2,7 +2,7 @@
 Change Log
 ==========
 
-3.0.1 (unreleased)
+3.0.1 (2020-06-12)
 ------------------
 
 * Start migrating to use :command:`pytest` to run tests instead of
