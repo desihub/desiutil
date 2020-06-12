@@ -37,10 +37,10 @@ env:
         # overidden underneath. They are defined here in order to save having
         # to repeat them for all configurations.
         - MAIN_CMD='python -m unittest'
+        - SETUP_CMD='discover -t py -v desiutil.test'
     matrix:
         # - SETUP_CMD='egg_info'
         # - SETUP_CMD='bdist_egg'
-        - SETUP_CMD='discover -t py -v desiutil.test'
 
 matrix:
     # Don't wait for allowed failures.
