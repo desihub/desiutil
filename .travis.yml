@@ -92,10 +92,11 @@ matrix:
 #     - python -c 'import setuptools; print(setuptools.__version__)'
 
 install:
+    - pip install -U pip
     - if [[ "${MAIN_CMD}" == pycodestyle ]]; then pip install pycodestyle; fi
     - if [[ "${MAIN_CMD}" == sphinx-build* ]]; then pip install Sphinx; fi
-    - if [[ "${SETUP_CMD}" == '--cov' ]]; then pip install pytest-cov coveralls; fi
     - if [[ "${MAIN_CMD}" == pytest ]]; then pip install -r requirements.txt; fi
+    - if [[ "${SETUP_CMD}" == '--cov' ]]; then pip install pytest-cov coveralls; fi
     # - if [[ "${MAIN_CMD}" == python* || "${MAIN_CMD}" == coverage* ]]; then pip install -r requirements.txt; fi
     - if [[ -n "${ASTROPY_VERSION}" ]]; then pip install -U "astropy${ASTROPY_VERSION}"; fi
 
@@ -103,4 +104,4 @@ script:
     - $MAIN_CMD $SETUP_CMD
 
 after_success:
-    - if [[ "${MAIN_CMD}" == coverage* ]]; then coveralls; fi
+    - if [[ "${SETUP_CMD}" == '--cov' ]]; then coveralls; fi
