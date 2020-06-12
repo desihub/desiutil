@@ -36,11 +36,11 @@ env:
         # The following versions are the 'default' for tests, unless
         # overidden underneath. They are defined here in order to save having
         # to repeat them for all configurations.
-        - MAIN_CMD='python setup.py'
+        - MAIN_CMD='python -m unittest'
     matrix:
-        - SETUP_CMD='egg_info'
-        - SETUP_CMD='bdist_egg'
-        - SETUP_CMD='test'
+        # - SETUP_CMD='egg_info'
+        # - SETUP_CMD='bdist_egg'
+        - SETUP_CMD='discover -t py -v desiutil.test'
 
 matrix:
     # Don't wait for allowed failures.
@@ -58,20 +58,20 @@ matrix:
         # runs for a long time
         - os: linux
           python: 3.6
-          env: SETUP_CMD='build_sphinx --warning-is-error'
+          env: MAIN_CMD='sphinx-build' SETUP_CMD='-W --keep-going -b html doc doc/_build/html'
 
         # Coverage test, pass the results to coveralls.
         - os: linux
           python: 3.6
-          env: MAIN_CMD='coverage' SETUP_CMD='run --source=desiutil setup.py test'
+          env: MAIN_CMD='coverage run -m unittest'
 
         - os: linux
           python: 3.6
-          env: SETUP_CMD='test' ASTROPY_VERSION='>=4.0'
+          env: ASTROPY_VERSION='>=4.0'
 
         - os: linux
           python: 3.6
-          env: SETUP_CMD='test' ASTROPY_VERSION='<4.0'
+          env: ASTROPY_VERSION='<4.0'
 
         # Experimental OS X test.
         # As of March 2017, Python builds on OS X are not available.
@@ -90,14 +90,14 @@ matrix:
 #     - python -c 'import setuptools; print(setuptools.__version__)'
 
 install:
-    - if [[ "${MAIN_CMD}" == 'pycodestyle' ]]; then pip install pycodestyle; fi
-    - if [[ "${SETUP_CMD}" == build_sphinx* ]]; then pip install Sphinx; fi
-    - if [[ "${MAIN_CMD}" == 'coverage' ]]; then pip install coverage coveralls; fi
-    - if [[ "${SETUP_CMD}" == 'test' || $MAIN_CMD == 'coverage' ]]; then pip install -r requirements.txt; fi
+    - if [[ "${MAIN_CMD}" == pycodestyle ]]; then pip install pycodestyle; fi
+    - if [[ "${MAIN_CMD}" == sphinx-build* ]]; then pip install Sphinx; fi
+    - if [[ "${MAIN_CMD}" == coverage* ]]; then pip install coverage coveralls; fi
+    - if [[ "${MAIN_CMD}" == python* || "${MAIN_CMD}" == coverage* ]]; then pip install -r requirements.txt; fi
     - if [[ -n "${ASTROPY_VERSION}" ]]; then pip install -U "astropy${ASTROPY_VERSION}"; fi
 
 script:
     - $MAIN_CMD $SETUP_CMD
 
 after_success:
-    - if [[ $MAIN_CMD == 'coverage' ]]; then coveralls; fi
+    - if [[ "${MAIN_CMD}" == coverage* ]]; then coveralls; fi
