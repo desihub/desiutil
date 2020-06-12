@@ -36,8 +36,10 @@ env:
         # The following versions are the 'default' for tests, unless
         # overidden underneath. They are defined here in order to save having
         # to repeat them for all configurations.
-        - MAIN_CMD='python -m unittest'
-        - SETUP_CMD='discover -t py -v desiutil.test'
+        - MAIN_CMD='pytest'
+        - SETUP_CMD=''
+        # - MAIN_CMD='python -m unittest'
+        # - SETUP_CMD='discover -t py -v desiutil.test'
     matrix:
         # - SETUP_CMD='egg_info'
         # - SETUP_CMD='bdist_egg'
@@ -63,7 +65,7 @@ matrix:
         # Coverage test, pass the results to coveralls.
         - os: linux
           python: 3.6
-          env: MAIN_CMD='coverage run -m unittest'
+          env: SETUP_CMD='--cov'
 
         - os: linux
           python: 3.6
@@ -92,8 +94,9 @@ matrix:
 install:
     - if [[ "${MAIN_CMD}" == pycodestyle ]]; then pip install pycodestyle; fi
     - if [[ "${MAIN_CMD}" == sphinx-build* ]]; then pip install Sphinx; fi
-    - if [[ "${MAIN_CMD}" == coverage* ]]; then pip install coverage coveralls; fi
-    - if [[ "${MAIN_CMD}" == python* || "${MAIN_CMD}" == coverage* ]]; then pip install -r requirements.txt; fi
+    - if [[ "${SETUP_CMD}" == '--cov' ]]; then pip install pytest-cov coveralls; fi
+    - if [[ "${MAIN_CMD}" == pytest ]]; then pip install -r requirements.txt; fi
+    # - if [[ "${MAIN_CMD}" == python* || "${MAIN_CMD}" == coverage* ]]; then pip install -r requirements.txt; fi
     - if [[ -n "${ASTROPY_VERSION}" ]]; then pip install -U "astropy${ASTROPY_VERSION}"; fi
 
 script:

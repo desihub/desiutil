@@ -13,7 +13,7 @@ from logging import getLogger
 from pkg_resources import resource_filename
 from ..log import DEBUG
 from ..install import DesiInstall, DesiInstallException, dependencies
-from .test_log import TestHandler
+from .test_log import NullMemoryHandler
 
 
 class TestInstall(unittest.TestCase):
@@ -37,7 +37,7 @@ class TestInstall(unittest.TestCase):
             h = root_logger.handlers[0]
             fmt = h.formatter
             root_logger.removeHandler(h)
-        mh = TestHandler()
+        mh = NullMemoryHandler()
         mh.setFormatter(fmt)
         root_logger.addHandler(mh)
         self.desiInstall.log.setLevel(DEBUG)
