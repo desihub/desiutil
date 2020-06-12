@@ -5,11 +5,14 @@ Change Log
 3.0.1 (unreleased)
 ------------------
 
+* Start migrating to use :command:`pytest` to run tests instead of
+  :command:`python setup.py test` (PR `#145`_).
 * Update package list in :mod:`desiutil.install`;
   enable parallel :command:`make` (PR `#143`_).
 * Protect against running :command:`fix_permissions.sh` in :envvar:`HOME`
   (PR `#142`_).
 
+.. _`#145`: https://github.com/desihub/desiutil/pull/145
 .. _`#143`: https://github.com/desihub/desiutil/pull/143
 .. _`#142`: https://github.com/desihub/desiutil/pull/142
 

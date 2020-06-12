@@ -14,7 +14,7 @@ from ..log import (DEBUG, INFO, WARNING, ERROR, CRITICAL,
                    _desiutil_log_root)
 
 
-class TestHandler(MemoryHandler):
+class NullMemoryHandler(MemoryHandler):
     """Capture log messages in memory.
     """
     def __init__(self, capacity=1000000, flushLevel=CRITICAL):
@@ -86,7 +86,7 @@ class TestLog(unittest.TestCase):
             h = root_logger.handlers[0]
             fmt = h.formatter
             root_logger.removeHandler(h)
-        mh = TestHandler()
+        mh = NullMemoryHandler()
         mh.setFormatter(fmt)
         root_logger.addHandler(mh)
         return logger
