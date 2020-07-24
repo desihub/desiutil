@@ -200,7 +200,7 @@ class TestInstall(unittest.TestCase):
         out = self.desiInstall.get_product_version()
         url = self.desiInstall.identify_branch()
         self.assertTrue(self.desiInstall.verify_url())
-        self.desiInstall.product_url = 'http://desi.lbl.gov/no/such/place'
+        self.desiInstall.product_url = 'https://desi.lbl.gov/no/such/place'
         with self.assertRaises(DesiInstallException) as cm:
             self.desiInstall.verify_url()
         message = ("Error {0:d} querying GitHub URL: {1}.".format(
