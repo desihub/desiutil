@@ -2,10 +2,19 @@
 Change Log
 ==========
 
-3.0.2 (unreleased)
+3.0.3 (unreleased)
 ------------------
 
 * No changes yet.
+
+3.0.2 (2020-07-31)
+------------------
+
+* Travis testing with old healpy and old astropy (PR `#149`_).
+* Use https to avoid redirect for data downloads (PR `#148`_).
+
+.. _`#149`: https://github.com/desihub/desiutil/pull/149
+.. _`#148`: https://github.com/desihub/desiutil/pull/148
 
 3.0.1 (2020-06-12)
 ------------------
