@@ -539,7 +539,7 @@ class DesiInstall(object):
             The DESI+Anaconda version.
         """
         try:
-            desiconda = os.environ['DESICONDA']
+            desiconda = os.path.normpath(os.environ['DESICONDA'])
         except KeyError:
             return 'current'
         try:
