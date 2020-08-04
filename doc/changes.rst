@@ -2,10 +2,18 @@
 Change Log
 ==========
 
-3.0.3 (unreleased)
+3.0.4 (unreleased)
 ------------------
 
 * No changes yet.
+
+3.0.3 (2020-08-04)
+------------------
+
+* Improve installation robustness when parsing DESICONDA envvar;
+  fix py3.8 SyntaxWarnings about "is not" usage (PR `#150`_).
+
+.. _`#150`: https://github.com/desihub/desiutil/pull/150
 
 3.0.2 (2020-07-31)
 ------------------
