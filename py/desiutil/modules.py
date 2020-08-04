@@ -51,7 +51,7 @@ def init_modules(moduleshome=None, method=False, command=False):
             with open(dot_modulespath, 'r') as f:
                 for line in f.readlines():
                     line = re.sub("#.*$", '', line.strip())
-                    if line is not '':
+                    if line != '':
                         path.append(line)
             os.environ['MODULEPATH'] = ':'.join(path)
         modulerc = os.path.join(moduleshome, 'init', 'modulerc')
@@ -60,7 +60,7 @@ def init_modules(moduleshome=None, method=False, command=False):
             with open(modulerc, 'r') as f:
                 for line in f.readlines():
                     line = re.sub("#.*$", '', line.strip())
-                    if line is not '' and line.startswith('module use'):
+                    if line != '' and line.startswith('module use'):
                         p = os.path.expanduser(line.replace('module use ', '').strip())
                         path.append(p)
             os.environ['MODULEPATH'] = ':'.join(path)
