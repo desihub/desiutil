@@ -55,3 +55,6 @@ desiutil API
 
 .. automodule:: desiutil.svn
     :members:
+
+.. automodule:: desiutil.timer
+    :members:

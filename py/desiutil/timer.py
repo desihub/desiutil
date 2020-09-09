@@ -1,5 +1,11 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+# -*- coding: utf-8 -*-
 """
-timer: standardizing reporting of algorithm and I/O timing
+==============
+desiutil.timer
+==============
+
+Provides `Timer` class to standardize reporting of algorithm and I/O timing.
 
 The `timer.Timer` class is intended for reporting timing of events that
 take seconds to minutes; it is not intended for detailed profiling.  Example::
@@ -66,7 +72,7 @@ class Timer(object):
         return f"TIMER-{step}:{filename}:{caller.lineno}:{caller.name}:"
     
     def start(self, name):
-        """Start a timer `name` (str)"""
+        """Start a timer `name` (str); prints TIMER-START message"""
         # timestamp = datetime.datetime.now().replace(microsecond=0).isoformat()        
         timestamp = datetime.datetime.now().isoformat()        
         if name in self.timers:
@@ -76,7 +82,7 @@ class Timer(object):
         self.timers[name] = dict(start=time.time())
     
     def stop(self, name):
-        """Stop timer `name` (str)"""
+        """Stop timer `name` (str); prints TIMER-STOP message"""
         #- non-fatal ERROR: trying to stop a timer that wasn't started
         timestamp = datetime.datetime.now().isoformat()        
         if name not in self.timers:
@@ -96,6 +102,21 @@ class Timer(object):
 
     @contextmanager
     def time(self, name):
+        """Context manager for timing a code snippet.
+
+        Usage::
+
+            t = Timer()
+            with t.time('blat'):
+                blat()
+
+        is equivalent to::
+
+            t = Timer()
+            t.start('blat')
+            blat()
+            t.stop('blat')
+        """
         self.start(name)
         try:
             yield
