@@ -5,7 +5,9 @@ Change Log
 3.0.4 (unreleased)
 ------------------
 
-* No changes yet.
+* Add `Timer` class to standardize timing reports (PR `#151`_).
+
+.. _`#151`: https://github.com/desihub/desiutil/pull/151
 
 3.0.3 (2020-08-04)
 ------------------
