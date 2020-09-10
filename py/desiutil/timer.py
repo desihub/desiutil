@@ -102,16 +102,13 @@ class Timer(object):
         If `name` is started multiple times, the last call to `.start` is used
         for the timestamp.
         """
-        # timestamp = datetime.datetime.now().replace(microsecond=0).isoformat()        
-        timestamp = datetime.datetime.now().isoformat()        
+        t0 = time.time()
+        isotime = datetime.datetime.fromtimestamp(t0).isoformat()
         if name in self.timers:
-            print(self._prefix('WARNING'), f'Restarting {name} at {timestamp}')
+            print(self._prefix('WARNING'), f'Restarting {name} at {isotime}')
         
-        print(self._prefix('START'), f'Starting {name} at {timestamp}')
-        # import desiutil.log
-        # log = desiutil.log.get_logger()
-        # log.info(f'Starting {name} at {timestamp}')
-        self.timers[name] = dict(start=time.time())
+        print(self._prefix('START'), f'Starting {name} at {isotime}')
+        self.timers[name] = dict(start=t0)
     
     def stop(self, name):
         """Stop timer `name` (str); prints TIMER-STOP message
@@ -129,24 +126,28 @@ class Timer(object):
         are timestamped as the last call to `Timer.stop`.
         """
         #- non-fatal ERROR: trying to stop a timer that wasn't started
-        timestamp = datetime.datetime.now().isoformat()        
+        t1 = time.time()
+        isotime = datetime.datetime.fromtimestamp(t1).isoformat()
         if name not in self.timers:
-            print(self._prefix('ERROR'), f'Tried to stop non-existent timer {name} at {timestamp}')
+            print(self._prefix('ERROR'), f'Tried to stop non-existent timer {name} at {isotime}')
             return -1.0
 
         #- WARNING: resetting the stop time of a timer that was already stopped
         if 'stop' in self.timers[name]:
-            print(self._prefix('WARNING'), f'Resetting stop time of {name} at {timestamp}')
+            print(self._prefix('WARNING'), f'Resetting stop time of {name} at {isotime}')
         
         #- All clear; proceed
-        self.timers[name]['stop'] = time.time()
+        self.timers[name]['stop'] = t1
         dt = self.timers[name]['stop'] - self.timers[name]['start']
         self.timers[name]['duration'] = dt
-        print(self._prefix('STOP'), f'Stopping {name} at {timestamp}; duration {dt:.2f} seconds')
-        # import desiutil.log
-        # log = desiutil.log.get_logger()
-        # log.info(f'Stopping {name} at {timestamp}; duration {dt:.2f} seconds')
+        print(self._prefix('STOP'), f'Stopping {name} at {isotime}; duration {dt:.2f} seconds')
         return dt
+
+    def stopall(self):
+        """Stop any timers that have not yet been individually stopped"""
+        for name in self.timers:
+            if 'stop' not in self.timers[name]:
+                self.stop(name)
 
     @contextmanager
     def time(self, name):
@@ -181,8 +182,8 @@ class Timer(object):
         for name in t:
             for key in ['start', 'stop']:
                 if key in t[name]:
-                    iso8601 = datetime.datetime.fromtimestamp(t[name][key]).isoformat()
-                    t[name][key] = iso8601
+                    isotime = datetime.datetime.fromtimestamp(t[name][key]).isoformat()
+                    t[name][key] = isotime
 
         return t
 
@@ -196,9 +197,7 @@ class Timer(object):
         seconds elapsed since the epoch (1970-01-01T00:00:00 UTC on Unix).
         """
         #- First stop any running timers
-        for name in self.timers:
-            if 'stop' not in self.timers[name]:
-                self.stop(name)
+        self.stopall()
 
         #- Get copy of self.timers converted to ISO-8601
         t = self.timer_seconds2iso8601()

@@ -46,6 +46,23 @@ class TestTimer(unittest.TestCase):
 
         self.assertAlmostEqual(t0, t1, 1)
 
+    def test_stopall(self):
+        """Test stopping a batch of timers"""
+
+        t = Timer()
+        t.start('blat')
+        t.start('foo')
+        t.start('bar')
+
+        t.stop('blat')
+        self.assertIn('stop', t.timers['blat'].keys())
+        self.assertNotIn('stop', t.timers['foo'].keys())
+        self.assertNotIn('stop', t.timers['bar'].keys())
+
+        t.stopall()
+        self.assertIn('stop', t.timers['blat'].keys())
+        self.assertIn('stop', t.timers['foo'].keys())
+        self.assertIn('stop', t.timers['bar'].keys())
 
     def test_timer_misuse(self):
         """Mis-use of timer should not be fatal"""
