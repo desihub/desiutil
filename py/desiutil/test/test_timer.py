@@ -125,7 +125,12 @@ class TestTimer(unittest.TestCase):
 
     @unittest.skipUnless(dateutil_installed, "dateutil not installed")
     def test_parsetime_dateutil(self):
-        """If dateutil installed, test fancy date string parsing"""
+        """If dateutil installed, test ISO-8601 date string parsing
+
+        Fancier "Tue Sep 22 13:42:26 PDT 2020" parsing may or may not
+        work depending upon timezone knowledge of host machine; not
+        tested or supported for now, but may be re-added later if needed.
+        """
         # t0 = parsetime("Tue Sep 22 13:42:26 PDT 2020")
         # self.assertAlmostEqual(t0, 1600807346.0)
         t1 = parsetime("2020-09-22T13:42:26-07:00")

@@ -186,10 +186,10 @@ class Timer(object):
         isotime = datetime.datetime.fromtimestamp(t1).isoformat()
         if name in self.timers:
             dt = t1 - self.timers[name]['start']
-            print(self._prefix('CANCEL'), f'Canceling timer {name} at {isotime} after {dt:.2f} seconds')
+            self._print('CANCEL', f'Canceling timer {name} at {isotime} after {dt:.2f} seconds')
             del self.timers[name]
         else:
-            print(self._prefix('WARNING'), f'Attempt to cancel non-existent timer {name} at {isotime}')
+            self._print('WARNING', f'Attempt to cancel non-existent timer {name} at {isotime}')
 
     @contextmanager
     def time(self, name):
