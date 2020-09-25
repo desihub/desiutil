@@ -284,14 +284,9 @@ def parsetime(t):
             try:
                 t = dateutil.parser.parse(t).timestamp()
             except:
-                try:
-                    #- Travis CI doesn't know about US timezones...
-                    tzinfos = {"PST": -8*3600, "PDT": -7*3600, "MST":-7*3600, "MDT":-6*3600}
-                    t = dateutil.parser.parse(t, tzinfos=tzinfos).timestamp()
-                except:
-                    raise ValueError(f"Can't parse start time {t}; " \
-                                      "use int/float or ISO-8601 or " \
-                                      "Unix `date` output")
+                raise ValueError(f"Can't parse start time {t}; " \
+                                  "use int/float or ISO-8601 or " \
+                                  "Unix `date +%s` output")
 
     return t
 
