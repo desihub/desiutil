@@ -112,24 +112,24 @@ class TestTimer(unittest.TestCase):
         t1 = parsetime(1600807346.0)
         t2 = parsetime("1600807346")
         t3 = parsetime("1600807346.0")
-        self.assertEqual(t0, 1600807346.0)
-        self.assertEqual(t0, t1)
-        self.assertEqual(t0, t2)
-        self.assertEqual(t0, t3)
+        self.assertAlmostEqual(t0, 1600807346.0)
+        self.assertAlmostEqual(t0, t1)
+        self.assertAlmostEqual(t0, t2)
+        self.assertAlmostEqual(t0, t3)
 
         timer = Timer()
         timer.start('blat', starttime=1600807346)
         timer.stop('blat', stoptime=1600807346+2)
-        self.assertEqual(timer.timers['blat']['start'], 1600807346.0)
-        self.assertEqual(timer.timers['blat']['duration'], 2)
+        self.assertAlmostEqual(timer.timers['blat']['start'], 1600807346.0)
+        self.assertAlmostEqual(timer.timers['blat']['duration'], 2)
 
     @unittest.skipUnless(dateutil_installed, "dateutil not installed")
     def test_parsetime_dateutil(self):
         """If dateutil installed, test fancy date string parsing"""
         t0 = parsetime("Tue Sep 22 13:42:26 PDT 2020")
         t1 = parsetime("2020-09-22T13:42:26-07:00")
-        self.assertEqual(t0, t1)
-        self.assertEqual(t0, 1600807346.0)
+        self.assertAlmostEqual(t0, t1)
+        self.assertAlmostEqual(t0, 1600807346.0)
 
         with self.assertRaises(ValueError):
             t2 = parsetime("My Birthday")
