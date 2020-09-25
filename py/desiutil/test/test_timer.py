@@ -5,7 +5,7 @@
 import unittest
 import json
 import time
-from ..timer import Timer, compute_stats
+from ..timer import Timer, compute_stats, parsetime
 
 dateutil_installed = False
 try:
@@ -53,6 +53,20 @@ class TestTimer(unittest.TestCase):
 
         self.assertAlmostEqual(t0, t1, 1)
 
+    def test_cancel(self):
+        """Test canceling a timer"""
+        t = Timer()
+        t.start('blat')
+        t.start('foo')
+        self.assertIn('blat', t.timers)
+        self.assertIn('foo', t.timers)
+        t.cancel('foo')
+        self.assertIn('blat', t.timers)
+        self.assertNotIn('foo', t.timers)
+
+        #- Non-fatal to cancel a non-existent timer
+        t.cancel('quat')
+
     def test_stopall(self):
         """Test stopping a batch of timers"""
 
@@ -94,16 +108,16 @@ class TestTimer(unittest.TestCase):
 
     def test_parsetime(self):
         """Test parsing timestamps as int, float, or string"""
-        timer = Timer()
-        t0 = timer._parsetime(1600807346)
-        t1 = timer._parsetime(1600807346.0)
-        t2 = timer._parsetime("1600807346")
-        t3 = timer._parsetime("1600807346.0")
+        t0 = parsetime(1600807346)
+        t1 = parsetime(1600807346.0)
+        t2 = parsetime("1600807346")
+        t3 = parsetime("1600807346.0")
         self.assertEqual(t0, 1600807346.0)
         self.assertEqual(t0, t1)
         self.assertEqual(t0, t2)
         self.assertEqual(t0, t3)
 
+        timer = Timer()
         timer.start('blat', starttime=1600807346)
         timer.stop('blat', stoptime=1600807346+2)
         self.assertEqual(timer.timers['blat']['start'], 1600807346.0)
@@ -112,23 +126,21 @@ class TestTimer(unittest.TestCase):
     @unittest.skipUnless(dateutil_installed, "dateutil not installed")
     def test_parsetime_dateutil(self):
         """If dateutil installed, test fancy date string parsing"""
-        timer = Timer()
-        t0 = timer._parsetime("Tue Sep 22 13:42:26 PDT 2020")
-        t1 = timer._parsetime("2020-09-22T13:42:26-07:00")
+        t0 = parsetime("Tue Sep 22 13:42:26 PDT 2020")
+        t1 = parsetime("2020-09-22T13:42:26-07:00")
         self.assertEqual(t0, t1)
         self.assertEqual(t0, 1600807346.0)
 
         with self.assertRaises(ValueError):
-            t2 = timer._parsetime("My Birthday")
+            t2 = parsetime("My Birthday")
 
     @unittest.skipIf(dateutil_installed, "dateutil installed")
     def test_parsetime_no_dateutil(self):
         """If dateutil not installed, confirm failure modes"""
-        timer = Timer()
         with unittest.assertRaises(ValueError):
-            t0 = timer._parsetime("Tue Sep 22 13:42:26 PDT 2020")
+            t0 = parsetime("Tue Sep 22 13:42:26 PDT 2020")
         with unittest.assertRaises(ValueError):
-            t1 = timer._parsetime("2020-09-22T13:42:26-07:00")
+            t1 = parsetime("2020-09-22T13:42:26-07:00")
 
     def test_stats(self):
         """Test generating summary statistics for a list of Timers"""

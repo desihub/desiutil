@@ -96,7 +96,7 @@ class Timer(object):
         filename = os.path.basename(caller.filename)
         return f"TIMER-{step}:{filename}:{caller.lineno}:{caller.name}:"
 
-    def print(self, level, message):
+    def _print(self, level, message):
         """Print message with timing level prefix if not `self.silent`
 
         Args:
@@ -106,40 +106,6 @@ class Timer(object):
         if not self.silent:
             print(self._prefix(level), message)
 
-    def _parsetime(self, t):
-        """Parse time as int,float,str(int),str(float),ISO-8601, or Unix `date`
-
-        If `t` is None, return `time.time()`
-
-        Returns `t` as float Unix seconds since epoch timestamp
-        """
-        if t is None:
-            return time.time()
-        elif isinstance(t, (float, int)):
-            return float(t)
-        elif isinstance(t, str):
-            try:
-                #- int or float passed in as string
-                t = float(t)
-            except ValueError:
-                #- see if dateutil is installed to parse
-                #- ISO-8601 string, or output of Unix `date` without options
-                try:
-                    import dateutil.parser
-                except ImportError:
-                    raise ValueError(f"Can't parse start time {t}; " \
-                                      "install dateutil or use int/float " \
-                                      "(e.g. from Unix `date +%s`")
-
-                try:
-                    t = dateutil.parser.parse(t).timestamp()
-                except:
-                    raise ValueError(f"Can't parse start time {t}; " \
-                                      "use int/float or ISO-8601 or " \
-                                      "Unix `date` output")
-
-        return t
-    
     def start(self, name, starttime=None):
         """Start a timer `name` (str); prints TIMER-START message
 
@@ -158,12 +124,12 @@ class Timer(object):
             2. (str) ISO-8601
             3. (str) Unix `date` cmd, e.g. "Mon Sep 21 20:09:48 PDT 2020"
         """
-        starttime = self._parsetime(starttime)
+        starttime = parsetime(starttime)
         isotime = datetime.datetime.fromtimestamp(starttime).isoformat()
         if name in self.timers:
-            self.print('WARNING', f'Restarting {name} at {isotime}')
+            self._print('WARNING', f'Restarting {name} at {isotime}')
         
-        self.print('START', f'Starting {name} at {isotime}')
+        self._print('START', f'Starting {name} at {isotime}')
         self.timers[name] = dict(start=starttime)
     
     def stop(self, name, stoptime=None):
@@ -191,21 +157,21 @@ class Timer(object):
             3. (str) Unix `date` cmd, e.g. "Mon Sep 21 20:09:48 PDT 2020"
         """
         #- non-fatal ERROR: trying to stop a timer that wasn't started
-        stoptime = self._parsetime(stoptime)
+        stoptime = parsetime(stoptime)
         isotime = datetime.datetime.fromtimestamp(stoptime).isoformat()
         if name not in self.timers:
-            self.print('ERROR', f'Tried to stop non-existent timer {name} at {isotime}')
+            self._print('ERROR', f'Tried to stop non-existent timer {name} at {isotime}')
             return -1.0
 
         #- WARNING: resetting the stop time of a timer that was already stopped
         if 'stop' in self.timers[name]:
-            self.print('WARNING', f'Resetting stop time of {name} at {isotime}')
+            self._print('WARNING', f'Resetting stop time of {name} at {isotime}')
         
         #- All clear; proceed
         self.timers[name]['stop'] = stoptime
         dt = self.timers[name]['stop'] - self.timers[name]['start']
         self.timers[name]['duration'] = dt
-        self.print('STOP', f'Stopping {name} at {isotime}; duration {dt:.2f} seconds')
+        self._print('STOP', f'Stopping {name} at {isotime}; duration {dt:.2f} seconds')
         return dt
 
     def stopall(self):
@@ -213,6 +179,17 @@ class Timer(object):
         for name in self.timers:
             if 'stop' not in self.timers[name]:
                 self.stop(name)
+
+    def cancel(self, name):
+        """Cancel timer `name` and remove from timing log"""
+        t1 = time.time()
+        isotime = datetime.datetime.fromtimestamp(t1).isoformat()
+        if name in self.timers:
+            dt = t1 - self.timers[name]['start']
+            print(self._prefix('CANCEL'), f'Canceling timer {name} at {isotime} after {dt:.2f} seconds')
+            del self.timers[name]
+        else:
+            print(self._prefix('WARNING'), f'Attempt to cancel non-existent timer {name} at {isotime}')
 
     @contextmanager
     def time(self, name):
@@ -278,6 +255,40 @@ def timestamp2isotime(timestamp):
     """Return seconds since epoch `timestamp` as ISO-8601 string
     """
     return datetime.datetime.fromtimestamp(timestamp).isoformat()
+
+def parsetime(t):
+    """Parse time as int,float,str(int),str(float),ISO-8601, or Unix `date`
+
+    If `t` is None, return `time.time()`
+
+    Returns `t` as float Unix seconds since epoch timestamp
+    """
+    if t is None:
+        return time.time()
+    elif isinstance(t, (float, int)):
+        return float(t)
+    elif isinstance(t, str):
+        try:
+            #- int or float passed in as string
+            t = float(t)
+        except ValueError:
+            #- see if dateutil is installed to parse
+            #- ISO-8601 string, or output of Unix `date` without options
+            try:
+                import dateutil.parser
+            except ImportError:
+                raise ValueError(f"Can't parse start time {t}; " \
+                                  "install dateutil or use int/float " \
+                                  "(e.g. from Unix `date +%s`")
+
+            try:
+                t = dateutil.parser.parse(t).timestamp()
+            except:
+                raise ValueError(f"Can't parse start time {t}; " \
+                                  "use int/float or ISO-8601 or " \
+                                  "Unix `date` output")
+
+    return t
 
 def compute_stats(timerlist):
     """Compute timer min/max/mean/median stats
