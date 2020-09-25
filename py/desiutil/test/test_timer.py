@@ -5,7 +5,14 @@
 import unittest
 import json
 import time
-from ..timer import Timer
+from ..timer import Timer, compute_stats
+
+dateutil_installed = False
+try:
+    import dateutil
+    dateutil_installed = True
+except ImportError:
+    pass
 
 class TestTimer(unittest.TestCase):
     """Test desiutil.timer
@@ -85,6 +92,82 @@ class TestTimer(unittest.TestCase):
         timing_report = t.report()
         self.assertIn('stop', t.timers['blat'].keys())
 
+    def test_parsetime(self):
+        """Test parsing timestamps as int, float, or string"""
+        timer = Timer()
+        t0 = timer._parsetime(1600807346)
+        t1 = timer._parsetime(1600807346.0)
+        t2 = timer._parsetime("1600807346")
+        t3 = timer._parsetime("1600807346.0")
+        self.assertEqual(t0, 1600807346.0)
+        self.assertEqual(t0, t1)
+        self.assertEqual(t0, t2)
+        self.assertEqual(t0, t3)
+
+        timer.start('blat', starttime=1600807346)
+        timer.stop('blat', stoptime=1600807346+2)
+        self.assertEqual(timer.timers['blat']['start'], 1600807346.0)
+        self.assertEqual(timer.timers['blat']['duration'], 2)
+
+    @unittest.skipUnless(dateutil_installed, "dateutil not installed")
+    def test_parsetime_dateutil(self):
+        """If dateutil installed, test fancy date string parsing"""
+        timer = Timer()
+        t0 = timer._parsetime("Tue Sep 22 13:42:26 PDT 2020")
+        t1 = timer._parsetime("2020-09-22T13:42:26-07:00")
+        self.assertEqual(t0, t1)
+        self.assertEqual(t0, 1600807346.0)
+
+        with self.assertRaises(ValueError):
+            t2 = timer._parsetime("My Birthday")
+
+    @unittest.skipIf(dateutil_installed, "dateutil installed")
+    def test_parsetime_no_dateutil(self):
+        """If dateutil not installed, confirm failure modes"""
+        timer = Timer()
+        with unittest.assertRaises(ValueError):
+            t0 = timer._parsetime("Tue Sep 22 13:42:26 PDT 2020")
+        with unittest.assertRaises(ValueError):
+            t1 = timer._parsetime("2020-09-22T13:42:26-07:00")
+
+    def test_stats(self):
+        """Test generating summary statistics for a list of Timers"""
+        t1 = Timer()
+        t2 = Timer()
+        t3 = Timer()
+
+        t1.start('blat')
+        time.sleep(0.01)
+        t2.start('blat')
+        time.sleep(0.01)
+        t3.start('blat')
+        time.sleep(0.01)
+
+        t1.start('foo')
+        time.sleep(0.01)
+        t2.start('foo')
+        time.sleep(0.01)
+
+        t2.start('bar')
+        time.sleep(0.01)
+        t3.start('bar')
+        time.sleep(0.01)
+
+        t1.stopall()
+        t2.stopall()
+        t3.stopall()
+
+        stats = compute_stats([t1,t2,t3])
+
+        self.assertEqual(stats['blat']['n'], 3)
+        self.assertEqual(stats['foo']['n'], 2)
+        self.assertEqual(stats['bar']['n'], 2)
+
+        for name, s in stats.items():
+            for key in ['start', 'stop', 'duration']:
+                self.assertLess(s[f'{key}.min'], s[f'{key}.mean'])
+                self.assertLess(s[f'{key}.min'], s[f'{key}.median'])
+                self.assertLess(s[f'{key}.mean'], s[f'{key}.max'])
 
 def test_suite():
     """Allows testing of only this module with the command::
