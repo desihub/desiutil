@@ -212,8 +212,6 @@ def stdouterr_redirected(to=None, comm=None):
 
     _close_redirect(file)
 
-    print("redirect DONE", flush=True)
-
     if comm is not None:
         # Concatenate per-process files if we have multiple processes.
         comm.barrier()
