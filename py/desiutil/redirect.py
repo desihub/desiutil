@@ -25,21 +25,30 @@ from .log import get_logger, _desiutil_log_root
 # C file descriptors for stderr and stdout, used in redirection
 # context manager.
 
-libc = ctypes.CDLL(None)
-c_stdout = None
-c_stderr = None
-try:
-    # Linux systems
-    c_stdout = ctypes.c_void_p.in_dll(libc, 'stdout')
-    c_stderr = ctypes.c_void_p.in_dll(libc, 'stderr')
-except:
-    try:
-        # Darwin
-        c_stdout = ctypes.c_void_p.in_dll(libc, '__stdoutp')
-        c_stderr = ctypes.c_void_p.in_dll(libc, '__stdoutp')
-    except:
-        # Neither!
-        pass
+_libc = None
+_c_stdout = None
+_c_stderr = None
+
+def get_libc():
+    """Helper function to import libc once."""
+    global _libc
+    global _c_stdout
+    global _c_stderr
+    if _libc is None:
+        _libc = ctypes.CDLL(None)
+        try:
+            # Linux systems
+            _c_stdout = ctypes.c_void_p.in_dll(_libc, 'stdout')
+            _c_stderr = ctypes.c_void_p.in_dll(_libc, 'stderr')
+        except:
+            try:
+                # Darwin
+                _c_stdout = ctypes.c_void_p.in_dll(_libc, '__stdoutp')
+                _c_stderr = ctypes.c_void_p.in_dll(_libc, '__stdoutp')
+            except:
+                # Neither!
+                pass
+    return (_libc, _c_stdout, _c_stderr)
 
 @contextmanager
 def stdouterr_redirected(to=None, comm=None):
@@ -62,6 +71,8 @@ def stdouterr_redirected(to=None, comm=None):
         comm (mpi4py.MPI.Comm): The optional MPI communicator.
 
     """
+    libc, c_stdout, c_stderr = get_libc()
+
     nproc = 1
     rank = 0
     MPI = None
@@ -158,7 +169,7 @@ def stdouterr_redirected(to=None, comm=None):
 
     if rank == 0:
         log = get_logger()
-        log.info("Begin log redirection to {} at {}".format(to, time.asctime()))
+        log.info("Begin log redirection to %s at %s", to, time.asctime())
 
     # Try to open the redirected file.
 
@@ -173,7 +184,7 @@ def stdouterr_redirected(to=None, comm=None):
     except:
         log = get_logger()
         log.error(
-            "Failed to open redirection file %s at %s", pto, time.asctime())
+            "Failed to open redirection file %s at %s", pto, time.asctime()
         )
         fail_open = 1
 
@@ -185,7 +196,7 @@ def stdouterr_redirected(to=None, comm=None):
         if rank == 0:
             log = get_logger()
             log.error(
-                "Failed to start redirect to %s at %s", to, time.asctime())
+                "Failed to start redirect to %s at %s", to, time.asctime()
             )
 
         _close_redirect(file)
@@ -229,7 +240,7 @@ def stdouterr_redirected(to=None, comm=None):
 
     if rank == 0:
         log = get_logger()
-        log.info("End log redirection to %s at %s", to, time.asctime()))
+        log.info("End log redirection to %s at %s", to, time.asctime())
 
     # flush python handles for good measure
     sys.stdout.flush()
