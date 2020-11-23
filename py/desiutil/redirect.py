@@ -173,7 +173,7 @@ def stdouterr_redirected(to=None, comm=None):
     except:
         log = get_logger()
         log.error(
-            "Failed to open redirection file {} at {}".format(pto, time.asctime())
+            "Failed to open redirection file %s at %s", pto, time.asctime())
         )
         fail_open = 1
 
@@ -185,7 +185,7 @@ def stdouterr_redirected(to=None, comm=None):
         if rank == 0:
             log = get_logger()
             log.error(
-                "Failed to start redirect to {} at {}".format(to, time.asctime())
+                "Failed to start redirect to %s at %s", to, time.asctime())
             )
 
         _close_redirect(file)
@@ -229,7 +229,7 @@ def stdouterr_redirected(to=None, comm=None):
 
     if rank == 0:
         log = get_logger()
-        log.info("End log redirection to {} at {}".format(to, time.asctime()))
+        log.info("End log redirection to %s at %s", to, time.asctime()))
 
     # flush python handles for good measure
     sys.stdout.flush()
