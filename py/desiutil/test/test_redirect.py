@@ -13,6 +13,7 @@ import os
 import re
 import unittest
 import tempfile
+import shutil
 
 import subprocess as sp
 
@@ -73,6 +74,10 @@ class TestRedirect(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.test_dir = tempfile.mkdtemp()
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(cls.test_dir)
 
     def setUp(self):
         self.test_serial_script = os.path.join(self.test_dir, "run_serial.py")
