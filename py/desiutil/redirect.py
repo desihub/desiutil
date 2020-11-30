@@ -40,12 +40,12 @@ def get_libc():
             # Linux systems
             _c_stdout = ctypes.c_void_p.in_dll(_libc, 'stdout')
             _c_stderr = ctypes.c_void_p.in_dll(_libc, 'stderr')
-        except:
+        except ValueError:
             try:
                 # Darwin
                 _c_stdout = ctypes.c_void_p.in_dll(_libc, '__stdoutp')
                 _c_stderr = ctypes.c_void_p.in_dll(_libc, '__stdoutp')
-            except:
+            except ValueError:
                 # Neither!
                 pass
     return (_libc, _c_stdout, _c_stderr)
