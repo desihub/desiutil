@@ -5,15 +5,17 @@ Change Log
 3.0.4 (unreleased)
 ------------------
 
-* Add `Timer` class to standardize timing reports (PRs `#151`_, `#152`_).
+* Add :class:`~desiutil.timer.Timer` class to standardize timing reports (PRs `#151`_, `#152`_).
+* Add :mod:`~desiutil.redirect` for utilites related to redirecting STDOUT (PR `#153`_).
 
 .. _`#151`: https://github.com/desihub/desiutil/pull/151
 .. _`#152`: https://github.com/desihub/desiutil/pull/152
+.. _`#153`: https://github.com/desihub/desiutil/pull/153
 
 3.0.3 (2020-08-04)
 ------------------
 
-* Improve installation robustness when parsing DESICONDA envvar;
+* Improve installation robustness when parsing :envvar:`DESICONDA` environment variable;
   fix py3.8 SyntaxWarnings about "is not" usage (PR `#150`_).
 
 .. _`#150`: https://github.com/desihub/desiutil/pull/150
