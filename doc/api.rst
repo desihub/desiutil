@@ -44,6 +44,9 @@ desiutil API
 .. automodule:: desiutil.plots
     :members:
 
+.. automodule:: desiutil.redirect
+    :members:
+
 .. automodule:: desiutil.setup
     :members:
 
