@@ -17,6 +17,9 @@ import shutil
 
 import subprocess as sp
 
+# This test requires desiutil to be installed for spawned scripts;
+# skip if we are doing a test prior to a full installation.
+not_installed = bool(sp.call(['python', '-c', 'import desiutil.redirect']))
 
 test_serial_source = """
 import sys
@@ -112,6 +115,7 @@ class TestRedirect(unittest.TestCase):
                 check_num = int(line_str.split()[0])
                 self.assertTrue(line_num == check_num)
 
+    @unittest.skipIf(not_installed, "stdout redirection tests require desiutil to be installed first")
     def test_serial(self):
         outfile = os.path.join(self.test_dir, "redirect_serial.log")
         com = ["python", self.test_serial_script, outfile, "0"]
@@ -120,6 +124,7 @@ class TestRedirect(unittest.TestCase):
         ).stdout
         self.check_serial(outfile)
 
+    @unittest.skipIf(not_installed, "stdout redirection tests require desiutil to be installed first")
     def test_serial_error(self):
         outfile = os.path.join(self.test_dir, "redirect_serial_error.log")
         com = ["python", self.test_serial_script, outfile, "1"]
