@@ -73,7 +73,7 @@ def stdouterr_redirected(to=None, comm=None):
         comm (mpi4py.MPI.Comm): The optional MPI communicator.
 
     """
-    libc, c_stdout, c_stderr = get_libc()
+    libc, c_stdout, c_stderr = _get_libc()
 
     nproc = 1
     rank = 0
@@ -166,7 +166,7 @@ def stdouterr_redirected(to=None, comm=None):
         to = "/dev/null"
 
     if rank == 0:
-        log = get_logger()
+        log = get_logger(timestamp=True)
         log.info("Begin log redirection to %s", to)
 
     # Try to open the redirected file.
@@ -233,7 +233,7 @@ def stdouterr_redirected(to=None, comm=None):
         comm.barrier()
 
     if rank == 0:
-        log = get_logger()
+        log = get_logger(timestamp=True)
         log.info("End log redirection to %s", to)
 
     # flush python handles for good measure
