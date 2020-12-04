@@ -29,7 +29,8 @@ _libc = None
 _c_stdout = None
 _c_stderr = None
 
-def get_libc():
+
+def _get_libc():
     """Helper function to import libc once."""
     global _libc
     global _c_stdout
@@ -38,17 +39,18 @@ def get_libc():
         _libc = ctypes.CDLL(None)
         try:
             # Linux systems
-            _c_stdout = ctypes.c_void_p.in_dll(_libc, 'stdout')
-            _c_stderr = ctypes.c_void_p.in_dll(_libc, 'stderr')
+            _c_stdout = ctypes.c_void_p.in_dll(_libc, "stdout")
+            _c_stderr = ctypes.c_void_p.in_dll(_libc, "stderr")
         except ValueError:
             try:
                 # Darwin
-                _c_stdout = ctypes.c_void_p.in_dll(_libc, '__stdoutp')
-                _c_stderr = ctypes.c_void_p.in_dll(_libc, '__stdoutp')
+                _c_stdout = ctypes.c_void_p.in_dll(_libc, "__stdoutp")
+                _c_stderr = ctypes.c_void_p.in_dll(_libc, "__stderrp")
             except ValueError:
                 # Neither!
                 pass
     return (_libc, _c_stdout, _c_stderr)
+
 
 @contextmanager
 def stdouterr_redirected(to=None, comm=None):
@@ -80,6 +82,7 @@ def stdouterr_redirected(to=None, comm=None):
         # If we are already using MPI (comm is set), then we can safely
         # import mpi4py.
         from mpi4py import MPI
+
         nproc = comm.size
         rank = comm.rank
 
@@ -115,13 +118,8 @@ def stdouterr_redirected(to=None, comm=None):
         # Create a new sys.stdout / sys.stderr that points to the
         # redirected POSIX file descriptors.  In Python 3, these
         # are actually higher level IO objects.
-        if sys.version_info[0] < 3:
-            sys.stdout = os.fdopen(fd_out, "wb")
-            sys.stderr = os.fdopen(fd_err, "wb")
-        else:
-            # Python 3 case
-            sys.stdout = io.TextIOWrapper(os.fdopen(fd_out, 'wb'))
-            sys.stderr = io.TextIOWrapper(os.fdopen(fd_err, 'wb'))
+        sys.stdout = io.TextIOWrapper(os.fdopen(fd_out, "wb"))
+        sys.stderr = io.TextIOWrapper(os.fdopen(fd_err, "wb"))
 
         # update DESI logging to use new stdout
         for name, logger in desi_loggers.items():
@@ -133,14 +131,14 @@ def stdouterr_redirected(to=None, comm=None):
                 logger.removeHandler(h)
             # Add the current stdout.
             ch = logging.StreamHandler(sys.stdout)
-            formatter = logging.Formatter(hformat, datefmt='%Y-%m-%dT%H:%M:%S')
+            formatter = logging.Formatter(hformat, datefmt="%Y-%m-%dT%H:%M:%S")
             ch.setFormatter(formatter)
             logger.addHandler(ch)
 
     def _open_redirect(filename):
         # Open python file, which creates low-level POSIX file
         # descriptor.
-        file_handle = open(filename, "w")
+        file_handle = open(filename, "wb")
 
         # Redirect stdout/stderr to this new file descriptor.
         _redirect(out_to=file_handle.fileno(), err_to=file_handle.fileno())
@@ -169,7 +167,7 @@ def stdouterr_redirected(to=None, comm=None):
 
     if rank == 0:
         log = get_logger()
-        log.info("Begin log redirection to %s at %s", to, time.asctime())
+        log.info("Begin log redirection to %s", to)
 
     # Try to open the redirected file.
 
@@ -183,9 +181,7 @@ def stdouterr_redirected(to=None, comm=None):
         file = _open_redirect(pto)
     except:
         log = get_logger()
-        log.error(
-            "Failed to open redirection file %s at %s", pto, time.asctime()
-        )
+        log.error("Failed to open redirection file %s", pto)
         fail_open = 1
 
     if comm is not None:
@@ -195,9 +191,7 @@ def stdouterr_redirected(to=None, comm=None):
         # Something went wrong on one or more processes, try to recover and exit
         if rank == 0:
             log = get_logger()
-            log.error(
-                "Failed to start redirect to %s at %s", to, time.asctime()
-            )
+            log.error("Failed to start redirect to %s", to)
 
         _close_redirect(file)
 
@@ -209,7 +203,7 @@ def stdouterr_redirected(to=None, comm=None):
 
     fail_run = 0
     try:
-        yield # Allow code to be run with the redirected output
+        yield  # Allow code to be run with the redirected output
     except:
         # We have an unhandled exception.  Print a stack trace to the log.
         exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -233,14 +227,14 @@ def stdouterr_redirected(to=None, comm=None):
                         "================= Process {} =================\n".format(p)
                     )
                     fname = "{}_{}".format(to, p)
-                    with open(fname) as infile:
+                    with open(fname, "r") as infile:
                         outfile.write(infile.read())
                     os.remove(fname)
         comm.barrier()
 
     if rank == 0:
         log = get_logger()
-        log.info("End log redirection to %s at %s", to, time.asctime())
+        log.info("End log redirection to %s", to)
 
     # flush python handles for good measure
     sys.stdout.flush()
