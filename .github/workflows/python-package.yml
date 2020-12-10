@@ -31,7 +31,7 @@ jobs:
                 python-version: ${{ matrix.python-version }}
             - name: Install Python dependencies
               run: |
-                python -m pip install --upgrade pip
+                python -m pip install --upgrade pip wheel
                 python -m pip install pytest
                 if [ -f requirements.txt ]; then pip install -r requirements.txt; pip install .; fi
                 pip install -U "astropy${{ matrix.astropy-version }}"
@@ -59,7 +59,7 @@ jobs:
                 python-version: ${{ matrix.python-version }}
             - name: Install Python dependencies
               run: |
-                python -m pip install --upgrade pip
+                python -m pip install --upgrade pip wheel
                 python -m pip install pytest pytest-cov coveralls
                 if [ -f requirements.txt ]; then pip install -r requirements.txt; pip install .; fi
             - name: Run the test with coverage
@@ -91,7 +91,7 @@ jobs:
                 python-version: ${{ matrix.python-version }}
             - name: Install Python dependencies
               run: |
-                python -m pip install --upgrade pip
+                python -m pip install --upgrade pip wheel
                 python -m pip install Sphinx
             - name: Test the documentation
               run: |
@@ -117,7 +117,7 @@ jobs:
                 python-version: ${{ matrix.python-version }}
             - name: Install Python dependencies
               run: |
-                python -m pip install --upgrade pip
+                python -m pip install --upgrade pip wheel
                 python -m pip install pycodestyle
             - name: Test the style
               # This is equivalent to an allowed falure.
