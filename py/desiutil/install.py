@@ -305,13 +305,12 @@ class DesiInstall(object):
         return (self.fullproduct, self.baseproduct, self.baseversion)
 
     def identify_branch(self):
-        """If this is not a tag install, determine whether this is a trunk
-        or branch install.
+        """If this is not a tag install, determine the branch identity.
 
         Returns
         -------
         :class:`str`
-            The full path to the branch/tag/trunk/master code.
+            The full path to the branch code.
         """
         self.is_branch = self.options.product_version.startswith('branches')
         self.is_trunk = (self.options.product_version == 'trunk' or
