@@ -18,7 +18,7 @@ jobs:
             matrix:
                 os: [ubuntu-latest]
                 python-version: [3.6, 3.7, 3.8]
-                astropy-version: ['<3.0', '<4.1']  #, '>4.0']
+                # astropy-version: ['<3.0', '<4.1']  #, '>4.0']
 
         steps:
             - name: Checkout code
@@ -34,8 +34,8 @@ jobs:
                 python -m pip install --upgrade pip wheel
                 python -m pip install pytest
                 if [ -f requirements.txt ]; then pip install -r requirements.txt; pip install .; fi
-                pip install -U "astropy${{ matrix.astropy-version }}"
-                if [ "${{ matrix.astropy-version }}" = "<3.0" ]; then pip install -U "healpy<1.13"; fi
+# pip install -U "astropy${{ matrix.astropy-version }}"
+# if [ "${{ matrix.astropy-version }}" = "<3.0" ]; then pip install -U "healpy<1.13"; fi
             - name: Run the test
               run: |
                 pytest
