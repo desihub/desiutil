@@ -7,14 +7,32 @@ Introduction
 
 This document describes the desiInstall process and the logic behind it.
 
-The primary purpose of desiInstall is to install DESI software **at NERSC**.
+The primary purpose of :command:`desiInstall` is to install DESI software **at NERSC**.
 Using it to install software at locations other than NERSC is theoretically
 possible, but not supported.
+
+Basic Invocation of desiInstall
+===============================
+
+:command:`desiInstall` is invoked with the product and version to be installed::
+
+    desiInstall desiutil 3.0.3
+
+The version should correspond to a tag in the repository corresponding to
+the product.
+
+Branches can also be installed, and the resulting install will be a
+checkout of the repository, set to the requested branch.  This is specified
+by prepending ``branches/`` to the version name::
+
+    desiInstall desiutil branches/branch-compile
+
+Finally, for Subversion repositories, ``trunk`` is a shorthand for ``branches/trunk``.
 
 Configuring desiInstall
 =======================
 
-desiInstall has many options, which are best viewed by typing
+:command:`desiInstall` has many options, which are best viewed by typing
 ``desiInstall --help``.
 
 In addition, desiInstall both reads and sets several environment variables.

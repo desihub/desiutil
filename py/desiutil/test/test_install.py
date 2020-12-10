@@ -169,7 +169,7 @@ class TestInstall(unittest.TestCase):
         self.assertEqual(url,
                          ('https://github.com/desihub/desiutil/archive/' +
                           '1.0.0.tar.gz'))
-        options = self.desiInstall.get_options(['desiutil', 'master'])
+        options = self.desiInstall.get_options(['desiutil', 'branches/master'])
         out = self.desiInstall.get_product_version()
         url = self.desiInstall.identify_branch()
         self.assertEqual(url,
