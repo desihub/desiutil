@@ -35,7 +35,7 @@ jobs:
                 python -m pip install pytest
                 if [ -f requirements.txt ]; then pip install -r requirements.txt; pip install .; fi
                 pip install -U "astropy${{ matrix.astropy-version }}"
-                if [ "${{ matrix.astropy-version }}" = "<3.0" ]; pip install -U "healpy<1.13"; fi
+                if [ "${{ matrix.astropy-version }}" = "<3.0" ]; then pip install -U "healpy<1.13"; fi
             - name: Run the test
               run: |
                 pytest
