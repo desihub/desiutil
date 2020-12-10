@@ -18,7 +18,7 @@ jobs:
             matrix:
                 os: [ubuntu-latest]
                 python-version: [3.6, 3.7, 3.8]
-                astropy-version: ['<4.0', '<4.1', '>4.0']
+                astropy-version: ['<3.0', '<4.1']  #, '>4.0']
 
         steps:
             - name: Checkout code

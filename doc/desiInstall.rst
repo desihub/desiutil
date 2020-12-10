@@ -149,7 +149,7 @@ Because of the structures of the DESI code repositories, it is sometimes necessa
 to specify a directory name along with the product name.  desiInstall contains
 a list of known products, but it is not necessarily complete. desiInstall parses
 the input to determine the base name and base version to install.  At this
-stage desiInstall also determines whether a trunk or branch install has
+stage desiInstall also determines whether a branch install [#]_ has
 been requested.
 
 The internal list of known products can be added to or overridden on the
@@ -161,6 +161,10 @@ command line::
 
 The ``-p`` option can be specified multiple times, though in practice, it only
 matters to the product actually being installed.
+
+.. [#] In this document, "branch" refers to anything that is not a tagged version.
+   This could include default branches such as "trunk" in Subversion repositories,
+   or any default branch in a git repository.
 
 Product Existence
 -----------------
@@ -174,8 +178,8 @@ Download Code
 -------------
 
 The code is downloaded, using :command:`svn export` for standard (tag) installs, or
-:command:`svn checkout` for trunk or branch installs.  For GitHub installs, desiInstall
-will look for a release tarball, or do a :command:`git clone` for tag or master/branch
+:command:`svn checkout` for branch installs.  For GitHub installs, desiInstall
+will look for a release tarball, or do a :command:`git clone` for tag or branch
 installs.  desiInstall will set the environment variable :envvar:`WORKING_DIR`
 to point to the directory containing this downloaded code.
 
@@ -272,7 +276,7 @@ added to Python's :data:`sys.path`.
 Can We Just Copy the Download?
 ------------------------------
 
-If the build-type is *only* 'plain', or if a trunk or branch install is
+If the build-type is *only* 'plain', or if a branch install is
 requested, the downloaded code will be copied to :envvar:`INSTALL_DIR`.
 Further Python or C/C++ install steps described below will be skipped.
 

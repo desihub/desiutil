@@ -1,6 +1,6 @@
 setuptools
 requests
 pyyaml
-astropy
+astropy<4.1
 healpy==1.12.9
 matplotlib
