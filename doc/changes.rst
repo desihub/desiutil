@@ -2,15 +2,18 @@
 Change Log
 ==========
 
-3.0.4 (unreleased)
+3.1.0 (2020-12-11)
 ------------------
 
-* Add :class:`~desiutil.timer.Timer` class to standardize timing reports (PRs `#151`_, `#152`_).
+* Migrate unit tests to GitHub Actions; allow :command:`desiInstall` to handle a
+  diversity of possible branch names (PR `#156`_).
 * Add :mod:`~desiutil.redirect` for utilites related to redirecting STDOUT (PR `#153`_).
+* Add :class:`~desiutil.timer.Timer` class to standardize timing reports (PRs `#151`_, `#152`_).
 
 .. _`#151`: https://github.com/desihub/desiutil/pull/151
 .. _`#152`: https://github.com/desihub/desiutil/pull/152
 .. _`#153`: https://github.com/desihub/desiutil/pull/153
+.. _`#156`: https://github.com/desihub/desiutil/pull/156
 
 3.0.3 (2020-08-04)
 ------------------

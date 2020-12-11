@@ -169,7 +169,7 @@ class TestInstall(unittest.TestCase):
         self.assertEqual(url,
                          ('https://github.com/desihub/desiutil/archive/' +
                           '1.0.0.tar.gz'))
-        options = self.desiInstall.get_options(['desiutil', 'master'])
+        options = self.desiInstall.get_options(['desiutil', 'branches/main'])
         out = self.desiInstall.get_product_version()
         url = self.desiInstall.identify_branch()
         self.assertEqual(url,
@@ -270,7 +270,7 @@ class TestInstall(unittest.TestCase):
     def test_default_nersc_dir(self):
         """Test determination of the NERSC installation root.
         """
-        options = self.desiInstall.get_options(['desiutil', 'master'])
+        options = self.desiInstall.get_options(['desiutil', 'branches/main'])
         self.desiInstall.nersc = 'edison'
         nersc_dir = self.desiInstall.default_nersc_dir()
         edison_nersc_dir = '/global/common/software/desi/edison/desiconda/current'
@@ -279,7 +279,7 @@ class TestInstall(unittest.TestCase):
         self.assertEqual(nersc_dir, edison_nersc_dir)
         options = self.desiInstall.get_options(['--anaconda',
                                                 'frobulate',
-                                                'desiutil', 'master'])
+                                                'desiutil', '1.2.3'])
         self.desiInstall.nersc = 'datatran'
         nersc_dir = self.desiInstall.default_nersc_dir()
         self.assertEqual(nersc_dir, '/global/common/software/desi/datatran/desiconda/frobulate')
@@ -291,35 +291,35 @@ class TestInstall(unittest.TestCase):
             del environ['NERSC_HOST']
             options = self.desiInstall.get_options(['--root',
                                                     '/fake/root/directory',
-                                                    'desiutil', 'master'])
+                                                    'desiutil', '1.2.3'])
             with self.assertRaises(DesiInstallException):
                 install_dir = self.desiInstall.set_install_dir()
             options = self.desiInstall.get_options(['--root', self.data_dir,
-                                                    'desiutil', 'master'])
+                                                    'desiutil', '1.2.3'])
             self.desiInstall.get_product_version()
             install_dir = self.desiInstall.set_install_dir()
             self.assertEqual(install_dir, join(self.data_dir, 'code', 'desiutil',
-                             'master'))
+                             '1.2.3'))
             # Test for presence of existing directory.
             tmpdir = join(self.data_dir, 'code')
             mkdir(tmpdir)
             mkdir(join(tmpdir, 'desiutil'))
-            mkdir(join(tmpdir, 'desiutil', 'master'))
+            mkdir(join(tmpdir, 'desiutil', 'main'))
             options = self.desiInstall.get_options(['--root', self.data_dir,
-                                                    'desiutil', 'master'])
+                                                    'desiutil', 'branches/main'])
             self.desiInstall.get_product_version()
             with self.assertRaises(DesiInstallException) as cm:
                 install_dir = self.desiInstall.set_install_dir()
             self.assertEqual(str(cm.exception),
                              "Install directory, {0}, already exists!".format(
-                             join(tmpdir, 'desiutil', 'master')))
+                             join(tmpdir, 'desiutil', 'main')))
             options = self.desiInstall.get_options(['--root', self.data_dir,
                                                     '--force', 'desiutil',
-                                                    'master'])
+                                                    'branches/main'])
             self.assertTrue(self.desiInstall.options.force)
             self.desiInstall.get_product_version()
             install_dir = self.desiInstall.set_install_dir()
-            self.assertFalse(isdir(join(tmpdir, 'desiutil', 'master')))
+            self.assertFalse(isdir(join(tmpdir, 'desiutil', 'branches/main')))
             if isdir(tmpdir):
                 rmtree(tmpdir)
         # Test NERSC installs.  Unset DESI_PRODUCT_ROOT for this to work.
@@ -340,13 +340,13 @@ class TestInstall(unittest.TestCase):
         """
         options = self.desiInstall.get_options(['-m',
                                                 '/fake/modules/directory',
-                                                'desiutil', 'master'])
+                                                'desiutil', 'branches/main'])
         with self.assertRaises(DesiInstallException) as cm:
             status = self.desiInstall.start_modules()
         self.assertEqual(str(cm.exception), ("Could not initialize Modules " +
                          "with MODULESHOME={0}!").format(
                          '/fake/modules/directory'))
-        options = self.desiInstall.get_options(['desiutil', 'master'])
+        options = self.desiInstall.get_options(['desiutil', 'branches/main'])
         self.assertEqual(options.moduleshome, environ['MODULESHOME'])
         status = self.desiInstall.start_modules()
         self.assertTrue(callable(self.desiInstall.module))
@@ -373,9 +373,9 @@ class TestInstall(unittest.TestCase):
     def test_cleanup(self):
         """Test the cleanup stage of the install.
         """
-        options = self.desiInstall.get_options(['desiutil', 'master'])
+        options = self.desiInstall.get_options(['desiutil', 'branches/main'])
         self.desiInstall.original_dir = getcwd()
-        self.desiInstall.working_dir = join(self.data_dir, 'desiutil-master')
+        self.desiInstall.working_dir = join(self.data_dir, 'desiutil')
         mkdir(self.desiInstall.working_dir)
         chdir(self.desiInstall.working_dir)
         self.desiInstall.cleanup()

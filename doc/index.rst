@@ -18,7 +18,7 @@ Required Dependencies
 These packages must be installed for desiutil to work properly:
 
 * `pyyaml <https://pyyaml.org/>`_
-* `requests <https://2.python-requests.org/en/master/>`_
+* `requests <https://requests.readthedocs.io/>`_
 * `astropy <https://www.astropy.org/>`_
 
   - This implies a dependency on `NumPy <https://numpy.org>`_
