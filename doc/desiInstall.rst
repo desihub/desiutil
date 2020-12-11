@@ -27,7 +27,9 @@ by prepending ``branches/`` to the version name::
 
     desiInstall desiutil branches/branch-compile
 
-Finally, for Subversion repositories, ``trunk`` is a shorthand for ``branches/trunk``.
+Finally, for Subversion repositories, ``trunk`` is a shorthand for ``branches/trunk``;
+for GitHub repositories, ``main`` is a shorthand for ``branches/main``.  All
+other branch names *must* be prepended with ``branches/``.
 
 Configuring desiInstall
 =======================

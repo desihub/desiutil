@@ -311,7 +311,8 @@ class DesiInstall(object):
             The full path to the branch code.
         """
         self.is_branch = (self.options.product_version.startswith('branches') or
-                          self.options.product_version == 'trunk')
+                          self.options.product_version == 'trunk' or
+                          self.options.product_version == 'main')
         if self.is_branch:
             if self.github:
                 self.product_url = self.fullproduct + '.git'
