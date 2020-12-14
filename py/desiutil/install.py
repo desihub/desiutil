@@ -116,8 +116,6 @@ class DesiInstall(object):
         ``True`` if the selected product lives on GitHub.
     is_branch : :class:`bool`
         ``True`` if a branch has been selected.
-    is_trunk : :class:`bool`
-        ``True`` if trunk or the master branch has been selected.
     log : :class:`logging.Logger`
         Logging object.
     nersc : :class:`str`
@@ -305,23 +303,25 @@ class DesiInstall(object):
         return (self.fullproduct, self.baseproduct, self.baseversion)
 
     def identify_branch(self):
-        """If this is not a tag install, determine whether this is a trunk
-        or branch install.
+        """If this is not a tag install, determine the branch identity.
 
         Returns
         -------
         :class:`str`
-            The full path to the branch/tag/trunk/master code.
+            The full path to the branch code.
         """
-        self.is_branch = self.options.product_version.startswith('branches')
-        self.is_trunk = (self.options.product_version == 'trunk' or
-                         self.options.product_version == 'master')
-        if self.is_trunk or self.is_branch:
+        self.is_branch = (self.options.product_version.startswith('branches') or
+                          self.options.product_version == 'trunk' or
+                          self.options.product_version == 'main')
+        if self.is_branch:
             if self.github:
                 self.product_url = self.fullproduct + '.git'
             else:
-                self.product_url = os.path.join(self.fullproduct,
-                                                self.options.product_version)
+                if self.options.product_version == 'branches/trunk':
+                    self.product_url = os.path.join(self.fullproduct, 'trunk')
+                else:
+                    self.product_url = os.path.join(self.fullproduct,
+                                                    self.options.product_version)
         else:
             if self.github:
                 self.product_url = os.path.join(self.fullproduct, 'archive',
@@ -397,20 +397,19 @@ class DesiInstall(object):
             if not self.options.test:
                 shutil.rmtree(self.working_dir)
         if self.github:
-            if self.is_trunk or self.is_branch:
-                if self.is_branch:
-                    try:
-                        r = requests.get(os.path.join(self.fullproduct, 'tree',
-                                                      self.baseversion))
-                        r.raise_for_status()
-                    except requests.exceptions.HTTPError:
-                        message = ("Branch {0} does not appear to exist. " +
-                                   "HTTP response was {1:d}.").format(
-                                   self.baseversion, r.status_code)
-                        self.log.critical(message)
-                        raise DesiInstallException(message)
-                command = ['git', 'clone', '-q', self.product_url,
-                           self.working_dir]
+            if self.is_branch:
+                try:
+                    r = requests.get(os.path.join(self.fullproduct, 'tree',
+                                                  self.baseversion))
+                    r.raise_for_status()
+                except requests.exceptions.HTTPError:
+                    message = ("Branch {0} does not appear to exist. " +
+                               "HTTP response was {1:d}.").format(
+                               self.baseversion, r.status_code)
+                    self.log.critical(message)
+                    raise DesiInstallException(message)
+                command = ['git', 'clone', '-q', '-b', self.baseversion,
+                           self.product_url, self.working_dir]
                 self.log.debug(' '.join(command))
                 if self.options.test:
                     out, err = 'Test Mode.', ''
@@ -424,29 +423,29 @@ class DesiInstall(object):
                                err)
                     self.log.critical(message)
                     raise DesiInstallException(message)
-                if self.is_branch:
-                    original_dir = os.getcwd()
-                    self.log.debug("os.chdir('%s')", self.working_dir)
-                    if not self.options.test:
-                        os.chdir(self.working_dir)
-                    command = ['git', 'checkout', '-q', '-b', self.baseversion,
-                               'origin/'+self.baseversion]
-                    self.log.debug(' '.join(command))
-                    if self.options.test:
-                        out, err = 'Test Mode.', ''
-                    else:
-                        proc = Popen(command, universal_newlines=True,
-                                     stdout=PIPE, stderr=PIPE)
-                        out, err = proc.communicate()
-                    self.log.debug(out)
-                    if len(err) > 0:
-                        message = ("git error while changing branch:" +
-                                   " {0}".format(err))
-                        self.log.critical(message)
-                        raise DesiInstallException(message)
-                    self.log.debug("os.chdir('%s')", original_dir)
-                    if not self.options.test:
-                        os.chdir(original_dir)
+                # if self.is_branch:
+                #     original_dir = os.getcwd()
+                #     self.log.debug("os.chdir('%s')", self.working_dir)
+                #     if not self.options.test:
+                #         os.chdir(self.working_dir)
+                #     command = ['git', 'checkout', '-q', '-b', self.baseversion,
+                #                'origin/'+self.baseversion]
+                #     self.log.debug(' '.join(command))
+                #     if self.options.test:
+                #         out, err = 'Test Mode.', ''
+                #     else:
+                #         proc = Popen(command, universal_newlines=True,
+                #                      stdout=PIPE, stderr=PIPE)
+                #         out, err = proc.communicate()
+                #     self.log.debug(out)
+                #     if len(err) > 0:
+                #         message = ("git error while changing branch:" +
+                #                    " {0}".format(err))
+                #         self.log.critical(message)
+                #         raise DesiInstallException(message)
+                #     self.log.debug("os.chdir('%s')", original_dir)
+                #     if not self.options.test:
+                #         os.chdir(original_dir)
             else:
                 if self.options.test:
                     self.log.debug("Test Mode. Skipping download of %s.",
@@ -481,7 +480,7 @@ class DesiInstall(object):
                         self.log.critical(message)
                         raise DesiInstallException(message)
         else:
-            if self.is_trunk or self.is_branch:
+            if self.is_branch:
                 get_svn = 'checkout'
             else:
                 get_svn = 'export'
@@ -673,7 +672,7 @@ class DesiInstall(object):
         """
         dev = False
         if 'py' in self.build_type:
-            if self.is_trunk or self.is_branch:
+            if self.is_branch:
                 dev = True
         else:
             if os.path.isdir(os.path.join(self.working_dir, 'py')):
@@ -750,7 +749,7 @@ class DesiInstall(object):
     def install(self):
         """Run setup.py, etc.
         """
-        if (self.build_type == set(['plain']) or self.is_trunk or self.is_branch):
+        if (self.build_type == set(['plain']) or self.is_branch):
             #
             # For certain installs, all that is needed is to copy the
             # downloaded code to the install directory.
@@ -939,7 +938,7 @@ class DesiInstall(object):
         self.log.debug(out)
 
         # Remove write permission to avoid accidental changes
-        if self.is_trunk or self.is_branch:
+        if self.is_branch:
             chmod_mode = 'g-w,o-w'
         else:
             chmod_mode = 'a-w'

@@ -31,7 +31,11 @@ def extinction_total_to_selective_ratio(band, photsys) :
         scalar, total extinction A(band) = -2.5*log10(transmission(band))
     """
 
-    # fitted from the imaging data (using fibermaps of 2020/03/15)
+    # Based on the fit from the columns MW_TRANSMISSION_X and EBV
+    # for the DR8 target catalogs and propagated in fibermaps
+    # R_X = -2.5*log10(MW_TRANSMISSION_X) / EBV
+    # excerpt from https://www.legacysurvey.org/dr8/catalogs/#galactic-extinction-coefficients :  Eddie Schlafly has computed the extinction coefficients for the DECam filters through airmass=1.3, computed for a 7000K source spectrum as was done in the Appendix of Schlafly & Finkbeiner (2011). These coefficients are A / E(B-V) = 3.995, 3.214, 2.165, 1.592, 1.211, 1.064 (note that these are slightly different from the coefficients in Schlafly & Finkbeiner 2011). The coefficients are multiplied by the SFD98 E(B-V) values at the coordinates of each object to derive the g, r and z mw_transmission values in the Legacy Surveys catalogs. The coefficients at different airmasses only change by a small amount, with the largest effect in g -band where the coefficient would be 3.219 at airmass=1 and 3.202 at airmass=2. We calculate Galactic extinction for BASS and MzLS as if they are on the DECam filter system.
+
     R={"G_N":3.2140,
        "R_N":2.1650,
        "Z_N":1.2110,
