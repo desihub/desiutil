@@ -2,6 +2,20 @@
 desiutil
 ========
 
+|Actions Status| |Coveralls Status| |Documentation Status|
+
+.. |Actions Status| image:: https://github.com/desihub/desiutil/workflows/CI/badge.svg
+    :target: https://github.com/desihub/desiutil/actions
+    :alt: GitHub Actions CI Status
+
+.. |Coveralls Status| image:: https://coveralls.io/repos/desihub/desiutil/badge.svg
+    :target: https://coveralls.io/github/desihub/desiutil
+    :alt: Test Coverage Status
+
+.. |Documentation Status| image:: https://readthedocs.org/projects/desiutil/badge/?version=latest
+    :target: https://desiutil.readthedocs.io/en/latest/
+    :alt: Documentation Status
+
 Introduction
 ============
 
@@ -13,26 +27,7 @@ Full Documentation
 
 Please visit `desiutil on Read the Docs`_
 
-.. image:: https://readthedocs.org/projects/desiutil/badge/?version=latest
-    :target: http://desiutil.readthedocs.org/en/latest/
-    :alt: Documentation Status
-
-.. _`desiutil on Read the Docs`: http://desiutil.readthedocs.org/en/latest/
-
-Travis Build Status
-===================
-
-.. image:: https://img.shields.io/travis/desihub/desiutil.svg
-    :target: https://travis-ci.org/desihub/desiutil
-    :alt: Travis Build Status
-
-
-Test Coverage Status
-====================
-
-.. image:: https://coveralls.io/repos/desihub/desiutil/badge.svg?service=github
-    :target: https://coveralls.io/github/desihub/desiutil
-    :alt: Test Coverage Status
+.. _`desiutil on Read the Docs`: https://desiutil.readthedocs.io/en/latest/
 
 License
 =======

@@ -85,15 +85,16 @@ fi
 #
 # Export
 #
-[[ -n "${verbose}" ]] && echo git clone https://github.com/desihub/desiutil.git desiutil-master
-git clone https://github.com/desihub/desiutil.git desiutil-master
+checkout=desiutil-checkout
+[[ -n "${verbose}" ]] && echo git clone https://github.com/desihub/desiutil.git ${checkout}
+git clone https://github.com/desihub/desiutil.git ${checkout}
 if [[ -n "${branch}" ]]; then
-    cd desiutil-master
+    cd ${checkout}
     [[ -n "${verbose}" ]] && echo git checkout ${branch}
     git checkout ${branch}
     cd ..
 fi
-export DESIUTIL=$(pwd)/desiutil-master
+export DESIUTIL=$(pwd)/${checkout}
 export PATH=${DESIUTIL}/bin:${PATH}
 if [[ -z "${PYTHONPATH}" ]]; then
     export PYTHONPATH=${DESIUTIL}/py
