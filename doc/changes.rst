@@ -8,7 +8,6 @@ Change Log
 
 .. _`#157`: https://github.com/desihub/desiutil/pull/157
 
-* No changes yet.
 
 3.1.0 (2020-12-11)
 ------------------
