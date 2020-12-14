@@ -17,6 +17,70 @@ from astropy import units as u
 from .log import get_logger
 log = get_logger()
 
+def extinction_total_to_selective_ratio(band, photsys) :
+    """Return the linear coefficient R_B = A(B)/E(B-V) where
+    A(B) = -2.5*log10(transmission in B band), for band B in 'G','R' or 'Z',
+    the optical bands of the legacy surveys. photsys = 'N' or 'S' specifies
+    the survey (BASS+MZLS or DECALS).  E(B-V) is interpreted as SFD.
+
+    Args:
+        band : 'G', 'R' or 'Z'
+        photsys : 'N' or 'S'
+
+    Returns:
+        scalar, total extinction A(band) = -2.5*log10(transmission(band))
+    """
+
+    # Based on the fit from the columns MW_TRANSMISSION_X and EBV
+    # for the DR8 target catalogs and propagated in fibermaps
+    # R_X = -2.5*log10(MW_TRANSMISSION_X) / EBV
+    # excerpt from https://www.legacysurvey.org/dr8/catalogs/#galactic-extinction-coefficients :  Eddie Schlafly has computed the extinction coefficients for the DECam filters through airmass=1.3, computed for a 7000K source spectrum as was done in the Appendix of Schlafly & Finkbeiner (2011). These coefficients are A / E(B-V) = 3.995, 3.214, 2.165, 1.592, 1.211, 1.064 (note that these are slightly different from the coefficients in Schlafly & Finkbeiner 2011). The coefficients are multiplied by the SFD98 E(B-V) values at the coordinates of each object to derive the g, r and z mw_transmission values in the Legacy Surveys catalogs. The coefficients at different airmasses only change by a small amount, with the largest effect in g -band where the coefficient would be 3.219 at airmass=1 and 3.202 at airmass=2. We calculate Galactic extinction for BASS and MzLS as if they are on the DECam filter system.
+
+    R={"G_N":3.2140,
+       "R_N":2.1650,
+       "Z_N":1.2110,
+       "G_S":3.2829,
+       "R_S":2.1999,
+       "Z_S":1.2150}
+    assert(band.upper() in ["G","R","Z"])
+    assert(photsys.upper() in ["N","S"])
+    return R["{}_{}".format(band.upper(),photsys.upper())]
+
+def mwdust_transmission(ebv, band, photsys):
+    """Convert SFD E(B-V) value to dust transmission 0-1 for band and photsys
+
+    Args:
+        ebv (float or array-like): SFD E(B-V) value(s)
+        band (str): 'G', 'R', or 'Z'
+        photsys (str or array of str): 'N' or 'S' imaging surveys photo system
+
+    Returns:
+        scalar or array (same as ebv input), Milky Way dust transmission 0-1
+
+    If `photsys` is an array, `ebv` must also be array of same length.
+    However, `ebv` can be an array with a str `photsys`.
+    """
+    if isinstance(photsys, str):
+        r_band = extinction_total_to_selective_ratio(band, photsys)
+        a_band = r_band * ebv
+        transmission = 10**(-a_band / 2.5)
+        return transmission
+    else:
+        photsys = np.asarray(photsys)
+        if np.isscalar(ebv):
+            raise ValueError('array photsys requires array ebv')
+        if len(ebv) != len(photsys):
+            raise ValueError('len(ebv) {} != len(photsys) {}'.format(
+                len(ebv), len(photsys)))
+
+        transmission = np.zeros(len(ebv))
+        for p in np.unique(photsys):
+            ii = (photsys == p)
+            r_band = extinction_total_to_selective_ratio(band, p)
+            a_band = r_band * ebv[ii]
+            transmission[ii] = 10**(-a_band / 2.5)
+
+        return transmission
 
 def ext_odonnell(wave, Rv=3.1):
     """Return extinction curve from Odonnell (1994), defined in the wavelength

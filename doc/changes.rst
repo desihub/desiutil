@@ -4,8 +4,10 @@ Change Log
 
 3.1.1 (unreleased)
 ------------------
+* Add function `dust.extinction_total_to_selective_ratio`
 
-* No changes yet.
+.. _`#157`: https://github.com/desihub/desiutil/pull/157
+
 
 3.1.0 (2020-12-11)
 ------------------
