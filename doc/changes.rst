@@ -4,6 +4,9 @@ Change Log
 
 3.0.4 (unreleased)
 ------------------
+* Add function `dust.extinction_total_to_selective_ratio`
+
+.. _`#157`: https://github.com/desihub/desiutil/pull/157
 
 * Add `Timer` class to standardize timing reports (PRs `#151`_, `#152`_).
 
