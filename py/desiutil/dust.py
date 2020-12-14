@@ -17,6 +17,29 @@ from astropy import units as u
 from .log import get_logger
 log = get_logger()
 
+def extinction_total_to_selective_ratio(band , photsys) :
+    """Return the linear coefficient R_B = A(B)/E(B-V) where A(B) = -2.5*log10(transmission in B band),
+       for band B in 'G','R' or 'Z', the optical bands of the legacy surveys. photsys = 'N' or 'S' specifies
+       the survey (BASS+MZLS or DECALS)
+
+    Args:
+        band : 'G', 'R' or 'Z'
+        photsys : 'N' or 'S'
+
+    Returns:
+        scalar, total extinction A(band) = -2.5*log10(transmission(band))
+    """
+
+    # fitted from the imaging data (using fibermaps of 2020/03/15)
+    R={"G_N":3.2140,
+       "R_N":2.1650,
+       "Z_N":1.2110,
+       "G_S":3.2829,
+       "R_S":2.1999,
+       "Z_S":1.2150}
+    assert(band.upper() in ["G","R","Z"])
+    assert(photsys.upper() in ["N","S"])
+    return R["{}_{}".format(band.upper(),photsys.upper())]
 
 def ext_odonnell(wave, Rv=3.1):
     """Return extinction curve from Odonnell (1994), defined in the wavelength
