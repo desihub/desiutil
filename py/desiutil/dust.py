@@ -42,6 +42,42 @@ def extinction_total_to_selective_ratio(band, photsys) :
     assert(photsys.upper() in ["N","S"])
     return R["{}_{}".format(band.upper(),photsys.upper())]
 
+def mwdust_transmission(ebv, band, photsys):
+    """Convert SFD E(B-V) value to dust transmission 0-1 for band and photsys
+
+    Args:
+        ebv (float or array-like): SFD E(B-V) value(s)
+        band (str): 'G', 'R', or 'Z'
+        photsys (str or array of str): 'N' or 'S' imaging surveys photo system
+
+    Returns:
+        scalar or array (same as ebv input), Milky Way dust transmission 0-1
+
+    If `photsys` is an array, `ebv` must also be array of same length.
+    However, `ebv` can be an array with a str `photsys`.
+    """
+    if isinstance(photsys, str):
+        r_band = extinction_total_to_selective_ratio(band, photsys)
+        a_band = r_band * ebv
+        transmission = 10**(-a_band / 2.5)
+        return transmission
+    else:
+        photsys = np.asarray(photsys)
+        if np.isscalar(ebv):
+            raise ValueError('array photsys requires array ebv')
+        if len(ebv) != len(photsys):
+            raise ValueError('len(ebv) {} != len(photsys) {}'.format(
+                len(ebv), len(photsys)))
+
+        transmission = np.zeros(len(ebv))
+        for p in np.unique(photsys):
+            ii = (photsys == p)
+            r_band = extinction_total_to_selective_ratio(band, p)
+            a_band = r_band * ebv[ii]
+            transmission[ii] = 10**(-a_band / 2.5)
+
+        return transmission
+
 def ext_odonnell(wave, Rv=3.1):
     """Return extinction curve from Odonnell (1994), defined in the wavelength
     range [3030,9091] Angstroms.  Outside this range, use CCM (1989).
