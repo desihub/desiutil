@@ -121,6 +121,30 @@ class TestDust(unittest.TestCase):
         self.assertTrue(np.any(ext_odl_33 == ext_ccm_33))
         self.assertTrue(np.any(ext_odl_33 != ext_ccm_33))
 
+    def test_total_to_selective(self):
+        """Test extinction total_to_selective_ratio"""
+
+        #- test valid options with upper and lowercase
+        for band in ['G', 'R', 'Z']:
+            for photsys in ['N', 'S']:
+                rb1 = dust.extinction_total_to_selective_ratio(band.upper(), photsys.upper())
+                rb2 = dust.extinction_total_to_selective_ratio(band.lower(), photsys.lower())
+                self.assertEqual(rb1, rb2)
+
+        #- North and South should be different
+        for band in ['G', 'R', 'Z']:
+            rb1 = dust.extinction_total_to_selective_ratio(band, 'N')
+            rb2 = dust.extinction_total_to_selective_ratio(band, 'S')
+            self.assertNotEqual(rb1, rb2)
+
+        #- B is not a supported band (G,R,Z)
+        with self.assertRaises(AssertionError):
+            rb = dust.extinction_total_to_selective_ratio('B', 'N')
+
+        #- Q is not a valid photsys (N,S)
+        with self.assertRaises(AssertionError):
+            rb = dust.extinction_total_to_selective_ratio('G', 'Q')
+
 
 def test_suite():
     """Allows testing of only this module with the command::

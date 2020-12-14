@@ -17,10 +17,11 @@ from astropy import units as u
 from .log import get_logger
 log = get_logger()
 
-def extinction_total_to_selective_ratio(band , photsys) :
-    """Return the linear coefficient R_B = A(B)/E(B-V) where A(B) = -2.5*log10(transmission in B band),
-       for band B in 'G','R' or 'Z', the optical bands of the legacy surveys. photsys = 'N' or 'S' specifies
-       the survey (BASS+MZLS or DECALS)
+def extinction_total_to_selective_ratio(band, photsys) :
+    """Return the linear coefficient R_B = A(B)/E(B-V) where
+    A(B) = -2.5*log10(transmission in B band), for band B in 'G','R' or 'Z',
+    the optical bands of the legacy surveys. photsys = 'N' or 'S' specifies
+    the survey (BASS+MZLS or DECALS).  E(B-V) is interpreted as SFD.
 
     Args:
         band : 'G', 'R' or 'Z'
