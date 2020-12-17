@@ -8,8 +8,10 @@ import shutil
 import unittest
 from unittest.mock import call, patch
 from tempfile import mkdtemp
-from distutils import log
+from packaging import version
+from setuptools import __version__ as setuptools_version
 from setuptools import sandbox
+from distutils import log
 from ..setup import find_version_directory, get_version, update_version
 from .. import __version__ as desiutil_version
 
@@ -26,6 +28,7 @@ class TestSetup(unittest.TestCase):
         if hasattr(sandbox, 'hide_setuptools'):
             sandbox.hide_setuptools = lambda: None
         cls.old_threshold = log.set_threshold(log.WARN)
+        cls.distutils_log = 'distutils.log.Log._log'
 
     @classmethod
     def tearDownClass(cls):
@@ -85,13 +88,13 @@ setup(name="{0.fake_name}",
             i.write(init)
         os.chdir(package_dir)
         v_file = os.path.join(package_dir, self.fake_name, '_version.py')
-        with patch('distutils.log.Log._log') as mock_log:
+        with patch(self.distutils_log) as mock_log:
             self.run_setup('setup.py', ['version'])
             self.assertTrue(os.path.exists(v_file))
             self.assertListEqual(mock_log.mock_calls,
                                  [call(2, 'running %s', ('version',)),
                                   call(2, 'Version is now 0.0.1.dev0.', ())])
-        with patch('distutils.log.Log._log') as mock_log:
+        with patch(self.distutils_log) as mock_log:
             self.run_setup('setup.py', ['version', '--tag', '1.2.3'])
             with open(v_file) as v:
                 data = v.read()
