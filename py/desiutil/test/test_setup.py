@@ -11,7 +11,7 @@ from tempfile import mkdtemp
 from packaging import version
 from setuptools import __version__ as setuptools_version
 from setuptools import sandbox
-from distutils import log
+# from distutils import log
 from ..setup import find_version_directory, get_version, update_version
 from .. import __version__ as desiutil_version
 
@@ -27,12 +27,14 @@ class TestSetup(unittest.TestCase):
         # Workaround for https://github.com/astropy/astropy-helpers/issues/124
         if hasattr(sandbox, 'hide_setuptools'):
             sandbox.hide_setuptools = lambda: None
-        cls.old_threshold = log.set_threshold(log.WARN)
-        cls.distutils_log = 'distutils.log.Log._log'
+        # cls.old_threshold = log.set_threshold(log.WARN)
+        # cls.distutils_log = 'distutils.log.Log._log'
+        # cls.distutils_log = 'setuptools._distutils.log.Log._log'
 
     @classmethod
     def tearDownClass(cls):
-        log.set_threshold(cls.old_threshold)
+        # log.set_threshold(cls.old_threshold)
+        pass
 
     def setUp(self):
         #
@@ -88,20 +90,23 @@ setup(name="{0.fake_name}",
             i.write(init)
         os.chdir(package_dir)
         v_file = os.path.join(package_dir, self.fake_name, '_version.py')
-        with patch(self.distutils_log) as mock_log:
-            self.run_setup('setup.py', ['version'])
-            self.assertTrue(os.path.exists(v_file))
-            self.assertListEqual(mock_log.mock_calls,
-                                 [call(2, 'running %s', ('version',)),
-                                  call(2, 'Version is now 0.0.1.dev0.', ())])
-        with patch(self.distutils_log) as mock_log:
-            self.run_setup('setup.py', ['version', '--tag', '1.2.3'])
-            with open(v_file) as v:
-                data = v.read()
-            self.assertEqual(data, "__version__ = '1.2.3'\n")
-            self.assertListEqual(mock_log.mock_calls,
-                                 [call(2, 'running %s', ('version',)),
-                                  call(2, 'Version is now 1.2.3.', ())])
+        with patch('distutils.cmd.Command.announce') as mock_announce:
+            with patch('distutils.log.info') as mock_info:
+                self.run_setup('setup.py', ['version'])
+                self.assertTrue(os.path.exists(v_file))
+                self.assertListEqual(mock_announce.mock_calls,
+                                     [call('Version is now 0.0.1.dev0.', level=2)])
+                self.assertListEqual(mock_info.mock_calls, [call('running %s', 'version')])
+        with patch('distutils.cmd.Command.announce') as mock_announce:
+            with patch('distutils.log.info') as mock_info:
+                self.run_setup('setup.py', ['version', '--tag', '1.2.3'])
+                with open(v_file) as v:
+                    data = v.read()
+                self.assertEqual(data, "__version__ = '1.2.3'\n")
+                self.assertListEqual(mock_announce.mock_calls,
+                                     [call('Version is now 1.2.3.', level=2)])
+                self.assertListEqual(mock_info.mock_calls, [call('running %s', 'version')])
+
         os.chdir(self.original_dir)
         del sys.path[path_index]
 

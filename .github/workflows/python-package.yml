@@ -20,9 +20,6 @@ jobs:
                 python-version: [3.6, 3.7, 3.8]
                 astropy-version: ['==4.0.1.post1', '<4.1', '<5.0']
 
-        env:
-            SETUPTOOLS_USE_DISTUTILS: stdlib
-
         steps:
             - name: Checkout code
               uses: actions/checkout@v2
