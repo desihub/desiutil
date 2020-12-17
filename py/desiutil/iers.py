@@ -124,8 +124,9 @@ def freeze_iers(name='iers_frozen.ecsv', ignore_warnings=True):
                                     message=r'ERFA function \"[a-z0-9_]+\" yielded [0-9]+ of \"dubious year')
         except AttributeError:
             # Astropy >= 4.2
+            from erfa import ErfaWarning
             warnings.filterwarnings('ignore',
-                                    category=erfa.ErfaWarning,
+                                    category=ErfaWarning,
                                     message=r'ERFA function \"[a-z0-9_]+\" yielded [0-9]+ of \"dubious year')
 
         warnings.filterwarnings('ignore',
