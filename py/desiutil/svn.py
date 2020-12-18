@@ -53,7 +53,7 @@ def last_tag(tags, username=None):
     :class:`str`
         The most recent tag found in ``tags``.
     """
-    from distutils.version import StrictVersion as V
+    from packaging.version import parse as V
     from subprocess import Popen, PIPE
     command = ['svn', '--non-interactive']
     if username is not None:

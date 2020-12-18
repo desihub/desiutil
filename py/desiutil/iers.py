@@ -118,9 +118,17 @@ def freeze_iers(name='iers_frozen.ecsv', ignore_warnings=True):
         raise RuntimeError('Frozen IERS is not installed as the default ({0} v. {1}).'.format(auto_class.__class__, iers.__class__))
 
     if ignore_warnings:
-        warnings.filterwarnings('ignore',
-                                category=astropy._erfa.core.ErfaWarning,
-                                message=r'ERFA function \"[a-z0-9_]+\" yielded [0-9]+ of \"dubious year')
+        try:
+            warnings.filterwarnings('ignore',
+                                    category=astropy._erfa.core.ErfaWarning,
+                                    message=r'ERFA function \"[a-z0-9_]+\" yielded [0-9]+ of \"dubious year')
+        except AttributeError:
+            # Astropy >= 4.2
+            from erfa import ErfaWarning
+            warnings.filterwarnings('ignore',
+                                    category=ErfaWarning,
+                                    message=r'ERFA function \"[a-z0-9_]+\" yielded [0-9]+ of \"dubious year')
+
         warnings.filterwarnings('ignore',
                                 category=astropy.utils.exceptions.AstropyWarning,
                                 message=r'Tried to get polar motions for times after IERS data')
