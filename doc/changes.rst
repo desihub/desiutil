@@ -2,10 +2,16 @@
 Change Log
 ==========
 
-3.1.1 (unreleased)
+3.1.2 (unreleased)
 ------------------
 
-* ``astropy.erfa`` no longer exists in more recent versions of Astropy (PR `#159`_).
+* No changes yet
+
+3.1.1 (2020-12-23)
+------------------
+
+* ``astropy.erfa`` no longer exists in more recent versions of Astropy
+  (PR `#159`_).
 * Add function :func:`dust.extinction_total_to_selective_ratio` (PR `#157`_).
 
 .. _`#157`: https://github.com/desihub/desiutil/pull/157
