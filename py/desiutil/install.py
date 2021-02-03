@@ -516,16 +516,12 @@ class DesiInstall(object):
             self.log.debug("Forcing build type: make")
             build_type.add('make')
         else:
-            print('cwd: ',self.working_dir);
             if os.path.exists(os.path.join(self.working_dir, 'setup.py')):
                 self.log.debug("Detected build type: py")
                 build_type.add('py')
             if os.path.exists(os.path.join(self.working_dir, 'Makefile')):
                 self.log.debug("Detected build type: make")
                 build_type.add('make')
-            elif os.path.exists(os.path.join(self.working_dir,'CMakeLists.txt')):
-                self.log.debug("Detected build type: cmake")
-                build_type.add('cmake')
             else:
                 if os.path.isdir(os.path.join(self.working_dir, 'src')):
                     self.log.debug("Detected build type: src")
@@ -838,14 +834,11 @@ class DesiInstall(object):
             # installation or we still need to compile the C/C++ product
             # (we had to construct doc/Makefile first).
             #
-            if ('make' in self.build_type or 'src' in self.build_type or
-                'cmake' in self.build_type):
+            if 'make' in self.build_type or 'src' in self.build_type:
                 if 'src' in self.build_type:
                     command = ['make', '-C', 'src', 'all']
-                elif 'make' in self.build_type:
+                else:
                     command = ['make', '-j', '8', 'install']
-                elif 'cmake' in self.build_type:
-                    command = ['cmake .; make -j 8']
                 self.log.debug(' '.join(command))
                 if self.options.test:
                     self.log.debug("Test Mode.  Skipping 'make install'.")
@@ -854,11 +847,7 @@ class DesiInstall(object):
                         os.chdir(self.install_dir)
                     else:
                         os.chdir(self.working_dir)
-                    if 'cmake' in self.build_type:                        
-                        proc = Popen(command, universal_newlines=True,
-                                 stdout=PIPE, stderr=PIPE, shell=True)
-                    else:
-                        proc = Popen(command, universal_newlines=True,
+                    proc = Popen(command, universal_newlines=True,
                                  stdout=PIPE, stderr=PIPE)
                     out, err = proc.communicate()
                     self.log.debug(out)
