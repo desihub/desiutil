@@ -126,7 +126,10 @@ class TestFuncFits(unittest.TestCase):
         with catch_warnings(record=True) as w:
             # simplefilter("always")
             dfit, mask = iter_fit(x, y, 'legendre', 4, forceimask=True)
-            self.assertEqual(len(w), 1)
+            self.assertEqual(len(w), 2)
+            self.assertEqual(str(w[-2].message),
+                             "Initial mask cannot be enforced -- " +
+                             "no initital mask supplied")
             self.assertEqual(str(w[-1].message),
                              "Initial mask cannot be enforced -- " +
                              "no initital mask supplied")
