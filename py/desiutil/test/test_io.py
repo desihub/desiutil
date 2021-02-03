@@ -122,7 +122,7 @@ class TestIO(unittest.TestCase):
         """
         fdict = {'name': 'test', 'num': np.int32(3),
                  1: 'expid', 'flt32': np.float32(3.), 'flt64': np.float64(2.),
-                 'num2': np.int64(4), 'bool': np.bool(True),
+                 'num2': np.int64(4), 'bool': np.bool_(True),
                  'lst': ['tst2', np.int16(2)],
                  'tup': (1, 3), 'dct': {'a': 'tst3', 'b': np.float32(6.)},
                  'array': np.zeros(10)}
