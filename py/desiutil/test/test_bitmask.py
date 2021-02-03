@@ -137,7 +137,7 @@ class TestBitMask(unittest.TestCase):
 
         for i in range(64):
             names = mask.names(2**i)
-            names = mask.names(np.int64(2**i))
+            # names = mask.names(int(2**i))
             names = mask.names(np.uint64(2**i))
             # Also happens to work with length-1 arrays; maybe it shouldn't
             names = mask.names(np.array([2**i], dtype=np.uint64))
