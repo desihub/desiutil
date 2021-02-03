@@ -154,7 +154,16 @@ class MaskedArrayWithLimits(numpy.ma.MaskedArray):
         Maximum value when used for clipping or masking.
     """
     def __new__(cls, *args, **kwargs):
-        obj = super(MaskedArrayWithLimits, cls).__new__(cls, *args, **kwargs)
+        try:
+            obj = super(MaskedArrayWithLimits, cls).__new__(cls, *args, **kwargs)
+        except TypeError:
+            # Numpy >= 1.20.0
+            trimmed_kwargs = kwargs.copy()
+            if 'vmin' in trimmed_kwargs:
+                del trimmed_kwargs['vmin']
+            if 'vmax' in trimmed_kwargs:
+                del trimmed_kwargs['vmax']
+            obj = super(MaskedArrayWithLimits, cls).__new__(cls, *args, **trimmed_kwargs)
         if 'vmin' in kwargs:
             obj._optinfo['vmin'] = kwargs['vmin']
         #     obj.vmin = kwargs['vmin']
