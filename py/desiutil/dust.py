@@ -238,9 +238,9 @@ def _bilinear_interpolate(data, y, x):
     xw = x - xfloor
 
     # pixel locations
-    y0 = yfloor.astype(np.int)
+    y0 = yfloor.astype(np.int32)
     y1 = y0 + 1
-    x0 = xfloor.astype(np.int)
+    x0 = xfloor.astype(np.int32)
     x1 = x0 + 1
 
     # clip locations out of range
@@ -316,8 +316,8 @@ class _Hemisphere(object):
         if interpolate:
             return _bilinear_interpolate(self.data, y, x)
         else:
-            x = np.round(x).astype(np.int)
-            y = np.round(y).astype(np.int)
+            x = np.round(x).astype(np.int32)
+            y = np.round(y).astype(np.int32)
 
             # some valid coordinates are right on the border (e.g., x/y = 4096)
             x = np.clip(x, 0, self.data.shape[1]-1)
