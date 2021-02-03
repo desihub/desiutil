@@ -1,6 +1,7 @@
 setuptools
 requests
 pyyaml
+numpy<1.20
 astropy
 healpy
 matplotlib
