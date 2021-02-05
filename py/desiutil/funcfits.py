@@ -142,7 +142,7 @@ def iter_fit(xarray, yarray, func, order, weights=None, sigma=None,
     """
     # Setup the initial mask
     if initialmask is None:
-        mask = np.zeros(xarray.size, dtype=np.int)
+        mask = np.zeros(xarray.size, dtype=np.int32)
         if forceimask:
             warnings.warn("Initial mask cannot be enforced -- no initital mask supplied")
             forceimask = False
