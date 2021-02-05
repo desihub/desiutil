@@ -5,7 +5,9 @@ Change Log
 3.1.2 (unreleased)
 ------------------
 
-* No changes yet
+* Fixes for Numpy 1.20 (PR `#162`_).
+
+.. _`#162`: https://github.com/desihub/desiutil/pull/162
 
 3.1.1 (2020-12-23)
 ------------------
