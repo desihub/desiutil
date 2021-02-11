@@ -519,7 +519,7 @@ class DesiInstall(object):
             if os.path.exists(os.path.join(self.working_dir, 'setup.py')):
                 self.log.debug("Detected build type: py")
                 build_type.add('py')
-            if os.path.exists(os.path.join(self.working_dir, 'Makefile')):
+            elif os.path.exists(os.path.join(self.working_dir, 'Makefile')):
                 self.log.debug("Detected build type: make")
                 build_type.add('make')
             else:
@@ -573,17 +573,16 @@ class DesiInstall(object):
         :class:`str`
             The directory selected for installation.
         """
-        try:
-            self.nersc = os.environ['NERSC_HOST']
-        except KeyError:
-            self.nersc = None
-        if self.options.root is None or not os.path.isdir(self.options.root):
-            if self.nersc is not None:
-                self.options.root = self.default_nersc_dir()
-            else:
-                message = "Root install directory is missing or not set."
-                self.log.critical(message)
-                raise DesiInstallException(message)
+        self.nersc = os.getenv('NERSC_HOST') #- will be None if not set
+        if self.options.root is None and self.nersc is not None:
+            self.options.root = self.default_nersc_dir()
+
+        if (self.options.root is None or not os.path.isdir(self.options.root)) \
+                and not self.options.test:
+            message = "Root install directory is missing or not set."
+            self.log.critical(message)
+            raise DesiInstallException(message)
+
         self.install_dir = os.path.join(self.options.root, 'code',
                                         self.baseproduct, self.baseversion)
         if os.path.isdir(self.install_dir) and not self.options.test:
