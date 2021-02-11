@@ -207,11 +207,9 @@ Determine Build Type
 --------------------
 
 The downloaded code is scanned to determine the build type.  There are several
-possible build types that are *not* mutually exclusive.
+possible build types that are mutually exclusive.  They are derived in this
+order and the first matching method is used:
 
-plain
-    This is the default build type.  With this build type, the downloaded code
-    is simply copied to the final install directory.
 py
     If a setup.py file is detected, :command:`desiInstall` will attempt to execute
     :command:`python setup.py install`.  This build type can be suppressed with the
@@ -224,6 +222,9 @@ src
     :command:`desiInstall` will attempt to execute :command:`make -C src all`.  This build type
     *is* mutually exclusive with 'make', but is not mutually exclusive with
     the other types.
+plain
+    If no other build type is detected, the downloaded code
+    is simply copied to the final install directory.
 
 **It is the responsibility of the code developer to ensure that these
 build types do not conflict with each other.**
