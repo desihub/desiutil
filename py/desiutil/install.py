@@ -573,12 +573,15 @@ class DesiInstall(object):
         :class:`str`
             The directory selected for installation.
         """
-        self.nersc = os.getenv('NERSC_HOST') #- will be None if not set
+        try:
+            self.nersc = os.envion['NERSC_HOST']
+        except KeyError:
+            self.nersc = None
         if self.options.root is None and self.nersc is not None:
             self.options.root = self.default_nersc_dir()
 
-        if (self.options.root is None or not os.path.isdir(self.options.root)) \
-                and not self.options.test:
+        if ((self.options.root is None or not os.path.isdir(self.options.root))
+                and not self.options.test):
             message = "Root install directory is missing or not set."
             self.log.critical(message)
             raise DesiInstallException(message)

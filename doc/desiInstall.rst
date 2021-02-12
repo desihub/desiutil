@@ -219,15 +219,13 @@ make
     :command:`make install`.
 src
     If a Makefile is not present, but a src/ directory is,
-    :command:`desiInstall` will attempt to execute :command:`make -C src all`.  This build type
-    *is* mutually exclusive with 'make', but is not mutually exclusive with
-    the other types.
+    :command:`desiInstall` will attempt to execute :command:`make -C src all`.
 plain
     If no other build type is detected, the downloaded code
     is simply copied to the final install directory.
 
-**It is the responsibility of the code developer to ensure that these
-build types do not conflict with each other.**
+**It is the responsibility of the code developer to understand these build
+types and choose the one appropriate for the package being developed.**
 
 Determine Install Directory
 ---------------------------
