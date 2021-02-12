@@ -574,7 +574,7 @@ class DesiInstall(object):
             The directory selected for installation.
         """
         try:
-            self.nersc = os.envion['NERSC_HOST']
+            self.nersc = os.environ['NERSC_HOST']
         except KeyError:
             self.nersc = None
         if self.options.root is None and self.nersc is not None:
