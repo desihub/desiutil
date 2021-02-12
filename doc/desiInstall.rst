@@ -104,7 +104,7 @@ Directory Structure Assumed by the Install
 :command:`desiInstall` is primarily intended to run in a production environment that
 supports Module files, *i.e.* at NERSC.
 
-*:command:`desiInstall` does not install a Modules infrastructure for you.* You have to
+:command:`desiInstall` *does not install a Modules infrastructure for you.* You have to
 do this yourself, if your system does not already have this.
 
 For the purposes of this section, we define ``$product_root`` as the
@@ -145,7 +145,7 @@ etc/
     Miscellaneous metadata and configuration.  In most packages this only
     contains a template Module file.
 lib/pythonX.Y/site-packages/
-    Contains installed Python code.  ``X.Y`` would be ``2.7`` or ``3.5``.
+    Contains installed Python code.  ``X.Y`` would be, *e.g.*, ``3.6`` or ``3.8``.
 py/
     Sometimes we need to install a git checkout rather than an installed package.
     If so, the Python code will live in *this* directory not the ``lib/``
@@ -207,11 +207,9 @@ Determine Build Type
 --------------------
 
 The downloaded code is scanned to determine the build type.  There are several
-possible build types that are *not* mutually exclusive.
+possible build types that are mutually exclusive.  They are derived in this
+order and the first matching method is used:
 
-plain
-    This is the default build type.  With this build type, the downloaded code
-    is simply copied to the final install directory.
 py
     If a setup.py file is detected, :command:`desiInstall` will attempt to execute
     :command:`python setup.py install`.  This build type can be suppressed with the
@@ -221,12 +219,13 @@ make
     :command:`make install`.
 src
     If a Makefile is not present, but a src/ directory is,
-    :command:`desiInstall` will attempt to execute :command:`make -C src all`.  This build type
-    *is* mutually exclusive with 'make', but is not mutually exclusive with
-    the other types.
+    :command:`desiInstall` will attempt to execute :command:`make -C src all`.
+plain
+    If no other build type is detected, the downloaded code
+    is simply copied to the final install directory.
 
-**It is the responsibility of the code developer to ensure that these
-build types do not conflict with each other.**
+**It is the responsibility of the code developer to understand these build
+types and choose the one appropriate for the package being developed.**
 
 Determine Install Directory
 ---------------------------
@@ -254,7 +253,7 @@ Module Infrastructure
 
 :command:`desiInstall` sets up the Modules infrastructure by running code in
 :mod:`desiutil.modules` that is *based on* the Python init file supplied by
-the Modules infrastructure, but updated to be both Python 2 and Python 3 compatible.
+the Modules infrastructure.
 
 Find Module File
 ----------------
@@ -320,7 +319,7 @@ If :command:`desiInstall` detects ``etc/product_data.sh``, where ``product`` sho
 replaced by the actual name of the package, it will download extra data
 not bundled with the code.  The script should download data *directly* to
 :envvar:`INSTALL_DIR`. The script should *only* be used
-with :command:`desiInstall` and Travis tests.  Note that here are other, better ways to
+with :command:`desiInstall` and unit tests.  Note that here are other, better ways to
 install and manipulate data that is bundled *with* a Python package.
 
 Fix Permissions

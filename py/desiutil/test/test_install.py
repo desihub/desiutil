@@ -326,7 +326,7 @@ class TestInstall(unittest.TestCase):
         with patch.dict('os.environ', {'NERSC_HOST': 'edison', 'DESI_PRODUCT_ROOT': 'FAKE'}):
             del environ['DESI_PRODUCT_ROOT']
             test_code_version = 'test-blat-foo'
-            options = self.desiInstall.get_options(['desiutil', test_code_version])
+            options = self.desiInstall.get_options(['desiutil', test_code_version, '--test'])
             self.desiInstall.get_product_version()
             install_dir = self.desiInstall.set_install_dir()
             self.assertEqual(install_dir, join(

@@ -6,8 +6,13 @@ Change Log
 ------------------
 
 * Fixes for Numpy 1.20 (PR `#162`_).
+* :command:`desiInstall` auto derive build type "py" or "make" or "src"
+  but don't combine them (PR `#163`_).
+* :command:`desiInstall` only fallback to NERSC default installdir
+  if `--root` isn't specified (PR `#163`_).
 
 .. _`#162`: https://github.com/desihub/desiutil/pull/162
+.. _`#163`: https://github.com/desihub/desiutil/pull/163
 
 3.1.1 (2020-12-23)
 ------------------
