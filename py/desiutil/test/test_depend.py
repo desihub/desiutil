@@ -5,7 +5,7 @@
 import unittest
 import sys
 from collections import OrderedDict
-from ..depend import (setdep, getdep, hasdep, iterdep, Dependencies,
+from ..depend import (setdep, getdep, hasdep, iterdep, mergedep, Dependencies,
                       add_dependencies)
 from .. import __version__ as desiutil_version
 
@@ -78,6 +78,47 @@ class TestDepend(unittest.TestCase):
         self.assertTrue(hasdep(hdr, 'test001'))
         self.assertTrue(hasdep(hdr, 'test010'))
         self.assertFalse(hasdep(hdr, 'test020'))
+
+    def test_mergedep(self):
+        """Test merging dependencies from one header to another
+        """
+        src = dict(
+            DEPNAM00='blat', DEPVER00='1.0',
+            DEPNAM01='foo', DEPVER01='2.0',
+        )
+        dst = dict(
+            DEPNAM00='biz', DEPVER00='3.0',
+            DEPNAM01='bat', DEPVER01='4.0',
+        )
+        #- dependencies from src should be added to dst
+        mergedep(src, dst)
+        self.assertEqual(getdep(src, 'blat'), getdep(dst, 'blat'))
+        self.assertEqual(getdep(src, 'foo'), getdep(dst, 'foo'))
+
+        #- if conflict='src', a src dependency can replace a dst dependency
+        dst = dict(
+            DEPNAM00='biz', DEPVER00='3.0',
+            DEPNAM01='blat', DEPVER01='4.0',
+        )
+        mergedep(src, dst, conflict='src')
+        self.assertEqual(getdep(src, 'blat'), getdep(dst, 'blat'))
+        self.assertEqual(getdep(src, 'foo'), getdep(dst, 'foo'))
+
+        #- if conflict='dst', the dst dependency is kept even if in src
+        dst = dict(
+            DEPNAM00='biz', DEPVER00='3.0',
+            DEPNAM01='blat', DEPVER01='4.0',
+        )
+        mergedep(src, dst, conflict='dst')
+        self.assertEqual(getdep(dst, 'blat'), '4.0')  #- not '1.0'
+
+        #- if conflict='exception', should raise a ValueError
+        dst = dict(
+            DEPNAM00='biz', DEPVER00='3.0',
+            DEPNAM01='blat', DEPVER01='4.0',
+        )
+        with self.assertRaises(ValueError):
+            mergedep(src, dst, conflict='exception')
 
     @unittest.skipUnless(test_fits_header, 'requires astropy.io.fits')
     def test_fits_header(self):
