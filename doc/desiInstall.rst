@@ -104,7 +104,7 @@ Directory Structure Assumed by the Install
 :command:`desiInstall` is primarily intended to run in a production environment that
 supports Module files, *i.e.* at NERSC.
 
-*:command:`desiInstall` does not install a Modules infrastructure for you.* You have to
+:command:`desiInstall` *does not install a Modules infrastructure for you.* You have to
 do this yourself, if your system does not already have this.
 
 For the purposes of this section, we define ``$product_root`` as the
@@ -145,7 +145,7 @@ etc/
     Miscellaneous metadata and configuration.  In most packages this only
     contains a template Module file.
 lib/pythonX.Y/site-packages/
-    Contains installed Python code.  ``X.Y`` would be ``2.7`` or ``3.5``.
+    Contains installed Python code.  ``X.Y`` would be, *e.g.*, ``3.6`` or ``3.8``.
 py/
     Sometimes we need to install a git checkout rather than an installed package.
     If so, the Python code will live in *this* directory not the ``lib/``
@@ -253,7 +253,7 @@ Module Infrastructure
 
 :command:`desiInstall` sets up the Modules infrastructure by running code in
 :mod:`desiutil.modules` that is *based on* the Python init file supplied by
-the Modules infrastructure, but updated to be both Python 2 and Python 3 compatible.
+the Modules infrastructure.
 
 Find Module File
 ----------------
@@ -319,7 +319,7 @@ If :command:`desiInstall` detects ``etc/product_data.sh``, where ``product`` sho
 replaced by the actual name of the package, it will download extra data
 not bundled with the code.  The script should download data *directly* to
 :envvar:`INSTALL_DIR`. The script should *only* be used
-with :command:`desiInstall` and Travis tests.  Note that here are other, better ways to
+with :command:`desiInstall` and unit tests.  Note that here are other, better ways to
 install and manipulate data that is bundled *with* a Python package.
 
 Fix Permissions
