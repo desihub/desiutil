@@ -10,9 +10,12 @@ Change Log
   but don't combine them (PR `#163`_).
 * :command:`desiInstall` only fallback to NERSC default installdir
   if `--root` isn't specified (PR `#163`_).
+* Add :func:`desiutil.depend.mergedep` to merge DEPNAMnn/DEPVERnn
+  dependencies between different headers (PR `#164`_)
 
 .. _`#162`: https://github.com/desihub/desiutil/pull/162
 .. _`#163`: https://github.com/desihub/desiutil/pull/163
+.. _`#164`: https://github.com/desihub/desiutil/pull/164
 
 3.1.1 (2020-12-23)
 ------------------

@@ -95,6 +95,10 @@ class TestDepend(unittest.TestCase):
         self.assertEqual(getdep(src, 'blat'), getdep(dst, 'blat'))
         self.assertEqual(getdep(src, 'foo'), getdep(dst, 'foo'))
 
+        #- ... and the original unique dst versions should still be there
+        self.assertEqual(getdep(dst, 'biz'), '3.0')
+        self.assertEqual(getdep(dst, 'bat'), '4.0')
+
         #- if conflict='src', a src dependency can replace a dst dependency
         dst = dict(
             DEPNAM00='biz', DEPVER00='3.0',
@@ -119,6 +123,21 @@ class TestDepend(unittest.TestCase):
         )
         with self.assertRaises(ValueError):
             mergedep(src, dst, conflict='exception')
+
+        #- if the same version appears but is consistent, that's ok
+        for conflict in ('src', 'dst', 'exception'):
+            src = dict(
+                DEPNAM00='blat', DEPVER00='1.0',
+                DEPNAM01='foo', DEPVER01='2.0',
+            )
+            dst = dict(
+                DEPNAM00='blat', DEPVER00='1.0',
+                DEPNAM01='bat', DEPVER01='4.0',
+            )
+            mergedep(src, dst, conflict=conflict)
+            self.assertEqual(getdep(dst, 'blat'), '1.0')
+            self.assertEqual(getdep(dst, 'foo'), '2.0')
+            self.assertEqual(getdep(dst, 'bat'), '4.0')
 
     @unittest.skipUnless(test_fits_header, 'requires astropy.io.fits')
     def test_fits_header(self):
