@@ -174,6 +174,51 @@ def iterdep(header):
             return
     return
 
+def mergedep(srchdr, dsthdr, conflict='src'):
+    '''Merge dependencies from srchdr into dsthdr
+
+    Parameters
+    ----------
+    srchdr : dict-like
+        source dict-like object, *e.g.* :class:`astropy.io.fits.Header`,
+        with dependency keywords DEPNAMnn, DEPVERnn
+    dsthdr : dict-like
+        destination dict-like object
+    conflict : str, optional
+        'src' or 'dst' or 'exception'; see notes
+
+    Notes
+    -----
+    Dependencies in srchdr are added to dsthdr, modifying it in-place,
+    adjusting DEPNAMnn/DEPVERnn numbering as needed.  If the same dependency
+    appears in both headers with different versions, ``conflict``
+    controls the behavior:
+
+      * if 'src', the srchdr value replaces the dsthdr value
+      * if 'dst', the dsthdr value is retained unchanged
+      * if 'exception', raise a ValueError exception
+
+    Raises
+    ------
+    ValueError
+        If ``conflict == 'exception'`` and the same dependency name appears
+        in both headers with different values; or if `conflict` isn't one
+        of 'src', 'dst', or 'exception'.
+    '''
+    if conflict not in ('src', 'dst', 'exception'):
+        raise ValueError(f"conflict ({conflict}) should be 'src', 'dst', or 'exception'")
+
+    for name, version in iterdep(srchdr):
+        if hasdep(dsthdr, name) and getdep(dsthdr, name) != version:
+            if conflict == 'src':
+                setdep(dsthdr, name, version)
+            elif conflict == 'dst':
+                pass
+            else:
+                v2 = getdep(dsthdr, name)
+                raise ValueError(f'Version conflict for {name}: {version} != {v2}')
+        else:
+            setdep(dsthdr, name, version)
 
 def add_dependencies(header, module_names=None, long_python=False):
     '''Adds ``DEPNAMnn``, ``DEPVERnn`` keywords to header for imported modules.
