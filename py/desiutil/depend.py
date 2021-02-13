@@ -201,11 +201,11 @@ def mergedep(srchdr, dsthdr, conflict='src'):
     Raises
     ------
     ValueError
-        If `conflict == 'exception'` and the same dependency name appears
+        If ``conflict == 'exception'`` and the same dependency name appears
         in both headers with different values; or if `conflict` isn't one
         of 'src', 'dst', or 'exception'.
     '''
-    if not conflict in ('src', 'dst', 'exception'):
+    if conflict not in ('src', 'dst', 'exception'):
         raise ValueError(f"conflict ({conflict}) should be 'src', 'dst', or 'exception'")
 
     for name, version in iterdep(srchdr):

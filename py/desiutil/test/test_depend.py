@@ -139,6 +139,10 @@ class TestDepend(unittest.TestCase):
             self.assertEqual(getdep(dst, 'foo'), '2.0')
             self.assertEqual(getdep(dst, 'bat'), '4.0')
 
+        #- Unrecognized values of conflict result in a ValueError
+        with self.assertRaises(ValueError):
+            mergedep(src, dst, conflict='giveup')
+
     @unittest.skipUnless(test_fits_header, 'requires astropy.io.fits')
     def test_fits_header(self):
         """Test dependency functions with an actual FITS header.
