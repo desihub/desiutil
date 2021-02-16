@@ -7,7 +7,7 @@ Change Log
 
 * No changes yet
 
-3.1.2 (2020-02-15)
+3.1.2 (2021-02-15)
 ------------------
 
 * Fixes for Numpy 1.20 (PR `#162`_).
