@@ -82,6 +82,19 @@ def mwdust_transmission(ebv, band, photsys):
 
         return transmission
 
+def convert_sfd_ebv_to_true_ebv(ebv):
+    """
+    Apply the correction from Schlafly+2010
+    https://ui.adsabs.harvard.edu/abs/2010ApJ...725.1175S/abstract
+    to the input SFD E(B-V)'s 
+    to convert them into 'correct' E(B-V)'s that don't need additional 
+    scaling. This function is here to avoid hardcoding the 0.86 factor
+    in some functions that expect 'true' E(B-V)s and be more explicit 
+    about the conversion.
+    """
+    return 0.86 * ebv
+
+    
 def ext_odonnell(wave, Rv=3.1):
     """Return extinction curve from Odonnell (1994), defined in the wavelength
     range [3030,9091] Angstroms.  Outside this range, use CCM (1989).
