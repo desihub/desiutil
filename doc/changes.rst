@@ -2,7 +2,7 @@
 Change Log
 ==========
 
-3.2.0 (unreleased)
+3.2.0 (2021-03-29)
 ------------------
 
 * Use ``pip install .`` instead of ``python setup.py install`` (PR `#168`_).
