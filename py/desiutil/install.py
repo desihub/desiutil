@@ -52,6 +52,7 @@ known_products = {
     'LSS': 'https://github.com/desihub/LSS',
     'nightwatch': 'https://github.com/desihub/nightwatch',
     'prospect': 'https://github.com/desihub/prospect',
+    'QuasarNP': 'https://github.com/desihub/QuasarNP',
     'quicksurvey_example': 'https://github.com/desihub/quicksurvey_example',
     'redrock': 'https://github.com/desihub/redrock',
     'redrock-templates': 'https://github.com/desihub/redrock-templates',
