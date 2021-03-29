@@ -71,12 +71,15 @@ known_products = {
     }
 
 
-pip_safe = frozenset(['desicmx', 'desidatamodel', 'desidithering', 'desietc',
-                      'desimeter', 'desimodel', 'desisim', 'desispec',
-                      'desisurvey', 'desitarget', 'desitemplate', 'desitransfer',
-                      'desiutil', 'fiberassign', 'prospect', 'redrock',
-                      'specex', 'speclite', 'specsim', 'specter', 'surveysim',
-                      'simqso'])
+#
+# Reserved for future use.
+#
+# pip_safe = frozenset(['desicmx', 'desidatamodel', 'desidithering', 'desietc',
+#                       'desimeter', 'desimodel', 'desisim', 'desispec',
+#                       'desisurvey', 'desitarget', 'desitemplate', 'desitransfer',
+#                       'desiutil', 'fiberassign', 'prospect', 'redrock',
+#                       'specex', 'speclite', 'specsim', 'specter', 'surveysim',
+#                       'simqso'])
 
 
 def dependencies(modulefile):
