@@ -26,12 +26,14 @@ from . import __version__ as desiutilVersion
 
 known_products = {
     'desiBackup': 'https://github.com/desihub/desiBackup',
+    'desicmx': 'https://github.com/desihub/desicmx',
     'desidatamodel': 'https://github.com/desihub/desidatamodel',
     'desidithering': 'https://github.com/desihub/desidithering',
     'desietc': 'https://github.com/desihub/desietc',
     'desilamps': 'https://github.com/desihub/desilamps',
     'desimeter': 'https://github.com/desihub/desimeter',
     'desimodel': 'https://github.com/desihub/desimodel',
+    'desiperf': 'https://github.com/desihub/desiperf',
     'desisim': 'https://github.com/desihub/desisim',
     'desisim-testdata': 'https://github.com/desihub/desisim-testdata',
     'desispec': 'https://github.com/desihub/desispec',
@@ -43,25 +45,41 @@ known_products = {
     'desitransfer': 'https://github.com/desihub/desitransfer',
     'desitree': 'https://github.com/desihub/desitree',
     'desiutil': 'https://github.com/desihub/desiutil',
+    'fastspecfit': 'https://github.com/desihub/fastspecfit',
     'fiberassign': 'https://github.com/desihub/fiberassign',
     'gcr-catalogs': 'https://github.com/desihub/gcr-catalogs',
     'imaginglss': 'https://github.com/desihub/imaginglss',
+    'LSS': 'https://github.com/desihub/LSS',
     'nightwatch': 'https://github.com/desihub/nightwatch',
     'prospect': 'https://github.com/desihub/prospect',
+    'QuasarNP': 'https://github.com/desihub/QuasarNP',
     'quicksurvey_example': 'https://github.com/desihub/quicksurvey_example',
     'redrock': 'https://github.com/desihub/redrock',
     'redrock-templates': 'https://github.com/desihub/redrock-templates',
     'specex': 'https://github.com/desihub/specex',
+    'speclite': 'https://github.com/desihub/speclite',
     'specsim': 'https://github.com/desihub/specsim',
     'specter': 'https://github.com/desihub/specter',
     'surveysim': 'https://github.com/desihub/surveysim',
     'teststand': 'https://github.com/desihub/teststand',
     'tilepicker': 'https://github.com/desihub/tilepicker',
+    'timedomain': 'https://github.com/desihub/timedomain',
     'simqso': 'https://github.com/imcgreer/simqso',
     'plate_layout': 'https://desi.lbl.gov/svn/code/focalplane/plate_layout',
     'positioner_control':
         'https://desi.lbl.gov/svn/code/focalplane/positioner_control',
     }
+
+
+#
+# Reserved for future use.
+#
+# pip_safe = frozenset(['desicmx', 'desidatamodel', 'desidithering', 'desietc',
+#                       'desimeter', 'desimodel', 'desisim', 'desispec',
+#                       'desisurvey', 'desitarget', 'desitemplate', 'desitransfer',
+#                       'desiutil', 'fiberassign', 'prospect', 'redrock',
+#                       'specex', 'speclite', 'specsim', 'specter', 'surveysim',
+#                       'simqso'])
 
 
 def dependencies(modulefile):
@@ -798,11 +816,15 @@ class DesiInstall(object):
                 #
                 # Ready to python setup.py
                 #
-                command = [sys.executable, 'setup.py', 'install',
-                           '--prefix={0}'.format(self.install_dir)]
+                # command = [sys.executable, 'setup.py', 'install',
+                #            '--prefix={0}'.format(self.install_dir)]
+                command = [sys.executable, '-m', 'pip', 'install', '--no-deps',
+                          '--disable-pip-version-check', '--ignore-installed',
+                          '--prefix={0}'.format(self.install_dir), '.']
                 self.log.debug(' '.join(command))
                 if self.options.test:
-                    self.log.debug("Test Mode.  Skipping 'python setup.py install'.")
+                    # self.log.debug("Test Mode.  Skipping 'python setup.py install'.")
+                    self.log.debug("Test Mode. Skipping 'pip install'.")
                 else:
                     os.chdir(self.working_dir)
                     proc = Popen(command, universal_newlines=True,

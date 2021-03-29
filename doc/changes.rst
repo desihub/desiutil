@@ -2,10 +2,12 @@
 Change Log
 ==========
 
-3.1.3 (unreleased)
+3.2.0 (unreleased)
 ------------------
 
-* No changes yet
+* Use ``pip install .`` instead of ``python setup.py install`` (PR `#168`_).
+
+.. _`#168`: https://github.com/desihub/desiutil/pull/168
 
 3.1.2 (2021-02-15)
 ------------------
