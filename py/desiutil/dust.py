@@ -314,6 +314,29 @@ def ext_fitzpatrick(wave, R_V=3.1, avglmc=False, lmc2=False,
 
     return curve/R_V
 
+# https://ui.adsabs.harvard.edu/abs/2011ApJ...737..103S
+ebv_sfd_scaling = 0.86 #
+
+def dust_transmission(wave,ebv_sfd) :
+    """
+    Return the dust transmission.
+    The routine does internally multiply ebv_sfd by dust.ebv_sfd_scaling.
+    The Fitzpatrick dust extinction law is used, assuming R_V=3.1.
+
+    Args:
+        wave : 1D array of vacuum wavelength [Angstroms]
+        ebv_sfd : E(B-V) as derived from the map of Schlegel, Finkbeiner and Davis (1998)
+
+    Returns:
+        1D array of dust transmission (between 0 and 1)
+    """
+    Rv = 3.1
+
+    extinction = ext_fitzpatrick(np.atleast_1d(wave),R_V=Rv)
+    if np.isscalar(wave) :
+        extinction=float(extinction[0])
+
+    return 10**(-Rv*extinction*ebv_sfd_scaling * ebv_sfd/2.5)
 
 # The SFDMap and _Hemisphere classes and the _bilinear_interpolate and ebv
 # functions below were copied on Nov/20/2016 from
@@ -606,6 +629,8 @@ class SFDMap(object):
                         self.fnames['south'], self.scaling))
 
 
+
+
 def ebv(*args, **kwargs):
     """Convenience function, equivalent to ``SFDMap().ebv(*args)``.
     """
@@ -619,14 +644,76 @@ def ebv(*args, **kwargs):
 def main():
     import matplotlib.pyplot as plt
 
-    wave=np.linspace(3000,10000,100)
+    wave=np.linspace(3000,11000,1000)
     rv=3.1
-    plt.plot(wave,ext_odonnell(wave, Rv=rv),label="Odonnell (1994)")
-    plt.plot(wave,ext_ccm(wave, Rv=rv),label="CCM (1989)")
-    plt.plot(wave,ext_fitzpatrick(wave, R_V=rv),label="Fitzpatrick (1999)")
+    plt.plot(wave,ebv_sfd_scaling*rv*ext_odonnell(wave, Rv=rv),label="{} x Odonnell (1994)".format(ebv_sfd_scaling))
+    plt.plot(wave,ebv_sfd_scaling*rv*ext_ccm(wave, Rv=rv),label="{} x CCM (1989)".format(ebv_sfd_scaling))
+    plt.plot(wave,ebv_sfd_scaling*rv*ext_fitzpatrick(wave, R_V=rv),label="{} x Fitzpatrick (1999)".format(ebv_sfd_scaling))
+
+
+    # load filters and compute extinctions here
+    try :
+        import speclite.filters
+
+
+        sed=(wave/6000.)**-1 # dummy star
+
+        fluxunits = 1e-17 * u.erg / u.s / u.cm**2 / u.Angstrom
+        photsys_survey={"N":"BASS+MZLS","S":"DECALS"}
+        count=0
+
+
+
+        for photsys in ["N","S"] :
+            for band in ["G","R","Z"] :
+                count += 1
+                color="C{}".format(count%10)
+
+                if photsys=="N" :
+                    if band.upper() in ["G","R"] :
+                        filtername="BASS-{}".format(band.lower())
+                    else :
+                        filtername="MzLS-z"
+                elif photsys=="S" :
+                    filtername="decam2014-{}".format(band.lower())
+
+                R=extinction_total_to_selective_ratio(band, photsys)
+
+                filter_response=speclite.filters.load_filter(filtername)
+
+                rv  = 3.1
+                ebv = 0.1
+                mag_no_extinction   = filter_response.get_ab_magnitude(sed*fluxunits,wave)
+                mag_with_extinction = filter_response.get_ab_magnitude((sed*10**(-0.4*rv*ebv*ext_fitzpatrick(wave, R_V=rv)))*fluxunits,wave)
+
+                f=np.interp(wave,filter_response.wavelength,filter_response.response)
+                fwave = np.sum(sed*f*wave)/np.sum(sed*f)
+                Rbis=(mag_with_extinction-mag_no_extinction)/ebv
+
+                if count==1 :
+                    label1="with extinction_total_to_selective_ratio"
+                    label2="with {} x ext_fitzpatrick".format(ebv_sfd_scaling)
+                else :
+                    label1=None
+                    label2=None
+
+                plt.plot(fwave,R,"x",color=color,label=label1)
+                plt.plot(fwave,ebv_sfd_scaling*Rbis,"o",color=color,label=label2)
+
+                f=np.interp(wave,filter_response.wavelength,filter_response.response)
+                ii=(f>0.01)
+                plt.plot(wave[ii],f[ii],"--",color=color,label=filtername)
+                print("R_{}({}:{})= {:4.3f} =? {}x{:4.3f} = {:4.3f} , delta = {:5.4f}".format(band,photsys,photsys_survey[photsys],R,ebv_sfd_scaling,Rbis,ebv_sfd_scaling*Rbis,R-ebv_sfd_scaling*Rbis))
+                #print("R_ter=",-2.5*np.log10(dust_transmission(fwave,ebv_sfd=ebv))/ebv)
+
+
+    except ImportError as e :
+        print(e)
+        print("Cannot import speclite, so no broadband comparison")
+
     plt.legend(title="For Rv={}".format(rv))
     plt.xlabel("wavelength (A)")
-    plt.ylabel("A(wavelength)/A(V)")
+    plt.ylabel("A(wavelength)/E(B-V)")
     plt.grid()
     plt.show()
 
