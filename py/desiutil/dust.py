@@ -644,6 +644,8 @@ def ebv(*args, **kwargs):
 def main():
     import matplotlib.pyplot as plt
 
+    plt.figure("reddening")
+
     wave=np.linspace(3000,11000,1000)
     rv=3.1
     plt.plot(wave,ebv_sfd_scaling*rv*ext_odonnell(wave, Rv=rv),label="{} x Odonnell (1994)".format(ebv_sfd_scaling))
@@ -656,7 +658,7 @@ def main():
         import speclite.filters
 
 
-        sed=(wave/6000.)**-1 # dummy star
+        sed=(wave/6000.)**-2.2 # dummy star with a spectrum close to a 7000K star (for wavelength>4000A)
 
         fluxunits = 1e-17 * u.erg / u.s / u.cm**2 / u.Angstrom
         photsys_survey={"N":"BASS+MZLS","S":"DECALS"}
