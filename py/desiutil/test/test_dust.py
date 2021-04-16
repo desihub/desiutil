@@ -132,10 +132,10 @@ class TestDust(unittest.TestCase):
                 self.assertEqual(rb1, rb2)
 
         #- North and South should be different
-        #for band in ['G', 'R', 'Z']:
-        #    rb1 = dust.extinction_total_to_selective_ratio(band, 'N')
-        #    rb2 = dust.extinction_total_to_selective_ratio(band, 'S')
-        #    self.assertNotEqual(rb1, rb2)
+        for band in ['G', 'R', 'Z']:
+            rb1 = dust.extinction_total_to_selective_ratio(band, 'N')
+            rb2 = dust.extinction_total_to_selective_ratio(band, 'S')
+            self.assertNotEqual(rb1, rb2)
 
         #- B is not a supported band (G,R,Z)
         with self.assertRaises(AssertionError):
@@ -164,8 +164,8 @@ class TestDust(unittest.TestCase):
         self.assertEqual(len(tn), len(ebv))
         self.assertEqual(len(ts), len(ebv))
         #- N vs. S should be different where ebv>0
-        #ii = (ebv>0)
-        #self.assertTrue(np.all(tn[ii] != ts[ii]))
+        ii = (ebv>0)
+        self.assertTrue(np.all(tn[ii] != ts[ii]))
 
         #- array photsys must have ebv array of same length
         with self.assertRaises(ValueError):
