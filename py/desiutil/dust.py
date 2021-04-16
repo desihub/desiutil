@@ -35,13 +35,15 @@ def extinction_total_to_selective_ratio(band, photsys) :
     # for the DR8 target catalogs and propagated in fibermaps
     # R_X = -2.5*log10(MW_TRANSMISSION_X) / EBV
     # excerpt from https://www.legacysurvey.org/dr8/catalogs/#galactic-extinction-coefficients :  Eddie Schlafly has computed the extinction coefficients for the DECam filters through airmass=1.3, computed for a 7000K source spectrum as was done in the Appendix of Schlafly & Finkbeiner (2011). These coefficients are A / E(B-V) = 3.995, 3.214, 2.165, 1.592, 1.211, 1.064 (note that these are slightly different from the coefficients in Schlafly & Finkbeiner 2011). The coefficients are multiplied by the SFD98 E(B-V) values at the coordinates of each object to derive the g, r and z mw_transmission values in the Legacy Surveys catalogs. The coefficients at different airmasses only change by a small amount, with the largest effect in g -band where the coefficient would be 3.219 at airmass=1 and 3.202 at airmass=2. We calculate Galactic extinction for BASS and MzLS as if they are on the DECam filter system.
-
+    # It is the same value for the N and S surveys in DR8 and DR9 catalogs.
+    # So the values for the N survey (BASS+MzLS) are not very accurate but we do not change them here for consistency with the Legacy Survey data.
     R={"G_N":3.2140,
        "R_N":2.1650,
        "Z_N":1.2110,
-       "G_S":3.2829,
-       "R_S":2.1999,
-       "Z_S":1.2150}
+       "G_S":3.2140,
+       "R_S":2.1650,
+       "Z_S":1.2110,
+       }
     assert(band.upper() in ["G","R","Z"])
     assert(photsys.upper() in ["N","S"])
     return R["{}_{}".format(band.upper(),photsys.upper())]
@@ -314,8 +316,13 @@ def ext_fitzpatrick(wave, R_V=3.1, avglmc=False, lmc2=False,
 
     return curve/R_V
 
-# https://ui.adsabs.harvard.edu/abs/2011ApJ...737..103S
-ebv_sfd_scaling = 0.86 #
+# based on the work from https://ui.adsabs.harvard.edu/abs/2011ApJ...737..103S
+# note from Eddie: I recommend applying the SF11 calibration in the following way:
+# A(lambda, F99) = A(lambda, F99, rv)/A(1 micron, F99, rv) * SFD_EBV * 1.029.
+# That's a definition that only uses monochromatic extinctions,
+# so a lot of ambiguity in what extinction means goes away.
+# That doesn't look like the 0.86 rescaling that we quote in abstract,
+# but it's convenient because it uses only monochromatic extinctions.
 
 def dust_transmission(wave,ebv_sfd) :
     """
@@ -331,12 +338,10 @@ def dust_transmission(wave,ebv_sfd) :
         1D array of dust transmission (between 0 and 1)
     """
     Rv = 3.1
-
-    extinction = ext_fitzpatrick(np.atleast_1d(wave),R_V=Rv)
+    extinction = ext_fitzpatrick(np.atleast_1d(wave),R_V=Rv) / ext_fitzpatrick(np.array([10000.]),R_V=Rv) * ebv_sfd * 1.029
     if np.isscalar(wave) :
         extinction=float(extinction[0])
-
-    return 10**(-Rv*extinction*ebv_sfd_scaling * ebv_sfd/2.5)
+    return 10**(-extinction/2.5)
 
 # The SFDMap and _Hemisphere classes and the _bilinear_interpolate and ebv
 # functions below were copied on Nov/20/2016 from
@@ -648,10 +653,10 @@ def main():
 
     wave=np.linspace(3000,11000,1000)
     rv=3.1
-    plt.plot(wave,ebv_sfd_scaling*rv*ext_odonnell(wave, Rv=rv),label="{} x Odonnell (1994)".format(ebv_sfd_scaling))
-    plt.plot(wave,ebv_sfd_scaling*rv*ext_ccm(wave, Rv=rv),label="{} x CCM (1989)".format(ebv_sfd_scaling))
-    plt.plot(wave,ebv_sfd_scaling*rv*ext_fitzpatrick(wave, R_V=rv),label="{} x Fitzpatrick (1999)".format(ebv_sfd_scaling))
-
+    ebv_sfd = 1.
+    trans = dust_transmission(wave,ebv_sfd)
+    ext   = -2.5*np.log10(trans)
+    plt.plot(wave,ext,label="-2.5*log10(dust_transmission)")
 
     # load filters and compute extinctions here
     try :
@@ -663,8 +668,6 @@ def main():
         fluxunits = 1e-17 * u.erg / u.s / u.cm**2 / u.Angstrom
         photsys_survey={"N":"BASS+MZLS","S":"DECALS"}
         count=0
-
-
 
         for photsys in ["N","S"] :
             for band in ["G","R","Z"] :
@@ -686,7 +689,7 @@ def main():
                 rv  = 3.1
                 ebv = 0.1
                 mag_no_extinction   = filter_response.get_ab_magnitude(sed*fluxunits,wave)
-                mag_with_extinction = filter_response.get_ab_magnitude((sed*10**(-0.4*rv*ebv*ext_fitzpatrick(wave, R_V=rv)))*fluxunits,wave)
+                mag_with_extinction = filter_response.get_ab_magnitude(sed*dust_transmission(wave,ebv)*fluxunits,wave)
 
                 f=np.interp(wave,filter_response.wavelength,filter_response.response)
                 fwave = np.sum(sed*f*wave)/np.sum(sed*f)
@@ -694,19 +697,18 @@ def main():
 
                 if count==1 :
                     label1="with extinction_total_to_selective_ratio"
-                    label2="with {} x ext_fitzpatrick".format(ebv_sfd_scaling)
+                    label2="with ... x ext_fitzpatrick"
                 else :
                     label1=None
                     label2=None
 
                 plt.plot(fwave,R,"x",color=color,label=label1)
-                plt.plot(fwave,ebv_sfd_scaling*Rbis,"o",color=color,label=label2)
+                #plt.plot(fwave,ebv_sfd_scaling*Rbis,"o",color=color,label=label2)
 
                 f=np.interp(wave,filter_response.wavelength,filter_response.response)
                 ii=(f>0.01)
                 plt.plot(wave[ii],f[ii],"--",color=color,label=filtername)
-                print("R_{}({}:{})= {:4.3f} =? {}x{:4.3f} = {:4.3f} , delta = {:5.4f}".format(band,photsys,photsys_survey[photsys],R,ebv_sfd_scaling,Rbis,ebv_sfd_scaling*Rbis,R-ebv_sfd_scaling*Rbis))
-                #print("R_ter=",-2.5*np.log10(dust_transmission(fwave,ebv_sfd=ebv))/ebv)
+                print("R_{}({}:{})= {:4.3f} =? {:4.3f}, delta = {:5.4f}".format(band,photsys,photsys_survey[photsys],R,Rbis,R-Rbis))
 
 
     except ImportError as e :
