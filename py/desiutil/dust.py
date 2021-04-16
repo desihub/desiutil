@@ -191,57 +191,54 @@ def ext_fitzpatrick(wave, R_V=3.1, avglmc=False, lmc2=False,
 
     Args:
         wave : 1D array of vacuum wavelength [Angstroms]
+        R_V : scalar specifying the ratio of total to selective extinction
+            R(V) = A(V) / E(B - V).  If not specified, then R = 3.1
+            Extreme values of R(V) range from 2.3 to 5.3
+        avglmc : if set, then the default fit parameters c1,c2,c3,c4,gamma,x0
+            are set to the average values determined for reddening in the
+            general Large Magellanic Cloud (LMC) field by Misselt et al.
+            (1999, ApJ, 515, 128)
+        lmc2 : if set, then the fit parameters are set to the values determined
+            for the LMC2 field (including 30 Dor) by Misselt et al.
+            Note that neither /AVGLMC or /LMC2 will alter the default value
+            of R_V which is poorly known for the LMC.
+        x0 : Centroid of 2200 A bump in microns (default = 4.596)
+        gamma : Width of 2200 A bump in microns (default = 0.99)
+        c1 : Intercept of the linear UV extinction component
+            (default = 2.030 - 3.007 * c2)
+        c2 : Slope of the linear UV extinction component
+            (default = -0.824 + 4.717 / R)
+        c3 : Strength of the 2200 A bump (default = 3.23)
+        c4 : FUV curvature (default = 0.41)
 
     Returns:
         1D array of A(lambda)/A(V)
 
-    OPTIONAL INPUT KEYWORDS
-      R_V - scalar specifying the ratio of total to selective extinction
-               R(V) = A(V) / E(B - V).  If not specified, then R = 3.1
-               Extreme values of R(V) range from 2.3 to 5.3
+    Notes:
 
-      avglmc - if set, then the default fit parameters c1,c2,c3,c4,gamma,x0
-             are set to the average values determined for reddening in the
-             general Large Magellanic Cloud (LMC) field by Misselt et al.
-            (1999, ApJ, 515, 128)
-      lmc2 - if set, then the fit parameters are set to the values determined
-             for the LMC2 field (including 30 Dor) by Misselt et al.
-             Note that neither /AVGLMC or /LMC2 will alter the default value
-             of R_V which is poorly known for the LMC.
-
-      The following five input keyword parameters allow the user to customize
-      the adopted extinction curve.  For example, see Clayton et al. (2003,
-      ApJ, 588, 871) for examples of these parameters in different interstellar
-      environments.
-
-      x0 - Centroid of 2200 A bump in microns (default = 4.596)
-      gamma - Width of 2200 A bump in microns (default = 0.99)
-      c3 - Strength of the 2200 A bump (default = 3.23)
-      c4 - FUV curvature (default = 0.41)
-      c2 - Slope of the linear UV extinction component
-           (default = -0.824 + 4.717 / R)
-      c1 - Intercept of the linear UV extinction component
-           (default = 2.030 - 3.007 * c2)
-
-    NOTES:
-       (1) The following comparisons between the FM curve and that of Cardelli,
+        1. The five input keyword parameters `x0`, `gamma`, `c1, `c2`, `c3`, `c4`,
+           allow the user to customize the adopted extinction curve.  For example,
+           see Clayton et al. (2003, ApJ, 588, 871) for examples of these parameters
+           in different interstellar environments.
+        2. The following comparisons between the FM curve and that of Cardelli,
            Clayton, & Mathis (1989), (see ccm_unred.pro):
-           (a) - In the UV, the FM and CCM curves are similar for R < 4.0, but
-                 diverge for larger R
-           (b) - In the optical region, the FM more closely matches the
-                 monochromatic extinction, especially near the R band.
-       (2)  Many sightlines with peculiar ultraviolet interstellar extinction
-               can be represented with the FM curve, if the proper value of
-               R(V) is supplied.
-    REQUIRED MODULES:
-       scipy, numpy
-    REVISION HISTORY:
-       Written   W. Landsman        Raytheon  STX   October, 1998
-       Based on FMRCurve by E. Fitzpatrick (Villanova)
-       Added /LMC2 and /AVGLMC keywords,  W. Landsman   August 2000
-       Added ExtCurve keyword, J. Wm. Parker   August 2000
-       Assume since V5.4 use COMPLEMENT to WHERE  W. Landsman April 2006
-       Ported to Python, C. Theissen August 2012
+
+            a. In the UV, the FM and CCM curves are similar for R < 4.0, but
+               diverge for larger R
+            b. In the optical region, the FM more closely matches the
+               monochromatic extinction, especially near the R band.
+        3. Many sightlines with peculiar ultraviolet interstellar extinction
+           can be represented with the FM curve, if the proper value of
+           R(V) is supplied.
+
+    Revision History:
+
+        * Written   W. Landsman        Raytheon  STX   October, 1998
+          Based on FMRCurve by E. Fitzpatrick (Villanova)
+        * Added /LMC2 and /AVGLMC keywords,  W. Landsman   August 2000
+        * Added ExtCurve keyword, J. Wm. Parker   August 2000
+        * Assume since V5.4 use COMPLEMENT to WHERE  W. Landsman April 2006
+        * Ported to Python, C. Theissen August 2012
     """
 
     # copied by J. Guy from E. Schlafly fm_unred function
