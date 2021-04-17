@@ -223,21 +223,25 @@ def ext_fitzpatrick(wave, R_V=3.1, avglmc=False, lmc2=False,
       avglmc - if set, then the default fit parameters c1,c2,c3,c4,gamma,x0
              are set to the average values determined for reddening in the
              general Large Magellanic Cloud (LMC) field by Misselt et al.
-            (1999, ApJ, 515, 128)
+             (1999, ApJ, 515, 128)
       lmc2 - if set, then the fit parameters are set to the values determined
              for the LMC2 field (including 30 Dor) by Misselt et al.
              Note that neither /AVGLMC or /LMC2 will alter the default value
              of R_V which is poorly known for the LMC.
 
-      The following five input keyword parameters allow the user to customize
-      the adopted extinction curve.  For example, see Clayton et al. (2003,
-      ApJ, 588, 871) for examples of these parameters in different interstellar
-      environments.
+    The following five input keyword parameters allow the user to customize
+    the adopted extinction curve.  For example, see Clayton et al. (2003,
+    ApJ, 588, 871) for examples of these parameters in different interstellar
+    environments.
 
-      x0 - Centroid of 2200 A bump in microns (default = 4.596)
-      gamma - Width of 2200 A bump in microns (default = 0.99)
-      c3 - Strength of the 2200 A bump (default = 3.23)
-      c4 - FUV curvature (default = 0.41)
+      x0 - Centroid of 2200 A bump in microns
+           (default = 4.596)
+      gamma - Width of 2200 A bump in microns
+           (default = 0.99)
+      c3 - Strength of the 2200 A bump
+           (default = 3.23)
+      c4 - FUV curvature
+           (default = 0.41)
       c2 - Slope of the linear UV extinction component
            (default = -0.824 + 4.717 / R)
       c1 - Intercept of the linear UV extinction component
@@ -246,6 +250,7 @@ def ext_fitzpatrick(wave, R_V=3.1, avglmc=False, lmc2=False,
     NOTES:
        (1) The following comparisons between the FM curve and that of Cardelli,
            Clayton, & Mathis (1989), (see ccm_unred.pro):
+
            (a) - In the UV, the FM and CCM curves are similar for R < 4.0, but
                  diverge for larger R
            (b) - In the optical region, the FM more closely matches the
