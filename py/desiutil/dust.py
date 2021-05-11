@@ -12,6 +12,7 @@ Get :math:`E(B-V)` values from the `Schlegel, Finkbeiner & Davis (1998; SFD98)`_
 """
 import os
 import numpy as np
+import itertools
 from astropy.io.fits import getdata
 from astropy.coordinates import SkyCoord
 from astropy import units as u
@@ -19,10 +20,12 @@ from desiutil.log import get_logger
 log = get_logger()
 
 def extinction_total_to_selective_ratio(band, photsys, match_legacy_surveys=False) :
-    """Return the linear coefficient R_B = A(B)/E(B-V) where
-    A(B) = -2.5*log10(transmission in B band), for band B in 'G','R' or 'Z',
-    the optical bands of the legacy surveys. photsys = 'N' or 'S' specifies
-    the survey (BASS+MZLS or DECALS).  E(B-V) is interpreted as SFD.
+    """Return the linear coefficient R_X = A(X)/E(B-V) where
+    A(X) = -2.5*log10(transmission in X band), 
+    for band X in 'G','R' or 'Z' when
+    photsys = 'N' or 'S' specifies the survey (BASS+MZLS or DECALS),
+    or for band X in 'G', 'BP', 'RP' when photsys = 'G' (when gaia dr2)
+    E(B-V) is interpreted as SFD.
 
     Args:
         band : 'G', 'R' or 'Z'
@@ -42,6 +45,9 @@ def extinction_total_to_selective_ratio(band, photsys, match_legacy_surveys=Fals
            "G_S":3.2140,
            "R_S":2.1650,
            "Z_S":1.2110,
+           "G_G":2.512,
+           "BP_G":3.143,
+           "RP_G":1.663,
         }
     else :
         # From https://desi.lbl.gov/trac/wiki/ImagingStandardBandpass
@@ -62,10 +68,13 @@ def extinction_total_to_selective_ratio(band, photsys, match_legacy_surveys=Fals
            "G_S":3.212,
            "R_S":2.164,
            "Z_S":1.211,
+           "G_G":2.512,
+           "BP_G":3.143,
+           "RP_G":1.663,
         }
 
-    assert(band.upper() in ["G","R","Z"])
-    assert(photsys.upper() in ["N","S"])
+    assert(band.upper() in ["G","R","Z","BP","RP"])
+    assert(photsys.upper() in ["N","S","G"])
     return R["{}_{}".format(band.upper(),photsys.upper())]
 
 def mwdust_transmission(ebv, band, photsys, match_legacy_surveys=False):
@@ -676,7 +685,7 @@ def main():
 
     plt.figure("reddening")
 
-    wave=np.linspace(3000,11000,1000)
+    wave=np.linspace(3000-1,11000,1000)
     rv=3.1
     ebv_sfd = 1.
     trans = dust_transmission(wave,ebv_sfd)
@@ -691,46 +700,48 @@ def main():
         sed=(wave/6000.)**-2.2 # dummy star with a spectrum close to a 7000K star (for wavelength>4000A)
 
         fluxunits = 1e-17 * u.erg / u.s / u.cm**2 / u.Angstrom
-        photsys_survey={"N":"BASS+MZLS","S":"DECALS"}
+        photsys_survey={"N":"BASS+MZLS","S":"DECALS", "G": "Gaia"}
         count=0
 
-        for photsys in ["N","S"] :
-            for band in ["G","R","Z"] :
-                count += 1
-                color="C{}".format(count%10)
+        photsys_bands = list(itertools.product('NS','GRZ')) + list(itertools.product('G',['G','BP','RP']))
+        for photsys,band in photsys_bands:
+            count += 1
+            color="C{}".format(count%10)
 
-                if photsys=="N" :
-                    if band.upper() in ["G","R"] :
-                        filtername="BASS-{}".format(band.lower())
-                    else :
-                        filtername="MzLS-z"
-                elif photsys=="S" :
-                    filtername="decam2014-{}".format(band.lower())
-
-                R=extinction_total_to_selective_ratio(band, photsys)
-
-                filter_response=speclite.filters.load_filter(filtername)
-
-                rv  = 3.1
-                ebv = 0.1
-                mag_no_extinction   = filter_response.get_ab_magnitude(sed*fluxunits,wave)
-                mag_with_extinction = filter_response.get_ab_magnitude(sed*dust_transmission(wave,ebv)*fluxunits,wave)
-
-                f=np.interp(wave,filter_response.wavelength,filter_response.response)
-                fwave = np.sum(sed*f*wave)/np.sum(sed*f)
-                Rbis=(mag_with_extinction-mag_no_extinction)/ebv
-
-                if count==1 :
-                    label1="with extinction_total_to_selective_ratio"
+            if photsys=="N" :
+                if band.upper() in ["G","R"] :
+                    filtername="BASS-{}".format(band.lower())
                 else :
-                    label1=None
+                    filtername="MzLS-z"
+            elif photsys=="S" :
+                filtername="decam2014-{}".format(band.lower())
+            elif photsys =="G":
+                filtername="gaiadr2-{}".format(band)
 
-                plt.plot(fwave,R,"x",color=color,label=label1)
+            R=extinction_total_to_selective_ratio(band, photsys)
 
-                f=np.interp(wave,filter_response.wavelength,filter_response.response)
-                ii=(f>0.01)
-                plt.plot(wave[ii],f[ii],"--",color=color,label=filtername)
-                print("R_{}({}:{})= {:4.3f} =? {:4.3f}, delta = {:5.4f}".format(band,photsys,photsys_survey[photsys],R,Rbis,R-Rbis))
+            filter_response=speclite.filters.load_filter(filtername)
+
+            rv  = 3.1
+            ebv = 0.1
+            mag_no_extinction   = filter_response.get_ab_magnitude(sed*fluxunits,wave)
+            mag_with_extinction = filter_response.get_ab_magnitude(sed*dust_transmission(wave,ebv)*fluxunits,wave)
+
+            f=np.interp(wave,filter_response.wavelength,filter_response.response)
+            fwave = np.sum(sed*f*wave)/np.sum(sed*f)
+            Rbis=(mag_with_extinction-mag_no_extinction)/ebv
+
+            if count==1 :
+                label1="with extinction_total_to_selective_ratio"
+            else :
+                label1=None
+
+            plt.plot(fwave,R,"x",color=color,label=label1)
+
+            f=np.interp(wave,filter_response.wavelength,filter_response.response)
+            ii=(f>0.01)
+            plt.plot(wave[ii],f[ii],"--",color=color,label=filtername)
+            print("R_{}({}:{})= {:4.3f} =? {:4.3f}, delta = {:5.4f}".format(band,photsys,photsys_survey[photsys],R,Rbis,R-Rbis))
 
 
     except ImportError as e :
