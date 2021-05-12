@@ -680,6 +680,72 @@ def ebv(*args, **kwargs):
                scaling=kwargs.get('scaling', 1.))
     return m.ebv(*args, **kwargs)
 
+
+def get_ext_coeff(temp, photsys, band, ebv_sfd, rv=3.1):
+    """ 
+    Obtain extinction coeffiecient (A_X/E(B-V)_SFD for 
+    a BB with a given temperature 
+    observed with photsys and band
+    and extinction ebv_sfd
+    """
+    wave = np.linspace(2900, 11000, 4000)
+    trans = dust_transmission(wave, ebv_sfd)
+
+    import speclite.filters
+    sed = 1. / (wave/6000)**5 / (np.exp(143877687. / wave / temp) - 1)
+
+    if photsys == "N" :
+        if band.upper() in ["G","R"] :
+            filtername = "BASS-{}".format(band.lower())
+        else :
+            filtername = "MzLS-z"
+    elif photsys == "S" :
+        filtername = "decam2014-{}".format(band.lower())
+    elif photsys == "G":
+        filtername = "gaiadr2-{}".format(band)
+    else:
+        raise Exception('unrecognized photsys')
+    
+    filter_response = speclite.filters.load_filter(filtername)
+
+    fluxunits = 1e-17 * u.erg / u.s / u.cm**2 / u.Angstrom
+    mag_no_extinction = filter_response.get_ab_magnitude(sed * fluxunits,
+                                                           wave)
+    mag_with_extinction = filter_response.get_ab_magnitude(sed * trans * fluxunits, wave)
+
+    # f = np.interp(wave, filter_response.wavelength,filter_response.response)
+    # fwave = np.sum(sed * f * wave)/np.sum(sed * f)
+    Rbis = (mag_with_extinction-mag_no_extinction)/ebv_sfd
+    return Rbis
+    
+def gaia_extinction(g, bp, rp, ebv_sfd):
+    # return extinction of gaia magnitudes based on Babusiaux2018 (eqn1/tab1) 
+    # we assume the EBV the original SFD scale
+    # we return A_G, A_BP, A_RP
+    gaia_poly_coeff = {'G':[0.9761, -0.1704,
+                           0.0086, 0.0011, -0.0438, 0.0013, 0.0099],
+                      'BP': [1.1517, -0.0871, -0.0333, 0.0173,
+                             -0.0230, 0.0006, 0.0043],
+                      'RP':[0.6104, -0.0170, -0.0026,
+                            -0.0017, -0.0078, 0.00005, 0.0006]}
+    ebv = 0.86 * ebv_sfd # Apply Schlafly+11 correction
+    
+    gaia_a0 = 3.1 * ebv
+    # here I apply a second-order correction for extinction
+    # i.e. I use corrected colors after 1 iteration to determine 
+    # the best final correction
+    inmag = {'G':g, 'RP':rp, 'BP':bp}
+    retmag= {'BP':bp * 1, 'RP':rp * 1, 'G': g * 1}
+    for i in range(10):
+        bprp = retmag['BP'] - retmag['RP']
+        for band in ['G','BP','RP']:
+            curp = gaia_poly_coeff[band]
+            dmag = (np.poly1d(gaia_poly_coeff[band][:4][::-1])(bprp) +
+                 curp[4] * gaia_a0 + curp[5]*gaia_a0**2 + curp[6]*bprp*gaia_a0
+                 )*gaia_a0
+            retmag[band] = inmag[band] - dmag
+    return (inmag['G']- retmag['G'], inmag['BP']-retmag['BP'], inmag['RP'] - retmag["RP"])
+
 def main():
     import matplotlib.pyplot as plt
 
@@ -696,10 +762,9 @@ def main():
     try :
         import speclite.filters
 
+        temp = 7000
+        sed=1./(wave/6000)**5/(np.exp( 143877687./wave/temp)-1) # dummy star with a spectrum close to a 7000K star (for wavelength>4000A)
 
-        sed=(wave/6000.)**-2.2 # dummy star with a spectrum close to a 7000K star (for wavelength>4000A)
-
-        fluxunits = 1e-17 * u.erg / u.s / u.cm**2 / u.Angstrom
         photsys_survey={"N":"BASS+MZLS","S":"DECALS", "G": "Gaia"}
         count=0
 
@@ -715,21 +780,17 @@ def main():
                     filtername="MzLS-z"
             elif photsys=="S" :
                 filtername="decam2014-{}".format(band.lower())
-            elif photsys =="G":
+            elif photsys == "G":
                 filtername="gaiadr2-{}".format(band)
 
             R=extinction_total_to_selective_ratio(band, photsys)
 
+            Rbis = get_ext_coeff(temp, photsys, band, ebv_sfd, rv=3.1)
+            
             filter_response=speclite.filters.load_filter(filtername)
-
-            rv  = 3.1
-            ebv = 0.1
-            mag_no_extinction   = filter_response.get_ab_magnitude(sed*fluxunits,wave)
-            mag_with_extinction = filter_response.get_ab_magnitude(sed*dust_transmission(wave,ebv)*fluxunits,wave)
 
             f=np.interp(wave,filter_response.wavelength,filter_response.response)
             fwave = np.sum(sed*f*wave)/np.sum(sed*f)
-            Rbis=(mag_with_extinction-mag_no_extinction)/ebv
 
             if count==1 :
                 label1="with extinction_total_to_selective_ratio"
