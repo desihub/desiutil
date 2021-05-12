@@ -744,7 +744,9 @@ def gaia_extinction(g, bp, rp, ebv_sfd):
                  curp[4] * gaia_a0 + curp[5]*gaia_a0**2 + curp[6]*bprp*gaia_a0
                  )*gaia_a0
             retmag[band] = inmag[band] - dmag
-    return (inmag['G']- retmag['G'], inmag['BP']-retmag['BP'], inmag['RP'] - retmag["RP"])
+    return {'G':inmag['G']- retmag['G'],
+            'BP':inmag['BP']-retmag['BP'],
+            'RP':inmag['RP'] - retmag["RP"]}
 
 def main():
     import matplotlib.pyplot as plt
