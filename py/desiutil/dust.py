@@ -68,9 +68,10 @@ def extinction_total_to_selective_ratio(band, photsys, match_legacy_surveys=Fals
            "G_S":3.212,
            "R_S":2.164,
            "Z_S":1.211,
-           "G_G":2.512,
-           "BP_G":3.143,
-           "RP_G":1.663,
+           "G_G":2.197,
+           "BP_G":2.844,
+           "RP_G":1.622,
+           
         }
 
     assert(band.upper() in ["G","R","Z","BP","RP"])
@@ -689,10 +690,17 @@ def get_ext_coeff(temp, photsys, band, ebv_sfd, rv=3.1):
     and extinction ebv_sfd
     """
     wave = np.linspace(2900, 11000, 4000)
+    sed = 1. / (wave/6000)**5 / (np.exp(143877687. / wave / temp) - 1)
+    # code to use Munari library
+    # http://cdsarc.u-strasbg.fr/ftp/J/A+A/442/1127/disp10A/fluxed_spectra/T_07000/
+    # wave = np.loadtxt('LAMBDA_D10.DAT.txt')
+    # wave = np.r_[wave, 10999]
+    # sed = np.loadtxt('T07000G40M10V000K2SNWNVD10F.ASC')
+    # sed = np.r_[sed, sed[-1]]
+    
     trans = dust_transmission(wave, ebv_sfd)
 
     import speclite.filters
-    sed = 1. / (wave/6000)**5 / (np.exp(143877687. / wave / temp) - 1)
 
     if photsys == "N" :
         if band.upper() in ["G","R"] :
