@@ -91,6 +91,8 @@ def mwdust_transmission(ebv, band, photsys, match_legacy_surveys=False):
 
     If `photsys` is an array, `ebv` must also be array of same length.
     However, `ebv` can be an array with a str `photsys`.
+
+    Also see `dust_transmission` which returns transmission vs input wavelength
     """
     if isinstance(photsys, str):
         r_band = extinction_total_to_selective_ratio(band, photsys, match_legacy_surveys=match_legacy_surveys)
@@ -361,9 +363,7 @@ def ext_fitzpatrick(wave, R_V=3.1, avglmc=False, lmc2=False,
 
 def dust_transmission(wave,ebv_sfd) :
     """
-    Return the dust transmission.
-    The routine does internally multiply ebv_sfd by dust.ebv_sfd_scaling.
-    The Fitzpatrick dust extinction law is used, assuming R_V=3.1.
+    Return the dust transmission [0-1] vs. wavelength.
 
     Args:
         wave : 1D array of vacuum wavelength [Angstroms]
@@ -371,6 +371,11 @@ def dust_transmission(wave,ebv_sfd) :
 
     Returns:
         1D array of dust transmission (between 0 and 1)
+
+    The routine does internally multiply ebv_sfd by dust.ebv_sfd_scaling.
+    The Fitzpatrick dust extinction law is used, assuming R_V=3.1.
+
+    Also see `mwdust_transmission` which return transmission within a filter
     """
     Rv = 3.1
     extinction = ext_fitzpatrick(np.atleast_1d(wave),R_V=Rv) / ext_fitzpatrick(np.array([10000.]),R_V=Rv) * ebv_sfd * 1.029
@@ -669,8 +674,6 @@ class SFDMap(object):
                         self.fnames['south'], self.scaling))
 
 
-
-
 def ebv(*args, **kwargs):
     """Convenience function, equivalent to ``SFDMap().ebv(*args)``.
     """
@@ -681,50 +684,6 @@ def ebv(*args, **kwargs):
                scaling=kwargs.get('scaling', 1.))
     return m.ebv(*args, **kwargs)
 
-
-def get_ext_coeff(temp, photsys, band, ebv_sfd, rv=3.1):
-    """
-    Obtain extinction coeffiecient (A_X/E(B-V)_SFD for
-    a BB with a given temperature
-    observed with photsys and band
-    and extinction ebv_sfd
-    """
-    wave = np.linspace(2900, 11000, 4000)
-    sed = 1. / (wave/6000)**5 / (np.exp(143877687. / wave / temp) - 1)
-    # code to use Munari library
-    # http://cdsarc.u-strasbg.fr/ftp/J/A+A/442/1127/disp10A/fluxed_spectra/T_07000/
-    # wave = np.loadtxt('LAMBDA_D10.DAT.txt')
-    # wave = np.r_[wave, 10999]
-    # sed = np.loadtxt('T07000G40M10V000K2SNWNVD10F.ASC')
-    # sed = np.r_[sed, sed[-1]]
-
-    trans = dust_transmission(wave, ebv_sfd)
-
-    import speclite.filters
-
-    if photsys == "N" :
-        if band.upper() in ["G","R"] :
-            filtername = "BASS-{}".format(band.lower())
-        else :
-            filtername = "MzLS-z"
-    elif photsys == "S" :
-        filtername = "decam2014-{}".format(band.lower())
-    elif photsys == "G":
-        filtername = "gaiadr2-{}".format(band)
-    else:
-        raise Exception('unrecognized photsys')
-
-    filter_response = speclite.filters.load_filter(filtername)
-
-    fluxunits = 1e-17 * u.erg / u.s / u.cm**2 / u.Angstrom
-    mag_no_extinction = filter_response.get_ab_magnitude(sed * fluxunits,
-                                                           wave)
-    mag_with_extinction = filter_response.get_ab_magnitude(sed * trans * fluxunits, wave)
-
-    # f = np.interp(wave, filter_response.wavelength,filter_response.response)
-    # fwave = np.sum(sed * f * wave)/np.sum(sed * f)
-    Rbis = (mag_with_extinction-mag_no_extinction)/ebv_sfd
-    return Rbis
 
 def gaia_extinction(g, bp, rp, ebv_sfd):
     # return extinction of gaia magnitudes based on Babusiaux2018 (eqn1/tab1)
@@ -756,7 +715,69 @@ def gaia_extinction(g, bp, rp, ebv_sfd):
             'BP':inmag['BP']-retmag['BP'],
             'RP':inmag['RP'] - retmag["RP"]}
 
-def main():
+
+#-------------------------------------------------------------------------
+#- Used for dust development debugging, but not a core part of the
+#- desiutil.dust module for end-users
+
+def _get_ext_coeff(temp, photsys, band, ebv_sfd, rv=3.1):
+    """
+    Obtain extinction coeffiecient A_X/E(B-V)_SFD for black body spectrum
+    with a given temperature observed with photsys and band and
+    extinction ebv_sfd
+
+    Args:
+        temp (float): temperature in Kelvin
+        photsys (str): N, S, or G (gaia)
+        band (str): g,r,z (if photsys=N or S); G, BP, or RP if photsys=G
+        ebv_sfd (float): E(B-V) from SFD dust map
+        Rv (float) : Value of extinction law R_V; default is 3.1
+
+    Returns extinction coefficient A_X / E(B-V)_SFD
+
+    Note: this is currently a _hidden function due to its speclite dependency,
+    but it could be promoted if needed by external libraries.
+    """
+    wave = np.linspace(2900, 11000, 4000)
+    sed = 1. / (wave/6000)**5 / (np.exp(143877687. / wave / temp) - 1)
+    # code to use Munari library
+    # http://cdsarc.u-strasbg.fr/ftp/J/A+A/442/1127/disp10A/fluxed_spectra/T_07000/
+    # wave = np.loadtxt('LAMBDA_D10.DAT.txt')
+    # wave = np.r_[wave, 10999]
+    # sed = np.loadtxt('T07000G40M10V000K2SNWNVD10F.ASC')
+    # sed = np.r_[sed, sed[-1]]
+
+    trans = dust_transmission(wave, ebv_sfd)
+
+    #- import speclite only if needed
+    import speclite.filters
+
+    if photsys == "N" :
+        if band.upper() in ["G","R"] :
+            filtername = "BASS-{}".format(band.lower())
+        else :
+            filtername = "MzLS-z"
+    elif photsys == "S" :
+        filtername = "decam2014-{}".format(band.lower())
+    elif photsys == "G":
+        filtername = "gaiadr2-{}".format(band)
+    else:
+        raise Exception('unrecognized photsys')
+
+    filter_response = speclite.filters.load_filter(filtername)
+
+    fluxunits = 1e-17 * u.erg / u.s / u.cm**2 / u.Angstrom
+    mag_no_extinction = filter_response.get_ab_magnitude(sed * fluxunits,
+                                                           wave)
+    mag_with_extinction = filter_response.get_ab_magnitude(sed * trans * fluxunits, wave)
+
+    # f = np.interp(wave, filter_response.wavelength,filter_response.response)
+    # fwave = np.sum(sed * f * wave)/np.sum(sed * f)
+    Rbis = (mag_with_extinction-mag_no_extinction)/ebv_sfd
+    return Rbis
+
+def _main():
+    #- Wrapper for development debugging of extinction coeffs
     import argparse
     import matplotlib.pyplot as plt
 
@@ -799,7 +820,7 @@ def main():
 
             R=extinction_total_to_selective_ratio(band, photsys)
 
-            Rbis = get_ext_coeff(temp, photsys, band, ebv_sfd, rv=3.1)
+            Rbis = _get_ext_coeff(temp, photsys, band, ebv_sfd, rv=3.1)
 
             filter_response=speclite.filters.load_filter(filtername)
 
@@ -830,4 +851,4 @@ def main():
     plt.show()
 
 if __name__ == '__main__':
-    main()
+    _main()

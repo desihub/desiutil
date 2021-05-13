@@ -5,7 +5,10 @@ Change Log
 3.2.1 (unreleased)
 ------------------
 
-* Changes in ``dust.py``: use Fitzpatrick reddening, add ``dust_transmission(wave,ebv_sfd)`` function, include GAIA bands (PR `#171`_).
+* Changes in ``dust.py``: use Fitzpatrick reddening, add
+  ``dust_transmission(wave,ebv_sfd)`` function, include GAIA bands (PR `#171`_).
+* ``desiutil.depend.possible_dependencies`` add fiberassign, desimeter, and
+  gpu_specter (direct commit).
 
 .. _`#171`: https://github.com/desihub/desiutil/pull/171
 
