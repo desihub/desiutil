@@ -11,6 +11,7 @@ from unittest.mock import patch, call
 import os
 import numpy as np
 from .. import dust
+#import desiutil.dust as dust
 from pkg_resources import resource_filename
 from astropy.coordinates import SkyCoord
 from astropy import units as u
@@ -144,6 +145,12 @@ class TestDust(unittest.TestCase):
         #- Q is not a valid photsys (N,S)
         with self.assertRaises(AssertionError):
             rb = dust.extinction_total_to_selective_ratio('G', 'Q')
+
+    def test_dust_transmission(self) :
+        dust.dust_transmission(np.linspace(3600,9000,1000),0.1)
+
+    def test_gaia_extinction(self) :
+        dust.gaia_extinction(g=14.,bp=14.,rp=14.,ebv_sfd=0.4)
 
     def test_mwdust_transmission(self):
         ebv = np.array([0.0, 0.1, 0.2, 0.3])
