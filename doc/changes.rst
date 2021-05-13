@@ -2,7 +2,12 @@
 Change Log
 ==========
 
-3.2.1 (unreleased)
+3.2.2 (unreleased)
+------------------
+
+* No changes yet.
+
+3.2.1 (2021-05-13)
 ------------------
 
 * Changes in ``dust.py``: use Fitzpatrick reddening, add
