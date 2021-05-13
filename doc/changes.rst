@@ -5,7 +5,9 @@ Change Log
 3.2.1 (unreleased)
 ------------------
 
-* No changes yet.
+* Changes in ``dust.py``: use Fitzpatrick reddening, add ``dust_transmission(wave,ebv_sfd)`` function, include GAIA bands (PR `#171`_).
+
+.. _`#171`: https://github.com/desihub/desiutil/pull/171
 
 3.2.0 (2021-03-29)
 ------------------
