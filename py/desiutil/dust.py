@@ -21,7 +21,7 @@ log = get_logger()
 
 def extinction_total_to_selective_ratio(band, photsys, match_legacy_surveys=False) :
     """Return the linear coefficient R_X = A(X)/E(B-V) where
-    A(X) = -2.5*log10(transmission in X band), 
+    A(X) = -2.5*log10(transmission in X band),
     for band X in 'G','R' or 'Z' when
     photsys = 'N' or 'S' specifies the survey (BASS+MZLS or DECALS),
     or for band X in 'G', 'BP', 'RP' when photsys = 'G' (when gaia dr2)
@@ -71,7 +71,7 @@ def extinction_total_to_selective_ratio(band, photsys, match_legacy_surveys=Fals
            "G_G":2.197,
            "BP_G":2.844,
            "RP_G":1.622,
-           
+
         }
 
     assert(band.upper() in ["G","R","Z","BP","RP"])
@@ -683,9 +683,9 @@ def ebv(*args, **kwargs):
 
 
 def get_ext_coeff(temp, photsys, band, ebv_sfd, rv=3.1):
-    """ 
-    Obtain extinction coeffiecient (A_X/E(B-V)_SFD for 
-    a BB with a given temperature 
+    """
+    Obtain extinction coeffiecient (A_X/E(B-V)_SFD for
+    a BB with a given temperature
     observed with photsys and band
     and extinction ebv_sfd
     """
@@ -697,7 +697,7 @@ def get_ext_coeff(temp, photsys, band, ebv_sfd, rv=3.1):
     # wave = np.r_[wave, 10999]
     # sed = np.loadtxt('T07000G40M10V000K2SNWNVD10F.ASC')
     # sed = np.r_[sed, sed[-1]]
-    
+
     trans = dust_transmission(wave, ebv_sfd)
 
     import speclite.filters
@@ -713,7 +713,7 @@ def get_ext_coeff(temp, photsys, band, ebv_sfd, rv=3.1):
         filtername = "gaiadr2-{}".format(band)
     else:
         raise Exception('unrecognized photsys')
-    
+
     filter_response = speclite.filters.load_filter(filtername)
 
     fluxunits = 1e-17 * u.erg / u.s / u.cm**2 / u.Angstrom
@@ -725,9 +725,9 @@ def get_ext_coeff(temp, photsys, band, ebv_sfd, rv=3.1):
     # fwave = np.sum(sed * f * wave)/np.sum(sed * f)
     Rbis = (mag_with_extinction-mag_no_extinction)/ebv_sfd
     return Rbis
-    
+
 def gaia_extinction(g, bp, rp, ebv_sfd):
-    # return extinction of gaia magnitudes based on Babusiaux2018 (eqn1/tab1) 
+    # return extinction of gaia magnitudes based on Babusiaux2018 (eqn1/tab1)
     # we assume the EBV the original SFD scale
     # we return A_G, A_BP, A_RP
     gaia_poly_coeff = {'G':[0.9761, -0.1704,
@@ -737,10 +737,10 @@ def gaia_extinction(g, bp, rp, ebv_sfd):
                       'RP':[0.6104, -0.0170, -0.0026,
                             -0.0017, -0.0078, 0.00005, 0.0006]}
     ebv = 0.86 * ebv_sfd # Apply Schlafly+11 correction
-    
+
     gaia_a0 = 3.1 * ebv
     # here I apply a second-order correction for extinction
-    # i.e. I use corrected colors after 1 iteration to determine 
+    # i.e. I use corrected colors after 1 iteration to determine
     # the best final correction
     inmag = {'G':g, 'RP':rp, 'BP':bp}
     retmag= {'BP':bp * 1, 'RP':rp * 1, 'G': g * 1}
@@ -757,7 +757,11 @@ def gaia_extinction(g, bp, rp, ebv_sfd):
             'RP':inmag['RP'] - retmag["RP"]}
 
 def main():
+    import argparse
     import matplotlib.pyplot as plt
+
+    parser=argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,description="Runs and displays a comparison between tabulated values of total to selective extinction ratios and values obtained with synthetic mags.")
+    args = parser.parse_args()
 
     plt.figure("reddening")
 
@@ -796,7 +800,7 @@ def main():
             R=extinction_total_to_selective_ratio(band, photsys)
 
             Rbis = get_ext_coeff(temp, photsys, band, ebv_sfd, rv=3.1)
-            
+
             filter_response=speclite.filters.load_filter(filtername)
 
             f=np.interp(wave,filter_response.wavelength,filter_response.response)
