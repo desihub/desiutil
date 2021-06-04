@@ -77,6 +77,11 @@ def init_modules(moduleshome=None, method=False, command=False):
         if tclsh is None:
             raise ValueError("TCL Modules detected, but no tclsh excecutable found.")
         modulecmd = [tclsh, os.path.join(moduleshome, 'modulecmd.tcl'), 'python']
+    elif os.path.exists(os.path.join(moduleshome, 'libexec', 'lmod')):
+        #
+        # Lmod version!
+        #
+        modulecmd = [os.path.exists(os.path.join(moduleshome, 'libexec', 'lmod')), 'python']
     else:
         #
         # This should work on all NERSC systems, assuming the user's environment

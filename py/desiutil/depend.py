@@ -64,7 +64,8 @@ possible_dependencies = [
     'numpy', 'scipy', 'astropy', 'yaml', 'matplotlib',
     'requests', 'fitsio', 'h5py', 'mpi4py', 'psycopg2', 'healpy',
     'desiutil', 'desispec', 'desitarget', 'desimodel', 'desisim', 'desisurvey',
-    'redmonster', 'specter', 'speclite', 'specsim', 'surveysim', 'redrock',
+    'specter', 'speclite', 'specsim', 'surveysim', 'redrock', 'desimeter',
+    'fiberassign', 'gpu_specter',
     ]
 
 

@@ -57,7 +57,7 @@ Environment variables that strongly affect the behavior of :command:`desiInstall
     :command:`svn`.
 
 Environment variables that are *set* by :command:`desiInstall` for use by
-:command:`python setup.py` or :command:`make`.
+:command:`pip install` or :command:`make`.
 
 :envvar:`INSTALL_DIR`
     This variable is *set* by :command:`desiInstall` to the directory that will contain
@@ -113,7 +113,7 @@ defaults to a pre-defined value. ``$product_root`` may contain the following
 directories:
 
 code/
-    This contains the installed code, the result of :command:`python setup.py install`
+    This contains the installed code, the result of :command:`pip install .`
     or :command:`make install`.  The code is always placed in a ``product/version``
     directory.  So for example, the full path to :command:`desiInstall` might be
     ``$product_root/code/desiutil/1.8.0/bin/desiInstall``.
@@ -212,7 +212,7 @@ order and the first matching method is used:
 
 py
     If a setup.py file is detected, :command:`desiInstall` will attempt to execute
-    :command:`python setup.py install`.  This build type can be suppressed with the
+    :command:`pip install .`.  This build type can be suppressed with the
     command line option ``--compile-c``.
 make
     If a Makefile is detected, :command:`desiInstall` will attempt to execute
@@ -299,10 +299,10 @@ If the build-type is *only* 'plain', or if a branch install is
 requested, the downloaded code will be copied to :envvar:`INSTALL_DIR`.
 Further Python or C/C++ install steps described below will be skipped.
 
-Run setup.py
-------------
+Run pip
+-------
 
-If the build-type 'py' is detected, :command:`python setup.py install` will be run
+If the build-type 'py' is detected, :command:`pip install .` will be run
 at this point.
 
 Build C/C++ Code
