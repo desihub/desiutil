@@ -2,20 +2,22 @@
 Change Log
 ==========
 
-3.2.2 (unreleased)
+3.2.2 (2021-06-03)
 ------------------
 
-* Add module config support for packages like QuasarNP where the GitHub
-  name is capitalized by the python package isn't (PR `#173`_).
+* Add support to :func:`~desiutil.modules.config_module` for packages like
+  QuasarNP_ where the GitHub name is capitalized but the internal Python
+  package isn't (PR `#173`_).
 
 .. _`#173`: https://github.com/desihub/desiutil/pull/173
+.. _QuasarNP: https://github.com/desihub/QuasarNP
 
 3.2.1 (2021-05-13)
 ------------------
 
-* Changes in ``dust.py``: use Fitzpatrick reddening, add
-  ``dust_transmission(wave,ebv_sfd)`` function, include GAIA bands (PR `#171`_).
-* ``desiutil.depend.possible_dependencies`` add fiberassign, desimeter, and
+* Changes in :mod:`desiutil.dust`: use Fitzpatrick reddening, add
+  :func:`~desiutil.dust.dust_transmission` function, include GAIA bands (PR `#171`_).
+* :func:`desiutil.depend.possible_dependencies`: add fiberassign, desimeter, and
   gpu_specter (direct commit).
 
 .. _`#171`: https://github.com/desihub/desiutil/pull/171
@@ -23,7 +25,7 @@ Change Log
 3.2.0 (2021-03-29)
 ------------------
 
-* Use ``pip install .`` instead of ``python setup.py install`` (PR `#168`_).
+* Use :command:`pip install .` instead of :command:`python setup.py install` (PR `#168`_).
 
 .. _`#168`: https://github.com/desihub/desiutil/pull/168
 
@@ -34,7 +36,7 @@ Change Log
 * :command:`desiInstall` auto derive build type "py" or "make" or "src"
   but don't combine them (PR `#163`_).
 * :command:`desiInstall` only fallback to NERSC default installdir
-  if `--root` isn't specified (PR `#163`_).
+  if ``--root`` isn't specified (PR `#163`_).
 * Add :func:`desiutil.depend.mergedep` to merge DEPNAMnn/DEPVERnn
   dependencies between different headers (PR `#164`_)
 
