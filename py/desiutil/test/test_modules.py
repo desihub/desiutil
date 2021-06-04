@@ -222,6 +222,35 @@ class TestModules(unittest.TestCase):
             rmdir(join(self.data_dir, t))
         for t in test_files:
             remove(join(self.data_dir, t))
+        #
+        # Test mixed case product directory (Blat) vs. python package (blat)
+        #
+        test_dirs = ('blat',)
+        test_files = {'setup.py': '#!/usr/bin/env python\n'}
+        for t in test_dirs:
+            mkdir(join(self.data_dir, t))
+        for t in test_files:
+            with open(join(self.data_dir, t), 'w') as s:
+                s.write(test_files[t])
+        results['name'] = 'Blat'
+        results['version'] = '1.2.3'
+        results['needs_bin'] = '# '
+        results['needs_python'] = ''
+        results['needs_trunk_py'] = '# '
+        results['trunk_py_dir'] = '/py'
+        results['needs_ld_lib'] = '# '
+        results['needs_idl'] = '# '
+
+        conf = configure_module('Blat', '1.2.3', '/my/product/root',
+                                working_dir=self.data_dir)
+
+        for key in results:
+            self.assertEqual(conf[key], results[key], key)
+        for t in test_dirs:
+            rmdir(join(self.data_dir, t))
+        for t in test_files:
+            remove(join(self.data_dir, t))
+
 
     def test_process_module(self):
         """Test processing of module file templates.
