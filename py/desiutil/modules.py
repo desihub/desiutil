@@ -199,7 +199,10 @@ def configure_module(product, version, product_root, working_dir=None, dev=False
         module_keywords['needs_ld_lib'] = ''
     if isdir(join(working_dir, 'pro')):
         module_keywords['needs_idl'] = ''
-    if (exists(join(working_dir, 'setup.py')) and isdir(join(working_dir, product))):
+    if (exists(join(working_dir, 'setup.py')) and
+        (isdir(join(working_dir, product)) or
+         isdir(join(working_dir, product.lower())))
+        ):
         if dev:
             module_keywords['needs_trunk_py'] = ''
             module_keywords['trunk_py_dir'] = ''

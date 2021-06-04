@@ -5,7 +5,10 @@ Change Log
 3.2.2 (unreleased)
 ------------------
 
-* No changes yet.
+* Add module config support for packages like QuasarNP where the GitHub
+  name is capitalized by the python package isn't (PR `#173`_).
+
+.. _`#173`: https://github.com/desihub/desiutil/pull/173
 
 3.2.1 (2021-05-13)
 ------------------
