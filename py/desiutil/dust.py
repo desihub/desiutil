@@ -25,10 +25,11 @@ def extinction_total_to_selective_ratio(band, photsys, match_legacy_surveys=Fals
     for band X in 'G','R' or 'Z' when
     photsys = 'N' or 'S' specifies the survey (BASS+MZLS or DECALS),
     or for band X in 'G', 'BP', 'RP' when photsys = 'G' (when gaia dr2)
+    or for band X in 'W1', 'W2', 'W3', 'W4' when photsys is either 'N' or 'S'
     E(B-V) is interpreted as SFD.
 
     Args:
-        band : 'G', 'R' or 'Z'
+        band : 'G', 'R', 'Z', 'BP', 'RP', 'W1', 'W2', 'W3', or 'W4'
         photsys : 'N' or 'S'
 
     Returns:
@@ -73,7 +74,8 @@ def extinction_total_to_selective_ratio(band, photsys, match_legacy_surveys=Fals
            "RP_G":1.622,
         }
 
-    # from https://github.com/dstndstn/tractor/blob/main/tractor/sfd.py#L23-L35
+    # Add WISE from
+    # https://github.com/dstndstn/tractor/blob/main/tractor/sfd.py#L23-L35
     R.update({
         'W1_N': 0.184,
         'W2_N': 0.113,
@@ -94,7 +96,7 @@ def mwdust_transmission(ebv, band, photsys, match_legacy_surveys=False):
 
     Args:
         ebv (float or array-like): SFD E(B-V) value(s)
-        band (str): 'G', 'R', or 'Z'
+        band (str): 'G', 'R', 'Z', 'W1', 'W2', 'W3', or 'W4'
         photsys (str or array of str): 'N' or 'S' imaging surveys photo system
 
     Returns:
