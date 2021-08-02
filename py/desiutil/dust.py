@@ -71,10 +71,21 @@ def extinction_total_to_selective_ratio(band, photsys, match_legacy_surveys=Fals
            "G_G":2.197,
            "BP_G":2.844,
            "RP_G":1.622,
-
         }
 
-    assert(band.upper() in ["G","R","Z","BP","RP"])
+    # from https://github.com/dstndstn/tractor/blob/main/tractor/sfd.py#L23-L35
+    R.update({
+        'W1_N': 0.184,
+        'W2_N': 0.113,
+        'W3_N': 0.0241,
+        'W4_N': 0.00910,
+        'W1_S': 0.184,
+        'W2_S': 0.113,
+        'W3_S': 0.0241,
+        'W4_S': 0.00910
+        })
+
+    assert(band.upper() in ["G","R","Z","BP","RP",'W1','W2','W3','W4'])
     assert(photsys.upper() in ["N","S","G"])
     return R["{}_{}".format(band.upper(),photsys.upper())]
 
