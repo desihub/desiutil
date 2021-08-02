@@ -25,10 +25,11 @@ def extinction_total_to_selective_ratio(band, photsys, match_legacy_surveys=Fals
     for band X in 'G','R' or 'Z' when
     photsys = 'N' or 'S' specifies the survey (BASS+MZLS or DECALS),
     or for band X in 'G', 'BP', 'RP' when photsys = 'G' (when gaia dr2)
+    or for band X in 'W1', 'W2', 'W3', 'W4' when photsys is either 'N' or 'S'
     E(B-V) is interpreted as SFD.
 
     Args:
-        band : 'G', 'R' or 'Z'
+        band : 'G', 'R', 'Z', 'BP', 'RP', 'W1', 'W2', 'W3', or 'W4'
         photsys : 'N' or 'S'
 
     Returns:
@@ -71,10 +72,22 @@ def extinction_total_to_selective_ratio(band, photsys, match_legacy_surveys=Fals
            "G_G":2.197,
            "BP_G":2.844,
            "RP_G":1.622,
-
         }
 
-    assert(band.upper() in ["G","R","Z","BP","RP"])
+    # Add WISE from
+    # https://github.com/dstndstn/tractor/blob/main/tractor/sfd.py#L23-L35
+    R.update({
+        'W1_N': 0.184,
+        'W2_N': 0.113,
+        'W3_N': 0.0241,
+        'W4_N': 0.00910,
+        'W1_S': 0.184,
+        'W2_S': 0.113,
+        'W3_S': 0.0241,
+        'W4_S': 0.00910
+        })
+
+    assert(band.upper() in ["G","R","Z","BP","RP",'W1','W2','W3','W4'])
     assert(photsys.upper() in ["N","S","G"])
     return R["{}_{}".format(band.upper(),photsys.upper())]
 
@@ -83,7 +96,7 @@ def mwdust_transmission(ebv, band, photsys, match_legacy_surveys=False):
 
     Args:
         ebv (float or array-like): SFD E(B-V) value(s)
-        band (str): 'G', 'R', or 'Z'
+        band (str): 'G', 'R', 'Z', 'W1', 'W2', 'W3', or 'W4'
         photsys (str or array of str): 'N' or 'S' imaging surveys photo system
 
     Returns:
@@ -361,23 +374,23 @@ def ext_fitzpatrick(wave, R_V=3.1, avglmc=False, lmc2=False,
 # That doesn't look like the 0.86 rescaling that we quote in abstract,
 # but it's convenient because it uses only monochromatic extinctions.
 
-def dust_transmission(wave,ebv_sfd) :
+def dust_transmission(wave, ebv_sfd, Rv=3.1):
     """
     Return the dust transmission [0-1] vs. wavelength.
 
     Args:
         wave : 1D array of vacuum wavelength [Angstroms]
         ebv_sfd : E(B-V) as derived from the map of Schlegel, Finkbeiner and Davis (1998)
+        Rv : total-to-selective extinction ratio, defaults to 3.1
 
     Returns:
         1D array of dust transmission (between 0 and 1)
 
     The routine does internally multiply ebv_sfd by dust.ebv_sfd_scaling.
-    The Fitzpatrick dust extinction law is used, assuming R_V=3.1.
+    The Fitzpatrick dust extinction law is used, given R_V (default 3.1).
 
     Also see `mwdust_transmission` which return transmission within a filter
     """
-    Rv = 3.1
     extinction = ext_fitzpatrick(np.atleast_1d(wave),R_V=Rv) / ext_fitzpatrick(np.array([10000.]),R_V=Rv) * ebv_sfd * 1.029
     if np.isscalar(wave) :
         extinction=float(extinction[0])

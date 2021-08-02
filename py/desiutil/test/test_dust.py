@@ -138,6 +138,12 @@ class TestDust(unittest.TestCase):
             rb2 = dust.extinction_total_to_selective_ratio(band, 'S')
             self.assertNotEqual(rb1, rb2)
 
+        #- North and South for WISE should be the same
+        for band in ['W1', 'W2', 'W3', 'W4']:
+            rb1 = dust.extinction_total_to_selective_ratio(band, 'N')
+            rb2 = dust.extinction_total_to_selective_ratio(band, 'S')
+            self.assertEqual(rb1, rb2)
+
         #- B is not a supported band (G,R,Z)
         with self.assertRaises(AssertionError):
             rb = dust.extinction_total_to_selective_ratio('B', 'N')
