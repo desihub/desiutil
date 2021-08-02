@@ -47,10 +47,10 @@
 # - {name: dY_2000A_B, unit: marcsec, datatype: float64, description: Bull. B dY wrt
 #     IAU2000A Nutation}
 # - {name: UT1_UTC, unit: s, datatype: float64}
-# - {name: UT1Flag, datatype: unicode}
+# - {name: UT1Flag, datatype: string}
 # - {name: PM_x, unit: arcsec, datatype: float64}
 # - {name: PM_y, unit: arcsec, datatype: float64}
-# - {name: PolPMFlag, datatype: unicode}
+# - {name: PolPMFlag, datatype: string}
 # meta: !!omap
 # - {data_url: frozen}
 year month day MJD PolPMFlag_A PM_x_A e_PM_x_A PM_y_A e_PM_y_A UT1Flag_A UT1_UTC_A e_UT1_UTC_A LOD_A e_LOD_A NutFlag_A dX_2000A_A e_dX_2000A_A dY_2000A_A e_dY_2000A_A PM_X_B PM_Y_B UT1_UTC_B dX_2000A_B dY_2000A_B UT1_UTC UT1Flag PM_x PM_y PolPMFlag
