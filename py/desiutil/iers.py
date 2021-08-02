@@ -15,7 +15,11 @@ import numpy as np
 from astropy.table import Table
 from astropy.time import Time
 import astropy.utils.iers
-from astropy.utils.data import _find_pkg_data_path
+try:
+    from astropy.utils.data import get_pkg_data_path
+except ImportError:
+    # Astropy < 4.3
+    from astropy.utils.data import _find_pkg_data_path as get_pkg_data_path
 from .log import get_logger
 
 
@@ -84,7 +88,7 @@ def freeze_iers(name='iers_frozen.ecsv', ignore_warnings=True):
 
     # Locate the file in our package data/ directory.
     if not os.path.isabs(name):
-        name = _find_pkg_data_path(os.path.join('data', name))
+        name = get_pkg_data_path(os.path.join('data', name))
     if not os.path.exists(name):
         raise ValueError('No such IERS file: {0}.'.format(name))
 
