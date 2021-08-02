@@ -374,23 +374,23 @@ def ext_fitzpatrick(wave, R_V=3.1, avglmc=False, lmc2=False,
 # That doesn't look like the 0.86 rescaling that we quote in abstract,
 # but it's convenient because it uses only monochromatic extinctions.
 
-def dust_transmission(wave,ebv_sfd) :
+def dust_transmission(wave, ebv_sfd, Rv=3.1):
     """
     Return the dust transmission [0-1] vs. wavelength.
 
     Args:
         wave : 1D array of vacuum wavelength [Angstroms]
         ebv_sfd : E(B-V) as derived from the map of Schlegel, Finkbeiner and Davis (1998)
+        Rv : total-to-selective extinction ratio, defaults to 3.1
 
     Returns:
         1D array of dust transmission (between 0 and 1)
 
     The routine does internally multiply ebv_sfd by dust.ebv_sfd_scaling.
-    The Fitzpatrick dust extinction law is used, assuming R_V=3.1.
+    The Fitzpatrick dust extinction law is used, given R_V (default 3.1).
 
     Also see `mwdust_transmission` which return transmission within a filter
     """
-    Rv = 3.1
     extinction = ext_fitzpatrick(np.atleast_1d(wave),R_V=Rv) / ext_fitzpatrick(np.array([10000.]),R_V=Rv) * ebv_sfd * 1.029
     if np.isscalar(wave) :
         extinction=float(extinction[0])
