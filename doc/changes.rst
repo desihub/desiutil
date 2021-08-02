@@ -5,7 +5,9 @@ Change Log
 3.2.3 (unreleased)
 ------------------
 
-* No changes yet.
+* Optionally compute the MW dust transmission in the WISE bands (PR `#175`_).
+
+.. _`#175`: https://github.com/desihub/desiutil/pull/175
 
 3.2.2 (2021-06-03)
 ------------------
