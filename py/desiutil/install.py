@@ -833,24 +833,16 @@ class DesiInstall(object):
                     self.log.debug(out)
                     if len(err) > 0:
                         #
-                        # Some warnings can be produced by processing
-                        # MANIFEST.in and not finding directories.  These
-                        # can be ignored.
+                        # Pass STDERR messages to the user, but do not
+                        # raise an error unless the return code was non-zero.
                         #
-                        manifestre = re.compile(r"(warning: |)no" +
-                                                r"( previously-included | )" +
-                                                r"(directories|files)", re.I)
-                        # manifestre = re.compile(r"no( previously-included| )" +
-                        #                         r"( directories| files)" +
-                        #                         r"( found| ) " +
-                        #                         r"matching '[^']+'")
-                        lines = [l for l in err.split('\n') if len(l) > 0 and
-                                 manifestre.search(l) is None and
-                                 'astropy_helpers' not in l and
-                                 'astropy-helpers' not in l]
-                        if len(lines) > 0:
-                            message = ("Error during installation: " +
-                                       "{0}".format("\n".join(lines)))
+                        if proc.returncode == 0:
+                            message = ("Pip emitted messages on STDERR; these can probably be ignored:\n" +
+                                       err)
+                            self.log.warning(message)
+                        else:
+                            message = ("Potentially serious error detected during pip installation:\n" +
+                                       err)
                             self.log.critical(message)
                             raise DesiInstallException(message)
             #
@@ -877,16 +869,16 @@ class DesiInstall(object):
                     self.log.debug(out)
                     if len(err) > 0:
                         #
-                        # specex emits warnings that should be ignored.
-                        # lines with -Wunused-value are emitted on all systems
-                        # lines with remark: are emitted on cori
+                        # Pass STDERR messages to the user, but do not
+                        # raise an error unless the return code was non-zero.
                         #
-                        lines = [l for l in err.split('\n') if len(l) > 0 and
-                                 '-Wunused-value' not in l and
-                                 'remark:' not in l]
-                        if len(lines) > 0:
-                            message = ("Error during compile: " +
-                                       "{0}").format("\n".join(lines))
+                        if proc.returncode == 0:
+                            message = ("Make emitted messages on STDERR; these can probably be ignored:\n" +
+                                       err)
+                            self.log.warning(message)
+                        else:
+                            message = ("Potentially serious error detected during compile:\n" +
+                                       err)
                             self.log.critical(message)
                             raise DesiInstallException(message)
         return
