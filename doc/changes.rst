@@ -7,9 +7,11 @@ Change Log
 
 * Optionally compute the MW dust transmission in the WISE bands (PR `#175`_).
 * Do not treat messages printed on STDERR as errors during :command:`desiInstall` (PR `#176`_).
+* Add :meth:`desiutil.brick.Bricks.brick_tan_wcs_size` to compute required size of TAN-projection WCS tiles (PR `#177`_).
 
 .. _`#175`: https://github.com/desihub/desiutil/pull/175
 .. _`#176`: https://github.com/desihub/desiutil/pull/176
+.. _`#177`: https://github.com/desihub/desiutil/pull/177
 
 
 3.2.2 (2021-06-03)

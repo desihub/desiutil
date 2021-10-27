@@ -292,6 +292,46 @@ class Bricks(object):
             xdec = self._center_dec[irow]
         return xra, xdec
 
+    def brick_tan_wcs_size(self):
+        """Compute required angular size needed for WCS transformation.
+
+        Returns the minimum required angular size (pixel scale x number of pixels)
+        for a TAN WCS tiling on these brick
+        centers, so that RA1, RA2, DEC1, DEC2 land within the tile.
+
+        Returns
+        -------
+        :class:`float`
+            The angular size in degrees.
+        """
+        from astropy.wcs import WCS
+        minx = 0
+        maxx = 0
+        miny = 0
+        maxy = 0
+        for ras, dec1, dec2, ra, dec in zip(self._edges_ra, self._edges_dec,
+                                            self._edges_dec[1:],
+                                            self._center_ra, self._center_dec):
+            # We take the first column in each row (tiles in a row are all the same size)
+            ra1,ra2 = ras[0],ras[1]
+            ra = ra[0]
+            # Create mock WCS with 1" pixels.
+            cd = 1./3600.
+            w = WCS(naxis=2)
+            w.wcs.ctype = ['RA---TAN', 'DEC--TAN']
+            w.wcs.crpix = [1., 1.]
+            w.wcs.crval = [ra, dec]
+            w.wcs.cd = [[-cd, 0.], [0., cd]]
+            x,y = w.wcs_world2pix([ra1,  ra,   ra2,  ra2, ra2,  ra,   ra1,  ra1],
+                                  [dec1, dec1, dec1, dec, dec2, dec2, dec2, dec], 0)
+            # We could simplify this by taking abs() values earlier
+            minx = min(minx, int(np.floor(min(x))))
+            miny = min(miny, int(np.floor(min(y))))
+            maxx = max(maxx, int(np.ceil (max(x))))
+            maxy = max(maxy, int(np.ceil (max(y))))
+        mx = max(maxx, maxy, abs(minx), abs(miny))
+        return 2. * mx * cd
+
     def to_table(self):
         """Convert :class:`~desiutil.brick.Bricks` object into a
         :class:`~astropy.table.Table`.
