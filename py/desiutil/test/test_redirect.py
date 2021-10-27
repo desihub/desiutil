@@ -12,10 +12,12 @@ import sys
 import os
 import re
 import unittest
+from unittest.mock import call, patch, MagicMock
 import tempfile
 import shutil
-
 import subprocess as sp
+import desiutil.redirect as r
+
 
 # This test requires desiutil to be installed for spawned scripts;
 # skip if we are doing a test prior to a full installation.
@@ -72,7 +74,8 @@ with stdouterr_redirected(to=filename, comm=MPI.COMM_WORLD):
 
 
 class TestRedirect(unittest.TestCase):
-    """Test desiutil.redirect"""
+    """Test desiutil.redirect
+    """
 
     @classmethod
     def setUpClass(cls):
@@ -83,6 +86,9 @@ class TestRedirect(unittest.TestCase):
         shutil.rmtree(cls.test_dir)
 
     def setUp(self):
+        r._libc = None
+        r._c_stdout = None
+        r._c_stderr = None
         self.test_serial_script = os.path.join(self.test_dir, "run_serial.py")
         self.test_mpi_script = os.path.join(self.test_dir, "run_mpi.py")
         self.n_lines = 5
@@ -148,6 +154,51 @@ class TestRedirect(unittest.TestCase):
         print("\nTo manually test MPI redirection, run:")
         print("  mpirun -np 2 python {} {} 0".format(self.test_mpi_script, outfile))
         print("And then inspect the {} output file\n".format(outfile))
+
+    @patch('desiutil.redirect.ctypes')
+    def test__get_libc_linux(self, mock_ctypes):
+        """Test standard library information in a simulated Linux environment.
+        """
+        mock_ctypes.CDLL.return_value = 'Linux'
+        def side_effect(*args):
+            return args[1]
+        mock_ctypes.c_void_p.in_dll.side_effect = side_effect
+        lib, out, err = r._get_libc()
+        self.assertEqual(lib, 'Linux')
+        self.assertEqual(out, 'stdout')
+        self.assertEqual(err, 'stderr')
+        mock_ctypes.CDLL.assert_called_once_with(None)
+        mock_ctypes.c_void_p.in_dll.assert_has_calls([call(lib, "stdout"), call(lib, "stderr")])
+
+    @patch('desiutil.redirect.ctypes')
+    def test__get_libc_darwin(self, mock_ctypes):
+        """Test standard library information in a simulated Darwin environment.
+        """
+        mock_ctypes.CDLL.return_value = 'Darwin'
+        def side_effect(*args):
+            if args[1] == 'stdout':
+                raise ValueError("Darwin!")
+            else:
+                return args[1]
+        mock_ctypes.c_void_p.in_dll.side_effect = side_effect
+        lib, out, err = r._get_libc()
+        self.assertEqual(lib, 'Darwin')
+        self.assertEqual(out, '__stdoutp')
+        self.assertEqual(err, '__stderrp')
+        mock_ctypes.CDLL.assert_called_once_with(None)
+        mock_ctypes.c_void_p.in_dll.assert_has_calls([call(lib, "__stdoutp"), call(lib, "__stderrp")])
+
+    @patch('desiutil.redirect.ctypes')
+    def test__get_libc_unknown(self, mock_ctypes):
+        """Test standard library information in a simulated Unknown environment.
+        """
+        mock_ctypes.CDLL.return_value = 'Unknown'
+        mock_ctypes.c_void_p.in_dll.side_effect = ValueError('Unknown!')
+        lib, out, err = r._get_libc()
+        self.assertEqual(lib, 'Unknown')
+        self.assertIsNone(out)
+        self.assertIsNone(err)
+        mock_ctypes.CDLL.assert_called_once_with(None)
 
 
 def test_suite():

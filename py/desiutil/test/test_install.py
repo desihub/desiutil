@@ -3,7 +3,7 @@
 """Test desiutil.install.
 """
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, call, MagicMock
 from os import chdir, environ, getcwd, mkdir, remove, rmdir
 from os.path import dirname, isdir, join
 from shutil import rmtree
@@ -181,6 +181,11 @@ class TestInstall(unittest.TestCase):
                          ('https://desi.lbl.gov/svn/code/focalplane/plate_layout/' +
                           'tags/1.0.0'))
         options = self.desiInstall.get_options(['plate_layout', 'trunk'])
+        out = self.desiInstall.get_product_version()
+        url = self.desiInstall.identify_branch()
+        self.assertEqual(url,
+                         'https://desi.lbl.gov/svn/code/focalplane/plate_layout/trunk')
+        options = self.desiInstall.get_options(['plate_layout', 'branches/trunk'])
         out = self.desiInstall.get_product_version()
         url = self.desiInstall.identify_branch()
         self.assertEqual(url,
@@ -369,6 +374,60 @@ class TestInstall(unittest.TestCase):
                                                 'desiutil', '1.9.5'])
         self.assertEqual(self.desiInstall.nersc_module_dir,
                          '/global/cfs/cdirs/desi/test/modulefiles')
+
+    @patch('os.path.exists')
+    @patch('desiutil.install.Popen')
+    def test_get_extra(self, mock_popen, mock_exists):
+        """Test fetching extra data.
+        """
+        options = self.desiInstall.get_options(['desiutil', 'branches/main'])
+        self.desiInstall.baseproduct = 'desiutil'
+        self.desiInstall.working_dir = join(self.data_dir, 'desiutil')
+        mock_exists.return_value = True
+        mock_proc = mock_popen()
+        mock_proc.returncode = 0
+        mock_proc.communicate.return_value = ('out', 'err')
+        self.desiInstall.get_extra()
+        mock_popen.assert_has_calls([call([join(self.desiInstall.working_dir, 'etc', 'desiutil_data.sh')], stderr=-1, stdout=-1, universal_newlines=True)],
+                                     any_order=True)
+
+    @patch('desiutil.install.Popen')
+    def test_permissions(self, mock_popen):
+        """Test the permissions stage of the install.
+        """
+        options = self.desiInstall.get_options(['desiutil', 'branches/main'])
+        self.desiInstall.install_dir = join(self.data_dir, 'desiutil')
+        self.desiInstall.is_branch = False
+        mock_proc = mock_popen()
+        mock_proc.returncode = 0
+        mock_proc.communicate.return_value = ('out', 'err')
+        status = self.desiInstall.permissions()
+        self.assertEqual(status, 0)
+        mock_popen.assert_has_calls([call(['fix_permissions.sh', self.desiInstall.install_dir], stderr=-1, stdout=-1, universal_newlines=True),
+                                     call(['chmod', '-R', 'a-w', self.desiInstall.install_dir], stderr=-1, stdout=-1, universal_newlines=True)],
+                                     any_order=True)
+        mock_popen.reset_mock()
+        options = self.desiInstall.get_options(['--test', 'desiutil', 'branches/main'])
+        status = self.desiInstall.permissions()
+        self.assertEqual(status, 0)
+        mock_popen.assert_has_calls([call(['fix_permissions.sh', '-t', self.desiInstall.install_dir], stderr=-1, stdout=-1, universal_newlines=True),
+                                     call(['chmod', '-R', 'a-w', self.desiInstall.install_dir], stderr=-1, stdout=-1, universal_newlines=True)],
+                                     any_order=True)
+        mock_popen.reset_mock()
+        options = self.desiInstall.get_options(['--verbose', 'desiutil', 'branches/main'])
+        status = self.desiInstall.permissions()
+        self.assertEqual(status, 0)
+        mock_popen.assert_has_calls([call(['fix_permissions.sh', '-v', self.desiInstall.install_dir], stderr=-1, stdout=-1, universal_newlines=True),
+                                     call(['chmod', '-R', 'a-w', self.desiInstall.install_dir], stderr=-1, stdout=-1, universal_newlines=True)],
+                                     any_order=True)
+        mock_popen.reset_mock()
+        options = self.desiInstall.get_options(['--verbose', 'desiutil', 'branches/main'])
+        self.desiInstall.is_branch = True
+        status = self.desiInstall.permissions()
+        self.assertEqual(status, 0)
+        mock_popen.assert_has_calls([call(['fix_permissions.sh', '-v', self.desiInstall.install_dir], stderr=-1, stdout=-1, universal_newlines=True),
+                                     call(['chmod', '-R', 'g-w,o-w', self.desiInstall.install_dir], stderr=-1, stdout=-1, universal_newlines=True)],
+                                     any_order=True)
 
     def test_cleanup(self):
         """Test the cleanup stage of the install.
