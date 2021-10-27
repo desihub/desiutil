@@ -302,12 +302,12 @@ class Bricks(object):
         maxx = 0
         miny = 0
         maxy = 0
-
-        for i,(dec1,dec2,dec) in enumerate(zip(self._edges_dec, self._edges_dec[1:],
-                                               self._center_dec)):
-            ra1,ra2 = self._edges_ra[i][0], self._edges_ra[i][1]
-            ra = self._center_ra[i][0]
-            #print('RA,Dec', ra, dec, 'ranges: Dec', dec1,dec2, 'RA', ra1, ra2)
+        for ras,dec1,dec2,ra,dec in zip(
+                self._edges_ra, self._edges_dec, self._edges_dec[1:],
+                self._center_ra, self._center_dec):
+            # We take the first column in each row (tiles in a row are all the same size)
+            ra1,ra2 = ras[0],ras[1]
+            ra = ra[0]
             # Create mock WCS with 1" pixels.
             cd = 1./3600.
             w = WCS(naxis=2)
@@ -317,10 +317,7 @@ class Bricks(object):
             w.wcs.cd = [[-cd, 0.], [0., cd]]
             x,y = w.wcs_world2pix([ra1,  ra,   ra2,  ra2, ra2,  ra,   ra1,  ra1],
                                   [dec1, dec1, dec1, dec, dec2, dec2, dec2, dec], 0)
-            #print('x', ['%8.3f'%v for v in x])
-            #print('y', ['%8.3f'%v for v in y])
-            #print('x range:', int(np.floor(min(x))), int(np.ceil(max(x))),
-            #      'y range:', int(np.floor(min(y))), int(np.ceil(max(y))))
+            # We could simplify this by taking abs() values earlier
             minx = min(minx, int(np.floor(min(x))))
             miny = min(miny, int(np.floor(min(y))))
             maxx = max(maxx, int(np.ceil (max(x))))
