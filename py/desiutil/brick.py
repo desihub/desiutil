@@ -292,6 +292,42 @@ class Bricks(object):
             xdec = self._center_dec[irow]
         return xra, xdec
 
+    def brick_tan_wcs_size(self):
+        """Returns the minimum required angular size (eg, pixel scale
+        x number of pixels) for a TAN WCS tiling on these brick
+        centers, so that RA1,RA2, DEC1,DEC2 land within the tile.
+        """
+        from astropy.wcs import WCS
+        minx = 0
+        maxx = 0
+        miny = 0
+        maxy = 0
+
+        for i,(dec1,dec2,dec) in enumerate(zip(self._edges_dec, self._edges_dec[1:],
+                                               self._center_dec)):
+            ra1,ra2 = self._edges_ra[i][0], self._edges_ra[i][1]
+            ra = self._center_ra[i][0]
+            #print('RA,Dec', ra, dec, 'ranges: Dec', dec1,dec2, 'RA', ra1, ra2)
+            # Create mock WCS with 1" pixels.
+            cd = 1./3600.
+            w = WCS(naxis=2)
+            w.wcs.ctype = ['RA---TAN', 'DEC--TAN']
+            w.wcs.crpix = [1., 1.]
+            w.wcs.crval = [ra, dec]
+            w.wcs.cd = [[-cd, 0.], [0., cd]]
+            x,y = w.wcs_world2pix([ra1,  ra,   ra2,  ra2, ra2,  ra,   ra1,  ra1],
+                                  [dec1, dec1, dec1, dec, dec2, dec2, dec2, dec], 0)
+            #print('x', ['%8.3f'%v for v in x])
+            #print('y', ['%8.3f'%v for v in y])
+            #print('x range:', int(np.floor(min(x))), int(np.ceil(max(x))),
+            #      'y range:', int(np.floor(min(y))), int(np.ceil(max(y))))
+            minx = min(minx, int(np.floor(min(x))))
+            miny = min(miny, int(np.floor(min(y))))
+            maxx = max(maxx, int(np.ceil (max(x))))
+            maxy = max(maxy, int(np.ceil (max(y))))
+        mx = max(maxx, maxy, abs(minx), abs(miny))
+        return 2. * mx * cd
+
     def to_table(self):
         """Convert :class:`~desiutil.brick.Bricks` object into a
         :class:`~astropy.table.Table`.

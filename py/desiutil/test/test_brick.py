@@ -379,6 +379,16 @@ class TestBrick(unittest.TestCase):
                 else:
                     self.assertTrue((brick_table[n] == dtiling_table[n]).all())
 
+    def test_tan_size(self):
+        b = B.Bricks(bricksize=1.)
+        sz = b.brick_tan_wcs_size()
+        self.assertAlmostEqual(sz, 1.05777777, places=6)
+        b = B.Bricks(bricksize=0.25)
+        sz = b.brick_tan_wcs_size()
+        self.assertAlmostEqual(sz, 0.26444444, places=6)
+        b = B.Bricks(bricksize=4.)
+        sz = b.brick_tan_wcs_size()
+        self.assertAlmostEqual(sz, 4.23111111, places=6)
 
 def test_suite():
     """Allows testing of only this module with the command::
