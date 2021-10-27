@@ -293,18 +293,25 @@ class Bricks(object):
         return xra, xdec
 
     def brick_tan_wcs_size(self):
-        """Returns the minimum required angular size (eg, pixel scale
-        x number of pixels) for a TAN WCS tiling on these brick
-        centers, so that RA1,RA2, DEC1,DEC2 land within the tile.
+        """Compute required angular size needed for WCS transformation.
+
+        Returns the minimum required angular size (pixel scale x number of pixels)
+        for a TAN WCS tiling on these brick
+        centers, so that RA1, RA2, DEC1, DEC2 land within the tile.
+
+        Returns
+        -------
+        :class:`float`
+            The angular size in degrees.
         """
         from astropy.wcs import WCS
         minx = 0
         maxx = 0
         miny = 0
         maxy = 0
-        for ras,dec1,dec2,ra,dec in zip(
-                self._edges_ra, self._edges_dec, self._edges_dec[1:],
-                self._center_ra, self._center_dec):
+        for ras, dec1, dec2, ra, dec in zip(self._edges_ra, self._edges_dec,
+                                            self._edges_dec[1:],
+                                            self._center_ra, self._center_dec):
             # We take the first column in each row (tiles in a row are all the same size)
             ra1,ra2 = ras[0],ras[1]
             ra = ra[0]
