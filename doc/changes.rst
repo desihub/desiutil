@@ -2,7 +2,7 @@
 Change Log
 ==========
 
-3.2.3 (unreleased)
+3.2.3 (2021-10-27)
 ------------------
 
 * Optionally compute the MW dust transmission in the WISE bands (PR `#175`_).
