@@ -81,7 +81,7 @@ def init_modules(moduleshome=None, method=False, command=False):
         #
         # Lmod version!
         #
-        modulecmd = [os.path.exists(os.path.join(moduleshome, 'libexec', 'lmod')), 'python']
+        modulecmd = [os.path.join(moduleshome, 'libexec', 'lmod'), 'python']
     else:
         #
         # This should work on all NERSC systems, assuming the user's environment
