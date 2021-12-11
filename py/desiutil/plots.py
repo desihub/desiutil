@@ -715,10 +715,11 @@ def plot_grid_map(data, ra_edges, dec_edges, cmap='viridis', colorbar=True,
     # Build a 2D array of grid line intersections.
     grid_ra, grid_dec = np.meshgrid(proj_ra, ax.projection_dec(dec_edges))
 
+    ax.grid(False)
     mesh = ax.pcolormesh(grid_ra, grid_dec,
                          data, cmap=cmap, norm=norm, edgecolor='none', lw=0)
 
-    # pcolormesh turns the grid off, turn it back on.
+    # grid turned off for pcolormesh; turn it back on.
     ax.grid(True)
 
     if colorbar:
