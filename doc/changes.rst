@@ -5,7 +5,10 @@ Change Log
 3.2.4 (unreleased)
 ------------------
 
-* No changes yet.
+* Update :meth:`desiutil.plots.plot_grid_map` to support matplotlib 3.5
+  (PR `#181`_).
+
+.. _`#181`: https://github.com/desihub/desiutil/pull/181
 
 3.2.3 (2021-10-27)
 ------------------
