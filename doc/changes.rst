@@ -2,7 +2,12 @@
 Change Log
 ==========
 
-3.2.4 (unreleased)
+3.2.5 (unreleased)
+------------------
+
+* No changes yet.
+
+3.2.4 (2022-01-10)
 ------------------
 
 * Update :meth:`desiutil.plots.plot_grid_map` to support matplotlib 3.5
