@@ -5,7 +5,7 @@ Change Log
 3.2.5 (unreleased)
 ------------------
 
-* Update :meth:`desiutil.depend.add_dependencies` to include key environment
+* Update :func:`desiutil.depend.add_dependencies` to include key environment
   variables like :envvar:`DESI_ROOT` (PR `#183`_).
 
 .. _`#183`: https://github.com/desihub/desiutil/pull/183
