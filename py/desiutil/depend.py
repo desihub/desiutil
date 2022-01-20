@@ -55,6 +55,7 @@ so that it can be used in subsequent I/O
 ('foo', '3.4')
 
 """
+import os
 import sys
 import importlib
 #
@@ -67,7 +68,11 @@ possible_dependencies = [
     'specter', 'speclite', 'specsim', 'surveysim', 'redrock', 'desimeter',
     'fiberassign', 'gpu_specter',
     ]
-
+possible_envvars = [
+    'DESI_ROOT', 'DESI_SPECTRO_DATA', 'DESI_SPECTRO_REDUX', 'SPECPROD',
+    'DESI_SPECTRO_CALIB', 'DESI_BASIS_TEMPLATES',
+    'DESI_TARGET', 'DESIMODEL',
+    ]
 
 def setdep(header, name, version):
     '''Set dependency `version` for code `name`.
@@ -221,7 +226,8 @@ def mergedep(srchdr, dsthdr, conflict='src'):
         else:
             setdep(dsthdr, name, version)
 
-def add_dependencies(header, module_names=None, long_python=False):
+def add_dependencies(header, module_names=None, long_python=False,
+        envvar_names=None):
     '''Adds ``DEPNAMnn``, ``DEPVERnn`` keywords to header for imported modules.
 
     Parameters
@@ -235,6 +241,9 @@ def add_dependencies(header, module_names=None, long_python=False):
         If ``True`` use the full, verbose ``sys.version``
         string for the Python version.  Otherwise, use a short
         version, *e.g.*, ``3.5.2``.
+    envvar_names : :class:`list`, optional
+        List of of environment variables to check; if ``None``,
+        checks ``desiutil.depend.possible_envvars``.
 
     Notes
     -----
@@ -249,6 +258,9 @@ def add_dependencies(header, module_names=None, long_python=False):
 
     if module_names is None:
         module_names = possible_dependencies
+
+    if envvar_names is None:
+        envvar_names = possible_envvars
 
     # Set version strings only for modules that have already been loaded
     for module in module_names:
@@ -267,6 +279,11 @@ def add_dependencies(header, module_names=None, long_python=False):
 
             setdep(header, module, version)
 
+    for envvar in envvar_names:
+        if envvar in os.environ:
+            setdep(header, envvar, os.environ[envvar])
+        else:
+            setdep(header, envvar, 'NOT_SET')
 
 class Dependencies(object):
     """Dictionary-like object to track dependencies.

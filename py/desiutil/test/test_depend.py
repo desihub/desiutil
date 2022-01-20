@@ -4,6 +4,7 @@
 """
 import unittest
 import sys
+import os
 from collections import OrderedDict
 from ..depend import (setdep, getdep, hasdep, iterdep, mergedep, Dependencies,
                       add_dependencies)
@@ -22,11 +23,20 @@ class TestDepend(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        pass
+        cls.orig_desi_root = os.getenv('DESI_ROOT')  #- value or None
 
     @classmethod
     def tearDownClass(cls):
         pass
+
+    @classmethod
+    def tearDown(self):
+        #- if a test changes DESI_ROOT, set it back to original value
+        if self.orig_desi_root is None:
+            if 'DESI_ROOT' in os.environ:
+                del os.environ['DESI_ROOT']
+        else:
+            os.environ['DESI_ROOT'] = self.orig_desi_root
 
     def test_setdep(self):
         """Test function that sets dependency keywords.
@@ -250,6 +260,27 @@ class TestDepend(unittest.TestCase):
         self.assertTrue(getdep(hdr, 'unittest').startswith('unknown'))
         self.assertTrue(hasdep(hdr, 'sys'))
         self.assertTrue(getdep(hdr, 'sys').startswith('unknown'))
+
+        # environment variables
+        hdr = OrderedDict()
+        os.environ['DESI_ROOT'] = '/somewhere/outthere'
+        add_dependencies(hdr)
+        self.assertTrue(getdep(hdr, 'DESI_ROOT'), '/somewhere/outthere')
+
+        hdr = OrderedDict()
+        add_dependencies(hdr, envvar_names=['BLAT'])
+        self.assertFalse(hasdep(hdr, 'DESI_ROOT')) # not in requested envvars
+        self.assertTrue(hasdep(hdr, 'BLAT'))
+        self.assertEqual(getdep(hdr, 'BLAT'), 'NOT_SET')
+
+        os.environ['BLAT'] = 'foo'
+        add_dependencies(hdr, envvar_names=['BLAT'])
+        self.assertEqual(getdep(hdr, 'BLAT'), 'foo')
+
+        del os.environ['DESI_ROOT']
+        hdr = OrderedDict()
+        add_dependencies(hdr)
+        self.assertTrue(getdep(hdr, 'DESI_ROOT'), 'NOT_SET')
 
 
 def test_suite():
