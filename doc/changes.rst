@@ -2,7 +2,12 @@
 Change Log
 ==========
 
-3.2.5 (unreleased)
+3.2.6 (unreleased)
+------------------
+
+* No changes yet.
+
+3.2.5 (2022-01-20)
 ------------------
 
 * Update :func:`desiutil.depend.add_dependencies` to include key environment
