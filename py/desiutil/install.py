@@ -64,7 +64,7 @@ known_products = {
     'teststand': 'https://github.com/desihub/teststand',
     'tilepicker': 'https://github.com/desihub/tilepicker',
     'timedomain': 'https://github.com/desihub/timedomain',
-    'simqso': 'https://github.com/imcgreer/simqso',
+    'simqso': 'https://github.com/desihub/simqso',
     'plate_layout': 'https://desi.lbl.gov/svn/code/focalplane/plate_layout',
     'positioner_control':
         'https://desi.lbl.gov/svn/code/focalplane/positioner_control',
