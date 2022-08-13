@@ -3,9 +3,9 @@
 """Test desiutil.install.
 """
 import unittest
-from unittest.mock import patch, call, MagicMock
+from unittest.mock import patch, call, MagicMock, mock_open
 from os import chdir, environ, getcwd, mkdir, remove, rmdir
-from os.path import dirname, isdir, join
+from os.path import abspath, dirname, isdir, join
 from shutil import rmtree
 from argparse import Namespace
 from tempfile import mkdtemp
@@ -222,6 +222,88 @@ class TestInstall(unittest.TestCase):
         with self.assertRaises(DesiInstallException):
             self.desiInstall.verify_url(svn='which')
 
+    @patch('desiutil.install.Popen')
+    @patch('shutil.rmtree')
+    @patch('os.path.isdir')
+    def test_get_code_svn_export(self, mock_isdir, mock_rmtree, mock_popen):
+        """Test downloads via svn export.
+        """
+        options = self.desiInstall.get_options(['-v', 'plate_layout', '0.1'])
+        out = self.desiInstall.get_product_version()
+        url = self.desiInstall.identify_branch()
+        mock_isdir.return_value = True
+        mock_proc = mock_popen()
+        mock_proc.communicate.return_value = ('out', '')
+        mock_proc.returncode = 0
+        self.desiInstall.get_code()
+        self.assertEqual(self.desiInstall.working_dir, join(abspath('.'), 'plate_layout-0.1'))
+        mock_isdir.assert_called_once_with(self.desiInstall.working_dir)
+        mock_rmtree.assert_called_once_with(self.desiInstall.working_dir)
+        mock_popen.assert_has_calls([call(['svn', '--non-interactive', '--username',
+                                           self.desiInstall.options.username, 'export',
+                                           'https://desi.lbl.gov/svn/code/focalplane/plate_layout/tags/0.1',
+                                            self.desiInstall.working_dir], universal_newlines=True, stdout=-1, stderr=-1),
+                                     call().communicate()])
+
+    @patch('desiutil.install.Popen')
+    @patch('os.path.isdir')
+    def test_get_code_svn_branch(self, mock_isdir, mock_popen):
+        """Test downloads via svn checkout.
+        """
+        options = self.desiInstall.get_options(['-v', 'plate_layout', 'branches/test'])
+        out = self.desiInstall.get_product_version()
+        url = self.desiInstall.identify_branch()
+        mock_isdir.return_value = False
+        mock_proc = mock_popen()
+        mock_proc.communicate.return_value = ('out', '')
+        mock_proc.returncode = 0
+        self.desiInstall.get_code()
+        self.assertEqual(self.desiInstall.working_dir, join(abspath('.'), 'plate_layout-test'))
+        mock_isdir.assert_called_once_with(self.desiInstall.working_dir)
+        mock_popen.assert_has_calls([call(['svn', '--non-interactive', '--username',
+                                           self.desiInstall.options.username, 'checkout',
+                                           'https://desi.lbl.gov/svn/code/focalplane/plate_layout/branches/test',
+                                           self.desiInstall.working_dir], universal_newlines=True, stdout=-1, stderr=-1),
+                                     call().communicate()])
+
+    @patch('desiutil.install.Popen')
+    @patch('os.path.isdir')
+    def test_get_code_svn_error(self, mock_isdir, mock_popen):
+        """Test downloads via svn checkout with error handling.
+        """
+        options = self.desiInstall.get_options(['-v', 'plate_layout', '0.1'])
+        out = self.desiInstall.get_product_version()
+        url = self.desiInstall.identify_branch()
+        mock_isdir.return_value = False
+        mock_proc = mock_popen()
+        mock_proc.communicate.return_value = ('out', 'err')
+        mock_proc.returncode = 1
+        with self.assertRaises(DesiInstallException) as cm:
+            self.desiInstall.get_code()
+        self.assertEqual(self.desiInstall.working_dir, join(abspath('.'), 'plate_layout-0.1'))
+        mock_isdir.assert_called_once_with(self.desiInstall.working_dir)
+        mock_popen.assert_has_calls([call(['svn', '--non-interactive', '--username',
+                                           self.desiInstall.options.username, 'export',
+                                           'https://desi.lbl.gov/svn/code/focalplane/plate_layout/tags/0.1',
+                                           self.desiInstall.working_dir], universal_newlines=True, stdout=-1, stderr=-1).
+                                     call().communicate()])
+        message = "svn error while downloading product code: err"
+        self.assertLog(-1, message)
+        self.assertEqual(str(cm.exception), message)
+
+    @patch('os.path.isdir')
+    def test_get_code_svn_test(self, mock_isdir):
+        """Test downloads via svn checkout in test mode.
+        """
+        options = self.desiInstall.get_options(['-t', 'plate_layout', '0.1'])
+        out = self.desiInstall.get_product_version()
+        url = self.desiInstall.identify_branch()
+        mock_isdir.return_value = False
+        self.desiInstall.get_code()
+        self.assertEqual(self.desiInstall.working_dir, join(abspath('.'), 'plate_layout-0.1'))
+        mock_isdir.assert_called_once_with(self.desiInstall.working_dir)
+        self.assertLog(-1, 'Test Mode.')
+
     def test_build_type(self):
         """Test the determination of the build type.
         """
@@ -356,6 +438,11 @@ class TestInstall(unittest.TestCase):
         status = self.desiInstall.start_modules()
         self.assertTrue(callable(self.desiInstall.module))
 
+    def test_module_dependencies(self):
+        """Test module-loading dependencies.
+        """
+        pass
+
     def test_nersc_module_dir(self):
         """Test the nersc_module_dir property.
         """
@@ -375,6 +462,21 @@ class TestInstall(unittest.TestCase):
         self.assertEqual(self.desiInstall.nersc_module_dir,
                          '/global/cfs/cdirs/desi/test/modulefiles')
 
+    def test_install_module(self):
+        """Test installation of module files.
+        """
+        pass
+
+    def test_prepare_environment(self):
+        """Test set up of build environment.
+        """
+        pass
+
+    def test_install(self):
+        """Test the actuall installation process.
+        """
+        pass
+
     @patch('os.path.exists')
     @patch('desiutil.install.Popen')
     def test_get_extra(self, mock_popen, mock_exists):
@@ -390,6 +492,51 @@ class TestInstall(unittest.TestCase):
         self.desiInstall.get_extra()
         mock_popen.assert_has_calls([call([join(self.desiInstall.working_dir, 'etc', 'desiutil_data.sh')], stderr=-1, stdout=-1, universal_newlines=True)],
                                      any_order=True)
+        mock_popen.reset_mock()
+        self.desiInstall.options.test = True
+        self.desiInstall.get_extra()
+        self.assertLog(-1, 'Test Mode. Skipping install of extra data.')
+        mock_popen.reset_mock()
+        self.desiInstall.options.test = False
+        mock_proc = mock_popen()
+        mock_proc.returncode = 1
+        mock_proc.communicate.return_value = ('out', 'err')
+        with self.assertRaises(DesiInstallException) as cm:
+            self.desiInstall.get_extra()
+        message = "Error grabbing extra data: err"
+        self.assertLog(-1, message)
+        self.assertEqual(str(cm.exception), message)
+
+    def test_verify_bootstrap(self):
+        """Test proper installation of the desiInstall executable.
+        """
+        options = self.desiInstall.get_options(['-b', '-a', '20211217-2.0.0'])
+        self.desiInstall.install_dir = join(self.data_dir, 'desiutil')
+        data = """#!/global/common/software/desi/cori/desiconda//20211217-2.0.0/conda/bin/python
+# -*- coding: utf-8 -*-
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+from sys import exit
+from desiutil.install import main
+exit(main())
+"""
+        with patch('builtins.open', mock_open(read_data=data)) as m:
+            self.assertTrue(self.desiInstall.verify_bootstrap())
+        m.assert_called_once_with(join(self.desiInstall.install_dir, 'bin', 'desiInstall'), 'r')
+        data = """#!/global/common/software/desi/cori/desiconda/current/conda/bin/python
+# -*- coding: utf-8 -*-
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+from sys import exit
+from desiutil.install import main
+exit(main())
+"""
+        with patch('builtins.open', mock_open(read_data=data)) as m:
+            with self.assertRaises(DesiInstallException) as cm:
+                self.desiInstall.verify_bootstrap()
+        message = ("desiInstall executable ({0}) does not contain " +
+                                             "an explicit desiconda version " +
+                                             "({1})!").format(join(self.desiInstall.install_dir, 'bin', 'desiInstall'), '20211217-2.0.0')
+        self.assertEqual(str(cm.exception), message)
+        self.assertLog(-1, message)
 
     @patch('desiutil.install.Popen')
     def test_permissions(self, mock_popen):
@@ -427,6 +574,20 @@ class TestInstall(unittest.TestCase):
         self.assertEqual(status, 0)
         mock_popen.assert_has_calls([call(['fix_permissions.sh', '-v', self.desiInstall.install_dir], stderr=-1, stdout=-1, universal_newlines=True),
                                      call(['chmod', '-R', 'g-w,o-w', self.desiInstall.install_dir], stderr=-1, stdout=-1, universal_newlines=True)],
+                                     any_order=True)
+
+    @patch('desiutil.install.Popen')
+    def test_unlock_permissions(self, mock_popen):
+        """Test unlocking installed directories to allow their removal.
+        """
+        options = self.desiInstall.get_options(['desiutil', 'branches/main'])
+        self.desiInstall.install_dir = join(self.data_dir, 'desiutil')
+        mock_proc = mock_popen()
+        mock_proc.returncode = 0
+        mock_proc.communicate.return_value = ('out', 'err')
+        status = self.desiInstall.unlock_permissions()
+        self.assertEqual(status, 0)
+        mock_popen.assert_has_calls([call(['chmod', '-R', 'u+w', self.desiInstall.install_dir], stderr=-1, stdout=-1, universal_newlines=True)],
                                      any_order=True)
 
     def test_cleanup(self):
