@@ -17,8 +17,8 @@ jobs:
             fail-fast: true
             matrix:
                 os: [ubuntu-latest]
-                # numpy-version: ['<1.19', '<1.20', '>=1.20']
                 python-version: ['3.8', '3.9', '3.10']
+                numpy-version: ['<1.23']
                 astropy-version: ['==5.0', '<5.1', '<6.0']
 
         steps:
@@ -35,8 +35,8 @@ jobs:
                 python -m pip install --upgrade pip wheel
                 python -m pip install pytest
                 if [ -f requirements.txt ]; then pip install -r requirements.txt; pip install .; fi
+                pip install -U "numpy${{ matrix.numpy-version }}"
                 pip install -U "astropy${{ matrix.astropy-version }}"
-#                pip install -U "numpy${{ matrix.numpy-version }}"
 #                if [ "${{ matrix.astropy-version }}" = "<3.0" ]; then pip install -U "healpy==1.12.9"; fi
             - name: Run the test
               run: pytest
