@@ -976,7 +976,7 @@ class DesiInstall(object):
         Returns
         -------
         :class:`int`
-            Status code returned by fix_permissions.sh script.
+            Status code returned by :command:`chmod`.
         """
         command = ['chmod', '-R', 'u+w', self.install_dir]
         self.log.debug(' '.join(command))
