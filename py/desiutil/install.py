@@ -608,6 +608,7 @@ class DesiInstall(object):
                                         self.baseproduct, self.baseversion)
         if os.path.isdir(self.install_dir) and not self.options.test:
             if self.options.force:
+                self.unlock_permissions()
                 self.log.debug("shutil.rmtree('%s')", self.install_dir)
                 if not self.options.test:
                     shutil.rmtree(self.install_dir)
@@ -819,8 +820,9 @@ class DesiInstall(object):
                 # command = [sys.executable, 'setup.py', 'install',
                 #            '--prefix={0}'.format(self.install_dir)]
                 command = [sys.executable, '-m', 'pip', 'install', '--no-deps',
-                          '--disable-pip-version-check', '--ignore-installed',
-                          '--prefix={0}'.format(self.install_dir), '.']
+                           '--disable-pip-version-check', '--ignore-installed',
+                           '--no-warn-script-location',
+                           '--prefix={0}'.format(self.install_dir), '.']
                 self.log.debug(' '.join(command))
                 if self.options.test:
                     # self.log.debug("Test Mode.  Skipping 'python setup.py install'.")
@@ -952,8 +954,9 @@ class DesiInstall(object):
         out, err = proc.communicate()
         status = proc.returncode
         self.log.debug(out)
-
+        #
         # Remove write permission to avoid accidental changes
+        #
         if self.is_branch:
             chmod_mode = 'g-w,o-w'
         else:
@@ -965,8 +968,23 @@ class DesiInstall(object):
         out, err = proc.communicate()
         chmod_status = proc.returncode
         self.log.debug(out)
-
         return status
+
+    def unlock_permissions(self):
+        """Unlock installed directories to allow their removal.
+
+        Returns
+        -------
+        :class:`int`
+            Status code returned by :command:`chmod`.
+        """
+        command = ['chmod', '-R', 'u+w', self.install_dir]
+        self.log.debug(' '.join(command))
+        proc = Popen(command, universal_newlines=True,
+                     stdout=PIPE, stderr=PIPE)
+        out, err = proc.communicate()
+        self.log.debug(out)
+        return proc.returncode
 
     def cleanup(self):
         """Clean up after the install.
