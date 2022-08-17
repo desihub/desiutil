@@ -909,6 +909,28 @@ class DesiInstall(object):
                     raise DesiInstallException(message)
         return
 
+    def compile_branch(self):
+        """Certain packages need C/C++ code compiled even for a branch install.
+        """
+        if self.is_branch:
+            compile_script = os.path.join(self.install_dir, 'etc',
+                                          '{0}_compile.sh'.format(self.baseproduct))
+            if os.path.exists(compile_script):
+                self.log.debug("Detected compile script: %s.", compile_script)
+                if self.options.test:
+                    self.log.debug('Test Mode. Skipping compile script.')
+                else:
+                    proc = Popen([compile_script, sys.executable], universal_newlines=True,
+                                 stdout=PIPE, stderr=PIPE)
+                    out, err = proc.communicate()
+                    status = proc.returncode
+                    self.log.debug(out)
+                    if status != 0 and len(err) > 0:
+                        message = "Error compiling code: {0}".format(err)
+                        self.log.critical(message)
+                        raise DesiInstallException(message)
+        return
+
     def verify_bootstrap(self):
         """Make sure that desiutil/desiInstall was installed with
         an explicit Python executable path.
@@ -1026,6 +1048,7 @@ class DesiInstall(object):
             self.prepare_environment()
             self.install()
             self.get_extra()
+            self.compile_branch()
             self.verify_bootstrap()
             self.permissions()
         except DesiInstallException:

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """Test desiutil.install.
 """
+import sys
 import unittest
 from unittest.mock import patch, call, MagicMock, mock_open
 from os import chdir, environ, getcwd, mkdir, remove, rmdir
@@ -504,6 +505,39 @@ class TestInstall(unittest.TestCase):
         with self.assertRaises(DesiInstallException) as cm:
             self.desiInstall.get_extra()
         message = "Error grabbing extra data: err"
+        self.assertLog(-1, message)
+        self.assertEqual(str(cm.exception), message)
+
+    @patch('os.path.exists')
+    @patch('desiutil.install.Popen')
+    def test_compile_branch(self, mock_popen, mock_exists):
+        """Test compiling code in certain cases.
+        """
+        options = self.desiInstall.get_options(['fiberassign', 'branches/main'])
+        self.desiInstall.baseproduct = 'fiberassign'
+        self.desiInstall.is_branch = True
+        self.desiInstall.install_dir = join(self.data_dir, 'fiberassign')
+        mock_exists.return_value = True
+        mock_proc = mock_popen()
+        mock_proc.returncode = 0
+        mock_proc.communicate.return_value = ('out', 'err')
+        self.desiInstall.compile_branch()
+        # mock_exists.assert_called_once_with(join(self.desiInstall.install_dir, 'etc', 'fiberassign_compile.sh'),
+        #                                     sys.executable)
+        mock_popen.assert_has_calls([call([join(self.desiInstall.install_dir, 'etc', 'fiberassign_compile.sh'), sys.executable],
+                                          stderr=-1, stdout=-1, universal_newlines=True)], any_order=True)
+        mock_popen.reset_mock()
+        self.desiInstall.options.test = True
+        self.desiInstall.compile_branch()
+        self.assertLog(-1, 'Test Mode. Skipping compile script.')
+        mock_popen.reset_mock()
+        self.desiInstall.options.test = False
+        mock_proc = mock_popen()
+        mock_proc.returncode = 1
+        mock_proc.communicate.return_value = ('out', 'err')
+        with self.assertRaises(DesiInstallException) as cm:
+            self.desiInstall.compile_branch()
+        message = "Error compiling code: err"
         self.assertLog(-1, message)
         self.assertEqual(str(cm.exception), message)
 
