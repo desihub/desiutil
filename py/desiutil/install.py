@@ -921,11 +921,16 @@ class DesiInstall(object):
                 if self.options.test:
                     self.log.debug('Test Mode. Skipping compile script.')
                 else:
+                    current_dir = os.getcwd()
+                    self.log.debug("os.chdir('%s')", self.install_dir)
+                    os.chdir(self.install_dir)
                     proc = Popen([compile_script, sys.executable], universal_newlines=True,
                                  stdout=PIPE, stderr=PIPE)
                     out, err = proc.communicate()
                     status = proc.returncode
                     self.log.debug(out)
+                    self.log.debug("os.chdir('%s')", current_dir)
+                    os.chdir(original_dir)
                     if status != 0 and len(err) > 0:
                         message = "Error compiling code: {0}".format(err)
                         self.log.critical(message)
