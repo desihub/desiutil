@@ -322,6 +322,23 @@ not bundled with the code.  The script should download data *directly* to
 with :command:`desiInstall` and unit tests.  Note that here are other, better ways to
 install and manipulate data that is bundled *with* a Python package.
 
+Compile in Branch Installs
+--------------------------
+
+In a few cases (fiberassign_, specex_) code needs to be compiled even when
+installing a branch.  If :command:`desiInstall` detects a branch install *and*
+the script ``etc/product_compile.sh`` exists, :command:`desiInstall` will run this
+script, supplying the Python executable path as a single command-line argument.
+The script itself is intended to be a thin wrapper on *e.g.*::
+
+    #!/bin/bash
+    py=$1
+    ${py} setup.py build_ext --inplace
+
+
+.. _fiberassign: https://github.com/desihub/fiberassign
+.. _specex: https://github.com/desihub/specex
+
 Fix Permissions
 ---------------
 
