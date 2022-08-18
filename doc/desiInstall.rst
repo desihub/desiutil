@@ -327,11 +327,14 @@ Compile in Branch Installs
 
 In a few cases (fiberassign_, specex_) code needs to be compiled even when
 installing a branch.  If :command:`desiInstall` detects a branch install *and*
-the script ``etc/product_compile.sh``, :command:`desiInstall` will run this
-script, supplying the Python executable path as a single command-line arguement.
+the script ``etc/product_compile.sh`` exists, :command:`desiInstall` will run this
+script, supplying the Python executable path as a single command-line argument.
 The script itself is intended to be a thin wrapper on *e.g.*::
 
-    python setup.py build_ext --inplace
+    #!/bin/bash
+    py=$1
+    ${py} setup.py build_ext --inplace
+
 
 .. _fiberassign: https://github.com/desihub/fiberassign
 .. _specex: https://github.com/desihub/specex
