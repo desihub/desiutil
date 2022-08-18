@@ -508,11 +508,13 @@ class TestInstall(unittest.TestCase):
         self.assertLog(-1, message)
         self.assertEqual(str(cm.exception), message)
 
+    @patch('os.chdir')
     @patch('os.path.exists')
     @patch('desiutil.install.Popen')
-    def test_compile_branch(self, mock_popen, mock_exists):
+    def test_compile_branch(self, mock_popen, mock_exists, mock_chdir):
         """Test compiling code in certain cases.
         """
+        current_dir = getcwd()
         options = self.desiInstall.get_options(['fiberassign', 'branches/main'])
         self.desiInstall.baseproduct = 'fiberassign'
         self.desiInstall.is_branch = True
@@ -522,8 +524,9 @@ class TestInstall(unittest.TestCase):
         mock_proc.returncode = 0
         mock_proc.communicate.return_value = ('out', 'err')
         self.desiInstall.compile_branch()
-        # mock_exists.assert_called_once_with(join(self.desiInstall.install_dir, 'etc', 'fiberassign_compile.sh'),
-        #                                     sys.executable)
+        mock_chdir.assert_has_calls([call(self.desiInstall.install_dir),
+                                     call(current_dir)])
+        mock_exists.assert_has_calls([call(join(self.desiInstall.install_dir, 'etc', 'fiberassign_compile.sh'))])
         mock_popen.assert_has_calls([call([join(self.desiInstall.install_dir, 'etc', 'fiberassign_compile.sh'), sys.executable],
                                           stderr=-1, stdout=-1, universal_newlines=True)], any_order=True)
         mock_popen.reset_mock()

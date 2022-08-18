@@ -930,7 +930,7 @@ class DesiInstall(object):
                     status = proc.returncode
                     self.log.debug(out)
                     self.log.debug("os.chdir('%s')", current_dir)
-                    os.chdir(original_dir)
+                    os.chdir(current_dir)
                     if status != 0 and len(err) > 0:
                         message = "Error compiling code: {0}".format(err)
                         self.log.critical(message)
