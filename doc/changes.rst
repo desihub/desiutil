@@ -8,9 +8,11 @@ Change Log
 * :command:`desiInstall` uses desihub location of simqso fork (commit e963344_).
 * Allow :command:`desiInstall` to remove permission-locked directories;
   suppress certain :command:`pip` warnings (PR `#185`_).
+* Allow :command:`desiInstall` to compile code in certain branch installs (PR `#188`_).
 
 .. _e963344: https://github.com/desihub/desiutil/commit/e963344cd072255174187d2bd6da72d085745abd
 .. _`#185`: https://github.com/desihub/desiutil/pull/185
+.. _`#188`: https://github.com/desihub/desiutil/pull/188
 
 3.2.5 (2022-01-20)
 ------------------
