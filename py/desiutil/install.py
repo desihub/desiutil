@@ -60,6 +60,7 @@ known_products = {
     'speclite': 'https://github.com/desihub/speclite',
     'specsim': 'https://github.com/desihub/specsim',
     'specter': 'https://github.com/desihub/specter',
+    'gpu_specter': 'https://github.com/desihub/gpu_specter',
     'surveysim': 'https://github.com/desihub/surveysim',
     'teststand': 'https://github.com/desihub/teststand',
     'tilepicker': 'https://github.com/desihub/tilepicker',
