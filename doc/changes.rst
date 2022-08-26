@@ -2,7 +2,7 @@
 Change Log
 ==========
 
-3.2.6 (unreleased)
+3.2.6 (2022-08-26)
 ------------------
 
 * :command:`desiInstall` uses desihub location of simqso fork (commit e963344_).
