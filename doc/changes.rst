@@ -2,6 +2,16 @@
 Change Log
 ==========
 
+4.0.0 (unreleased)
+------------------
+
+*Planned* : Migrate ``setup.py`` commands to stand-alone scripts.
+
+3.2.7 (unreleased)
+------------------
+
+* No changes yet.
+
 3.2.6 (2022-08-26)
 ------------------
 
