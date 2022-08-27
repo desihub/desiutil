@@ -72,7 +72,7 @@ class TestSetup(unittest.TestCase):
         os.mkdir(os.path.join(package_dir, '.git'))
         setup = """#!/usr/bin/env python
 from setuptools import setup
-from desiutil.setup import DesiModule, DesiTest, DesiVersion, get_version
+from desiutil.setup import DesiTest, DesiVersion, get_version
 CMDCLASS = {{'version': DesiVersion}}
 VERSION = get_version("{0.fake_name}")
 setup(name="{0.fake_name}",
@@ -185,11 +185,3 @@ setup(name="{0.fake_name}",
         os.makedirs(os.path.join(p, '.svn'))
         update_version(self.fake_name)
         self.assertTrue(os.path.exists(os.path.join(p2, '_version.py')))
-
-
-def test_suite():
-    """Allows testing of only this module with the command::
-
-        python setup.py test -m <modulename>
-    """
-    return unittest.defaultTestLoader.loadTestsFromName(__name__)

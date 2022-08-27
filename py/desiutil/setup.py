@@ -81,56 +81,6 @@ class DesiAPI(Command):
         return basename(d) == 'test' or basename(d) == 'tests'
 
 
-class DesiModule(Command):
-    """Allow users to install module files with
-    ``python setup.py module_file``.
-    """
-    description = "install a module file for this package"
-    user_options = [('default', 'd',
-                     'Set this version as the default Module file.'),
-                    ('modules=', 'm', 'Set the Module install directory.')
-                    ]
-    boolean_options = ['default']
-
-    def initialize_options(self):
-        self.modules = None
-        self.default = False
-
-    def finalize_options(self):
-        if self.modules is None:
-            try:
-                self.modules = join('/global/common/software/desi',
-                                    environ['NERSC_HOST'],
-                                    'desiconda',
-                                    'current',
-                                    'modulefiles')
-            except KeyError:
-                try:
-                    self.modules = join(environ['DESI_PRODUCT_ROOT'],
-                                        'modulefiles')
-                except KeyError:
-                    self.announce("Could not determine a Module install directory!",
-                                  level=ERROR)
-                    exit(1)
-
-    def run(self):
-        meta = self.distribution.metadata
-        name = meta.get_name()
-        version = meta.get_version()
-        dev = 'dev' in version
-        working_dir = abspath('.')
-        module_keywords = configure_module(name, version, dev=dev)
-        module_file = join(working_dir, 'etc', '{0}.module'.format(name))
-        if exists(module_file):
-            process_module(module_file, module_keywords, self.modules)
-        else:
-            self.announce("Could not find a Module file: {0}.".format(module_file),
-                          level=ERROR)
-        if self.default:
-            default_module(module_keywords, self.modules)
-        return
-
-
 class DesiTest(BaseTest, object):
     """Add coverage to test commands.
     """

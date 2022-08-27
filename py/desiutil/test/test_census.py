@@ -205,11 +205,3 @@ class TestCensus(unittest.TestCase):
         for k in range(len(data)):
             self.assertListEqual(output_data[k], data[k])
         remove(csvfile)
-
-
-def test_suite():
-    """Allows testing of only this module with the command::
-
-        python setup.py test -m <modulename>
-    """
-    return unittest.defaultTestLoader.loadTestsFromName(__name__)

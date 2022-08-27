@@ -31,11 +31,3 @@ class TestTopLevel(unittest.TestCase):
         """Ensure the version conforms to PEP386/PEP440.
         """
         self.assertRegex(theVersion, self.versionre)
-
-
-def test_suite():
-    """Allows testing of only this module with the command::
-
-        python setup.py test -m <modulename>
-    """
-    return unittest.defaultTestLoader.loadTestsFromName(__name__)

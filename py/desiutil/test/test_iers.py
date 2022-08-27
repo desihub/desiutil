@@ -150,11 +150,3 @@ class TestIERS(unittest.TestCase):
         with self.assertRaises(ValueError):
             i.freeze_iers('census.yaml')
         mock_logger().info.assert_has_calls([call('Freezing IERS table used by astropy time, coordinates.')])
-
-
-def test_suite():
-    """Allows testing of only this module with the command::
-
-        python setup.py test -m <modulename>
-    """
-    return unittest.defaultTestLoader.loadTestsFromName(__name__)

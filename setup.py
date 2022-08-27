@@ -55,8 +55,7 @@ setup_keywords['zip_safe'] = False
 setup_keywords['use_2to3'] = False
 setup_keywords['packages'] = find_packages('py')
 setup_keywords['package_dir'] = {'': 'py'}
-setup_keywords['cmdclass'] = {'module_file': ds.DesiModule,
-                              'version': ds.DesiVersion,
+setup_keywords['cmdclass'] = {'version': ds.DesiVersion,
                               'test': ds.DesiTest,
                               'api': ds.DesiAPI,
                               'sdist': DistutilsSdist}
@@ -65,7 +64,8 @@ setup_keywords['test_suite']='{name}.test.{name}_test_suite'.format(**setup_keyw
 # Autogenerate command-line scripts.
 #
 # setup_keywords['entry_points'] = {'console_scripts':['desiInstall = desiutil.install:main',
-#                                                      'desi_data_census = desiutil.census:main']}
+#                                                      'desi_data_census = desiutil.census:main',
+#                                                      'desi_module_file = desiutil.modules:main']}
 #
 # Add internal data directories.
 #

@@ -251,7 +251,6 @@ class TestModules(unittest.TestCase):
         for t in test_files:
             remove(join(self.data_dir, t))
 
-
     def test_process_module(self):
         """Test processing of module file templates.
         """
@@ -284,11 +283,3 @@ class TestModules(unittest.TestCase):
         #
         remove(join(self.data_dir, 'foo', '.version'))
         rmdir(join(self.data_dir, 'foo'))
-
-
-def test_suite():
-    """Allows testing of only this module with the command::
-
-        python setup.py test -m <modulename>
-    """
-    return unittest.defaultTestLoader.loadTestsFromName(__name__)
