@@ -7,18 +7,14 @@ desiutil.setup
 
 This package contains code that might be useful in DESI setup.py files.
 """
+import os
 import re
-import unittest
-from os import environ, walk
-from os.path import abspath, basename, exists, isdir, isfile, join
-from sys import exit, version_info
+import sys
 from setuptools import Command
 from setuptools.command.test import test as BaseTest
-from pkg_resources import _namespace_packages
 from distutils.log import DEBUG, INFO, WARN, ERROR
 from .svn import version as svn_version
 from .git import version as git_version
-from .modules import configure_module, process_module, default_module
 
 
 class DesiAPI(Command):
@@ -34,7 +30,7 @@ class DesiAPI(Command):
 
     def initialize_options(self):
         self.overwrite = False
-        self.api = join(abspath('.'), 'doc', 'api.rst')
+        self.api = os.path.join(os.path.abspath('.'), 'doc', 'api.rst')
 
     def finalize_options(self):
         pass
@@ -43,7 +39,7 @@ class DesiAPI(Command):
         n = self.distribution.metadata.get_name()
         productroot = find_version_directory(n)
         modules = []
-        for dirpath, dirnames, filenames in walk(productroot):
+        for dirpath, dirnames, filenames in os.walk(productroot):
             if dirpath == productroot:
                 d = ''
             else:
@@ -66,88 +62,19 @@ class DesiAPI(Command):
         lines = ['='*len(title), title, '='*len(title), '']
         for m in sorted(modules):
             lines += ['.. automodule:: {0}'.format(m), '    :members:', '']
-        if exists(self.api):
+        if os.path.exists(self.api):
             if self.overwrite:
                 self.announce("{0} will be overwritten!".format(self.api),
                               level=WARN)
             else:
                 self.announce("{0} already exists!".format(self.api),
                               level=ERROR)
-                exit(1)
+                sys.exit(1)
         with open(self.api, 'w') as a:
             a.write('\n'.join(lines))
 
     def _test_file(self, d, f):
-        return basename(d) == 'test' or basename(d) == 'tests'
-
-
-class DesiTest(BaseTest, object):
-    """Add coverage to test commands.
-    """
-    description = "run unit tests after in-place build"
-    user_options = [('test-module=', 'm',
-                     "Run 'test_suite' in specified module"),
-                    ('test-suite=', 's',
-                     "Test suite to run (e.g. 'some_module.test_suite')"),
-                    ('test-runner=', 'r', "Test runner to use"),
-                    ('coverage', 'c', ('Create a coverage report. ' +
-                     'Requires the coverage package.'))
-                    ]
-    boolean_options = ['coverage']
-
-    def initialize_options(self):
-        self.coverage = False
-        super(DesiTest, self).initialize_options()
-
-    def finalize_options(self):
-        if self.coverage:
-            try:
-                import coverage
-            except ImportError:
-                self.announce(("--coverage requires that the coverage " +
-                               "package is installed, disabling coverage" +
-                               "option."), level=WARN)
-                self.coverage = False
-        super(DesiTest, self).finalize_options()
-
-    def run_tests(self):
-        # Purge modules under test from sys.modules. The test loader will
-        # re-import them from the build location. Required when 2to3 is used
-        # with namespace packages.
-        if getattr(self.distribution, 'use_2to3', False):
-            module = self.test_args[-1].split('.')[0]
-            if module in _namespace_packages:
-                del_modules = []
-                if module in sys.modules:
-                    del_modules.append(module)
-                module += '.'
-                for name in sys.modules:
-                    if name.startswith(module):
-                        del_modules.append(name)
-                list(map(sys.modules.__delitem__, del_modules))
-        if self.coverage:
-            self.announce("Coverage selected!", level=INFO)
-            import coverage
-            cov = coverage.coverage(data_file=abspath(".coverage"),
-                                    config_file=abspath(".coveragerc"))
-            cov.start()
-
-        result = unittest.main(None, None,
-                               ([unittest.__file__] + self.test_args),
-                               testLoader=self._resolve_as_ep(self.test_loader),
-                               testRunner=self._resolve_as_ep(self.test_runner),
-                               exit=False)
-        if result.result.wasSuccessful():
-            if self.coverage:
-                cov.stop()
-                self.announce('Saving coverage data in .coverage...',
-                              level=INFO)
-                cov.save()
-                self.announce('Saving HTML coverage report in htmlcov...',
-                              level=INFO)
-                cov.html_report(directory=abspath('htmlcov'))
-        else:
-            exit(1)
+        return os.path.basename(d) == 'test' or os.path.basename(d) == 'tests'
 
 
 class DesiVersion(Command):
@@ -196,11 +123,11 @@ def find_version_directory(productname):
     IOError
         If no valid directory can be found.
     """
-    setup_dir = abspath('.')
-    if isdir(join(setup_dir, 'py', productname)):
-        version_dir = join(setup_dir, 'py', productname)
-    elif isdir(join(setup_dir, productname)):
-        version_dir = join(setup_dir, productname)
+    setup_dir = os.path.abspath('.')
+    if os.path.isdir(os.path.join(setup_dir, 'py', productname)):
+        version_dir = os.path.join(setup_dir, 'py', productname)
+    elif os.path.isdir(os.path.join(setup_dir, productname)):
+        version_dir = os.path.join(setup_dir, productname)
     else:
         raise IOError("Could not find a directory containing version information!")
     return version_dir
@@ -224,8 +151,8 @@ def get_version(productname):
         version_dir = find_version_directory(productname)
     except IOError:
         return ver
-    version_file = join(version_dir, '_version.py')
-    if not isfile(version_file):
+    version_file = os.path.join(version_dir, '_version.py')
+    if not os.path.isfile(version_file):
         update_version(productname)
     with open(version_file, "r") as f:
         for line in f.readlines():
@@ -254,13 +181,13 @@ def update_version(productname, tag=None):
     if tag is not None:
         ver = tag
     else:
-        if isdir(".svn"):
+        if os.path.isdir(".svn"):
             ver = svn_version(productname)
-        elif isdir(".git"):
+        elif os.path.isdir(".git"):
             ver = git_version()
         else:
             raise IOError("Could not determine repository type.")
-    version_file = join(version_dir, '_version.py')
+    version_file = os.path.join(version_dir, '_version.py')
     with open(version_file, "w") as f:
         f.write("__version__ = '{}'\n".format(ver))
     return

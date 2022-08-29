@@ -4,13 +4,49 @@
 # NOTE: The configuration for the package, including the name, version, and
 # other information are set in the setup.cfg file.
 
-import os
 import sys
-from importlib import import_module
 from setuptools import setup
 
 # First provide helpful messages if contributors try and run legacy commands
 # for tests or docs.
+
+API_HELP = """
+Note: Generating api.rst files is no longer done using 'python setup.py api'. Instead
+you will need to run:
+
+    desi_api_file
+
+which is part of the desiutil package. If you don't already have desiutil installed, you can install it with:
+
+    pip install desiutil
+"""
+
+MODULE_HELP = """
+Note: Generating Module files is no longer done using 'python setup.py api'. Instead
+you will need to run:
+
+    desiInstall
+
+or
+
+    desi_module_file
+
+depending on your exact situation.  desiInstall is preferred.  Both commands are
+part of the desiutil package. If you don't already have desiutil installed, you can install it with:
+
+    pip install desiutil
+"""
+
+VERSION_HELP = """
+Note: Generating version strings is no longer done using 'python setup.py version'. Instead
+you will need to run:
+
+    desi_set_version
+
+which is part of the desiutil package. If you don't already have desiutil installed, you can install it with:
+
+    pip install desiutil
+"""
 
 TEST_HELP = """
 Note: running tests is no longer done using 'python setup.py test'. Instead
@@ -23,13 +59,9 @@ If you don't already have pytest installed, you can install it with:
     pip install pytest
 """
 
-if 'test' in sys.argv:
-    print(TEST_HELP)
-    sys.exit(1)
-
 DOCS_HELP = """
 Note: building the documentation is no longer done using
-'python setup.py build_docs'. Instead you will need to run:
+'python setup.py {0}'. Instead you will need to run:
 
     sphinx-build -W --keep-going -b html doc doc/_build/html
 
@@ -38,16 +70,16 @@ If you don't already have Sphinx installed, you can install it with:
     pip install Sphinx
 """
 
-if 'build_docs' in sys.argv or 'build_sphinx' in sys.argv:
-    print(DOCS_HELP)
-    sys.exit(1)
+message = {'api': API_HELP,
+           'module_file': MODULE_HELP,
+           'test': TEST_HELP,
+           'version': VERSION_HELP,
+           'build_docs': DOCS_HELP.format('build_docs'),
+           'build_sphinx': DOCS_HELP.format('build_sphinx'), }
 
-# module = import_module('desiutil')
-# setup(version=module.__version__)
+for m in message:
+    if m in sys.argv:
+        print(message[m])
+        sys.exit(1)
+
 setup()
-
-
-
-# if os.path.isdir('bin'):
-#     setup_keywords['scripts'] = [fname for fname in glob.glob(os.path.join('bin', '*'))
-#         if not os.path.basename(fname).endswith('.rst')]
