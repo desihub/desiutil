@@ -54,13 +54,14 @@ import copy
 import os.path
 from contextlib import contextmanager
 
+
 class Timer(object):
     """
     A basic timer class for standardizing reporting of algorithm and I/O timing
-    
+
     TIMER:<START|STOP>:<filename>:<lineno>:<funcname>: <message>
     """
-    
+
     def __init__(self, silent=False):
         """
         Create a Timer object.
@@ -75,7 +76,7 @@ class Timer(object):
         """
         self.timers = dict()
         self.silent = silent
-    
+
     def _prefix(self, step):
         """
         Return standard prefix string for timer reporting
@@ -84,15 +85,14 @@ class Timer(object):
             step (str): timing step, e.g. "START" or "STOP"
         """
         stack = traceback.extract_stack()
-        #- Walk backwards in stack to find first caller not from this file
-        #- and not contextlib.py
-        #- (exact index depends on whether context manager was used or not)
+        # Walk backwards in stack to find first caller not from this file
+        # and not contextlib.py
+        # (exact index depends on whether context manager was used or not)
         thisfile = os.path.normpath(__file__)
         for caller in stack[-1::-1]:
-            if os.path.normpath(caller.filename) != thisfile and \
-               os.path.basename(caller.filename) != 'contextlib.py':
+            if (os.path.normpath(caller.filename) != thisfile and os.path.basename(caller.filename) != 'contextlib.py'):
                 break
-        
+
         filename = os.path.basename(caller.filename)
         return f"TIMER-{step}:{filename}:{caller.lineno}:{caller.name}:"
 
@@ -128,10 +128,10 @@ class Timer(object):
         isotime = datetime.datetime.fromtimestamp(starttime).isoformat()
         if name in self.timers:
             self._print('WARNING', f'Restarting {name} at {isotime}')
-        
+
         self._print('START', f'Starting {name} at {isotime}')
         self.timers[name] = dict(start=starttime)
-    
+
     def stop(self, name, stoptime=None):
         """Stop timer `name` (str); prints TIMER-STOP message
 
@@ -156,18 +156,18 @@ class Timer(object):
             2. (str) ISO-8601
             3. (str) Unix `date` cmd, e.g. "Mon Sep 21 20:09:48 PDT 2020"
         """
-        #- non-fatal ERROR: trying to stop a timer that wasn't started
+        # non-fatal ERROR: trying to stop a timer that wasn't started
         stoptime = parsetime(stoptime)
         isotime = datetime.datetime.fromtimestamp(stoptime).isoformat()
         if name not in self.timers:
             self._print('ERROR', f'Tried to stop non-existent timer {name} at {isotime}')
             return -1.0
 
-        #- WARNING: resetting the stop time of a timer that was already stopped
+        # WARNING: resetting the stop time of a timer that was already stopped
         if 'stop' in self.timers[name]:
             self._print('WARNING', f'Resetting stop time of {name} at {isotime}')
-        
-        #- All clear; proceed
+
+        # All clear; proceed
         self.timers[name]['stop'] = stoptime
         dt = self.timers[name]['stop'] - self.timers[name]['start']
         self.timers[name]['duration'] = dt
@@ -238,23 +238,24 @@ class Timer(object):
         Use `Timer.timers` for access as a dictionary, where start/stop are
         seconds elapsed since the epoch (1970-01-01T00:00:00 UTC on Unix).
         """
-        #- First stop any running timers
+        # First stop any running timers
         self.stopall()
 
-        #- Get copy of self.timers converted to ISO-8601
+        # Get copy of self.timers converted to ISO-8601
         t = self.timer_seconds2iso8601()
 
-        #- Convert to human-friendly formatted json string
+        # Convert to human-friendly formatted json string
         return json.dumps(t, indent=2)
-        
 
-#-----
-#- Utility functions
 
+#
+# Utility functions
+#
 def timestamp2isotime(timestamp):
     """Return seconds since epoch `timestamp` as ISO-8601 string
     """
     return datetime.datetime.fromtimestamp(timestamp).isoformat()
+
 
 def parsetime(t):
     """Parse time as int,float,str(int),str(float),ISO-8601, or Unix `date`
@@ -269,26 +270,27 @@ def parsetime(t):
         return float(t)
     elif isinstance(t, str):
         try:
-            #- int or float passed in as string
+            # int or float passed in as string
             t = float(t)
         except ValueError:
-            #- see if dateutil is installed to parse
-            #- ISO-8601 string, or output of Unix `date` without options
+            # see if dateutil is installed to parse
+            # ISO-8601 string, or output of Unix `date` without options
             try:
-                import dateutil.parser
+                from dateutil.parser import parse, ParserError
             except ImportError:
-                raise ValueError(f"Can't parse start time {t}; " \
-                                  "install dateutil or use int/float " \
-                                  "(e.g. from Unix `date +%s`")
+                raise ValueError(f"Can't parse start time {t}; "
+                                 "install dateutil or use int/float "
+                                 "(e.g. from Unix `date +%s`")
 
             try:
-                t = dateutil.parser.parse(t).timestamp()
-            except:
-                raise ValueError(f"Can't parse start time {t}; " \
-                                  "use int/float or ISO-8601 or " \
-                                  "Unix `date +%s` output")
+                t = parse(t).timestamp()
+            except ParserError:
+                raise ValueError(f"Can't parse start time {t}; "
+                                 "use int/float or ISO-8601 or "
+                                 "Unix `date +%s` output")
 
     return t
+
 
 def compute_stats(timerlist):
     """Compute timer min/max/mean/median stats
@@ -302,22 +304,22 @@ def compute_stats(timerlist):
     Different Timers can have different named subtimers
     """
 
-    #- Minimize timer import time by loading numpy only if needed
+    # Minimize timer import time by loading numpy only if needed
     import numpy as np
 
-    #- Result dictionary to fill
+    # Result dictionary to fill
     stats = dict()
 
-    #- Extract timers dictionaries
+    # Extract timers dictionaries
     timerlist = [t.timers for t in timerlist]
 
-    #- Get the name of all individual timers in the list of timers
-    #- while retaining order of first appearance
+    # Get the name of all individual timers in the list of timers
+    # while retaining order of first appearance
     names = dict()
     for t in timerlist:
         for n in t.keys():
             names[n] = 1
-    names = list(names.keys()) # cPy3.6 and any py3.7 preserves key order
+    names = list(names.keys())  # cPy3.6 and any py3.7 preserves key order
 
     for name in names:
         duration = list()
@@ -333,21 +335,18 @@ def compute_stats(timerlist):
         duration = np.array(duration)
         start = np.array(start)
         stop = np.array(stop)
-        stats[name] = {
-            'start.min': timestamp2isotime(np.min(start)),
-            'start.max': timestamp2isotime(np.max(start)),
-            'start.mean': timestamp2isotime(np.mean(start)),
-            'start.median': timestamp2isotime(np.median(start)),
-            'stop.min': timestamp2isotime(np.min(stop)),
-            'stop.max': timestamp2isotime(np.max(stop)),
-            'stop.mean': timestamp2isotime(np.mean(stop)),
-            'stop.median': timestamp2isotime(np.median(stop)),
-            'duration.min': np.min(duration),
-            'duration.max': np.max(duration),
-            'duration.mean': np.mean(duration),
-            'duration.median': np.median(duration),
-            'n': len(duration),
-            }
+        stats[name] = {'start.min': timestamp2isotime(np.min(start)),
+                       'start.max': timestamp2isotime(np.max(start)),
+                       'start.mean': timestamp2isotime(np.mean(start)),
+                       'start.median': timestamp2isotime(np.median(start)),
+                       'stop.min': timestamp2isotime(np.min(stop)),
+                       'stop.max': timestamp2isotime(np.max(stop)),
+                       'stop.mean': timestamp2isotime(np.mean(stop)),
+                       'stop.median': timestamp2isotime(np.median(stop)),
+                       'duration.min': np.min(duration),
+                       'duration.max': np.max(duration),
+                       'duration.mean': np.mean(duration),
+                       'duration.median': np.median(duration),
+                       'n': len(duration)}
 
     return stats
-
