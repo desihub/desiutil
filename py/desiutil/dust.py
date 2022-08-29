@@ -83,8 +83,8 @@ def extinction_total_to_selective_ratio(band, photsys, match_legacy_surveys=Fals
               'W3_S': 0.0241,
               'W4_S': 0.00910})
 
-    assert(band.upper() in ["G", "R", "Z", "BP", "RP", 'W1', 'W2', 'W3', 'W4'])
-    assert(photsys.upper() in ["N", "S", "G"])
+    assert band.upper() in ["G", "R", "Z", "BP", "RP", 'W1', 'W2', 'W3', 'W4']
+    assert photsys.upper() in ["N", "S", "G"]
     return R["{}_{}".format(band.upper(), photsys.upper())]
 
 
