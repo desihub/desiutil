@@ -8,10 +8,6 @@ import shutil
 import unittest
 from unittest.mock import call, patch
 from tempfile import mkdtemp
-from packaging import version
-from setuptools import __version__ as setuptools_version
-from setuptools import sandbox
-# from distutils import log
 from ..setup import find_version_directory, get_version, update_version
 from .. import __version__ as desiutil_version
 
@@ -24,12 +20,6 @@ class TestSetup(unittest.TestCase):
     def setUpClass(cls):
         cls.fake_name = 'frobulate'
         cls.original_dir = os.getcwd()
-        # Workaround for https://github.com/astropy/astropy-helpers/issues/124
-        if hasattr(sandbox, 'hide_setuptools'):
-            sandbox.hide_setuptools = lambda: None
-        # cls.old_threshold = log.set_threshold(log.WARN)
-        # cls.distutils_log = 'distutils.log.Log._log'
-        # cls.distutils_log = 'setuptools._distutils.log.Log._log'
 
     @classmethod
     def tearDownClass(cls):
@@ -49,64 +39,6 @@ class TestSetup(unittest.TestCase):
     def tearDown(self):
         os.chdir(self.original_dir)
         shutil.rmtree(self.setup_dir, ignore_errors=True)
-
-    def run_setup(self, *args, **kwargs):
-        """In Python 3, on MacOS X, the import cache has to be invalidated
-        otherwise new extensions built with ``run_setup`` do not always get
-        picked up.
-        """
-        try:
-            return sandbox.run_setup(*args, **kwargs)
-        finally:
-            import importlib
-            importlib.invalidate_caches()
-
-    def test_version(self):
-        """Test python setup.py version.
-        """
-        path_index = int(sys.path[0] == '')
-        sys.path.insert(path_index, os.path.abspath('./py'))
-        package_dir = os.path.join(self.setup_dir, self.fake_name)
-        os.mkdir(package_dir)
-        os.mkdir(os.path.join(package_dir, self.fake_name))
-        os.mkdir(os.path.join(package_dir, '.git'))
-        setup = """#!/usr/bin/env python
-from setuptools import setup
-from desiutil.setup import get_version
-VERSION = get_version("{0.fake_name}")
-setup(name="{0.fake_name}",
-    version=VERSION,
-    packages=["{0.fake_name}"],
-    zip_safe=False)
-""".format(self)
-        with open(os.path.join(package_dir, 'setup.py'), 'w') as s:
-            s.write(setup)
-        init = """from ._version import __version__
-"""
-        with open(os.path.join(package_dir, self.fake_name,
-                               '__init__.py'), 'w') as i:
-            i.write(init)
-        os.chdir(package_dir)
-        v_file = os.path.join(package_dir, self.fake_name, '_version.py')
-        with patch('distutils.cmd.Command.announce') as mock_announce:
-            with patch('distutils.log.info') as mock_info:
-                self.run_setup('setup.py', ['version'])
-                self.assertTrue(os.path.exists(v_file))
-                self.assertListEqual(mock_announce.mock_calls,
-                                     [call('Version is now 0.0.1.dev0.', level=2)])
-                self.assertListEqual(mock_info.mock_calls, [call('running %s', 'version')])
-        with patch('distutils.cmd.Command.announce') as mock_announce:
-            with patch('distutils.log.info') as mock_info:
-                self.run_setup('setup.py', ['version', '--tag', '1.2.3'])
-                with open(v_file) as v:
-                    data = v.read()
-                self.assertEqual(data, "__version__ = '1.2.3'\n")
-                self.assertListEqual(mock_announce.mock_calls,
-                                     [call('Version is now 1.2.3.', level=2)])
-                self.assertListEqual(mock_info.mock_calls, [call('running %s', 'version')])
-
-        os.chdir(self.original_dir)
-        del sys.path[path_index]
 
     def test_find_version_directory(self):
         """Test the search for a _version.py file.

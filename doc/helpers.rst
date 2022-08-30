@@ -15,6 +15,11 @@ Module File Generation
 
 :command:`desi_module_file`
 
+Version String Update
+---------------------
+
+:command:`desi_update_version`
+
 Update IERS Data
 ----------------
 
