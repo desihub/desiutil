@@ -72,13 +72,11 @@ class TestSetup(unittest.TestCase):
         os.mkdir(os.path.join(package_dir, '.git'))
         setup = """#!/usr/bin/env python
 from setuptools import setup
-from desiutil.setup import DesiVersion, get_version
-CMDCLASS = {{'version': DesiVersion}}
+from desiutil.setup import get_version
 VERSION = get_version("{0.fake_name}")
 setup(name="{0.fake_name}",
     version=VERSION,
     packages=["{0.fake_name}"],
-    cmdclass=CMDCLASS,
     zip_safe=False)
 """.format(self)
         with open(os.path.join(package_dir, 'setup.py'), 'w') as s:

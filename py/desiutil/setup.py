@@ -10,33 +10,10 @@ This package contains code that might be useful in DESI setup.py files.
 import os
 import re
 import sys
-from setuptools import Command
-from distutils.log import DEBUG, INFO, WARN, ERROR
+from . import __version__ as desiutilVersion
+from .log import log
 from .svn import version as svn_version
 from .git import version as git_version
-
-
-class DesiVersion(Command):
-    """Allow users to easily update the package version with
-    ``python setup.py version``.
-    """
-    description = "update _version.py from git repo"
-    user_options = [('tag=', 't',
-                     'Set the version to a name in preparation for tagging.'),
-                    ]
-    boolean_options = []
-
-    def initialize_options(self):
-        self.tag = None
-
-    def finalize_options(self):
-        pass
-
-    def run(self):
-        meta = self.distribution.metadata
-        update_version(meta.get_name(), tag=self.tag)
-        ver = get_version(meta.get_name())
-        self.announce("Version is now {}.".format(ver), level=INFO)
 
 
 def find_version_directory(productname):
@@ -130,3 +107,24 @@ def update_version(productname, tag=None):
     with open(version_file, "w") as f:
         f.write("__version__ = '{}'\n".format(ver))
     return
+
+
+def main():
+    """Entry-point for command-line scripts.
+
+    Returns
+    -------
+    :class:`int`
+        An integer suitable for passing to :func:`sys.exit`.
+    """
+    parser = ArgumentParser(description="Update a package version string.",
+                            prog=os.path.basename(sys.argv[0]))
+    parser.add_argument('-t', '--tag', dest='tag', help='Set the version to a name in preparation for tagging.')
+    parser.add_argument('-V', '--version', action='version', version='%(prog)s ' + desiutilVersion)
+    parser.add_argument('product', help='Name of product.')
+    options = parser.parse_args()
+
+    update_version(options.product, tag=options.tag)
+    ver = get_version(options.product)
+    log.info("Version is now %s.", ver)
+    return 0

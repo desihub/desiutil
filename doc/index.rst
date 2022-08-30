@@ -40,6 +40,7 @@ Contents
 
    api.rst
    desiInstall.rst
+   helpers.rst
    changes.rst
 
 Indices and tables
