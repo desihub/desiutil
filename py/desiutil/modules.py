@@ -226,7 +226,7 @@ def configure_module(product, version, product_root, working_dir=None, dev=False
     if os.path.exists(os.path.join(working_dir, 'setup.cfg')):
         conf = SafeConfigParser()
         conf.read([os.path.join(working_dir, 'setup.cfg')])
-        if conf.has_section('entry_points'):
+        if conf.has_section('entry_points') or conf.has_section('options.entry_points'):
             module_keywords['needs_bin'] = ''
     return module_keywords
 
@@ -323,10 +323,14 @@ def main():
                 log.error("Could not determine a Module install directory!")
                 return 1
 
-    dev = 'dev' in options.product_version
-    working_dir = abspath('.')
-    module_keywords = configure_module(options.product, options.product_version, dev=dev)
-    module_file = os.path.join(working_dir, 'etc', '{0}.module'.format(name))
+    dev = ('dev' in options.product_version or
+           'main' in options.product_version or
+           'master' in options.product_version or
+           'branches' in options.product_version or
+           'trunk' in options.product_version)
+    working_dir = os.path.abspath('.')
+    module_keywords = configure_module(options.product, options.product_version, working_dir, dev=dev)
+    module_file = os.path.join(working_dir, 'etc', '{0}.module'.format(options.product))
 
     if not os.path.exists(module_file):
         log.warning("Could not find Module file: %s; using default.", module_file)

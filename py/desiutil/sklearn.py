@@ -5,7 +5,9 @@
 desiutil.sklearn
 ================
 
-Useful functions from the sklearn python package.
+Useful functions copied from the scikit-learn_ Python package.
+
+.. _scikit-learn: https://scikit-learn.org/stable/
 """
 
 

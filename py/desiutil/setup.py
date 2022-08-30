@@ -5,11 +5,15 @@
 desiutil.setup
 ==============
 
-This package contains code that might be useful in DESI setup.py files.
+This module supplies :command:`desi_update_version`, which simplifies
+setting and updating version strings in Python packages.
+
+For historical reasons, this module is retains an outdated name ``setup.py``.
 """
 import os
 import re
 import sys
+from argparse import ArgumentParser
 from . import __version__ as desiutilVersion
 from .log import log
 from .svn import version as svn_version
