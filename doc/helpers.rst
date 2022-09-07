@@ -118,3 +118,73 @@ Example::
     fix_permissions.sh /global/cfs/cdirs/desi/users/desi
 
 .. _`NERSC filesystem discussion`: https://desi.lbl.gov/trac/wiki/Computing/NerscFileSystem#FileSystemAccess
+
+
+.. _replacing-setup-py:
+
+Replacing setup.py
+==================
+
+Introduction
+------------
+
+The Python community is gradually moving away from using ``setup.py`` for
+package build and install tasks.  In previous versions, this package provided
+plug-in commands for ``setup.py``.  The sections below give specific instructions
+for replacements for these commands, as well as test and documentation
+commands that were built-in to earlier versions of ``setup.py``.
+
+.. _setup-py-api:
+
+python setup.py api
+-------------------
+
+Use the :command:`desi_api_file` script described above to generate ``api.rst`` files.
+This command is provided by this package.
+
+.. _setup-py-build_docs:
+
+python setup.py build_docs
+--------------------------
+
+Package documentation should be built with :command:`sphinx-build`.  For example::
+
+    sphinx-build -W --keep-going -b html doc doc/_build/html
+
+If you don't already have Sphinx installed, you can install it with::
+
+    pip install Sphinx
+
+.. _setup-py-build_sphinx:
+
+python setup.py build_sphinx
+----------------------------
+
+See :ref:`buid_docs <setup-py-build-docs>` above.
+
+.. _setup-py-module_file:
+
+python setup.py module_file
+---------------------------
+
+Use the :command:`desi_module_file` script described above to generate Module files.
+Note that the preferred method is to just let :command:`desiInstall` do that.
+Both commands are provided by this package.
+
+.. _setup-py-test:
+
+python setup.py test
+--------------------
+
+Use :command:`pytest` to run tests.  If you don't already have :command:`pytest`
+installed, you can install it with::
+
+    pip install pytest
+
+.. _setup-py-version:
+
+python setup.py version
+-----------------------
+
+Use the :command:`desi_update_version` script described above to update the version
+string in a package. This command is provided by this package.
