@@ -160,7 +160,7 @@ If you don't already have Sphinx installed, you can install it with::
 python setup.py build_sphinx
 ----------------------------
 
-See :ref:`buid_docs <setup-py-build-docs>` above.
+See :ref:`buid_docs <setup-py-build_docs>` above.
 
 .. _setup-py-module_file:
 
