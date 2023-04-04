@@ -17,7 +17,7 @@ jobs:
             fail-fast: true
             matrix:
                 os: [ubuntu-latest]
-                python-version: ['3.8', '3.9', '3.10', '3.11']
+                python-version: ['3.8', '3.9', '3.10']  # , '3.11'] Astropy 5.0 may be incompatible with Python 3.11
                 numpy-version: ['<1.23']
                 astropy-version: ['==5.0', '<5.1', '<6.0']
 
