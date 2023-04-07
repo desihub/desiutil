@@ -14,7 +14,7 @@ import re
 import sys
 from argparse import ArgumentParser
 from shutil import which
-from stat import S_IRUSR, S_IRGRP
+from stat import S_IRUSR, S_IRGRP, S_IROTH
 try:
     from ConfigParser import SafeConfigParser
 except ImportError:
@@ -231,7 +231,7 @@ def configure_module(product, version, product_root, working_dir=None, dev=False
     return module_keywords
 
 
-def process_module(module_file, module_keywords, module_dir):
+def process_module(module_file, module_keywords, module_dir, world=True):
     """Process a Module file.
 
     Parameters
@@ -242,6 +242,8 @@ def process_module(module_file, module_keywords, module_dir):
         The parameters to use for Module file processing.
     module_dir : :class:`str`
         The directory where the Module file should be installed.
+    world : :class:`bool`, optional
+        Make module files world-readable.
 
     Returns
     -------
@@ -254,11 +256,11 @@ def process_module(module_file, module_keywords, module_dir):
                                        module_keywords['version'])
     with open(module_file) as m:
         mod = m.read().format(**module_keywords)
-    _write_module_data(install_module_file, mod)
+    _write_module_data(install_module_file, mod, world=world)
     return mod
 
 
-def default_module(module_keywords, module_dir):
+def default_module(module_keywords, module_dir, world=True):
     """Install or update a .version file to set the default Module.
 
     Parameters
@@ -267,6 +269,8 @@ def default_module(module_keywords, module_dir):
         The parameters to use for Module file processing.
     module_dir : :class:`str`
         The directory where the Module file should be installed.
+    world : :class:`bool`, optional
+        Make .version files world-readable.
 
     Returns
     -------
@@ -277,17 +281,29 @@ def default_module(module_keywords, module_dir):
     install_version_file = os.path.join(module_dir, module_keywords['name'],
                                         '.version')
     dot_version = dot_template.format(**module_keywords)
-    _write_module_data(install_version_file, dot_version)
+    _write_module_data(install_version_file, dot_version, world=world)
     return dot_version
 
 
-def _write_module_data(filename, data):
+def _write_module_data(filename, data, world=True):
     """Write and permission-lock Module file data.  This is intended
     to consolidate some duplicated code.
+
+    Parameters
+    ----------
+    filename : :class:`str`
+        The module file to write.
+    data : :class:`str`
+        The data to be written to `filename`.
+    world : :class:`bool`, optional
+        Make `filename` world-readable.
     """
     with unlock_file(filename, 'w') as f:
         f.write(data)
-    os.chmod(filename, S_IRUSR | S_IRGRP)
+    p = S_IRUSR | S_IRGRP
+    if world:
+        p |= S_IROTH
+    os.chmod(filename, p)
     return
 
 
@@ -303,6 +319,7 @@ def main():
                             prog=os.path.basename(sys.argv[0]))
     parser.add_argument('-d', '--default', dest='default', action='store_true', help='Mark this Module as default.')
     parser.add_argument('-m', '--modules', dest='modules', help='Set the Module install directory.')
+    parser.add_argument('-p', '--private', dest='world', action='store_false', help='Do not make module files world-readable.')
     parser.add_argument('-V', '--version', action='version', version='%(prog)s ' + desiutilVersion)
     parser.add_argument('product', help='Name of product.')
     parser.add_argument('product_version', help='Version of product.')
@@ -336,9 +353,9 @@ def main():
         log.warning("Could not find Module file: %s; using default.", module_file)
         module_file = resource_filename('desiutil', 'data/desiutil.module')
 
-    process_module(module_file, module_keywords, options.modules)
+    process_module(module_file, module_keywords, options.modules, world=options.world)
 
     if options.default:
-        default_module(module_keywords, options.modules)
+        default_module(module_keywords, options.modules, world=options.world)
 
     return 0

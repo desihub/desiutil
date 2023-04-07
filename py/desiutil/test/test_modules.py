@@ -3,16 +3,16 @@
 """Test desiutil.modules.
 """
 import unittest
-from stat import S_IXUSR
+from stat import S_IMODE, S_IXUSR, S_IRUSR, S_IRGRP, S_IROTH
 from types import MethodType
-from os import chmod, environ, mkdir, pathsep, remove, rmdir
-from os.path import dirname, exists, isdir, join
+from os import chmod, environ, mkdir, pathsep, remove, rmdir, stat
+from os.path import exists, isdir, join
 from sys import version_info
 from shutil import rmtree
 from tempfile import mkdtemp
 from pkg_resources import resource_filename
 from ..modules import (init_modules, configure_module, process_module,
-                       default_module)
+                       default_module, _write_module_data)
 
 
 class TestModules(unittest.TestCase):
@@ -283,3 +283,14 @@ class TestModules(unittest.TestCase):
         #
         remove(join(self.data_dir, 'foo', '.version'))
         rmdir(join(self.data_dir, 'foo'))
+
+    def test_write_module_data(self):
+        """Test file write and permissions.
+        """
+        p = join(self.data_dir, 'permission.txt')
+        _write_module_data(p, 'This is a test.\n')
+        self.assertEqual(S_IMODE(stat(p).st_mode), S_IRUSR | S_IRGRP | S_IROTH)
+        remove(p)
+        _write_module_data(p, 'This is a test.\n', world=False)
+        self.assertEqual(S_IMODE(stat(p).st_mode), S_IRUSR | S_IRGRP)
+        remove(p)
