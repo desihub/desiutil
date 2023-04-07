@@ -47,8 +47,8 @@ class DesiAPI(Command):
         pass
 
     def run(self):
-        self.announce("This functionality is deprecated and will be removed from a future version of desiutil.", level=WARN)
-        self.announce("Use the command-line script desi_api_file instead.", level=WARN)
+        self.announce("WARNING: This functionality is deprecated and will be removed from a future version of desiutil.", level=WARN)
+        self.announce("WARNING: Use the command-line script desi_api_file instead.", level=WARN)
         n = self.distribution.metadata.get_name()
         productroot = find_version_directory(n)
         modules = []
@@ -123,14 +123,15 @@ class DesiModule(Command):
                     exit(1)
 
     def run(self):
-        self.announce("This functionality is deprecated and will be removed from a future version of desiutil.", level=WARN)
-        self.announce("Use the command-line script desi_module_file instead.", level=WARN)
+        self.announce("WARNING: This functionality is deprecated and will be removed from a future version of desiutil.", level=WARN)
+        self.announce("WARNING: Use the command-line script desi_module_file instead.", level=WARN)
         meta = self.distribution.metadata
         name = meta.get_name()
         version = meta.get_version()
         dev = 'dev' in version
         working_dir = os.path.abspath('.')
-        module_keywords = configure_module(name, version, dev=dev)
+        product_root = os.path.join(os.path.dirname(self.modules), 'code')
+        module_keywords = configure_module(name, version, product_root, dev=dev)
         module_file = os.path.join(working_dir, 'etc', '{0}.module'.format(name))
         if os.path.exists(module_file):
             process_module(module_file, module_keywords, self.modules)
@@ -175,8 +176,8 @@ class DesiTest(BaseTest, object):
         # Purge modules under test from sys.modules. The test loader will
         # re-import them from the build location. Required when 2to3 is used
         # with namespace packages.
-        self.announce("This functionality is deprecated and will be removed from a future version of desiutil.", level=WARN)
-        self.announce("Use pytest or pytest --cov (for test coverage) instead.", level=WARN)
+        self.announce("WARNING: This functionality is deprecated and will be removed from a future version of desiutil.", level=WARN)
+        self.announce("WARNING: Use pytest or pytest --cov (for test coverage) instead.", level=WARN)
         if getattr(self.distribution, 'use_2to3', False):
             module = self.test_args[-1].split('.')[0]
             if module in _namespace_packages:
@@ -230,8 +231,8 @@ class DesiVersion(Command):
         pass
 
     def run(self):
-        self.announce("This functionality is deprecated and will be removed from a future version of desiutil.", level=WARN)
-        self.announce("Use the command-line script desi_update_version instead.", level=WARN)
+        self.announce("WARNING: This functionality is deprecated and will be removed from a future version of desiutil.", level=WARN)
+        self.announce("WARNING: Use the command-line script desi_update_version instead.", level=WARN)
         meta = self.distribution.metadata
         update_version(meta.get_name(), tag=self.tag)
         ver = get_version(meta.get_name())
