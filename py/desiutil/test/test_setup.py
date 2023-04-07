@@ -92,7 +92,9 @@ setup(name="{0.fake_name}",
                 self.run_setup('setup.py', ['version'])
                 self.assertTrue(os.path.exists(v_file))
                 self.assertListEqual(mock_announce.mock_calls,
-                                     [call('Version is now 0.0.1.dev0.', level=INFO)])
+                                     [call('This functionality is deprecated and will be removed from a future version of desiutil.', level=WARN),
+                                      call('Use the command-line script desi_update_version instead.', level=WARN),
+                                      call('Version is now 0.0.1.dev0.', level=INFO)])
                 self.assertListEqual(mock_info.mock_calls, [call('running %s', 'version')])
         with patch('distutils.cmd.Command.announce') as mock_announce:
             with patch('distutils.log.info') as mock_info:
@@ -101,7 +103,9 @@ setup(name="{0.fake_name}",
                     data = v.read()
                 self.assertEqual(data, "__version__ = '1.2.3'\n")
                 self.assertListEqual(mock_announce.mock_calls,
-                                     [call('Version is now 1.2.3.', level=INFO)])
+                                     [call('This functionality is deprecated and will be removed from a future version of desiutil.', level=WARN),
+                                      call('Use the command-line script desi_update_version instead.', level=WARN),
+                                      call('Version is now 1.2.3.', level=INFO)])
                 self.assertListEqual(mock_info.mock_calls, [call('running %s', 'version')])
 
         os.chdir(self.original_dir)
