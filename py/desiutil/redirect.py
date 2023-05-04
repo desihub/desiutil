@@ -157,7 +157,7 @@ def stdouterr_redirected(to=None, comm=None):
         try:
             # Restore old stdout and stderr
             _redirect(out_to=saved_fd_out, err_to=saved_fd_err)
-        except:
+        except Exception:
             pass
 
     # Redirect both stdout and stderr to the same file
@@ -179,7 +179,7 @@ def stdouterr_redirected(to=None, comm=None):
     file = None
     try:
         file = _open_redirect(pto)
-    except:
+    except Exception:
         log = get_logger()
         log.error("Failed to open redirection file %s", pto)
         fail_open = 1
@@ -204,7 +204,7 @@ def stdouterr_redirected(to=None, comm=None):
     fail_run = 0
     try:
         yield  # Allow code to be run with the redirected output
-    except:
+    except Exception:
         # We have an unhandled exception.  Print a stack trace to the log.
         exc_type, exc_value, exc_traceback = sys.exc_info()
         lines = traceback.format_exception(exc_type, exc_value, exc_traceback)

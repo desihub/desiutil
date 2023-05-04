@@ -80,6 +80,7 @@ class TestRedirect(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.test_dir = tempfile.mkdtemp()
+        cls.python_path = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 
     @classmethod
     def tearDownClass(cls):
@@ -104,7 +105,7 @@ class TestRedirect(unittest.TestCase):
                 self.comm = MPI.COMM_WORLD
                 self.rank = self.comm.rank
                 self.nproc = self.comm.size
-            except:
+            except ImportError:
                 pass
         if self.rank == 0:
             with open(self.test_serial_script, "w") as f:
@@ -121,31 +122,21 @@ class TestRedirect(unittest.TestCase):
                 check_num = int(line_str.split()[0])
                 self.assertTrue(line_num == check_num)
 
-    @unittest.skipIf(not_installed, "stdout redirection tests require desiutil to be installed first")
     def test_serial(self):
-        outfile = os.path.join(self.test_dir, "redirect_serial.log")
-        com = ["python", self.test_serial_script, outfile, "0"]
-        out = sp.run(
-            com, check=True, universal_newlines=True, stdout=sp.PIPE, stderr=sp.STDOUT
-        ).stdout
+        with patch.dict(os.environ, {'PYTHONPATH': self.python_path}):
+            outfile = os.path.join(self.test_dir, "redirect_serial.log")
+            com = ["python", self.test_serial_script, outfile, "0"]
+            out = sp.run(
+                com, check=True, universal_newlines=True, stdout=sp.PIPE, stderr=sp.STDOUT
+            ).stdout
         self.check_serial(outfile)
 
-    @unittest.skipIf(not_installed, "stdout redirection tests require desiutil to be installed first")
     def test_serial_error(self):
-        outfile = os.path.join(self.test_dir, "redirect_serial_error.log")
-        com = ["python", self.test_serial_script, outfile, "1"]
-        try:
-            out = sp.run(
-                com,
-                check=True,
-                universal_newlines=True,
-                stdout=sp.PIPE,
-                stderr=sp.STDOUT,
-            ).stdout
-        except:
-            print("Successfully handled exception")
-        else:
-            raise RuntimeError("Did not successfully handle exception")
+        with patch.dict(os.environ, {'PYTHONPATH': self.python_path}):
+            outfile = os.path.join(self.test_dir, "redirect_serial_error.log")
+            com = ["python", self.test_serial_script, outfile, "1"]
+            with self.assertRaises(sp.CalledProcessError) as cm:
+                out = sp.run(com, check=True, universal_newlines=True, stdout=sp.PIPE, stderr=sp.STDOUT).stdout
 
     def test_mpi(self):
         if not self.have_mpi:
@@ -160,8 +151,10 @@ class TestRedirect(unittest.TestCase):
         """Test standard library information in a simulated Linux environment.
         """
         mock_ctypes.CDLL.return_value = 'Linux'
+
         def side_effect(*args):
             return args[1]
+
         mock_ctypes.c_void_p.in_dll.side_effect = side_effect
         lib, out, err = r._get_libc()
         self.assertEqual(lib, 'Linux')
@@ -175,11 +168,13 @@ class TestRedirect(unittest.TestCase):
         """Test standard library information in a simulated Darwin environment.
         """
         mock_ctypes.CDLL.return_value = 'Darwin'
+
         def side_effect(*args):
             if args[1] == 'stdout':
                 raise ValueError("Darwin!")
             else:
                 return args[1]
+
         mock_ctypes.c_void_p.in_dll.side_effect = side_effect
         lib, out, err = r._get_libc()
         self.assertEqual(lib, 'Darwin')
@@ -199,11 +194,3 @@ class TestRedirect(unittest.TestCase):
         self.assertIsNone(out)
         self.assertIsNone(err)
         mock_ctypes.CDLL.assert_called_once_with(None)
-
-
-def test_suite():
-    """Allows testing of only this module with the command::
-
-    python setup.py test -m <modulename>
-    """
-    return unittest.defaultTestLoader.loadTestsFromName(__name__)

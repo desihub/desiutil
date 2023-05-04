@@ -158,11 +158,3 @@ class TestPlots(unittest.TestCase):
         ax = plot_sky_binned(ra, dec)
         if 'TRAVIS_JOB_ID' not in os.environ:
             plt.savefig(self.plot_file2)
-
-
-def test_suite():
-    """Allows testing of only this module with the command::
-
-        python setup.py test -m <modulename>
-    """
-    return unittest.defaultTestLoader.loadTestsFromName(__name__)

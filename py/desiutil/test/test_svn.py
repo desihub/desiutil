@@ -109,11 +109,3 @@ class TestSvn(unittest.TestCase):
                 self.assertEqual(v, '1.2.3.dev0')
                 v = version('frobulate')
                 self.assertEqual(v, '0.0.1.dev0')
-
-
-def test_suite():
-    """Allows testing of only this module with the command::
-
-        python setup.py test -m <modulename>
-    """
-    return unittest.defaultTestLoader.loadTestsFromName(__name__)

@@ -23,7 +23,7 @@ class TestDepend(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.orig_desi_root = os.getenv('DESI_ROOT')  #- value or None
+        cls.orig_desi_root = os.getenv('DESI_ROOT')  # value or None
 
     @classmethod
     def tearDownClass(cls):
@@ -31,7 +31,7 @@ class TestDepend(unittest.TestCase):
 
     @classmethod
     def tearDown(self):
-        #- if a test changes DESI_ROOT, set it back to original value
+        # if a test changes DESI_ROOT, set it back to original value
         if self.orig_desi_root is None:
             if 'DESI_ROOT' in os.environ:
                 del os.environ['DESI_ROOT']
@@ -100,16 +100,16 @@ class TestDepend(unittest.TestCase):
             DEPNAM00='biz', DEPVER00='3.0',
             DEPNAM01='bat', DEPVER01='4.0',
         )
-        #- dependencies from src should be added to dst
+        # dependencies from src should be added to dst
         mergedep(src, dst)
         self.assertEqual(getdep(src, 'blat'), getdep(dst, 'blat'))
         self.assertEqual(getdep(src, 'foo'), getdep(dst, 'foo'))
 
-        #- ... and the original unique dst versions should still be there
+        # ... and the original unique dst versions should still be there
         self.assertEqual(getdep(dst, 'biz'), '3.0')
         self.assertEqual(getdep(dst, 'bat'), '4.0')
 
-        #- if conflict='src', a src dependency can replace a dst dependency
+        # if conflict='src', a src dependency can replace a dst dependency
         dst = dict(
             DEPNAM00='biz', DEPVER00='3.0',
             DEPNAM01='blat', DEPVER01='4.0',
@@ -118,15 +118,15 @@ class TestDepend(unittest.TestCase):
         self.assertEqual(getdep(src, 'blat'), getdep(dst, 'blat'))
         self.assertEqual(getdep(src, 'foo'), getdep(dst, 'foo'))
 
-        #- if conflict='dst', the dst dependency is kept even if in src
+        # if conflict='dst', the dst dependency is kept even if in src
         dst = dict(
             DEPNAM00='biz', DEPVER00='3.0',
             DEPNAM01='blat', DEPVER01='4.0',
         )
         mergedep(src, dst, conflict='dst')
-        self.assertEqual(getdep(dst, 'blat'), '4.0')  #- not '1.0'
+        self.assertEqual(getdep(dst, 'blat'), '4.0')  # not '1.0'
 
-        #- if conflict='exception', should raise a ValueError
+        # if conflict='exception', should raise a ValueError
         dst = dict(
             DEPNAM00='biz', DEPVER00='3.0',
             DEPNAM01='blat', DEPVER01='4.0',
@@ -134,7 +134,7 @@ class TestDepend(unittest.TestCase):
         with self.assertRaises(ValueError):
             mergedep(src, dst, conflict='exception')
 
-        #- if the same version appears but is consistent, that's ok
+        # if the same version appears but is consistent, that's ok
         for conflict in ('src', 'dst', 'exception'):
             src = dict(
                 DEPNAM00='blat', DEPVER00='1.0',
@@ -149,7 +149,7 @@ class TestDepend(unittest.TestCase):
             self.assertEqual(getdep(dst, 'foo'), '2.0')
             self.assertEqual(getdep(dst, 'bat'), '4.0')
 
-        #- Unrecognized values of conflict result in a ValueError
+        # Unrecognized values of conflict result in a ValueError
         with self.assertRaises(ValueError):
             mergedep(src, dst, conflict='giveup')
 
@@ -269,7 +269,7 @@ class TestDepend(unittest.TestCase):
 
         hdr = OrderedDict()
         add_dependencies(hdr, envvar_names=['BLAT'])
-        self.assertFalse(hasdep(hdr, 'DESI_ROOT')) # not in requested envvars
+        self.assertFalse(hasdep(hdr, 'DESI_ROOT'))  # not in requested envvars
         self.assertTrue(hasdep(hdr, 'BLAT'))
         self.assertEqual(getdep(hdr, 'BLAT'), 'NOT_SET')
 
@@ -281,11 +281,3 @@ class TestDepend(unittest.TestCase):
         hdr = OrderedDict()
         add_dependencies(hdr)
         self.assertTrue(getdep(hdr, 'DESI_ROOT'), 'NOT_SET')
-
-
-def test_suite():
-    """Allows testing of only this module with the command::
-
-        python setup.py test -m <modulename>
-    """
-    return unittest.defaultTestLoader.loadTestsFromName(__name__)

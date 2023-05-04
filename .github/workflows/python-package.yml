@@ -17,7 +17,7 @@ jobs:
             fail-fast: true
             matrix:
                 os: [ubuntu-latest]
-                python-version: ['3.8', '3.9', '3.10']
+                python-version: ['3.8', '3.9', '3.10']  # , '3.11'] Astropy 5.0 may be incompatible with Python 3.11
                 numpy-version: ['<1.23']
                 astropy-version: ['==5.0', '<5.1', '<6.0']
 
@@ -33,11 +33,9 @@ jobs:
             - name: Install Python dependencies
               run: |
                 python -m pip install --upgrade pip wheel
-                python -m pip install pytest
-                if [ -f requirements.txt ]; then pip install -r requirements.txt; pip install .; fi
-                pip install -U "numpy${{ matrix.numpy-version }}"
-                pip install -U "astropy${{ matrix.astropy-version }}"
-#                if [ "${{ matrix.astropy-version }}" = "<3.0" ]; then pip install -U "healpy==1.12.9"; fi
+                python -m pip install --upgrade "numpy${{ matrix.numpy-version }}"
+                python -m pip install --upgrade "astropy${{ matrix.astropy-version }}"
+                python -m pip install --editable .[test]
             - name: Run the test
               run: pytest
 
@@ -48,7 +46,7 @@ jobs:
             fail-fast: false
             matrix:
                 os: [ubuntu-latest]
-                python-version: ['3.9']
+                python-version: ['3.10']
                 astropy-version: ['<5.1']
 
         steps:
@@ -63,9 +61,7 @@ jobs:
             - name: Install Python dependencies
               run: |
                 python -m pip install --upgrade pip wheel
-                python -m pip install pytest pytest-cov coveralls
-                if [ -f requirements.txt ]; then pip install -r requirements.txt; pip install .; fi
-                pip install -U "astropy${{ matrix.astropy-version }}"
+                python -m pip install --editable .[coverage]
             - name: Run the test with coverage
               run: pytest --cov
             - name: Coveralls
@@ -81,7 +77,7 @@ jobs:
             fail-fast: false
             matrix:
                 os: [ubuntu-latest]
-                python-version: ['3.9']
+                python-version: ['3.10']
 
         steps:
             - name: Checkout code
@@ -93,7 +89,7 @@ jobs:
               with:
                 python-version: ${{ matrix.python-version }}
             - name: Install Python dependencies
-              run: python -m pip install --upgrade pip wheel Sphinx
+              run: python -m pip install --upgrade pip wheel Sphinx sphinx-rtd-theme
             - name: Test the documentation
               run: sphinx-build -W --keep-going -b html doc doc/_build/html
 
@@ -104,7 +100,7 @@ jobs:
             fail-fast: false
             matrix:
                 os: [ubuntu-latest]
-                python-version: ['3.9']
+                python-version: ['3.10']
 
         steps:
             - name: Checkout code
@@ -119,5 +115,5 @@ jobs:
               run: python -m pip install --upgrade pip wheel pycodestyle
             - name: Test the style; failures are allowed
               # This is equivalent to an allowed falure.
-              continue-on-error: true
+              # continue-on-error: true
               run: pycodestyle --count py/desiutil

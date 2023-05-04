@@ -7,6 +7,10 @@ desiutil.census
 
 Determine the number of files and size in DESI data file systems.
 
+As of 2022, this module is deprecated, and the command-line interface,
+:command:`desi_data_census` has been removed.  It was superseded by NERSC-provided
+metadata files that are much faster to parse.
+
 Notes
 -----
 
