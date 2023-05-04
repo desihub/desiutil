@@ -5,12 +5,15 @@ Change Log
 4.0.0 (unreleased)
 ------------------
 
-*Planned* : Migrate ``setup.py`` commands to stand-alone scripts.
+*Planned* : Remove deprecated commands in :mod:`desiutil.setup`.
 
-3.2.7 (unreleased)
+3.3.0 (2023-05-04)
 ------------------
 
-* No changes yet.
+* Migrate ``python setup.py`` commands to stand-alone scripts, maintaining some
+  compatibility until version 4.0 (PR `#190`_).
+
+.. _`#190`: https://github.com/desihub/desiutil/pull/190
 
 3.2.6 (2022-08-26)
 ------------------
