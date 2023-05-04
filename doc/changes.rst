@@ -7,6 +7,13 @@ Change Log
 
 *Planned* : Remove deprecated commands in :mod:`desiutil.setup`.
 
+3.3.1 (unreleased)
+------------------
+
+* Ensure old IERS cache files do not actually trigger an exception.
+* Allow :command:`desiInstall` to install files world-readable.
+* Add tools for adding units to FITS table columns.
+
 3.3.0 (2023-05-04)
 ------------------
 
