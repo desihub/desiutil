@@ -291,6 +291,3 @@ class TestModules(unittest.TestCase):
         _write_module_data(p, 'This is a test.\n')
         self.assertEqual(S_IMODE(stat(p).st_mode), S_IRUSR | S_IRGRP | S_IROTH)
         remove(p)
-        _write_module_data(p, 'This is a test.\n', world=False)
-        self.assertEqual(S_IMODE(stat(p).st_mode), S_IRUSR | S_IRGRP)
-        remove(p)

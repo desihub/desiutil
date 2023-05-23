@@ -116,6 +116,10 @@ def freeze_iers(name='iers_frozen.ecsv', ignore_warnings=True):
     astropy.utils.iers.conf.auto_max_age = None
     astropy.utils.iers.conf.iers_auto_url = 'frozen'
     astropy.utils.iers.conf.iers_auto_url_mirror = 'frozen'
+    if ignore_warnings:
+        astropy.utils.iers.conf.iers_degraded_accuracy = 'ignore'
+    else:
+        astropy.utils.iers.conf.iers_degraded_accuracy = 'warn'
     # Sanity check.
     auto_class = astropy.utils.iers.IERS_Auto.open()
     if auto_class is not iers:

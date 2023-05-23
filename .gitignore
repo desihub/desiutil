@@ -33,6 +33,8 @@ MANIFEST
 # Other
 .*.swp
 *~
+.vscode
+.env
 
 # Mac OSX
 .DS_Store
