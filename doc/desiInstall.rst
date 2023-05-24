@@ -211,9 +211,10 @@ possible build types that are mutually exclusive.  They are derived in this
 order and the first matching method is used:
 
 py
-    If a setup.py file is detected, :command:`desiInstall` will attempt to execute
-    :command:`pip install .`.  This build type can be suppressed with the
-    command line option ``--compile-c``.
+    If a pyproject.toml or a setup.py file is detected,
+    :command:`desiInstall` will attempt to execute :command:`pip install .`.
+    This build type can be suppressed with the command line option
+    ``--compile-c``.
 make
     If a Makefile is detected, :command:`desiInstall` will attempt to execute
     :command:`make install`.

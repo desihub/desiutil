@@ -334,7 +334,7 @@ class TestInstall(unittest.TestCase):
         self.assertEqual(self.desiInstall.build_type, set(['plain', 'make']))
         # Create temporary files
         options = self.desiInstall.get_options(['desispec', '1.0.0'])
-        tempfiles = {'Makefile': 'make', 'setup.py': 'py'}
+        tempfiles = {'Makefile': 'make', 'pyproject.toml': 'py', 'setup.py': 'py'}
         for t in tempfiles:
             tempfile = join(self.data_dir, t)
             with open(tempfile, 'w') as tf:
