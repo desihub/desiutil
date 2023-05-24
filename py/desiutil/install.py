@@ -541,8 +541,7 @@ class DesiInstall(object):
             self.log.debug("Forcing build type: make")
             build_type.add('make')
         else:
-            if (os.path.exists(os.path.join(self.working_dir, 'pyproject.toml')) or
-                os.path.exists(os.path.join(self.working_dir, 'setup.py'))):
+            if (os.path.exists(os.path.join(self.working_dir, 'pyproject.toml')) or os.path.exists(os.path.join(self.working_dir, 'setup.py'))):
                 self.log.debug("Detected build type: py")
                 build_type.add('py')
             elif os.path.exists(os.path.join(self.working_dir, 'Makefile')):
