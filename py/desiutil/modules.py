@@ -15,10 +15,7 @@ import sys
 from argparse import ArgumentParser
 from shutil import which
 from stat import S_IRUSR, S_IRGRP, S_IROTH
-try:
-    from ConfigParser import SafeConfigParser
-except ImportError:
-    from configparser import ConfigParser as SafeConfigParser
+from configparser import ConfigParser
 from pkg_resources import resource_filename
 from . import __version__ as desiutilVersion
 from .io import unlock_file
@@ -224,14 +221,14 @@ def configure_module(product, version, product_root, working_dir=None, dev=False
         else:
             module_keywords['needs_python'] = ''
     if os.path.exists(os.path.join(working_dir, 'setup.cfg')):
-        conf = SafeConfigParser()
+        conf = ConfigParser()
         conf.read([os.path.join(working_dir, 'setup.cfg')])
         if conf.has_section('entry_points') or conf.has_section('options.entry_points'):
             module_keywords['needs_bin'] = ''
     return module_keywords
 
 
-def process_module(module_file, module_keywords, module_dir, world=True):
+def process_module(module_file, module_keywords, module_dir):
     """Process a Module file.
 
     Parameters
@@ -242,13 +239,15 @@ def process_module(module_file, module_keywords, module_dir, world=True):
         The parameters to use for Module file processing.
     module_dir : :class:`str`
         The directory where the Module file should be installed.
-    world : :class:`bool`, optional
-        Make module files world-readable.
 
     Returns
     -------
     :class:`str`
         The text of the processed Module file.
+
+    Note
+    ----
+    Module files are always installed with world-read permissions.
     """
     if not os.path.isdir(os.path.join(module_dir, module_keywords['name'])):
         os.makedirs(os.path.join(module_dir, module_keywords['name']))
@@ -256,11 +255,11 @@ def process_module(module_file, module_keywords, module_dir, world=True):
                                        module_keywords['version'])
     with open(module_file) as m:
         mod = m.read().format(**module_keywords)
-    _write_module_data(install_module_file, mod, world=world)
+    _write_module_data(install_module_file, mod)
     return mod
 
 
-def default_module(module_keywords, module_dir, world=True):
+def default_module(module_keywords, module_dir):
     """Install or update a .version file to set the default Module.
 
     Parameters
@@ -269,23 +268,25 @@ def default_module(module_keywords, module_dir, world=True):
         The parameters to use for Module file processing.
     module_dir : :class:`str`
         The directory where the Module file should be installed.
-    world : :class:`bool`, optional
-        Make .version files world-readable.
 
     Returns
     -------
     :class:`str`
         The text of the processed .version file.
+
+    Note
+    ----
+    .version files are always installed with world-read permissions.
     """
     dot_template = '#%Module1.0\nset ModulesVersion "{version}"\n'
     install_version_file = os.path.join(module_dir, module_keywords['name'],
                                         '.version')
     dot_version = dot_template.format(**module_keywords)
-    _write_module_data(install_version_file, dot_version, world=world)
+    _write_module_data(install_version_file, dot_version)
     return dot_version
 
 
-def _write_module_data(filename, data, world=True):
+def _write_module_data(filename, data):
     """Write and permission-lock Module file data.  This is intended
     to consolidate some duplicated code.
 
@@ -295,14 +296,10 @@ def _write_module_data(filename, data, world=True):
         The module file to write.
     data : :class:`str`
         The data to be written to `filename`.
-    world : :class:`bool`, optional
-        Make `filename` world-readable.
     """
     with unlock_file(filename, 'w') as f:
         f.write(data)
-    p = S_IRUSR | S_IRGRP
-    if world:
-        p |= S_IROTH
+    p = S_IRUSR | S_IRGRP | S_IROTH
     os.chmod(filename, p)
     return
 
@@ -319,7 +316,6 @@ def main():
                             prog=os.path.basename(sys.argv[0]))
     parser.add_argument('-d', '--default', dest='default', action='store_true', help='Mark this Module as default.')
     parser.add_argument('-m', '--modules', dest='modules', help='Set the Module install directory.')
-    parser.add_argument('-p', '--private', dest='world', action='store_false', help='Do not make module files world-readable.')
     parser.add_argument('-V', '--version', action='version', version='%(prog)s ' + desiutilVersion)
     parser.add_argument('product', help='Name of product.')
     parser.add_argument('product_version', help='Version of product.')
@@ -327,11 +323,11 @@ def main():
 
     if options.modules is None:
         try:
-            self.modules = os.path.join('/global/common/software/desi',
-                                        os.environ['NERSC_HOST'],
-                                        'desiconda',
-                                        'current',
-                                        'modulefiles')
+            options.modules = os.path.join('/global/common/software/desi',
+                                           os.environ['NERSC_HOST'],
+                                           'desiconda',
+                                           'current',
+                                           'modulefiles')
         except KeyError:
             try:
                 options.modules = os.path.join(os.environ['DESI_PRODUCT_ROOT'],
@@ -353,9 +349,9 @@ def main():
         log.warning("Could not find Module file: %s; using default.", module_file)
         module_file = resource_filename('desiutil', 'data/desiutil.module')
 
-    process_module(module_file, module_keywords, options.modules, world=options.world)
+    process_module(module_file, module_keywords, options.modules)
 
     if options.default:
-        default_module(module_keywords, options.modules, world=options.world)
+        default_module(module_keywords, options.modules)
 
     return 0
