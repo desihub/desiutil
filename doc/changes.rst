@@ -5,14 +5,22 @@ Change Log
 4.0.0 (unreleased)
 ------------------
 
-*Planned* : Remove deprecated commands in :mod:`desiutil.setup`.
+*Planned*:
 
-3.3.1 (unreleased)
+* Remove deprecated commands in :mod:`desiutil.setup`.
+
+3.3.2 (unreleased)
 ------------------
 
-* Ensure old IERS cache files do not actually trigger an exception.
-* Allow :command:`desiInstall` to install files world-readable.
 * Add tools for adding units to FITS table columns.
+
+3.3.1 (2023-06-13)
+------------------
+
+* Ensure old IERS cache files do not actually trigger an exception (PR `#195`_).
+* Allow :command:`desiInstall` to install files world-readable (PR `#195`_).
+
+.. _`#195`: https://github.com/desihub/desiutil/pull/195
 
 3.3.0 (2023-05-04)
 ------------------

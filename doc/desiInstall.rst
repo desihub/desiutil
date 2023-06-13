@@ -341,7 +341,7 @@ The script itself is intended to be a thin wrapper on *e.g.*::
 .. _fiberassign: https://github.com/desihub/fiberassign
 .. _specex: https://github.com/desihub/specex
 
-Fix Permissions
+Set Permissions
 ---------------
 
 The permissions of :envvar:`INSTALL_DIR` will be recursively set to standard
