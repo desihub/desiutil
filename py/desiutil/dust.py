@@ -102,6 +102,7 @@ def extinction_total_to_selective_ratio(band, photsys, match_legacy_surveys=Fals
     assert photsys.upper() in ["N", "S", "G"]
     return R["{}_{}".format(band.upper(), photsys.upper())]
 
+
 def mwdust_transmission(ebv, band, photsys, match_legacy_surveys=False):
     """Convert SFD E(B-V) value to dust transmission 0-1 for band and photsys
 
