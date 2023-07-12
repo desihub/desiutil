@@ -5,17 +5,24 @@
 desiutil.setup
 ==============
 
-This package contains code that might be useful in DESI setup.py files.
+This module supplies :command:`desi_update_version`, which simplifies
+setting and updating version strings in Python packages.
+
+This module also supports *deprecated* ``python setup.py <command>`` actions.
+
+For historical reasons, this module is retains an outdated name ``setup.py``.
 """
+import os
 import re
+import sys
 import unittest
-from os import environ, walk
-from os.path import abspath, basename, exists, isdir, isfile, join
-from sys import exit, version_info
+from argparse import ArgumentParser
 from setuptools import Command
 from setuptools.command.test import test as BaseTest
 from pkg_resources import _namespace_packages
 from distutils.log import DEBUG, INFO, WARN, ERROR
+from . import __version__ as desiutilVersion
+from .log import log
 from .svn import version as svn_version
 from .git import version as git_version
 from .modules import configure_module, process_module, default_module
@@ -34,16 +41,18 @@ class DesiAPI(Command):
 
     def initialize_options(self):
         self.overwrite = False
-        self.api = join(abspath('.'), 'doc', 'api.rst')
+        self.api = os.path.join(os.path.abspath('.'), 'doc', 'api.rst')
 
     def finalize_options(self):
         pass
 
     def run(self):
+        self.announce("WARNING: This functionality is deprecated and will be removed from a future version of desiutil.", level=WARN)
+        self.announce("WARNING: Use the command-line script desi_api_file instead.", level=WARN)
         n = self.distribution.metadata.get_name()
         productroot = find_version_directory(n)
         modules = []
-        for dirpath, dirnames, filenames in walk(productroot):
+        for dirpath, dirnames, filenames in os.walk(productroot):
             if dirpath == productroot:
                 d = ''
             else:
@@ -66,7 +75,7 @@ class DesiAPI(Command):
         lines = ['='*len(title), title, '='*len(title), '']
         for m in sorted(modules):
             lines += ['.. automodule:: {0}'.format(m), '    :members:', '']
-        if exists(self.api):
+        if os.path.exists(self.api):
             if self.overwrite:
                 self.announce("{0} will be overwritten!".format(self.api),
                               level=WARN)
@@ -78,7 +87,7 @@ class DesiAPI(Command):
             a.write('\n'.join(lines))
 
     def _test_file(self, d, f):
-        return basename(d) == 'test' or basename(d) == 'tests'
+        return os.path.basename(d) == 'test' or os.path.basename(d) == 'tests'
 
 
 class DesiModule(Command):
@@ -99,29 +108,32 @@ class DesiModule(Command):
     def finalize_options(self):
         if self.modules is None:
             try:
-                self.modules = join('/global/common/software/desi',
-                                    environ['NERSC_HOST'],
-                                    'desiconda',
-                                    'current',
-                                    'modulefiles')
+                self.modules = os.path.join('/global/common/software/desi',
+                                            os.environ['NERSC_HOST'],
+                                            'desiconda',
+                                            'current',
+                                            'modulefiles')
             except KeyError:
                 try:
-                    self.modules = join(environ['DESI_PRODUCT_ROOT'],
-                                        'modulefiles')
+                    self.modules = os.path.join(os.environ['DESI_PRODUCT_ROOT'],
+                                                'modulefiles')
                 except KeyError:
                     self.announce("Could not determine a Module install directory!",
                                   level=ERROR)
                     exit(1)
 
     def run(self):
+        self.announce("WARNING: This functionality is deprecated and will be removed from a future version of desiutil.", level=WARN)
+        self.announce("WARNING: Use the command-line script desi_module_file instead.", level=WARN)
         meta = self.distribution.metadata
         name = meta.get_name()
         version = meta.get_version()
         dev = 'dev' in version
-        working_dir = abspath('.')
-        module_keywords = configure_module(name, version, dev=dev)
-        module_file = join(working_dir, 'etc', '{0}.module'.format(name))
-        if exists(module_file):
+        working_dir = os.path.abspath('.')
+        product_root = os.path.join(os.path.dirname(self.modules), 'code')
+        module_keywords = configure_module(name, version, product_root, dev=dev)
+        module_file = os.path.join(working_dir, 'etc', '{0}.module'.format(name))
+        if os.path.exists(module_file):
             process_module(module_file, module_keywords, self.modules)
         else:
             self.announce("Could not find a Module file: {0}.".format(module_file),
@@ -164,6 +176,8 @@ class DesiTest(BaseTest, object):
         # Purge modules under test from sys.modules. The test loader will
         # re-import them from the build location. Required when 2to3 is used
         # with namespace packages.
+        self.announce("WARNING: This functionality is deprecated and will be removed from a future version of desiutil.", level=WARN)
+        self.announce("WARNING: Use pytest or pytest --cov (for test coverage) instead.", level=WARN)
         if getattr(self.distribution, 'use_2to3', False):
             module = self.test_args[-1].split('.')[0]
             if module in _namespace_packages:
@@ -178,8 +192,8 @@ class DesiTest(BaseTest, object):
         if self.coverage:
             self.announce("Coverage selected!", level=INFO)
             import coverage
-            cov = coverage.coverage(data_file=abspath(".coverage"),
-                                    config_file=abspath(".coveragerc"))
+            cov = coverage.coverage(data_file=os.path.abspath(".coverage"),
+                                    config_file=os.path.abspath(".coveragerc"))
             cov.start()
 
         result = unittest.main(None, None,
@@ -195,7 +209,7 @@ class DesiTest(BaseTest, object):
                 cov.save()
                 self.announce('Saving HTML coverage report in htmlcov...',
                               level=INFO)
-                cov.html_report(directory=abspath('htmlcov'))
+                cov.html_report(directory=os.path.abspath('htmlcov'))
         else:
             exit(1)
 
@@ -217,6 +231,8 @@ class DesiVersion(Command):
         pass
 
     def run(self):
+        self.announce("WARNING: This functionality is deprecated and will be removed from a future version of desiutil.", level=WARN)
+        self.announce("WARNING: Use the command-line script desi_update_version instead.", level=WARN)
         meta = self.distribution.metadata
         update_version(meta.get_name(), tag=self.tag)
         ver = get_version(meta.get_name())
@@ -246,11 +262,11 @@ def find_version_directory(productname):
     IOError
         If no valid directory can be found.
     """
-    setup_dir = abspath('.')
-    if isdir(join(setup_dir, 'py', productname)):
-        version_dir = join(setup_dir, 'py', productname)
-    elif isdir(join(setup_dir, productname)):
-        version_dir = join(setup_dir, productname)
+    setup_dir = os.path.abspath('.')
+    if os.path.isdir(os.path.join(setup_dir, 'py', productname)):
+        version_dir = os.path.join(setup_dir, 'py', productname)
+    elif os.path.isdir(os.path.join(setup_dir, productname)):
+        version_dir = os.path.join(setup_dir, productname)
     else:
         raise IOError("Could not find a directory containing version information!")
     return version_dir
@@ -274,8 +290,8 @@ def get_version(productname):
         version_dir = find_version_directory(productname)
     except IOError:
         return ver
-    version_file = join(version_dir, '_version.py')
-    if not isfile(version_file):
+    version_file = os.path.join(version_dir, '_version.py')
+    if not os.path.isfile(version_file):
         update_version(productname)
     with open(version_file, "r") as f:
         for line in f.readlines():
@@ -304,13 +320,34 @@ def update_version(productname, tag=None):
     if tag is not None:
         ver = tag
     else:
-        if isdir(".svn"):
+        if os.path.isdir(".svn"):
             ver = svn_version(productname)
-        elif isdir(".git"):
+        elif os.path.isdir(".git"):
             ver = git_version()
         else:
             raise IOError("Could not determine repository type.")
-    version_file = join(version_dir, '_version.py')
+    version_file = os.path.join(version_dir, '_version.py')
     with open(version_file, "w") as f:
         f.write("__version__ = '{}'\n".format(ver))
     return
+
+
+def main():
+    """Entry-point for command-line scripts.
+
+    Returns
+    -------
+    :class:`int`
+        An integer suitable for passing to :func:`sys.exit`.
+    """
+    parser = ArgumentParser(description="Update a package version string.",
+                            prog=os.path.basename(sys.argv[0]))
+    parser.add_argument('-t', '--tag', dest='tag', help='Set the version to a name in preparation for tagging.')
+    parser.add_argument('-V', '--version', action='version', version='%(prog)s ' + desiutilVersion)
+    parser.add_argument('product', help='Name of product.')
+    options = parser.parse_args()
+
+    update_version(options.product, tag=options.tag)
+    ver = get_version(options.product)
+    log.info("Version is now %s.", ver)
+    return 0

@@ -10,7 +10,7 @@ This package contains code for installing DESI software products.
 import os
 import sys
 import tarfile
-import re
+import stat
 import shutil
 import requests
 from io import BytesIO
@@ -27,9 +27,11 @@ from . import __version__ as desiutilVersion
 known_products = {
     'desiBackup': 'https://github.com/desihub/desiBackup',
     'desicmx': 'https://github.com/desihub/desicmx',
+    'desida': 'https://github.com/desihub/desida',
     'desidatamodel': 'https://github.com/desihub/desidatamodel',
     'desidithering': 'https://github.com/desihub/desidithering',
     'desietc': 'https://github.com/desihub/desietc',
+    'desigal': 'https://github.com/desihub/desigal',
     'desilamps': 'https://github.com/desihub/desilamps',
     'desimeter': 'https://github.com/desihub/desimeter',
     'desimodel': 'https://github.com/desihub/desimodel',
@@ -56,8 +58,10 @@ known_products = {
     'quicksurvey_example': 'https://github.com/desihub/quicksurvey_example',
     'redrock': 'https://github.com/desihub/redrock',
     'redrock-templates': 'https://github.com/desihub/redrock-templates',
+    'simqso': 'https://github.com/desihub/simqso',
     'specex': 'https://github.com/desihub/specex',
     'speclite': 'https://github.com/desihub/speclite',
+    'specprod-db': 'https://github.com/desihub/specprod-db',
     'specsim': 'https://github.com/desihub/specsim',
     'specter': 'https://github.com/desihub/specter',
     'gpu_specter': 'https://github.com/desihub/gpu_specter',
@@ -65,7 +69,6 @@ known_products = {
     'teststand': 'https://github.com/desihub/teststand',
     'tilepicker': 'https://github.com/desihub/tilepicker',
     'timedomain': 'https://github.com/desihub/timedomain',
-    'simqso': 'https://github.com/desihub/simqso',
     'plate_layout': 'https://desi.lbl.gov/svn/code/focalplane/plate_layout',
     'positioner_control':
         'https://desi.lbl.gov/svn/code/focalplane/positioner_control',
@@ -236,6 +239,9 @@ class DesiInstall(object):
                             help='Print extra information.')
         parser.add_argument('-V', '--version', action='version',
                             version='%(prog)s ' + desiutilVersion)
+        parser.add_argument('-W', '--no-world', action='store_false',
+                            dest='world',
+                            help='Disable world-readable installation.')
         parser.add_argument('product', nargs='?',
                             default='NO PACKAGE',
                             help='Name of product to install.')
@@ -535,7 +541,7 @@ class DesiInstall(object):
             self.log.debug("Forcing build type: make")
             build_type.add('make')
         else:
-            if os.path.exists(os.path.join(self.working_dir, 'setup.py')):
+            if (os.path.exists(os.path.join(self.working_dir, 'pyproject.toml')) or os.path.exists(os.path.join(self.working_dir, 'setup.py'))):
                 self.log.debug("Detected build type: py")
                 build_type.add('py')
             elif os.path.exists(os.path.join(self.working_dir, 'Makefile')):
@@ -963,40 +969,42 @@ class DesiInstall(object):
         return True
 
     def permissions(self):
-        """Fix possible install permission errors.
-
-        Returns
-        -------
-        :class:`int`
-            Status code returned by fix_permissions.sh script.
+        """Set permissions on installed software.
         """
-        command = ['fix_permissions.sh']
-        if self.options.verbose:
-            command.append('-v')
-        if self.options.test:
-            command.append('-t')
-        command.append(self.install_dir)
-        self.log.debug(' '.join(command))
-        proc = Popen(command, universal_newlines=True,
-                     stdout=PIPE, stderr=PIPE)
-        out, err = proc.communicate()
-        status = proc.returncode
-        self.log.debug(out)
-        #
-        # Remove write permission to avoid accidental changes
-        #
+        read_file = stat.S_IRUSR | stat.S_IRGRP
+        if self.options.world:
+            read_file |= stat.S_IROTH
+        read_exec = read_file | stat.S_IXUSR | stat.S_IXGRP
+        if self.options.world:
+            read_exec |= stat.S_IXOTH
+        read_dir = read_exec | stat.S_ISGID
         if self.is_branch:
-            chmod_mode = 'g-w,o-w'
-        else:
-            chmod_mode = 'a-w'
-        command = ['chmod', '-R', chmod_mode, self.install_dir]
-        self.log.debug(' '.join(command))
-        proc = Popen(command, universal_newlines=True,
-                     stdout=PIPE, stderr=PIPE)
-        out, err = proc.communicate()
-        chmod_status = proc.returncode
-        self.log.debug(out)
-        return status
+            read_file |= stat.S_IWUSR
+            read_exec |= stat.S_IWUSR
+            read_dir |= stat.S_IWUSR
+        #
+        # Recursively set permissions from the bottom up.
+        #
+        for dirpath, dirnames, filenames in os.walk(self.install_dir, topdown=False):
+            for f in filenames:
+                fname = os.path.join(dirpath, f)
+                if os.path.islink(fname):
+                    continue
+                executable = (stat.S_IMODE(os.stat(fname).st_mode) & stat.S_IXUSR) != 0
+                if executable:
+                    self.log.debug("os.chmod('%s', %s)", fname, read_exec)
+                    os.chmod(fname, read_exec)
+                else:
+                    self.log.debug("os.chmod('%s', %s)", fname, read_exec)
+                    os.chmod(fname, read_file)
+            for d in dirnames:
+                self.log.debug("os.chmod('%s', %s)", os.path.join(dirpath, d), read_dir)
+                os.chmod(os.path.join(dirpath, d), read_dir)
+        #
+        # Finally set permissions on the top directory.
+        #
+        self.log.debug("os.chmod('%s', %s)", self.install_dir, read_dir)
+        os.chmod(self.install_dir, read_dir)
 
     def unlock_permissions(self):
         """Unlock installed directories to allow their removal.

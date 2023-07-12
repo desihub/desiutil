@@ -74,6 +74,7 @@ possible_envvars = [
     'DESI_TARGET', 'DESIMODEL',
     ]
 
+
 def setdep(header, name, version):
     '''Set dependency `version` for code `name`.
 
@@ -180,6 +181,7 @@ def iterdep(header):
             return
     return
 
+
 def mergedep(srchdr, dsthdr, conflict='src'):
     '''Merge dependencies from srchdr into dsthdr
 
@@ -226,8 +228,9 @@ def mergedep(srchdr, dsthdr, conflict='src'):
         else:
             setdep(dsthdr, name, version)
 
+
 def add_dependencies(header, module_names=None, long_python=False,
-        envvar_names=None):
+                     envvar_names=None):
     '''Adds ``DEPNAMnn``, ``DEPVERnn`` keywords to header for imported modules.
 
     Parameters
@@ -284,6 +287,7 @@ def add_dependencies(header, module_names=None, long_python=False,
             setdep(header, envvar, os.environ[envvar])
         else:
             setdep(header, envvar, 'NOT_SET')
+
 
 class Dependencies(object):
     """Dictionary-like object to track dependencies.

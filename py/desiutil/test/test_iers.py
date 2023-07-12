@@ -117,6 +117,21 @@ class TestIERS(unittest.TestCase):
         self.assertIsNone(astropy.utils.iers.conf.auto_max_age)
         self.assertEqual(astropy.utils.iers.conf.iers_auto_url, 'frozen')
         self.assertEqual(astropy.utils.iers.conf.iers_auto_url_mirror, 'frozen')
+        self.assertEqual(astropy.utils.iers.conf.iers_degraded_accuracy, 'ignore')
+        mock_logger().info.assert_has_calls([call('Freezing IERS table used by astropy time, coordinates.')])
+
+    @patch('desiutil.iers.get_logger')
+    def test_freeze_iers_ignore_warnings(self, mock_logger):
+        """Test freezing from package data/, but allow warnings.
+        """
+        i.freeze_iers(ignore_warnings=False)
+        future = Time('2024-01-01', location=self.location)
+        lst = future.sidereal_time('apparent')
+        self.assertFalse(astropy.utils.iers.conf.auto_download)
+        self.assertIsNone(astropy.utils.iers.conf.auto_max_age)
+        self.assertEqual(astropy.utils.iers.conf.iers_auto_url, 'frozen')
+        self.assertEqual(astropy.utils.iers.conf.iers_auto_url_mirror, 'frozen')
+        self.assertEqual(astropy.utils.iers.conf.iers_degraded_accuracy, 'warn')
         mock_logger().info.assert_has_calls([call('Freezing IERS table used by astropy time, coordinates.')])
 
     @patch('desiutil.iers.get_logger')
@@ -150,11 +165,3 @@ class TestIERS(unittest.TestCase):
         with self.assertRaises(ValueError):
             i.freeze_iers('census.yaml')
         mock_logger().info.assert_has_calls([call('Freezing IERS table used by astropy time, coordinates.')])
-
-
-def test_suite():
-    """Allows testing of only this module with the command::
-
-        python setup.py test -m <modulename>
-    """
-    return unittest.defaultTestLoader.loadTestsFromName(__name__)

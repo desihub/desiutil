@@ -11,7 +11,7 @@ from unittest.mock import patch, call
 import os
 import numpy as np
 from .. import dust
-#import desiutil.dust as dust
+# import desiutil.dust as dust
 from pkg_resources import resource_filename
 from astropy.coordinates import SkyCoord
 from astropy import units as u
@@ -125,38 +125,43 @@ class TestDust(unittest.TestCase):
     def test_total_to_selective(self):
         """Test extinction total_to_selective_ratio"""
 
-        #- test valid options with upper and lowercase
+        # test valid options with upper and lowercase
         for band in ['G', 'R', 'Z']:
             for photsys in ['N', 'S']:
                 rb1 = dust.extinction_total_to_selective_ratio(band.upper(), photsys.upper())
                 rb2 = dust.extinction_total_to_selective_ratio(band.lower(), photsys.lower())
                 self.assertEqual(rb1, rb2)
 
-        #- North and South should be different
+        # North and South should be different
         for band in ['G', 'R', 'Z']:
             rb1 = dust.extinction_total_to_selective_ratio(band, 'N')
             rb2 = dust.extinction_total_to_selective_ratio(band, 'S')
             self.assertNotEqual(rb1, rb2)
 
-        #- North and South for WISE should be the same
+        # North and South for WISE should be the same
         for band in ['W1', 'W2', 'W3', 'W4']:
             rb1 = dust.extinction_total_to_selective_ratio(band, 'N')
             rb2 = dust.extinction_total_to_selective_ratio(band, 'S')
             self.assertEqual(rb1, rb2)
 
-        #- B is not a supported band (G,R,Z)
+        # UIY only exist for the South (DECam)
+        with self.assertRaises(AssertionError):
+            for band in ['U', 'I', 'Y']:            
+                rb = dust.extinction_total_to_selective_ratio(band, 'N')
+
+        # B is not a supported band (G,R,Z)
         with self.assertRaises(AssertionError):
             rb = dust.extinction_total_to_selective_ratio('B', 'N')
 
-        #- Q is not a valid photsys (N,S)
+        # Q is not a valid photsys (N,S)
         with self.assertRaises(AssertionError):
             rb = dust.extinction_total_to_selective_ratio('G', 'Q')
 
-    def test_dust_transmission(self) :
-        dust.dust_transmission(np.linspace(3600,9000,1000),0.1)
+    def test_dust_transmission(self):
+        dust.dust_transmission(np.linspace(3600, 9000, 1000), 0.1)
 
-    def test_gaia_extinction(self) :
-        dust.gaia_extinction(g=14.,bp=14.,rp=14.,ebv_sfd=0.4)
+    def test_gaia_extinction(self):
+        dust.gaia_extinction(g=14., bp=14., rp=14., ebv_sfd=0.4)
 
     def test_mwdust_transmission(self):
         ebv = np.array([0.0, 0.1, 0.2, 0.3])
@@ -167,7 +172,7 @@ class TestDust(unittest.TestCase):
                 self.assertEqual(t[0], 1.0)
                 self.assertTrue(np.all(np.diff(t) < 0))
 
-        #- test scalar/vector combinations
+        # test scalar/vector combinations
         t = dust.mwdust_transmission(ebv, 'R', 'N')
         for i in range(len(t)):
             self.assertEqual(t[i], dust.mwdust_transmission(ebv[i], 'R', 'N'))
@@ -176,20 +181,13 @@ class TestDust(unittest.TestCase):
         ts = dust.mwdust_transmission(ebv, 'R', ['S']*len(ebv))
         self.assertEqual(len(tn), len(ebv))
         self.assertEqual(len(ts), len(ebv))
-        #- N vs. S should be different where ebv>0
-        ii = (ebv>0)
+        # N vs. S should be different where ebv>0
+        ii = (ebv > 0)
         self.assertTrue(np.all(tn[ii] != ts[ii]))
 
-        #- array photsys must have ebv array of same length
+        # array photsys must have ebv array of same length
         with self.assertRaises(ValueError):
             dust.mwdust_transmission(0.1, 'G', ['N', 'S'])
 
         with self.assertRaises(ValueError):
             dust.mwdust_transmission([0.1, 0.2, 0.3], 'G', ['N', 'S'])
-
-def test_suite():
-    """Allows testing of only this module with the command::
-
-        python setup.py test -m <modulename>
-    """
-    return unittest.defaultTestLoader.loadTestsFromName(__name__)

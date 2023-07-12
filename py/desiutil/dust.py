@@ -1,4 +1,3 @@
-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
 """
@@ -19,7 +18,8 @@ from astropy import units as u
 from desiutil.log import get_logger
 log = get_logger()
 
-def extinction_total_to_selective_ratio(band, photsys, match_legacy_surveys=False) :
+
+def extinction_total_to_selective_ratio(band, photsys, match_legacy_surveys=False):
     """Return the linear coefficient R_X = A(X)/E(B-V) where
     A(X) = -2.5*log10(transmission in X band),
     for band X in 'G','R' or 'Z' when
@@ -35,15 +35,18 @@ def extinction_total_to_selective_ratio(band, photsys, match_legacy_surveys=Fals
     Returns:
         scalar, total extinction A(band) = -2.5*log10(transmission(band))
     """
-    if match_legacy_surveys :
+    if match_legacy_surveys:
         # Based on the fit from the columns MW_TRANSMISSION_X and EBV
         # for the DR8 target catalogs and propagated in fibermaps
         # R_X = -2.5*log10(MW_TRANSMISSION_X) / EBV
         # It is the same value for the N and S surveys in DR8 and DR9 catalogs.
         # From https://github.com/dstndstn/tractor/blob/main/tractor/sfd.py#L26
-        R={"G_N":3.2140,
+        R={"U_N":3.995,
+           "G_N":3.2140,
            "R_N":2.1650,
+           "I_N":1.592,
            "Z_N":1.2110,
+           "Y_N":1.064,
            "U_S":3.995,
            "G_S":3.2140,
            "R_S":2.1650,
@@ -67,9 +70,12 @@ def extinction_total_to_selective_ratio(band, photsys, match_legacy_surveys=Fals
         # MzLS z  9185.1   1.199
         # Consistent with the synthetic magnitudes and function dust_transmission
 
-        R={"G_N":3.258,
+        R={"U_N":3.994,
+           "G_N":3.258,
            "R_N":2.176,
+           "I_N":1.591,
            "Z_N":1.199,
+           "Y_N":1.063,
            "U_S":3.994,
            "G_S":3.212,
            "R_S":2.164,
@@ -83,20 +89,18 @@ def extinction_total_to_selective_ratio(band, photsys, match_legacy_surveys=Fals
 
     # Add WISE from
     # https://github.com/dstndstn/tractor/blob/main/tractor/sfd.py#L23-L35
-    R.update({
-        'W1_N': 0.184,
-        'W2_N': 0.113,
-        'W3_N': 0.0241,
-        'W4_N': 0.00910,
-        'W1_S': 0.184,
-        'W2_S': 0.113,
-        'W3_S': 0.0241,
-        'W4_S': 0.00910
-        })
+    R.update({'W1_N': 0.184,
+              'W2_N': 0.113,
+              'W3_N': 0.0241,
+              'W4_N': 0.00910,
+              'W1_S': 0.184,
+              'W2_S': 0.113,
+              'W3_S': 0.0241,
+              'W4_S': 0.00910})
 
-    assert(band.upper() in ["U","G","R","I","Z","Y","BP","RP",'W1','W2','W3','W4'])
-    assert(photsys.upper() in ["N","S","G"])
-    return R["{}_{}".format(band.upper(),photsys.upper())]
+    assert band.upper() in ["U", "G", "R", "I", "Z", "Y", "BP", "RP", 'W1', 'W2', 'W3', 'W4']
+    assert photsys.upper() in ["N", "S", "G"]
+    return R["{}_{}".format(band.upper(), photsys.upper())]
 
 def mwdust_transmission(ebv, band, photsys, match_legacy_surveys=False):
     """Convert SFD E(B-V) value to dust transmission 0-1 for band and photsys
@@ -135,6 +139,7 @@ def mwdust_transmission(ebv, band, photsys, match_legacy_surveys=False):
             transmission[ii] = 10**(-a_band / 2.5)
 
         return transmission
+
 
 def ext_odonnell(wave, Rv=3.1):
     """Return extinction curve from Odonnell (1994), defined in the wavelength
@@ -235,9 +240,10 @@ def ext_ccm(wave, Rv=3.1):
 
     return A
 
+
 def ext_fitzpatrick(wave, R_V=3.1, avglmc=False, lmc2=False,
-                    x0=None,gamma=None,
-                    c1=None,c2=None,c3=None,c4=None) :
+                    x0=None, gamma=None,
+                    c1=None, c2=None, c3=None, c4=None):
     """
     Return extinction curve from Fitzpatrick (1999).
 
@@ -308,27 +314,45 @@ def ext_fitzpatrick(wave, R_V=3.1, avglmc=False, lmc2=False,
     x = 10000. / np.array(wave)  # Convert to inverse microns
     curve = np.zeros(x.shape)
 
-    if lmc2 :
-        if x0 == None: x0 = 4.626
-        if gamma == None: gamma =  1.05
-        if c4 == None: c4 = 0.42
-        if c3 == None: c3 = 1.92
-        if c2 == None: c2 = 1.31
-        if c1 == None: c1 = -2.16
-    elif avglmc :
-        if x0 == None: x0 = 4.596
-        if gamma == None: gamma = 0.91
-        if c4 == None: c4 = 0.64
-        if c3 == None: c3 =  2.73
-        if c2 == None: c2 = 1.11
-        if c1 == None: c1 = -1.28
+    if lmc2:
+        if x0 is None:
+            x0 = 4.626
+        if gamma is None:
+            gamma = 1.05
+        if c4 is None:
+            c4 = 0.42
+        if c3 is None:
+            c3 = 1.92
+        if c2 is None:
+            c2 = 1.31
+        if c1 is None:
+            c1 = -2.16
+    elif avglmc:
+        if x0 is None:
+            x0 = 4.596
+        if gamma is None:
+            gamma = 0.91
+        if c4 is None:
+            c4 = 0.64
+        if c3 is None:
+            c3 = 2.73
+        if c2 is None:
+            c2 = 1.11
+        if c1 is None:
+            c1 = -1.28
     else:
-        if x0 == None: x0 = 4.596
-        if gamma == None: gamma = 0.99
-        if c4 == None: c4 = 0.41
-        if c3 == None: c3 =  3.23
-        if c2 == None: c2 = -0.824 + 4.717 / R_V
-        if c1 == None: c1 = 2.030 - 3.007 * c2
+        if x0 is None:
+            x0 = 4.596
+        if gamma is None:
+            gamma = 0.99
+        if c4 is None:
+            c4 = 0.41
+        if c3 is None:
+            c3 = 3.23
+        if c2 is None:
+            c2 = -0.824 + 4.717 / R_V
+        if c1 is None:
+            c1 = 2.030 - 3.007 * c2
 
     # Compute UV portion of A(lambda)/E(B-V) curve using FM fitting function and
     # R-dependent coefficients
@@ -339,40 +363,45 @@ def ext_fitzpatrick(wave, R_V=3.1, avglmc=False, lmc2=False,
     iuv = x >= xcutuv
     iuv_comp = ~iuv
 
-    if len(x[iuv]) > 0: xuv = np.concatenate( (xspluv, x[iuv]) )
-    else: xuv = xspluv.copy()
+    if len(x[iuv]) > 0:
+        xuv = np.concatenate((xspluv, x[iuv]))
+    else:
+        xuv = xspluv.copy()
 
-    yuv = c1  + c2 * xuv
-    yuv = yuv + c3 * xuv**2 / ( ( xuv**2 - x0**2 )**2 + ( xuv * gamma )**2 )
+    yuv = c1 + c2 * xuv
+    yuv = yuv + c3 * xuv**2 / ((xuv**2 - x0**2)**2 + (xuv * gamma)**2)
 
     filter1 = xuv.copy()
     filter1[xuv <= 5.9] = 5.9
 
-    yuv = yuv + c4 * ( 0.5392 * ( filter1 - 5.9 )**2 + 0.05644 * ( filter1 - 5.9 )**3 )
+    yuv = yuv + c4 * (0.5392 * (filter1 - 5.9)**2 + 0.05644 * (filter1 - 5.9)**3)
     yuv = yuv + R_V
-    yspluv = yuv[0:2].copy()                  # save spline points
+    yspluv = yuv[0:2].copy()  # save spline points
 
-    if len(x[iuv]) > 0: curve[iuv] = yuv[2:len(yuv)]      # remove spline points
+    if len(x[iuv]) > 0:
+        curve[iuv] = yuv[2:len(yuv)]  # remove spline points
 
     # Compute optical portion of A(lambda)/E(B-V) curve
     # using cubic spline anchored in UV, optical, and IR
 
     xsplopir = np.concatenate(([0], 10000.0 / np.array([26500.0, 12200.0, 6000.0, 5470.0, 4670.0, 4110.0])))
-    ysplir   = np.array([0.0, 0.26469, 0.82925]) * R_V / 3.1
-    ysplop   = [np.polyval(np.array([2.13572e-04, 1.00270, -4.22809e-01]), R_V ),
-                np.polyval(np.array([-7.35778e-05, 1.00216, -5.13540e-02]), R_V ),
-                np.polyval(np.array([-3.32598e-05, 1.00184, 7.00127e-01]), R_V ),
-                np.polyval(np.array([-4.45636e-05, 7.97809e-04, -5.46959e-03, 1.01707, 1.19456] ), R_V ) ]
+    ysplir = np.array([0.0, 0.26469, 0.82925]) * R_V / 3.1
+    ysplop = [np.polyval(np.array([2.13572e-04, 1.00270, -4.22809e-01]), R_V),
+              np.polyval(np.array([-7.35778e-05, 1.00216, -5.13540e-02]), R_V),
+              np.polyval(np.array([-3.32598e-05, 1.00184, 7.00127e-01]), R_V),
+              np.polyval(np.array([-4.45636e-05, 7.97809e-04, -5.46959e-03, 1.01707, 1.19456]), R_V)]
 
-    ysplopir = np.concatenate( (ysplir, ysplop) )
+    ysplopir = np.concatenate((ysplir, ysplop))
 
     if len(iuv_comp) > 0:
-        cubic = CubicSpline(np.concatenate( (xsplopir,xspluv) ),
-                            np.concatenate( (ysplopir,yspluv) ), bc_type='natural')
-        curve[iuv_comp] = cubic( x[iuv_comp] )
+        cubic = CubicSpline(np.concatenate((xsplopir, xspluv)),
+                            np.concatenate((ysplopir, yspluv)), bc_type='natural')
+        curve[iuv_comp] = cubic(x[iuv_comp])
 
     return curve/R_V
 
+
+#
 # based on the work from https://ui.adsabs.harvard.edu/abs/2011ApJ...737..103S
 # note from Eddie: I recommend applying the SF11 calibration in the following way:
 # A(lambda, F99) = A(lambda, F99, rv)/A(1 micron, F99, rv) * SFD_EBV * 1.029.
@@ -380,7 +409,7 @@ def ext_fitzpatrick(wave, R_V=3.1, avglmc=False, lmc2=False,
 # so a lot of ambiguity in what extinction means goes away.
 # That doesn't look like the 0.86 rescaling that we quote in abstract,
 # but it's convenient because it uses only monochromatic extinctions.
-
+#
 def dust_transmission(wave, ebv_sfd, Rv=3.1):
     """
     Return the dust transmission [0-1] vs. wavelength.
@@ -398,9 +427,9 @@ def dust_transmission(wave, ebv_sfd, Rv=3.1):
 
     Also see `mwdust_transmission` which return transmission within a filter
     """
-    extinction = ext_fitzpatrick(np.atleast_1d(wave),R_V=Rv) / ext_fitzpatrick(np.array([10000.]),R_V=Rv) * ebv_sfd * 1.029
-    if np.isscalar(wave) :
-        extinction=float(extinction[0])
+    extinction = ext_fitzpatrick(np.atleast_1d(wave), R_V=Rv) / ext_fitzpatrick(np.array([10000.]), R_V=Rv) * ebv_sfd * 1.029
+    if np.isscalar(wave):
+        extinction = float(extinction[0])
     return 10**(-extinction/2.5)
 
 # The SFDMap and _Hemisphere classes and the _bilinear_interpolate and ebv
@@ -709,37 +738,33 @@ def gaia_extinction(g, bp, rp, ebv_sfd):
     # return extinction of gaia magnitudes based on Babusiaux2018 (eqn1/tab1)
     # we assume the EBV the original SFD scale
     # we return A_G, A_BP, A_RP
-    gaia_poly_coeff = {'G':[0.9761, -0.1704,
-                           0.0086, 0.0011, -0.0438, 0.0013, 0.0099],
-                      'BP': [1.1517, -0.0871, -0.0333, 0.0173,
-                             -0.0230, 0.0006, 0.0043],
-                      'RP':[0.6104, -0.0170, -0.0026,
-                            -0.0017, -0.0078, 0.00005, 0.0006]}
-    ebv = 0.86 * ebv_sfd # Apply Schlafly+11 correction
+    gaia_poly_coeff = {'G': [0.9761, -0.1704, 0.0086, 0.0011, -0.0438, 0.0013, 0.0099],
+                       'BP': [1.1517, -0.0871, -0.0333, 0.0173, -0.0230, 0.0006, 0.0043],
+                       'RP': [0.6104, -0.0170, -0.0026, -0.0017, -0.0078, 0.00005, 0.0006]}
+    ebv = 0.86 * ebv_sfd  # Apply Schlafly+11 correction
 
     gaia_a0 = 3.1 * ebv
     # here I apply a second-order correction for extinction
     # i.e. I use corrected colors after 1 iteration to determine
     # the best final correction
-    inmag = {'G':g, 'RP':rp, 'BP':bp}
-    retmag= {'BP':bp * 1, 'RP':rp * 1, 'G': g * 1}
+    inmag = {'G': g, 'RP': rp, 'BP': bp}
+    retmag = {'BP': bp * 1, 'RP': rp * 1, 'G': g * 1}
     for i in range(10):
         bprp = retmag['BP'] - retmag['RP']
-        for band in ['G','BP','RP']:
+        for band in ['G', 'BP', 'RP']:
             curp = gaia_poly_coeff[band]
             dmag = (np.poly1d(gaia_poly_coeff[band][:4][::-1])(bprp) +
-                 curp[4] * gaia_a0 + curp[5]*gaia_a0**2 + curp[6]*bprp*gaia_a0
-                 )*gaia_a0
+                    curp[4] * gaia_a0 + curp[5]*gaia_a0**2 + curp[6]*bprp*gaia_a0)*gaia_a0
             retmag[band] = inmag[band] - dmag
-    return {'G':inmag['G']- retmag['G'],
-            'BP':inmag['BP']-retmag['BP'],
-            'RP':inmag['RP'] - retmag["RP"]}
+    return {'G': inmag['G'] - retmag['G'],
+            'BP': inmag['BP'] - retmag['BP'],
+            'RP': inmag['RP'] - retmag["RP"]}
 
 
-#-------------------------------------------------------------------------
-#- Used for dust development debugging, but not a core part of the
-#- desiutil.dust module for end-users
-
+#
+# Used for dust development debugging, but not a core part of the
+# desiutil.dust module for end-users
+#
 def _get_ext_coeff(temp, photsys, band, ebv_sfd, rv=3.1):
     """
     Obtain extinction coeffiecient A_X/E(B-V)_SFD for black body spectrum
@@ -769,15 +794,15 @@ def _get_ext_coeff(temp, photsys, band, ebv_sfd, rv=3.1):
 
     trans = dust_transmission(wave, ebv_sfd)
 
-    #- import speclite only if needed
+    # import speclite only if needed
     import speclite.filters
 
-    if photsys == "N" :
-        if band.upper() in ["G","R"] :
+    if photsys == "N":
+        if band.upper() in ["G", "R"]:
             filtername = "BASS-{}".format(band.lower())
-        else :
+        else:
             filtername = "MzLS-z"
-    elif photsys == "S" :
+    elif photsys == "S":
         filtername = "decam2014-{}".format(band.lower())
     elif photsys == "G":
         filtername = "gaiadr2-{}".format(band)
@@ -788,7 +813,7 @@ def _get_ext_coeff(temp, photsys, band, ebv_sfd, rv=3.1):
 
     fluxunits = 1e-17 * u.erg / u.s / u.cm**2 / u.Angstrom
     mag_no_extinction = filter_response.get_ab_magnitude(sed * fluxunits,
-                                                           wave)
+                                                         wave)
     mag_with_extinction = filter_response.get_ab_magnitude(sed * trans * fluxunits, wave)
 
     # f = np.interp(wave, filter_response.wavelength,filter_response.response)
@@ -796,71 +821,72 @@ def _get_ext_coeff(temp, photsys, band, ebv_sfd, rv=3.1):
     Rbis = (mag_with_extinction-mag_no_extinction)/ebv_sfd
     return Rbis
 
+
 def _main():
-    #- Wrapper for development debugging of extinction coeffs
+    # Wrapper for development debugging of extinction coeffs
     import argparse
     import matplotlib.pyplot as plt
 
-    parser=argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,description="Runs and displays a comparison between tabulated values of total to selective extinction ratios and values obtained with synthetic mags.")
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+                                     description="Runs and displays a comparison between tabulated values of total to selective extinction ratios and values obtained with synthetic mags.")
     args = parser.parse_args()
 
     plt.figure("reddening")
 
-    wave=np.linspace(3000-1,11000,1000)
-    rv=3.1
+    wave = np.linspace(3000-1, 11000, 1000)
+    rv = 3.1
     ebv_sfd = 1.
-    trans = dust_transmission(wave,ebv_sfd)
-    ext   = -2.5*np.log10(trans)
-    plt.plot(wave,ext,label="-2.5*log10(dust_transmission)")
+    trans = dust_transmission(wave, ebv_sfd)
+    ext = -2.5*np.log10(trans)
+    plt.plot(wave, ext, label="-2.5*log10(dust_transmission)")
 
     # load filters and compute extinctions here
-    try :
+    try:
         import speclite.filters
 
         temp = 7000
-        sed=1./(wave/6000)**5/(np.exp( 143877687./wave/temp)-1) # dummy star with a spectrum close to a 7000K star (for wavelength>4000A)
+        sed = 1./(wave/6000)**5/(np.exp(143877687./wave/temp)-1)  # dummy star with a spectrum close to a 7000K star (for wavelength>4000A)
 
-        photsys_survey={"N":"BASS+MZLS","S":"DECALS", "G": "Gaia"}
-        count=0
+        photsys_survey = {"N": "BASS+MZLS", "S": "DECALS", "G": "Gaia"}
+        count = 0
 
-        photsys_bands = list(itertools.product('NS','GRZ')) + list(itertools.product('G',['G','BP','RP']))
-        for photsys,band in photsys_bands:
+        photsys_bands = list(itertools.product('NS', 'GRZ')) + list(itertools.product('G', ['G', 'BP', 'RP']))
+        for photsys, band in photsys_bands:
             count += 1
-            color="C{}".format(count%10)
+            color = "C{}".format(count % 10)
 
-            if photsys=="N" :
-                if band.upper() in ["G","R"] :
-                    filtername="BASS-{}".format(band.lower())
-                else :
-                    filtername="MzLS-z"
-            elif photsys=="S" :
-                filtername="decam2014-{}".format(band.lower())
+            if photsys == "N":
+                if band.upper() in ["G", "R"]:
+                    filtername = "BASS-{}".format(band.lower())
+                else:
+                    filtername = "MzLS-z"
+            elif photsys == "S":
+                filtername = "decam2014-{}".format(band.lower())
             elif photsys == "G":
-                filtername="gaiadr2-{}".format(band)
+                filtername = "gaiadr2-{}".format(band)
 
-            R=extinction_total_to_selective_ratio(band, photsys)
+            R = extinction_total_to_selective_ratio(band, photsys)
 
             Rbis = _get_ext_coeff(temp, photsys, band, ebv_sfd, rv=3.1)
 
-            filter_response=speclite.filters.load_filter(filtername)
+            filter_response = speclite.filters.load_filter(filtername)
 
-            f=np.interp(wave,filter_response.wavelength,filter_response.response)
+            f = np.interp(wave, filter_response.wavelength, filter_response.response)
             fwave = np.sum(sed*f*wave)/np.sum(sed*f)
 
-            if count==1 :
-                label1="with extinction_total_to_selective_ratio"
-            else :
-                label1=None
+            if count == 1:
+                label1 = "with extinction_total_to_selective_ratio"
+            else:
+                label1 = None
 
-            plt.plot(fwave,R,"x",color=color,label=label1)
+            plt.plot(fwave, R, "x", color=color, label=label1)
 
-            f=np.interp(wave,filter_response.wavelength,filter_response.response)
-            ii=(f>0.01)
-            plt.plot(wave[ii],f[ii],"--",color=color,label=filtername)
-            print("R_{}({}:{})= {:4.3f} =? {:4.3f}, delta = {:5.4f}".format(band,photsys,photsys_survey[photsys],R,Rbis,R-Rbis))
+            f = np.interp(wave, filter_response.wavelength, filter_response.response)
+            ii = (f > 0.01)
+            plt.plot(wave[ii], f[ii], "--", color=color, label=filtername)
+            print("R_{}({}:{})= {:4.3f} =? {:4.3f}, delta = {:5.4f}".format(band, photsys, photsys_survey[photsys], R, Rbis, R-Rbis))
 
-
-    except ImportError as e :
+    except ImportError as e:
         print(e)
         print("Cannot import speclite, so no broadband comparison")
 
@@ -869,6 +895,7 @@ def _main():
     plt.ylabel("A(wavelength)/E(B-V)")
     plt.grid()
     plt.show()
+
 
 if __name__ == '__main__':
     _main()

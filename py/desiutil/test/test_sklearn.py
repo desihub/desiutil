@@ -105,11 +105,3 @@ class TestSKLearn(unittest.TestCase):
         s = model.sample(n_samples=2, random_state=rs)
         self.assertTrue(np.allclose(s, np.array([[3.51574031, -1.66767452],
                                                  [2.09077549, 2.06558071]])))
-
-
-def test_suite():
-    """Allows testing of only this module with the command::
-
-        python setup.py test -m <modulename>
-    """
-    return unittest.defaultTestLoader.loadTestsFromName(__name__)

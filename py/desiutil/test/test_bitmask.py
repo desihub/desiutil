@@ -166,11 +166,3 @@ class TestBitMask(unittest.TestCase):
         for i, name in enumerate(self.ccdmask.names()):
             self.assertEqual(str(self.ccdmask[name]), bit_str[i])
             self.assertEqual(repr(self.ccdmask[name]), bit_repr[i])
-
-
-def test_suite():
-    """Allows testing of only this module with the command::
-
-        python setup.py test -m <modulename>
-    """
-    return unittest.defaultTestLoader.loadTestsFromName(__name__)

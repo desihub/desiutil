@@ -14,6 +14,7 @@ try:
 except ImportError:
     pass
 
+
 class TestTimer(unittest.TestCase):
     """Test desiutil.timer
     """
@@ -23,11 +24,11 @@ class TestTimer(unittest.TestCase):
         t = Timer()
         t.start('blat')
 
-        #- Context manager is syntatic sugar for timing simple steps
+        # Context manager is syntatic sugar for timing simple steps
         with t.time('blat.input'):
             time.sleep(0.1)
 
-        #- Or use full start/stop
+        # Or use full start/stop
         t.start('blat.algorithm')
         time.sleep(0.1)
         t.stop('blat.algorithm')
@@ -35,7 +36,7 @@ class TestTimer(unittest.TestCase):
         with t.time('blat.output'):
             time.sleep(0.1)
 
-        #- Get timing report, which should be json parse-able
+        # Get timing report, which should be json parse-able
         timing_report = t.report()
         timing = json.loads(timing_report)
 
@@ -45,11 +46,11 @@ class TestTimer(unittest.TestCase):
             self.assertIn('stop', timing[name].keys(), f'{name} missing stop time')
             self.assertIn('duration', timing[name].keys(), f'{name} missing duration')
 
-        #- Subtests should approximately add up to wrapper test
+        # Subtests should approximately add up to wrapper test
         t0 = timing['blat']['duration']
-        t1 = timing['blat.input']['duration'] + \
-             timing['blat.algorithm']['duration'] + \
-             timing['blat.output']['duration']
+        t1 = (timing['blat.input']['duration'] +
+              timing['blat.algorithm']['duration'] +
+              timing['blat.output']['duration'])
 
         self.assertAlmostEqual(t0, t1, 1)
 
@@ -64,7 +65,7 @@ class TestTimer(unittest.TestCase):
         self.assertIn('blat', t.timers)
         self.assertNotIn('foo', t.timers)
 
-        #- Non-fatal to cancel a non-existent timer
+        # Non-fatal to cancel a non-existent timer
         t.cancel('quat')
 
     def test_stopall(self):
@@ -89,19 +90,19 @@ class TestTimer(unittest.TestCase):
         """Mis-use of timer should not be fatal"""
         t = Timer()
 
-        #- Restarting a timer prints warning but isn't fatal
+        # Restarting a timer prints warning but isn't fatal
         t.start('blat')
         t.start('blat')
 
-        #- Stopping a non-existing timer prints error but isn't fatal
+        # Stopping a non-existing timer prints error but isn't fatal
         t.stop('foo')
 
-        #- Stop a timer twice
+        # Stop a timer twice
         t.start('bar')
         t.stop('bar')
         t.stop('bar')
 
-        #- Getting a report stops timers
+        # Getting a report stops timers
         self.assertNotIn('stop', t.timers['blat'].keys())
         timing_report = t.report()
         self.assertIn('stop', t.timers['blat'].keys())
@@ -174,7 +175,7 @@ class TestTimer(unittest.TestCase):
         t2.stopall()
         t3.stopall()
 
-        stats = compute_stats([t1,t2,t3])
+        stats = compute_stats([t1, t2, t3])
 
         self.assertEqual(stats['blat']['n'], 3)
         self.assertEqual(stats['foo']['n'], 2)
@@ -185,10 +186,3 @@ class TestTimer(unittest.TestCase):
                 self.assertLess(s[f'{key}.min'], s[f'{key}.mean'])
                 self.assertLess(s[f'{key}.min'], s[f'{key}.median'])
                 self.assertLess(s[f'{key}.mean'], s[f'{key}.max'])
-
-def test_suite():
-    """Allows testing of only this module with the command::
-
-        python setup.py test -m desiutil.test.test_timer
-    """
-    return unittest.defaultTestLoader.loadTestsFromName(__name__)

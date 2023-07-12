@@ -9,7 +9,17 @@ This package contains code for processing and installing `Module files`_.
 
 .. _`Module files`: http://modules.sourceforge.net
 """
+import os
+import re
+import sys
+from argparse import ArgumentParser
 from shutil import which
+from stat import S_IRUSR, S_IRGRP, S_IROTH
+from configparser import ConfigParser
+from pkg_resources import resource_filename
+from . import __version__ as desiutilVersion
+from .io import unlock_file
+from .log import log
 
 
 def init_modules(moduleshome=None, method=False, command=False):
@@ -34,8 +44,6 @@ def init_modules(moduleshome=None, method=False, command=False):
         setting :data:`sys.path`.  Returns ``None`` if no Modules infrastructure
         could be found.
     """
-    import os
-    import re
     if moduleshome is None:
         try:
             moduleshome = os.environ['MODULESHOME']
@@ -141,6 +149,7 @@ def init_modules(moduleshome=None, method=False, command=False):
         for p in add_path:
             path.insert(int(path[0] == ''), p)
         return
+
     if method:
         def desiutil_module_method(self, command, *arguments):
             return desiutil_module(command, *arguments)
@@ -172,15 +181,8 @@ def configure_module(product, version, product_root, working_dir=None, dev=False
     :class:`dict`
         A dictionary containing the module configuration parameters.
     """
-    from os import getcwd
-    from os.path import exists, isdir, join
-    from sys import version_info
-    try:
-        from ConfigParser import SafeConfigParser
-    except ImportError:
-        from configparser import ConfigParser as SafeConfigParser
     if working_dir is None:
-        working_dir = getcwd()
+        working_dir = os.getcwd()
     module_keywords = {
         'name': product,
         'version': version,
@@ -191,38 +193,37 @@ def configure_module(product, version, product_root, working_dir=None, dev=False
         'trunk_py_dir': '/py',
         'needs_ld_lib': '# ',
         'needs_idl': '# ',
-        'pyversion': "python{0:d}.{1:d}".format(*version_info)
+        'pyversion': "python{0:d}.{1:d}".format(*sys.version_info)
         }
-    if isdir(join(working_dir, 'bin')):
+    if os.path.isdir(os.path.join(working_dir, 'bin')):
         module_keywords['needs_bin'] = ''
-    if isdir(join(working_dir, 'lib')):
+    if os.path.isdir(os.path.join(working_dir, 'lib')):
         module_keywords['needs_ld_lib'] = ''
-    if isdir(join(working_dir, 'pro')):
+    if os.path.isdir(os.path.join(working_dir, 'pro')):
         module_keywords['needs_idl'] = ''
-    if (exists(join(working_dir, 'setup.py')) and
-        (isdir(join(working_dir, product)) or
-         isdir(join(working_dir, product.lower())))
-        ):
+    if (os.path.exists(os.path.join(working_dir, 'setup.py')) and
+        (os.path.isdir(os.path.join(working_dir, product)) or
+         os.path.isdir(os.path.join(working_dir, product.lower())))):
         if dev:
             module_keywords['needs_trunk_py'] = ''
             module_keywords['trunk_py_dir'] = ''
         else:
             module_keywords['needs_python'] = ''
-    if isdir(join(working_dir, 'py')):
+    if os.path.isdir(os.path.join(working_dir, 'py')):
         if dev:
             module_keywords['needs_trunk_py'] = ''
         else:
             module_keywords['needs_python'] = ''
-    if isdir(join(working_dir, 'python')):
+    if os.path.isdir(os.path.join(working_dir, 'python')):
         if dev:
             module_keywords['needs_trunk_py'] = ''
             module_keywords['trunk_py_dir'] = '/python'
         else:
             module_keywords['needs_python'] = ''
-    if exists(join(working_dir, 'setup.cfg')):
-        conf = SafeConfigParser()
-        conf.read([join(working_dir, 'setup.cfg')])
-        if conf.has_section('entry_points'):
+    if os.path.exists(os.path.join(working_dir, 'setup.cfg')):
+        conf = ConfigParser()
+        conf.read([os.path.join(working_dir, 'setup.cfg')])
+        if conf.has_section('entry_points') or conf.has_section('options.entry_points'):
             module_keywords['needs_bin'] = ''
     return module_keywords
 
@@ -243,13 +244,15 @@ def process_module(module_file, module_keywords, module_dir):
     -------
     :class:`str`
         The text of the processed Module file.
+
+    Note
+    ----
+    Module files are always installed with world-read permissions.
     """
-    from os import makedirs
-    from os.path import isdir, join
-    if not isdir(join(module_dir, module_keywords['name'])):
-        makedirs(join(module_dir, module_keywords['name']))
-    install_module_file = join(module_dir, module_keywords['name'],
-                               module_keywords['version'])
+    if not os.path.isdir(os.path.join(module_dir, module_keywords['name'])):
+        os.makedirs(os.path.join(module_dir, module_keywords['name']))
+    install_module_file = os.path.join(module_dir, module_keywords['name'],
+                                       module_keywords['version'])
     with open(module_file) as m:
         mod = m.read().format(**module_keywords)
     _write_module_data(install_module_file, mod)
@@ -270,11 +273,14 @@ def default_module(module_keywords, module_dir):
     -------
     :class:`str`
         The text of the processed .version file.
+
+    Note
+    ----
+    .version files are always installed with world-read permissions.
     """
-    from os.path import join
     dot_template = '#%Module1.0\nset ModulesVersion "{version}"\n'
-    install_version_file = join(module_dir, module_keywords['name'],
-                                '.version')
+    install_version_file = os.path.join(module_dir, module_keywords['name'],
+                                        '.version')
     dot_version = dot_template.format(**module_keywords)
     _write_module_data(install_version_file, dot_version)
     return dot_version
@@ -283,11 +289,69 @@ def default_module(module_keywords, module_dir):
 def _write_module_data(filename, data):
     """Write and permission-lock Module file data.  This is intended
     to consolidate some duplicated code.
+
+    Parameters
+    ----------
+    filename : :class:`str`
+        The module file to write.
+    data : :class:`str`
+        The data to be written to `filename`.
     """
-    from os import chmod
-    from stat import S_IRUSR, S_IRGRP
-    from .io import unlock_file
     with unlock_file(filename, 'w') as f:
         f.write(data)
-    chmod(filename, S_IRUSR | S_IRGRP)
+    p = S_IRUSR | S_IRGRP | S_IROTH
+    os.chmod(filename, p)
     return
+
+
+def main():
+    """Entry-point for command-line scripts.
+
+    Returns
+    -------
+    :class:`int`
+        An integer suitable for passing to :func:`sys.exit`.
+    """
+    parser = ArgumentParser(description="Install a Module file for a DESI software product.",
+                            prog=os.path.basename(sys.argv[0]))
+    parser.add_argument('-d', '--default', dest='default', action='store_true', help='Mark this Module as default.')
+    parser.add_argument('-m', '--modules', dest='modules', help='Set the Module install directory.')
+    parser.add_argument('-V', '--version', action='version', version='%(prog)s ' + desiutilVersion)
+    parser.add_argument('product', help='Name of product.')
+    parser.add_argument('product_version', help='Version of product.')
+    options = parser.parse_args()
+
+    if options.modules is None:
+        try:
+            options.modules = os.path.join('/global/common/software/desi',
+                                           os.environ['NERSC_HOST'],
+                                           'desiconda',
+                                           'current',
+                                           'modulefiles')
+        except KeyError:
+            try:
+                options.modules = os.path.join(os.environ['DESI_PRODUCT_ROOT'],
+                                               'modulefiles')
+            except KeyError:
+                log.error("Could not determine a Module install directory!")
+                return 1
+
+    dev = ('dev' in options.product_version or
+           'main' in options.product_version or
+           'master' in options.product_version or
+           'branches' in options.product_version or
+           'trunk' in options.product_version)
+    working_dir = os.path.abspath('.')
+    module_keywords = configure_module(options.product, options.product_version, working_dir, dev=dev)
+    module_file = os.path.join(working_dir, 'etc', '{0}.module'.format(options.product))
+
+    if not os.path.exists(module_file):
+        log.warning("Could not find Module file: %s; using default.", module_file)
+        module_file = resource_filename('desiutil', 'data/desiutil.module')
+
+    process_module(module_file, module_keywords, options.modules)
+
+    if options.default:
+        default_module(module_keywords, options.modules)
+
+    return 0

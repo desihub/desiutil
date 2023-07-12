@@ -9,9 +9,9 @@ import unittest
 from unittest.mock import call, patch
 from tempfile import mkdtemp
 from packaging import version
+from distutils.log import DEBUG, INFO, WARN, ERROR
 from setuptools import __version__ as setuptools_version
 from setuptools import sandbox
-# from distutils import log
 from ..setup import find_version_directory, get_version, update_version
 from .. import __version__ as desiutil_version
 
@@ -27,9 +27,6 @@ class TestSetup(unittest.TestCase):
         # Workaround for https://github.com/astropy/astropy-helpers/issues/124
         if hasattr(sandbox, 'hide_setuptools'):
             sandbox.hide_setuptools = lambda: None
-        # cls.old_threshold = log.set_threshold(log.WARN)
-        # cls.distutils_log = 'distutils.log.Log._log'
-        # cls.distutils_log = 'setuptools._distutils.log.Log._log'
 
     @classmethod
     def tearDownClass(cls):
@@ -95,8 +92,10 @@ setup(name="{0.fake_name}",
                 self.run_setup('setup.py', ['version'])
                 self.assertTrue(os.path.exists(v_file))
                 self.assertListEqual(mock_announce.mock_calls,
-                                     [call('Version is now 0.0.1.dev0.', level=2)])
-                self.assertListEqual(mock_info.mock_calls, [call('running %s', 'version')])
+                                     [call('WARNING: This functionality is deprecated and will be removed from a future version of desiutil.', level=WARN),
+                                      call('WARNING: Use the command-line script desi_update_version instead.', level=WARN),
+                                      call('Version is now 0.0.1.dev0.', level=INFO)])
+                # self.assertListEqual(mock_info.mock_calls, [call('running %s', 'version')])
         with patch('distutils.cmd.Command.announce') as mock_announce:
             with patch('distutils.log.info') as mock_info:
                 self.run_setup('setup.py', ['version', '--tag', '1.2.3'])
@@ -104,8 +103,10 @@ setup(name="{0.fake_name}",
                     data = v.read()
                 self.assertEqual(data, "__version__ = '1.2.3'\n")
                 self.assertListEqual(mock_announce.mock_calls,
-                                     [call('Version is now 1.2.3.', level=2)])
-                self.assertListEqual(mock_info.mock_calls, [call('running %s', 'version')])
+                                     [call('WARNING: This functionality is deprecated and will be removed from a future version of desiutil.', level=WARN),
+                                      call('WARNING: Use the command-line script desi_update_version instead.', level=WARN),
+                                      call('Version is now 1.2.3.', level=INFO)])
+                # self.assertListEqual(mock_info.mock_calls, [call('running %s', 'version')])
 
         os.chdir(self.original_dir)
         del sys.path[path_index]
@@ -185,11 +186,3 @@ setup(name="{0.fake_name}",
         os.makedirs(os.path.join(p, '.svn'))
         update_version(self.fake_name)
         self.assertTrue(os.path.exists(os.path.join(p2, '_version.py')))
-
-
-def test_suite():
-    """Allows testing of only this module with the command::
-
-        python setup.py test -m <modulename>
-    """
-    return unittest.defaultTestLoader.loadTestsFromName(__name__)

@@ -5,12 +5,30 @@ Change Log
 4.0.0 (unreleased)
 ------------------
 
-*Planned* : Migrate ``setup.py`` commands to stand-alone scripts.
+*Planned*:
 
-3.2.7 (unreleased)
+* Remove deprecated commands in :mod:`desiutil.setup`.
+
+3.3.2 (unreleased)
 ------------------
 
-* No changes yet.
+* Add tools for adding units to FITS table columns.
+
+3.3.1 (2023-06-13)
+------------------
+
+* Ensure old IERS cache files do not actually trigger an exception (PR `#195`_).
+* Allow :command:`desiInstall` to install files world-readable (PR `#195`_).
+
+.. _`#195`: https://github.com/desihub/desiutil/pull/195
+
+3.3.0 (2023-05-04)
+------------------
+
+* Migrate ``python setup.py`` commands to stand-alone scripts, maintaining some
+  compatibility until version 4.0 (PR `#190`_).
+
+.. _`#190`: https://github.com/desihub/desiutil/pull/190
 
 3.2.6 (2022-08-26)
 ------------------

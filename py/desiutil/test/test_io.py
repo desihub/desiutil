@@ -202,11 +202,3 @@ class TestIO(unittest.TestCase):
                 f.write(b'Some content\n')
             s0 = os.stat(filename)
             self.assertEqual(stat.S_IMODE(s0.st_mode) & www, 0)
-
-
-def test_suite():
-    """Allows testing of only this module with the command::
-
-        python setup.py test -m <modulename>
-    """
-    return unittest.defaultTestLoader.loadTestsFromName(__name__)

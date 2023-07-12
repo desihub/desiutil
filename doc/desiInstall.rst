@@ -211,9 +211,10 @@ possible build types that are mutually exclusive.  They are derived in this
 order and the first matching method is used:
 
 py
-    If a setup.py file is detected, :command:`desiInstall` will attempt to execute
-    :command:`pip install .`.  This build type can be suppressed with the
-    command line option ``--compile-c``.
+    If a pyproject.toml or a setup.py file is detected,
+    :command:`desiInstall` will attempt to execute :command:`pip install .`.
+    This build type can be suppressed with the command line option
+    ``--compile-c``.
 make
     If a Makefile is detected, :command:`desiInstall` will attempt to execute
     :command:`make install`.
@@ -274,7 +275,8 @@ Configure Module File
 :command:`desiInstall` will scan :envvar:`WORKING_DIR` to determine the details that need
 to be added to the module file.  The final module file will then be written
 into the DESI module directory at NERSC.  If ``--default`` is specified
-on the command line, an appropriate .version file will be created.
+on the command line, an appropriate .version file will be created. Module
+files are always installed with world-read permissions.
 
 Load Module
 -----------
@@ -339,10 +341,15 @@ The script itself is intended to be a thin wrapper on *e.g.*::
 .. _fiberassign: https://github.com/desihub/fiberassign
 .. _specex: https://github.com/desihub/specex
 
-Fix Permissions
+Set Permissions
 ---------------
 
-The script :command:`fix_permissions.sh` will be run on :envvar:`INSTALL_DIR`.
+The permissions of :envvar:`INSTALL_DIR` will be recursively set to standard
+values under these circumstances:
+
+1. World-read, unless ``--no-world`` is specified on the command line.
+2. Unwriteable to all, unless a branch install is being performed, in which
+   case user-write is set.
 
 Clean Up
 --------

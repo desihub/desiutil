@@ -6,7 +6,7 @@ import sys
 import unittest
 from unittest.mock import patch, call, MagicMock, mock_open
 from os import chdir, environ, getcwd, mkdir, remove, rmdir
-from os.path import abspath, dirname, isdir, join
+from os.path import abspath, basename, isdir, join
 from shutil import rmtree
 from argparse import Namespace
 from tempfile import mkdtemp
@@ -15,6 +15,18 @@ from pkg_resources import resource_filename
 from ..log import DEBUG
 from ..install import DesiInstall, DesiInstallException, dependencies
 from .test_log import NullMemoryHandler
+
+
+def replace_stat(filename):
+    """Mock os.stat().
+    """
+    class st_mode(object):
+        def __init__(self, st_mode):
+            self.st_mode = st_mode
+
+    if basename(filename) == 'executable':
+        return st_mode(33133)
+    return st_mode(33184)
 
 
 class TestInstall(unittest.TestCase):
@@ -87,7 +99,8 @@ class TestInstall(unittest.TestCase):
                 root=None,
                 test=False,
                 username=environ['USER'],
-                verbose=False)
+                verbose=False,
+                world=True)
             options = self.desiInstall.get_options([])
             self.assertEqual(options, default_namespace)
             default_namespace.product = 'product'
@@ -243,7 +256,7 @@ class TestInstall(unittest.TestCase):
         mock_popen.assert_has_calls([call(['svn', '--non-interactive', '--username',
                                            self.desiInstall.options.username, 'export',
                                            'https://desi.lbl.gov/svn/code/focalplane/plate_layout/tags/0.1',
-                                            self.desiInstall.working_dir], universal_newlines=True, stdout=-1, stderr=-1),
+                                           self.desiInstall.working_dir], universal_newlines=True, stdout=-1, stderr=-1),
                                      call().communicate()])
 
     @patch('desiutil.install.Popen')
@@ -321,7 +334,7 @@ class TestInstall(unittest.TestCase):
         self.assertEqual(self.desiInstall.build_type, set(['plain', 'make']))
         # Create temporary files
         options = self.desiInstall.get_options(['desispec', '1.0.0'])
-        tempfiles = {'Makefile': 'make', 'setup.py': 'py'}
+        tempfiles = {'Makefile': 'make', 'pyproject.toml': 'py', 'setup.py': 'py'}
         for t in tempfiles:
             tempfile = join(self.data_dir, t)
             with open(tempfile, 'w') as tf:
@@ -439,10 +452,36 @@ class TestInstall(unittest.TestCase):
         status = self.desiInstall.start_modules()
         self.assertTrue(callable(self.desiInstall.module))
 
-    def test_module_dependencies(self):
+    @patch('desiutil.install.dependencies')
+    @patch('os.path.exists')
+    def test_module_dependencies(self, mock_exists, mock_dependencies):
         """Test module-loading dependencies.
         """
-        pass
+        mock_dependencies.return_value = ['desiutil/main', 'foobar']
+        mock_exists.return_value = True
+        options = self.desiInstall.get_options(['desispec', '1.9.5'])
+        self.desiInstall.baseproduct = 'desispec'
+        self.desiInstall.working_dir = join(self.data_dir, 'desispec')
+        self.desiInstall.module = MagicMock()
+        self.assertFalse(self.desiInstall.options.test)
+        with patch.dict('os.environ', {'LOADEDMODULES': 'desiutil'}):
+            deps = self.desiInstall.module_dependencies()
+        self.assertListEqual(self.desiInstall.deps, ['desiutil/main', 'foobar'])
+        self.assertEqual(self.desiInstall.module_file, join(self.desiInstall.working_dir, 'etc', 'desispec.module'))
+        self.desiInstall.module.assert_has_calls([call('switch', 'desiutil/main'), call('load', 'foobar')])
+        mock_exists.assert_has_calls([call(join(self.desiInstall.working_dir, 'etc', 'desispec.module'))], any_order=True)
+        mock_dependencies.assert_called_once_with(join(self.desiInstall.working_dir, 'etc', 'desispec.module'))
+
+    def test_module_dependencies_test_mode(self):
+        """Test module-loading dependencies in test mode.
+        """
+        options = self.desiInstall.get_options(['--test', 'desutil', '1.9.5'])
+        self.desiInstall.baseproduct = 'desiutil'
+        self.desiInstall.working_dir = join(self.data_dir, 'desiutil')
+        self.assertTrue(self.desiInstall.options.test)
+        deps = self.desiInstall.module_dependencies()
+        self.assertListEqual(self.desiInstall.deps, [])
+        self.assertLog(-1, 'Test Mode. Skipping loading of dependencies.')
 
     def test_nersc_module_dir(self):
         """Test the nersc_module_dir property.
@@ -492,7 +531,7 @@ class TestInstall(unittest.TestCase):
         mock_proc.communicate.return_value = ('out', 'err')
         self.desiInstall.get_extra()
         mock_popen.assert_has_calls([call([join(self.desiInstall.working_dir, 'etc', 'desiutil_data.sh')], stderr=-1, stdout=-1, universal_newlines=True)],
-                                     any_order=True)
+                                    any_order=True)
         mock_popen.reset_mock()
         self.desiInstall.options.test = True
         self.desiInstall.get_extra()
@@ -570,48 +609,165 @@ exit(main())
             with self.assertRaises(DesiInstallException) as cm:
                 self.desiInstall.verify_bootstrap()
         message = ("desiInstall executable ({0}) does not contain " +
-                                             "an explicit desiconda version " +
-                                             "({1})!").format(join(self.desiInstall.install_dir, 'bin', 'desiInstall'), '20211217-2.0.0')
+                   "an explicit desiconda version ({1})!").format(join(self.desiInstall.install_dir, 'bin', 'desiInstall'), '20211217-2.0.0')
         self.assertEqual(str(cm.exception), message)
         self.assertLog(-1, message)
 
-    @patch('desiutil.install.Popen')
-    def test_permissions(self, mock_popen):
-        """Test the permissions stage of the install.
+    @patch('os.stat', replace_stat)
+    @patch('os.walk')
+    @patch('os.chmod')
+    def test_permissions(self, mock_chmod, mock_walk):
+        """Test the permission stage of the install.
         """
-        options = self.desiInstall.get_options(['desiutil', 'branches/main'])
+        options = self.desiInstall.get_options(['desiutil', '1.2.3'])
+        self.assertTrue(self.desiInstall.options.world)
         self.desiInstall.install_dir = join(self.data_dir, 'desiutil')
         self.desiInstall.is_branch = False
-        mock_proc = mock_popen()
-        mock_proc.returncode = 0
-        mock_proc.communicate.return_value = ('out', 'err')
-        status = self.desiInstall.permissions()
-        self.assertEqual(status, 0)
-        mock_popen.assert_has_calls([call(['fix_permissions.sh', self.desiInstall.install_dir], stderr=-1, stdout=-1, universal_newlines=True),
-                                     call(['chmod', '-R', 'a-w', self.desiInstall.install_dir], stderr=-1, stdout=-1, universal_newlines=True)],
-                                     any_order=True)
-        mock_popen.reset_mock()
-        options = self.desiInstall.get_options(['--test', 'desiutil', 'branches/main'])
-        status = self.desiInstall.permissions()
-        self.assertEqual(status, 0)
-        mock_popen.assert_has_calls([call(['fix_permissions.sh', '-t', self.desiInstall.install_dir], stderr=-1, stdout=-1, universal_newlines=True),
-                                     call(['chmod', '-R', 'a-w', self.desiInstall.install_dir], stderr=-1, stdout=-1, universal_newlines=True)],
-                                     any_order=True)
-        mock_popen.reset_mock()
-        options = self.desiInstall.get_options(['--verbose', 'desiutil', 'branches/main'])
-        status = self.desiInstall.permissions()
-        self.assertEqual(status, 0)
-        mock_popen.assert_has_calls([call(['fix_permissions.sh', '-v', self.desiInstall.install_dir], stderr=-1, stdout=-1, universal_newlines=True),
-                                     call(['chmod', '-R', 'a-w', self.desiInstall.install_dir], stderr=-1, stdout=-1, universal_newlines=True)],
-                                     any_order=True)
-        mock_popen.reset_mock()
-        options = self.desiInstall.get_options(['--verbose', 'desiutil', 'branches/main'])
+        mock_walk.return_value = iter([(join(self.desiInstall.install_dir, 'bin'), [], ['executable', 'README.txt']),
+                                       (join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil-1.2.3.dist-info'), [], ['METADATA', 'LICENSE.rst']),
+                                       (join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', '__pycache__'), [], ['__init__.cpython-3.10.pyc', 'module.cpython-3.10.pyc']),
+                                       (join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil'), ['__pycache__'], ['__init__.py', 'module.py']),
+                                       (join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages'), ['desiutil-1.2.3.dist-info', 'desiutil'], []),
+                                       (join(self.desiInstall.install_dir, 'lib', 'python3.10'), ['site-packages'], []),
+                                       (join(self.desiInstall.install_dir, 'lib'), ['python3.10'], []),
+                                       (self.desiInstall.install_dir, ['bin', 'lib'], [])])
+        self.desiInstall.permissions()
+        mock_walk.assert_called_once_with(self.desiInstall.install_dir, topdown=False)
+        mock_chmod.assert_has_calls([call(join(self.desiInstall.install_dir, 'bin', 'executable'), 0o555),
+                                     call(join(self.desiInstall.install_dir, 'bin', 'README.txt'), 0o444),
+                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil-1.2.3.dist-info', 'METADATA'), 0o444),
+                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil-1.2.3.dist-info', 'LICENSE.rst'), 0o444),
+                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', '__pycache__', '__init__.cpython-3.10.pyc'), 0o444),
+                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', '__pycache__', 'module.cpython-3.10.pyc'), 0o444),
+                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', '__init__.py'), 0o444),
+                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', 'module.py'), 0o444),
+                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', '__pycache__'), 0o2555),
+                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil-1.2.3.dist-info'), 0o2555),
+                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil'), 0o2555),
+                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages'), 0o2555),
+                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10'), 0o2555),
+                                     call(join(self.desiInstall.install_dir, 'bin'), 0o2555),
+                                     call(join(self.desiInstall.install_dir, 'lib'), 0o2555),
+                                     call(self.desiInstall.install_dir, 0o2555)])
+        self.assertLog(-2, "os.chmod('%s', %s)" % (join(self.desiInstall.install_dir, 'lib'), 0o2555))
+        self.assertLog(-1, "os.chmod('%s', %s)" % (self.desiInstall.install_dir, 0o2555))
+
+    @patch('os.stat', replace_stat)
+    @patch('os.walk')
+    @patch('os.chmod')
+    def test_permissions_with_branch(self, mock_chmod, mock_walk):
+        """Test the permission stage of the install with a branch.
+        """
+        options = self.desiInstall.get_options(['desiutil', 'branches/main'])
+        self.assertTrue(self.desiInstall.options.world)
+        self.desiInstall.install_dir = join(self.data_dir, 'desiutil')
         self.desiInstall.is_branch = True
-        status = self.desiInstall.permissions()
-        self.assertEqual(status, 0)
-        mock_popen.assert_has_calls([call(['fix_permissions.sh', '-v', self.desiInstall.install_dir], stderr=-1, stdout=-1, universal_newlines=True),
-                                     call(['chmod', '-R', 'g-w,o-w', self.desiInstall.install_dir], stderr=-1, stdout=-1, universal_newlines=True)],
-                                     any_order=True)
+        mock_walk.return_value = iter([(join(self.desiInstall.install_dir, 'bin'), [], ['executable', 'README.txt']),
+                                       (join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil-1.2.3.dist-info'), [], ['METADATA', 'LICENSE.rst']),
+                                       (join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', '__pycache__'), [], ['__init__.cpython-3.10.pyc', 'module.cpython-3.10.pyc']),
+                                       (join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil'), ['__pycache__'], ['__init__.py', 'module.py']),
+                                       (join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages'), ['desiutil-1.2.3.dist-info', 'desiutil'], []),
+                                       (join(self.desiInstall.install_dir, 'lib', 'python3.10'), ['site-packages'], []),
+                                       (join(self.desiInstall.install_dir, 'lib'), ['python3.10'], []),
+                                       (self.desiInstall.install_dir, ['bin', 'lib'], [])])
+        self.desiInstall.permissions()
+        mock_walk.assert_called_once_with(self.desiInstall.install_dir, topdown=False)
+        mock_chmod.assert_has_calls([call(join(self.desiInstall.install_dir, 'bin', 'executable'), 0o755),
+                                     call(join(self.desiInstall.install_dir, 'bin', 'README.txt'), 0o644),
+                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil-1.2.3.dist-info', 'METADATA'), 0o644),
+                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil-1.2.3.dist-info', 'LICENSE.rst'), 0o644),
+                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', '__pycache__', '__init__.cpython-3.10.pyc'), 0o644),
+                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', '__pycache__', 'module.cpython-3.10.pyc'), 0o644),
+                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', '__init__.py'), 0o644),
+                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', 'module.py'), 0o644),
+                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', '__pycache__'), 0o2755),
+                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil-1.2.3.dist-info'), 0o2755),
+                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil'), 0o2755),
+                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages'), 0o2755),
+                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10'), 0o2755),
+                                     call(join(self.desiInstall.install_dir, 'bin'), 0o2755),
+                                     call(join(self.desiInstall.install_dir, 'lib'), 0o2755),
+                                     call(self.desiInstall.install_dir, 0o2755)])
+        self.assertLog(-2, "os.chmod('%s', %s)" % (join(self.desiInstall.install_dir, 'lib'), 0o2755))
+        self.assertLog(-1, "os.chmod('%s', %s)" % (self.desiInstall.install_dir, 0o2755))
+
+    @patch('os.stat', replace_stat)
+    @patch('os.walk')
+    @patch('os.chmod')
+    def test_permissions_without_world(self, mock_chmod, mock_walk):
+        """Test the permission stage of the install, disabling world-read.
+        """
+        options = self.desiInstall.get_options(['--no-world', 'desiutil', '1.2.3'])
+        self.assertFalse(self.desiInstall.options.world)
+        self.desiInstall.install_dir = join(self.data_dir, 'desiutil')
+        self.desiInstall.is_branch = False
+        mock_walk.return_value = iter([(join(self.desiInstall.install_dir, 'bin'), [], ['executable', 'README.txt']),
+                                       (join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil-1.2.3.dist-info'), [], ['METADATA', 'LICENSE.rst']),
+                                       (join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', '__pycache__'), [], ['__init__.cpython-3.10.pyc', 'module.cpython-3.10.pyc']),
+                                       (join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil'), ['__pycache__'], ['__init__.py', 'module.py']),
+                                       (join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages'), ['desiutil-1.2.3.dist-info', 'desiutil'], []),
+                                       (join(self.desiInstall.install_dir, 'lib', 'python3.10'), ['site-packages'], []),
+                                       (join(self.desiInstall.install_dir, 'lib'), ['python3.10'], []),
+                                       (self.desiInstall.install_dir, ['bin', 'lib'], [])])
+        self.desiInstall.permissions()
+        mock_walk.assert_called_once_with(self.desiInstall.install_dir, topdown=False)
+        mock_chmod.assert_has_calls([call(join(self.desiInstall.install_dir, 'bin', 'executable'), 0o550),
+                                     call(join(self.desiInstall.install_dir, 'bin', 'README.txt'), 0o440),
+                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil-1.2.3.dist-info', 'METADATA'), 0o440),
+                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil-1.2.3.dist-info', 'LICENSE.rst'), 0o440),
+                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', '__pycache__', '__init__.cpython-3.10.pyc'), 0o440),
+                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', '__pycache__', 'module.cpython-3.10.pyc'), 0o440),
+                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', '__init__.py'), 0o440),
+                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', 'module.py'), 0o440),
+                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', '__pycache__'), 0o2550),
+                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil-1.2.3.dist-info'), 0o2550),
+                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil'), 0o2550),
+                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages'), 0o2550),
+                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10'), 0o2550),
+                                     call(join(self.desiInstall.install_dir, 'bin'), 0o2550),
+                                     call(join(self.desiInstall.install_dir, 'lib'), 0o2550),
+                                     call(self.desiInstall.install_dir, 0o2550)])
+        self.assertLog(-2, "os.chmod('%s', %s)" % (join(self.desiInstall.install_dir, 'lib'), 0o2550))
+        self.assertLog(-1, "os.chmod('%s', %s)" % (self.desiInstall.install_dir, 0o2550))
+
+    @patch('os.stat', replace_stat)
+    @patch('os.walk')
+    @patch('os.chmod')
+    def test_permissions_with_branch_without_world(self, mock_chmod, mock_walk):
+        """Test the permission stage of the install, on a branch, disabling world-read.
+        """
+        options = self.desiInstall.get_options(['--no-world', 'desiutil', 'branches/main'])
+        self.assertFalse(self.desiInstall.options.world)
+        self.desiInstall.install_dir = join(self.data_dir, 'desiutil')
+        self.desiInstall.is_branch = True
+        mock_walk.return_value = iter([(join(self.desiInstall.install_dir, 'bin'), [], ['executable', 'README.txt']),
+                                       (join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil-1.2.3.dist-info'), [], ['METADATA', 'LICENSE.rst']),
+                                       (join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', '__pycache__'), [], ['__init__.cpython-3.10.pyc', 'module.cpython-3.10.pyc']),
+                                       (join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil'), ['__pycache__'], ['__init__.py', 'module.py']),
+                                       (join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages'), ['desiutil-1.2.3.dist-info', 'desiutil'], []),
+                                       (join(self.desiInstall.install_dir, 'lib', 'python3.10'), ['site-packages'], []),
+                                       (join(self.desiInstall.install_dir, 'lib'), ['python3.10'], []),
+                                       (self.desiInstall.install_dir, ['bin', 'lib'], [])])
+        self.desiInstall.permissions()
+        mock_walk.assert_called_once_with(self.desiInstall.install_dir, topdown=False)
+        mock_chmod.assert_has_calls([call(join(self.desiInstall.install_dir, 'bin', 'executable'), 0o750),
+                                     call(join(self.desiInstall.install_dir, 'bin', 'README.txt'), 0o640),
+                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil-1.2.3.dist-info', 'METADATA'), 0o640),
+                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil-1.2.3.dist-info', 'LICENSE.rst'), 0o640),
+                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', '__pycache__', '__init__.cpython-3.10.pyc'), 0o640),
+                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', '__pycache__', 'module.cpython-3.10.pyc'), 0o640),
+                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', '__init__.py'), 0o640),
+                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', 'module.py'), 0o640),
+                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', '__pycache__'), 0o2750),
+                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil-1.2.3.dist-info'), 0o2750),
+                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil'), 0o2750),
+                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages'), 0o2750),
+                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10'), 0o2750),
+                                     call(join(self.desiInstall.install_dir, 'bin'), 0o2750),
+                                     call(join(self.desiInstall.install_dir, 'lib'), 0o2750),
+                                     call(self.desiInstall.install_dir, 0o2750)])
+        self.assertLog(-2, "os.chmod('%s', %s)" % (join(self.desiInstall.install_dir, 'lib'), 0o2750))
+        self.assertLog(-1, "os.chmod('%s', %s)" % (self.desiInstall.install_dir, 0o2750))
 
     @patch('desiutil.install.Popen')
     def test_unlock_permissions(self, mock_popen):
@@ -625,7 +781,7 @@ exit(main())
         status = self.desiInstall.unlock_permissions()
         self.assertEqual(status, 0)
         mock_popen.assert_has_calls([call(['chmod', '-R', 'u+w', self.desiInstall.install_dir], stderr=-1, stdout=-1, universal_newlines=True)],
-                                     any_order=True)
+                                    any_order=True)
 
     def test_cleanup(self):
         """Test the cleanup stage of the install.
@@ -638,11 +794,3 @@ exit(main())
         self.desiInstall.cleanup()
         self.assertEqual(getcwd(), self.desiInstall.original_dir)
         self.assertFalse(isdir(self.desiInstall.working_dir))
-
-
-def test_suite():
-    """Allows testing of only this module with the command::
-
-        python setup.py test -m <modulename>
-    """
-    return unittest.defaultTestLoader.loadTestsFromName(__name__)

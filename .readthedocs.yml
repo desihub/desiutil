@@ -8,13 +8,14 @@ version: 2
 # Build documentation in the doc/ directory with Sphinx
 sphinx:
     configuration: doc/conf.py
+    fail_on_warning: true
 
 # Optionally build your docs in additional formats such as PDF and ePub
 formats: all
 
 # Optionally set the version of Python and requirements required to build your docs
 python:
-    version: 3
-    # system_packages: true
+    version: "3.8"
+    system_packages: true
     install:
       - requirements: doc/rtd-requirements.txt

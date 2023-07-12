@@ -313,7 +313,7 @@ class Bricks(object):
                                             self._edges_dec[1:],
                                             self._center_ra, self._center_dec):
             # We take the first column in each row (tiles in a row are all the same size)
-            ra1,ra2 = ras[0],ras[1]
+            ra1, ra2 = ras[0], ras[1]
             ra = ra[0]
             # Create mock WCS with 1" pixels.
             cd = 1./3600.
@@ -322,13 +322,13 @@ class Bricks(object):
             w.wcs.crpix = [1., 1.]
             w.wcs.crval = [ra, dec]
             w.wcs.cd = [[-cd, 0.], [0., cd]]
-            x,y = w.wcs_world2pix([ra1,  ra,   ra2,  ra2, ra2,  ra,   ra1,  ra1],
-                                  [dec1, dec1, dec1, dec, dec2, dec2, dec2, dec], 0)
+            x, y = w.wcs_world2pix([ra1,  ra,   ra2,  ra2, ra2,  ra,   ra1,  ra1],
+                                   [dec1, dec1, dec1, dec, dec2, dec2, dec2, dec], 0)
             # We could simplify this by taking abs() values earlier
             minx = min(minx, int(np.floor(min(x))))
             miny = min(miny, int(np.floor(min(y))))
-            maxx = max(maxx, int(np.ceil (max(x))))
-            maxy = max(maxy, int(np.ceil (max(y))))
+            maxx = max(maxx, int(np.ceil(max(x))))
+            maxy = max(maxy, int(np.ceil(max(y))))
         mx = max(maxx, maxy, abs(minx), abs(miny))
         return 2. * mx * cd
 

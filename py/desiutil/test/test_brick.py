@@ -391,11 +391,3 @@ class TestBrick(unittest.TestCase):
         b = B.Bricks(bricksize=4.)
         sz = b.brick_tan_wcs_size()
         self.assertAlmostEqual(sz, 4.23111111, places=6)
-
-
-def test_suite():
-    """Allows testing of only this module with the command::
-
-        python setup.py test -m <modulename>
-    """
-    return unittest.defaultTestLoader.loadTestsFromName(__name__)
