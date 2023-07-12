@@ -40,12 +40,16 @@ def extinction_total_to_selective_ratio(band, photsys, match_legacy_surveys=Fals
         # for the DR8 target catalogs and propagated in fibermaps
         # R_X = -2.5*log10(MW_TRANSMISSION_X) / EBV
         # It is the same value for the N and S surveys in DR8 and DR9 catalogs.
+        # From https://github.com/dstndstn/tractor/blob/main/tractor/sfd.py#L26
         R={"G_N":3.2140,
            "R_N":2.1650,
            "Z_N":1.2110,
+           "U_S":3.995,
            "G_S":3.2140,
            "R_S":2.1650,
+           "I_S":1.592,
            "Z_S":1.2110,
+           "Y_S":1.064,
            "G_G":2.512,
            "BP_G":3.143,
            "RP_G":1.663,
@@ -66,9 +70,12 @@ def extinction_total_to_selective_ratio(band, photsys, match_legacy_surveys=Fals
         R={"G_N":3.258,
            "R_N":2.176,
            "Z_N":1.199,
+           "U_S":3.994,
            "G_S":3.212,
            "R_S":2.164,
+           "I_S":1.591,
            "Z_S":1.211,
+           "Y_S":1.063,
            "G_G":2.197,
            "BP_G":2.844,
            "RP_G":1.622,
@@ -87,7 +94,7 @@ def extinction_total_to_selective_ratio(band, photsys, match_legacy_surveys=Fals
         'W4_S': 0.00910
         })
 
-    assert(band.upper() in ["G","R","Z","BP","RP",'W1','W2','W3','W4'])
+    assert(band.upper() in ["U","G","R","I","Z","Y","BP","RP",'W1','W2','W3','W4'])
     assert(photsys.upper() in ["N","S","G"])
     return R["{}_{}".format(band.upper(),photsys.upper())]
 
