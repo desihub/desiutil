@@ -41,21 +41,21 @@ def extinction_total_to_selective_ratio(band, photsys, match_legacy_surveys=Fals
         # R_X = -2.5*log10(MW_TRANSMISSION_X) / EBV
         # It is the same value for the N and S surveys in DR8 and DR9 catalogs.
         # From https://github.com/dstndstn/tractor/blob/main/tractor/sfd.py#L26
-        R={"U_N":3.995,
-           "G_N":3.2140,
-           "R_N":2.1650,
-           "I_N":1.592,
-           "Z_N":1.2110,
-           "Y_N":1.064,
-           "U_S":3.995,
-           "G_S":3.2140,
-           "R_S":2.1650,
-           "I_S":1.592,
-           "Z_S":1.2110,
-           "Y_S":1.064,
-           "G_G":2.512,
-           "BP_G":3.143,
-           "RP_G":1.663,
+        R={"U_N": 3.995,
+           "G_N": 3.2140,
+           "R_N": 2.1650,
+           "I_N": 1.592,
+           "Z_N": 1.2110,
+           "Y_N": 1.064,
+           "U_S": 3.995,
+           "G_S": 3.2140,
+           "R_S": 2.1650,
+           "I_S": 1.592,
+           "Z_S": 1.2110,
+           "Y_S": 1.064,
+           "G_G": 2.512,
+           "BP_G": 3.143,
+           "RP_G": 1.663,
         }
     else :
         # From https://desi.lbl.gov/trac/wiki/ImagingStandardBandpass
@@ -70,21 +70,21 @@ def extinction_total_to_selective_ratio(band, photsys, match_legacy_surveys=Fals
         # MzLS z  9185.1   1.199
         # Consistent with the synthetic magnitudes and function dust_transmission
 
-        R={"U_N":3.994,
-           "G_N":3.258,
-           "R_N":2.176,
-           "I_N":1.591,
-           "Z_N":1.199,
-           "Y_N":1.063,
-           "U_S":3.994,
-           "G_S":3.212,
-           "R_S":2.164,
-           "I_S":1.591,
-           "Z_S":1.211,
-           "Y_S":1.063,
-           "G_G":2.197,
-           "BP_G":2.844,
-           "RP_G":1.622,
+        R={"U_N": 3.994,
+           "G_N": 3.258,
+           "R_N": 2.176,
+           "I_N": 1.591,
+           "Z_N": 1.199,
+           "Y_N": 1.063,
+           "U_S": 3.994,
+           "G_S": 3.212,
+           "R_S": 2.164,
+           "I_S": 1.591,
+           "Z_S": 1.211,
+           "Y_S": 1.063,
+           "G_G": 2.197,
+           "BP_G": 2.844,
+           "RP_G": 1.622,
         }
 
     # Add WISE from
