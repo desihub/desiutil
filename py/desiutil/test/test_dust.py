@@ -144,11 +144,6 @@ class TestDust(unittest.TestCase):
             rb2 = dust.extinction_total_to_selective_ratio(band, 'S')
             self.assertEqual(rb1, rb2)
 
-        # UIY only exist for the South (DECam)
-        with self.assertRaises(AssertionError):
-            for band in ['U', 'I', 'Y']:            
-                rb = dust.extinction_total_to_selective_ratio(band, 'N')
-
         # B is not a supported band (G,R,Z)
         with self.assertRaises(AssertionError):
             rb = dust.extinction_total_to_selective_ratio('B', 'N')
