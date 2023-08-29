@@ -28,7 +28,7 @@ class TestAnnotate(unittest.TestCase):
         options = _options()
         self.assertTrue(options.verbose)
         self.assertIsNone(options.csv)
-        self.assertEqual(options.extension, '0')
+        self.assertEqual(options.extension, '1')
 
     def test_csv_unit_column(self):
         """Test identification of unit column.
