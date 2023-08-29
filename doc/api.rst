@@ -5,6 +5,9 @@ desiutil API
 .. automodule:: desiutil
     :members:
 
+.. automodule:: desiutil.annotate
+    :members:
+
 .. automodule:: desiutil.api
     :members:
 
