@@ -8,8 +8,9 @@ Change Log
 *Planned*:
 
 * Remove deprecated commands in :mod:`desiutil.setup`.
+* Remove deprecated module :mod:`desiutil.census`.
 
-3.3.2 (unreleased)
+3.4.0 (unreleased)
 ------------------
 
 * Add tools for adding units to FITS table columns.
