@@ -61,7 +61,7 @@ class TestAnnotate(unittest.TestCase):
             k = find_key_name({'RA': 'deg', 'DEC': 'deg', 'COLUMN': None}, prefix=('comment', 'description'))
         self.assertEqual(e.exception.args[0], "No key matching 'comment' found!")
 
-    @patch('desiutil.annotate.log')
+    @patch('desiutil.annotate.get_logger')
     def test_load_csv_units(self, mock_log):
         """Test parsing of units in a CSV file.
         """
@@ -77,7 +77,7 @@ DEC,float32,deg,Declination"""
         self.assertEqual(units['COLUMN1'], '')
         self.assertEqual(comments['COLUMN1'], 'This is a comment.')
 
-    @patch('desiutil.annotate.log')
+    @patch('desiutil.annotate.get_logger')
     def test_load_csv_units_no_comment(self, mock_log):
         """Test parsing of units in a CSV file without comments.
         """
@@ -93,7 +93,7 @@ DEC,float32,deg"""
         self.assertEqual(units['COLUMN1'], '')
         self.assertFalse(bool(comments))
 
-    @patch('desiutil.annotate.log')
+    @patch('desiutil.annotate.get_logger')
     def test_load_csv_units_no_units(self, mock_log):
         """Test parsing of units in a CSV file with bad units.
         """
@@ -108,7 +108,7 @@ DEC,float32,deg"""
             units, comments = load_csv_units(unitsFile)
         self.assertEqual(str(e.exception), f"{unitsFile} does not have a unit column!")
 
-    @patch('desiutil.annotate.log')
+    @patch('desiutil.annotate.get_logger')
     def test_load_yml_units(self, mock_log):
         """Test parsing of YAML input.
         """
@@ -124,9 +124,9 @@ DEC,float32,deg"""
         self.assertEqual(units['RA'], 'deg')
         self.assertIsNone(units['COLUMN'])
         self.assertFalse(bool(comments))
-        mock_log.warning.assert_not_called()
+        mock_log().warning.assert_not_called()
 
-    @patch('desiutil.annotate.log')
+    @patch('desiutil.annotate.get_logger')
     def test_load_yml_units_backward(self, mock_log):
         """Test parsing of older-style YAML input.
         """
@@ -141,9 +141,9 @@ COLUMN:
         self.assertEqual(units['RA'], 'deg')
         self.assertIsNone(units['COLUMN'])
         self.assertFalse(bool(comments))
-        mock_log.warning.assert_called_once_with(f'{unitsFile} does not have a unit column, assuming keys are columns!')
+        mock_log().warning.assert_called_once_with(f'{unitsFile} does not have a unit column, assuming keys are columns!')
 
-    @patch('desiutil.annotate.log')
+    @patch('desiutil.annotate.get_logger')
     def test_load_yml_units_comments(self, mock_log):
         """Test parsing of YAML input with units and comments.
         """
@@ -162,9 +162,9 @@ Comments:
         units, comments = load_yml_units(unitsFile)
         self.assertEqual(comments['RA'], 'deg')
         self.assertEqual(comments['COLUMN'], 'dimensionless')
-        mock_log.warning.assert_not_called()
+        mock_log().warning.assert_not_called()
 
-    @patch('desiutil.annotate.log')
+    @patch('desiutil.annotate.get_logger')
     def test_annotate_table(self, mock_log):
         """Test adding units to table columns.
         """
@@ -178,14 +178,14 @@ Comments:
         tt = annotate_table(t, u)
         self.assertEqual(tt['a'].unit, 'm')
         self.assertEqual(tt['b'].unit, 'deg')
-        mock_log.debug.assert_has_calls([call("t['%s'].unit = '%s'", 'a', 'm'),
+        mock_log().debug.assert_has_calls([call("t['%s'].unit = '%s'", 'a', 'm'),
                                          call("t['%s'].unit = '%s'", 'b', 'deg'),
                                          call("Not setting blank unit for column '%s'.", 'c'),
                                          call("Not setting blank unit for column '%s'.", 'd'),
                                          call("Column '%s' not present in table.", 'e')])
-        mock_log.info.assert_called_once_with("Column '%s' not found in units argument.", 'f')
+        mock_log().info.assert_called_once_with("Column '%s' not found in units argument.", 'f')
 
-    @patch('desiutil.annotate.log')
+    @patch('desiutil.annotate.get_logger')
     def test_annotate_table_inplace(self, mock_log):
         """Test adding units to table columns.
         """
@@ -200,7 +200,7 @@ Comments:
         self.assertEqual(t['b'].unit, 'deg')
         self.assertIs(t, tt)
 
-    @patch('desiutil.annotate.log')
+    @patch('desiutil.annotate.get_logger')
     def test_annotate_qtable(self, mock_log):
         """Test adding units to qtable columns.
         """
@@ -214,14 +214,14 @@ Comments:
         tt = annotate_table(t, u)
         self.assertEqual(tt['a'].unit, 'm')
         self.assertEqual(tt['b'].unit, 'deg')
-        mock_log.debug.assert_has_calls([call("t['%s'].unit = '%s'", 'a', 'm'),
+        mock_log().debug.assert_has_calls([call("t['%s'].unit = '%s'", 'a', 'm'),
                                          call("t['%s'].unit = '%s'", 'b', 'deg'),
                                          call("Not setting blank unit for column '%s'.", 'c'),
                                          call("Not setting blank unit for column '%s'.", 'd'),
                                          call("Column '%s' not present in table.", 'e')])
-        mock_log.info.assert_called_once_with("Column '%s' not found in units argument.", 'f')
+        mock_log().info.assert_called_once_with("Column '%s' not found in units argument.", 'f')
 
-    @patch('desiutil.annotate.log')
+    @patch('desiutil.annotate.get_logger')
     def test_annotate_qtable_with_units_present(self, mock_log):
         """Test adding units to table columns with existing units.
         """
@@ -235,15 +235,15 @@ Comments:
         tt = annotate_table(t, u)
         self.assertEqual(tt['a'].unit, 'cm')
         self.assertEqual(tt['b'].unit, 'deg')
-        mock_log.debug.assert_has_calls([call("t['%s'].unit = '%s'", 'a', 'cm'),
+        mock_log().debug.assert_has_calls([call("t['%s'].unit = '%s'", 'a', 'cm'),
                                          call("t.replace_column('%s', t['%s'].to('%s'))", 'a', 'a', 'cm'),
                                          call("t['%s'].unit = '%s'", 'b', 'deg'),
                                          call("Not setting blank unit for column '%s'.", 'c'),
                                          call("Not setting blank unit for column '%s'.", 'd'),
                                          call("Column '%s' not present in table.", 'e')])
-        mock_log.info.assert_not_called()
+        mock_log().info.assert_not_called()
 
-    @patch('desiutil.annotate.log')
+    @patch('desiutil.annotate.get_logger')
     def test_annotate_qtable_with_units_present_bad_conversion(self, mock_log):
         """Test adding units to table columns with existing units.
         """
@@ -257,11 +257,11 @@ Comments:
         tt = annotate_table(t, u)
         self.assertEqual(tt['a'].unit, 'm')
         self.assertEqual(tt['b'].unit, 'deg')
-        mock_log.debug.assert_has_calls([call("t['%s'].unit = '%s'", 'a', 'A'),
+        mock_log().debug.assert_has_calls([call("t['%s'].unit = '%s'", 'a', 'A'),
                                          call("t.replace_column('%s', t['%s'].to('%s'))", 'a', 'a', 'A'),
                                          call("t['%s'].unit = '%s'", 'b', 'deg'),
                                          call("Not setting blank unit for column '%s'.", 'c'),
                                          call("Not setting blank unit for column '%s'.", 'd'),
                                          call("Column '%s' not present in table.", 'e')])
-        mock_log.info.assert_not_called()
-        mock_log.error.assert_has_calls([call("Cannot add or replace unit '%s' to column '%s'!", 'A', 'a')])
+        mock_log().info.assert_not_called()
+        mock_log().error.assert_has_calls([call("Cannot add or replace unit '%s' to column '%s'!", 'A', 'a')])

@@ -19,9 +19,6 @@ from . import __version__ as desiutilVersion
 from .log import get_logger, DEBUG
 
 
-log = None
-
-
 def find_column_name(columns, prefix=('unit', )):
     """Find the column that contains unit descriptions, or comments.
 
@@ -100,6 +97,7 @@ def load_csv_units(filename):
     ValueError
         If `filename` does not at least contain a "unit" column.
     """
+    log = get_logger()
     units = dict()
     comments = dict()
     header = None
@@ -150,6 +148,7 @@ def load_yml_units(filename):
         A tuple containing two :class:`dict` objects for units and comments.
         If no comments are detected, the comments :class:`dict` will be empty.
     """
+    log=get_logger()
     comments = dict()
     # log.debug("y = yaml.safe_load('%s')", filename)
     with open(filename, newline='') as f:
@@ -196,6 +195,7 @@ def annotate_table(table, units, inplace=False):
     could be written to a file. If this ever changes, this function could
     be extended to add comments.
     """
+    log = get_logger()
     if inplace:
         t = table
     else:
@@ -249,6 +249,7 @@ def annotate(filename, extension, units=None, comments=None):
     :class:`astropy.io.fits.HDUList`
         An updated version of the file.
     """
+    log = get_logger()
     new_hdus = list()
     with fits.open(filename, mode='readonly', memmap=False, lazy_load_hdus=False, uint=False, disable_image_compression=True, do_not_scale_image_data=True, character_as_bytes=True, scale_back=True) as hdulist:
         log.debug(hdulist._open_kwargs)
@@ -336,7 +337,6 @@ def main():
     :class:`int`
         An integer suitable for passing to :func:`sys.exit`.
     """
-    global log
     options = _options()
     if options.test or options.verbose:
         log = get_logger(DEBUG)
