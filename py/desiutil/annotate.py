@@ -148,7 +148,7 @@ def load_yml_units(filename):
         A tuple containing two :class:`dict` objects for units and comments.
         If no comments are detected, the comments :class:`dict` will be empty.
     """
-    log=get_logger()
+    log = get_logger()
     comments = dict()
     # log.debug("y = yaml.safe_load('%s')", filename)
     with open(filename, newline='') as f:

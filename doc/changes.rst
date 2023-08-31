@@ -13,7 +13,9 @@ Change Log
 3.4.0 (unreleased)
 ------------------
 
-* Add tools for adding units to FITS table columns.
+* Add tools for adding units to table columns: FITS and :class:`~astropy.table.Table` (PR `#199`_).
+
+.. _`#199`: https://github.com/desihub/desiutil/pull/199
 
 3.3.1 (2023-06-13)
 ------------------

@@ -179,10 +179,10 @@ Comments:
         self.assertEqual(tt['a'].unit, 'm')
         self.assertEqual(tt['b'].unit, 'deg')
         mock_log().debug.assert_has_calls([call("t['%s'].unit = '%s'", 'a', 'm'),
-                                         call("t['%s'].unit = '%s'", 'b', 'deg'),
-                                         call("Not setting blank unit for column '%s'.", 'c'),
-                                         call("Not setting blank unit for column '%s'.", 'd'),
-                                         call("Column '%s' not present in table.", 'e')])
+                                           call("t['%s'].unit = '%s'", 'b', 'deg'),
+                                           call("Not setting blank unit for column '%s'.", 'c'),
+                                           call("Not setting blank unit for column '%s'.", 'd'),
+                                           call("Column '%s' not present in table.", 'e')])
         mock_log().info.assert_called_once_with("Column '%s' not found in units argument.", 'f')
 
     @patch('desiutil.annotate.get_logger')
@@ -215,10 +215,10 @@ Comments:
         self.assertEqual(tt['a'].unit, 'm')
         self.assertEqual(tt['b'].unit, 'deg')
         mock_log().debug.assert_has_calls([call("t['%s'].unit = '%s'", 'a', 'm'),
-                                         call("t['%s'].unit = '%s'", 'b', 'deg'),
-                                         call("Not setting blank unit for column '%s'.", 'c'),
-                                         call("Not setting blank unit for column '%s'.", 'd'),
-                                         call("Column '%s' not present in table.", 'e')])
+                                           call("t['%s'].unit = '%s'", 'b', 'deg'),
+                                           call("Not setting blank unit for column '%s'.", 'c'),
+                                           call("Not setting blank unit for column '%s'.", 'd'),
+                                           call("Column '%s' not present in table.", 'e')])
         mock_log().info.assert_called_once_with("Column '%s' not found in units argument.", 'f')
 
     @patch('desiutil.annotate.get_logger')
@@ -236,11 +236,11 @@ Comments:
         self.assertEqual(tt['a'].unit, 'cm')
         self.assertEqual(tt['b'].unit, 'deg')
         mock_log().debug.assert_has_calls([call("t['%s'].unit = '%s'", 'a', 'cm'),
-                                         call("t.replace_column('%s', t['%s'].to('%s'))", 'a', 'a', 'cm'),
-                                         call("t['%s'].unit = '%s'", 'b', 'deg'),
-                                         call("Not setting blank unit for column '%s'.", 'c'),
-                                         call("Not setting blank unit for column '%s'.", 'd'),
-                                         call("Column '%s' not present in table.", 'e')])
+                                           call("t.replace_column('%s', t['%s'].to('%s'))", 'a', 'a', 'cm'),
+                                           call("t['%s'].unit = '%s'", 'b', 'deg'),
+                                           call("Not setting blank unit for column '%s'.", 'c'),
+                                           call("Not setting blank unit for column '%s'.", 'd'),
+                                           call("Column '%s' not present in table.", 'e')])
         mock_log().info.assert_not_called()
 
     @patch('desiutil.annotate.get_logger')
@@ -258,10 +258,10 @@ Comments:
         self.assertEqual(tt['a'].unit, 'm')
         self.assertEqual(tt['b'].unit, 'deg')
         mock_log().debug.assert_has_calls([call("t['%s'].unit = '%s'", 'a', 'A'),
-                                         call("t.replace_column('%s', t['%s'].to('%s'))", 'a', 'a', 'A'),
-                                         call("t['%s'].unit = '%s'", 'b', 'deg'),
-                                         call("Not setting blank unit for column '%s'.", 'c'),
-                                         call("Not setting blank unit for column '%s'.", 'd'),
-                                         call("Column '%s' not present in table.", 'e')])
+                                           call("t.replace_column('%s', t['%s'].to('%s'))", 'a', 'a', 'A'),
+                                           call("t['%s'].unit = '%s'", 'b', 'deg'),
+                                           call("Not setting blank unit for column '%s'.", 'c'),
+                                           call("Not setting blank unit for column '%s'.", 'd'),
+                                           call("Column '%s' not present in table.", 'e')])
         mock_log().info.assert_not_called()
         mock_log().error.assert_has_calls([call("Cannot add or replace unit '%s' to column '%s'!", 'A', 'a')])
