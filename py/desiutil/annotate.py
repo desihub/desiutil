@@ -22,42 +22,67 @@ from .log import get_logger, DEBUG
 log = None
 
 
-def csv_unit_column(header, comment=False):
+def find_column_name(columns, prefix=('unit', )):
     """Find the column that contains unit descriptions, or comments.
 
     Parameters
     ----------
-    header : iterable
-        The column names from a CSV file.
-    comment : :class:`bool`, optional
-        If ``True``, look for a column matching 'comment'.
+    columns : iterable
+        The column names from a CSV or similar file.
+    prefix : :class:`tuple`, optional
+        Search for a column matching one or more items in `prefix`.
+        The search is case-insensitive.
 
     Returns
     -------
     :class:`int`
-        The index of `header` that matches.
+        The index of `columns` that matches.
 
     Raises
     ------
     IndexError
         If no match was found.
     """
-    search = ('unit', )
-    if comment:
-        search = ('comment', 'description')
-    for i, column in enumerate(header):
-        for s in search:
+    for i, column in enumerate(columns):
+        for s in prefix:
             if s in column.lower():
                 return i
-    raise IndexError(f"No column matching '{search[0]}' found!")
+    raise IndexError(f"No column matching '{prefix[0]}' found!")
 
 
-def csv_units(filename):
+def find_key_name(data, prefix=('unit', )):
+    """
+    Parameters
+    ----------
+    data : :class:`dict`
+        A dictionary resulting from a parsed YAML file.
+    prefix : :class:`tuple`, optional
+        Search for a column matching one or more items in `prefix`.
+        The search is case-insensitive.
+
+    Returns
+    -------
+    :class:`str`
+        The key of `data` that matches.
+
+    Raises
+    ------
+    KeyError
+        If no match was found.
+    """
+    for key in data.keys():
+        for s in prefix:
+            if s in key.lower():
+                return key
+    raise KeyError(f"No key matching '{prefix[0]}' found!")
+
+
+def load_csv_units(filename):
     """Parse a CSV file that contains column names and units and optionally comments.
 
     Table column names are assumed to be in the first column of the CSV file.
     Any column with the name "Unit(s)" (case-insensitive) is assumed to contain FITS-style units.
-    Any column with the name "Comment(s)" (case-insensitive) is assumed to be the comment.
+    Any column with the name "Comment(s)" (case-insensitive) or "Description(s)" is assumed to be the comment.
 
     Parameters
     ----------
@@ -89,11 +114,11 @@ def csv_units(filename):
                 data.append(row)
     log.debug(header)
     try:
-        u = csv_unit_column(header)
+        u = find_column_name(header)
     except IndexError:
         raise ValueError(f"{filename} does not have a unit column!")
     try:
-        c = csv_unit_column(header, comment=True)
+        c = find_column_name(header, prefix=('comment', 'description'))
     except IndexError:
         c = None
     for row in data:
@@ -105,40 +130,11 @@ def csv_units(filename):
     return (units, comments)
 
 
-def yml_unit_key(data, comment=False):
-    """
-    Parameters
-    ----------
-    data : :class:`dict`
-        A dictionary resulting from a parsed YAML file.
-    comment : :class:`bool`, optional
-        If ``True``, look for a key matching 'comment'.
-
-    Returns
-    -------
-    :class:`str`
-        The key of `data` that matches.
-
-    Raises
-    ------
-    KeyError
-        If no match was found.
-    """
-    search = ('unit', )
-    if comment:
-        search = ('comment', 'description')
-    for key in data.keys():
-        for s in search:
-            if s in key.lower():
-                return key
-    raise KeyError(f"No key matching '{search[0]}' found!")
-
-
-def yml_units(filename):
+def load_yml_units(filename):
     """Parse a YAML file that contains column names and units and optionally comments.
 
     The YAML file should contain a dictionary with a keyword like 'units' and,
-    optionally, a keyword like 'comments'.
+    optionally, a keyword like 'comments' or 'description.
 
     For backwards-compatibility, the YAML file can be simply a dictionary
     containing column names.
@@ -159,12 +155,12 @@ def yml_units(filename):
     with open(filename, newline='') as f:
         y = yaml.safe_load(f)
     try:
-        u = yml_unit_key(y)
+        u = find_key_name(y)
     except KeyError:
         log.warning(f"{filename} does not have a unit column, assuming keys are columns!")
         u = None
     try:
-        c = yml_unit_key(y, comment=True)
+        c = find_key_name(y, prefix=('comment', 'description'))
     except KeyError:
         c = None
     if u:
@@ -176,7 +172,7 @@ def yml_units(filename):
     return (units, comments)
 
 
-def annotate_table(table, units, comments=None, inplace=False):
+def annotate_table(table, units, inplace=False):
     """Add annotations to `table`.
 
     Parameters
@@ -185,8 +181,6 @@ def annotate_table(table, units, comments=None, inplace=False):
         A data table.
     units : :class:`dict`
         Mapping of table columns to units.
-    comments : :class:`dict`, optional
-        Mapping of table columns to comments.
     inplace : :class:`bool`, optional
         If ``True``, modify `table` directly instead of returning a copy.
 
@@ -194,6 +188,13 @@ def annotate_table(table, units, comments=None, inplace=False):
     -------
     :class:`astropy.table.Table`
         An updated version of `table`.
+
+    Notes
+    -----
+    Currently :class:`~astropy.table.Table` does not support the concept
+    of column-specific comments, especially in a way where the comments
+    could be written to a file. If this ever changes, this function could
+    be extended to add comments.
     """
     if inplace:
         t = table
@@ -202,6 +203,9 @@ def annotate_table(table, units, comments=None, inplace=False):
             t = QTable(table)  # copy=True is the default.
         else:
             t = Table(table)
+    for colname in t.colnames:
+        if colname not in units:
+            log.info("Column '%s' not found in units argument.", colname)
     for column in units:
         if column in t.colnames:
             if len(units[column]) > 0:
@@ -218,9 +222,9 @@ def annotate_table(table, units, comments=None, inplace=False):
                     except UnitConversionError:
                         log.error("Cannot add or replace unit '%s' to column '%s'!", units[column], column)
             else:
-                log.info("Not setting blank unit for column '%s'.", column)
+                log.debug("Not setting blank unit for column '%s'.", column)
         else:
-            log.info("Column '%s' not present in table.", column)
+            log.debug("Column '%s' not present in table.", column)
     return t
 
 
@@ -233,7 +237,7 @@ def annotate(filename, extension, units=None, comments=None):
     ----------
     filename : :class:`str`
         Name of FITS file.
-    extension : :class:`str` or :class:`int`
+    extension : :class:`str` or :class:`int
         Name or number of extension in `filename`.
     units : :class:`dict`, optional
         Mapping of table columns to units.
@@ -317,8 +321,8 @@ def _options():
     parser.add_argument('-V', '--version', action='version', version='%(prog)s ' + desiutilVersion)
     parser.add_argument('-Y', '--yaml', action='store', dest='yaml', metavar='YAML',
                         help="Read annotations from YAML file.")
-    parser.add_argument('fits', metavar='FITS', help='FITS file to modify.')
-    parser.add_argument('output', metavar='FITS', nargs='?',
+    parser.add_argument('fits', metavar='INPUT_FITS', help='FITS file to modify.')
+    parser.add_argument('output', metavar='OUTPUT_FITS', nargs='?',
                         help='Write to new FITS file. If --overwrite is specified, this value is ignored.')
     options = parser.parse_args()
     return options
@@ -339,9 +343,9 @@ def main():
     else:
         log = get_logger()
     if options.csv:
-        units, comments = csv_units(options.csv)
+        units, comments = load_csv_units(options.csv)
     elif options.yaml:
-        units, comments = yml_units(options.yaml)
+        units, comments = load_yml_units(options.yaml)
     else:
         if options.units:
             units = dict(tuple(c.split('=')) for c in options.units.split(':'))
