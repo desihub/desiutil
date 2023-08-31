@@ -233,7 +233,7 @@ def annotate(filename, extension, units=None, comments=None):
     ----------
     filename : :class:`str`
         Name of FITS file.
-    extension : :class:`str` or :class:`int
+    extension : :class:`str` or :class:`int`
         Name or number of extension in `filename`.
     units : :class:`dict`, optional
         Mapping of table columns to units.
