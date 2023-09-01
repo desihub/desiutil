@@ -14,7 +14,7 @@ from argparse import ArgumentParser
 import yaml
 from astropy.io import fits
 from astropy.table import Table, QTable
-from astropy.units import UnitConversionError
+from astropy.units import Unit, UnitConversionError
 from . import __version__ as desiutilVersion
 from .log import get_logger, DEBUG
 
@@ -72,6 +72,48 @@ def find_key_name(data, prefix=('unit', )):
             if s in key.lower():
                 return key
     raise KeyError(f"No key matching '{prefix[0]}' found!")
+
+
+def validate_unit(unit, error=False):
+    """Check units for consistency with FITS standard, while allowing
+    some special exceptions.
+
+    Parameters
+    ----------
+    unit : :class:`str`
+        The unit to parse.
+    error : :class:`bool`, optional
+        If ``True``, failure to interpret the unit raises an
+        exception.
+
+    Returns
+    -------
+    :class:`str`
+        If a special exception is detected, the name of the unit
+        is returned.  Otherwise, ``None``.
+
+    Raises
+    ------
+    :exc:`ValueError`
+        If `error` is set and the unit can't be parsed.
+    """
+    log = get_logger()
+    acceptable_units = ('maggie', 'maggy', 'mgy',
+                        'electron/Angstrom',
+                        'log(Angstrom)')
+    try:
+        au = Unit(unit, format='fits')
+    except ValueError as e:
+        bad_unit = str(e).split()[0]
+        if any([u in bad_unit for u in acceptable_units]):
+            return bad_unit
+        else:
+            if error:
+                log.critical(str(e))
+                raise
+            else:
+                log.warning(str(e))
+    return None
 
 
 def load_csv_units(filename):
