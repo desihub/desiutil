@@ -97,6 +97,8 @@ def validate_unit(unit, error=False):
     :exc:`ValueError`
         If `error` is set and the unit can't be parsed.
     """
+    if unit is None:
+        return None
     log = get_logger()
     acceptable_units = ('maggie', 'maggy', 'mgy',
                         'electron/Angstrom',
@@ -104,8 +106,9 @@ def validate_unit(unit, error=False):
     try:
         au = Unit(unit, format='fits')
     except ValueError as e:
-        bad_unit = str(e).split()[0]
-        if any([u in bad_unit for u in acceptable_units]):
+        m = str(e)
+        bad_unit = m.split()[0]
+        if any([u in bad_unit for u in acceptable_units]) and 'Numeric factor' not in m:
             return bad_unit
         else:
             if error:

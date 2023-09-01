@@ -8,7 +8,7 @@ from tempfile import TemporaryDirectory
 from unittest.mock import patch, call
 import numpy as np
 from astropy.table import Table, QTable
-from ..annotate import annotate_table, find_column_name, find_key_name, load_csv_units, load_yml_units, _options
+from ..annotate import annotate_table, find_column_name, find_key_name, validate_unit, load_csv_units, load_yml_units, _options
 
 
 class TestAnnotate(unittest.TestCase):
@@ -18,6 +18,7 @@ class TestAnnotate(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.tmp = TemporaryDirectory()
+        cls.maxDiff = None
 
     @classmethod
     def tearDownClass(cls):
@@ -60,6 +61,33 @@ class TestAnnotate(unittest.TestCase):
         with self.assertRaises(KeyError) as e:
             k = find_key_name({'RA': 'deg', 'DEC': 'deg', 'COLUMN': None}, prefix=('comment', 'description'))
         self.assertEqual(e.exception.args[0], "No key matching 'comment' found!")
+
+    @patch('desiutil.annotate.get_logger')
+    def test_validate_unit(self, mock_log):
+        """Test function to validate units.
+        """
+        m = "'ergs' did not parse as fits unit: At col 0, Unit 'ergs' not supported by the FITS standard. Did you mean erg?"
+        d = "'1/deg^2' did not parse as fits unit: Numeric factor not supported by FITS"
+        f = "'1/nanomaggy^2' did not parse as fits unit: Numeric factor not supported by FITS"
+        l = " If this is meant to be a custom unit, define it with 'u.def_unit'. To have it recognized inside a file reader or other code, enable it with 'u.add_enabled_units'. For details, see https://docs.astropy.org/en/latest/units/combining_and_defining.html"
+        c = validate_unit(None)
+        self.assertIsNone(c)
+        c = validate_unit('erg')
+        self.assertIsNone(c)
+        c = validate_unit('ergs', error=False)
+        self.assertIsNone(c)
+        c = validate_unit('1/deg^2')
+        self.assertIsNone(c)
+        c = validate_unit('nanomaggies', error=True)
+        self.assertEqual(c, "'nanomaggies'")
+        with self.assertRaises(ValueError) as e:
+            c = validate_unit('ergs', error=True)
+        self.assertEqual(str(e.exception), m + l)
+        with self.assertRaises(ValueError) as e:
+            c = validate_unit('1/nanomaggy^2', error=True)
+        self.assertEqual(str(e.exception), f + l)
+        mock_log().warning.assert_has_calls([call(m + l), call(d + l)])
+        mock_log().critical.assert_has_calls([call(m + l), call(f + l)])
 
     @patch('desiutil.annotate.get_logger')
     def test_load_csv_units(self, mock_log):
