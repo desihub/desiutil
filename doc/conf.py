@@ -120,7 +120,7 @@ napoleon_include_private_with_doc = True
 # some external dependencies are not met at build time and break the
 # building process.
 autodoc_mock_imports = []
-for missing in ('numpy', 'astropy', 'matplotlib'):
+for missing in ('numpy', 'astropy', 'matplotlib', 'yaml'):
     try:
         foo = import_module(missing)
     except ImportError:
