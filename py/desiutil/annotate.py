@@ -273,7 +273,7 @@ def annotate_table(table, units, inplace=False):
     return t
 
 
-def annotate(filename, extension, units=None, comments=None):
+def annotate(filename, extension, output, units=None, comments=None, overwrite=False):
     """Add annotations to `filename`.
 
     If `units` or `comments` is an empty dictionary, it will be ignored.
@@ -284,64 +284,68 @@ def annotate(filename, extension, units=None, comments=None):
         Name of FITS file.
     extension : :class:`str` or :class:`int`
         Name or number of extension in `filename`.
+    output : :class:`str`
+        Name of file to write to.
     units : :class:`dict`, optional
         Mapping of table columns to units.
     comments : :class:`dict`, optional
         Mapping of table columns to comments.
+    overwrite : :class:`bool`, optional
+        Pass this keyword to :meth:`astropy.io.fits.HDUList.writeto`.
 
     Returns
     -------
     :class:`astropy.io.fits.HDUList`
         An updated version of the file.
+
+    Raises
+    ------
+    IndexError
+        If the HDU specified (numerically) by `extension` does not exist.
+    KeyError
+        If the HDU specified (as an ``EXTNAME``) by `extension` does not exist.
+    TypeError
+        If the HDU specified does not support units.
+    ValueError
+        If no input units or comments are specified.
+
+    Notes
+    -----
+    Due to the way :func:`astropy.io.fits.open` manages memory, changes
+    have to be written out, hence the mandatory `output` argument.
     """
     log = get_logger()
-    new_hdus = list()
-    with fits.open(filename, mode='readonly', memmap=False, lazy_load_hdus=False, uint=False, disable_image_compression=True, do_not_scale_image_data=True, character_as_bytes=True, scale_back=True) as hdulist:
-        log.debug(hdulist._open_kwargs)
-        kwargs = hdulist._open_kwargs.copy()
-        for h in hdulist:
-            hc = h.copy()
-            if hasattr(h, '_do_not_scale_image_data'):
-                hc._do_not_scale_image_data = h._do_not_scale_image_data
-            if hasattr(h, '_bzero'):
-                hc._bzero = h._bzero
-            if hasattr(h, '_bscale'):
-                hc._bzero = h._bscale
-            if hasattr(h, '_scale_back'):
-                hc._scale_back = h._scale_back
-            if hasattr(h, '_uint'):
-                hc._uint = h._uint
-            #
-            # Work around header comments not copied for BinTableHDU.
-            #
-            if isinstance(h, fits.BinTableHDU):
-                for key in h.header.keys():
-                    hc.header.comments[key] = h.header.comments[key]
-            #
-            # Work around disappearing BZERO and BSCALE keywords.
-            #
-            if isinstance(h, fits.ImageHDU) and 'BZERO' in h.header and 'BSCALE' in h.header:
-                if 'BZERO' not in hc.header or 'BSCALE' not in hc.header:
-                    iscale = h.header.index('BSCALE')
-                    izero = h.header.index('BZERO')
-                    if izero > iscale:
-                        hc.header.insert(iscale - 1, ('BSCALE', h.header['BSCALE'], h.header.comments['BSCALE']), after=True)
-                        hc.header.insert(iscale, ('BZERO', h.header['BZERO'], h.header.comments['BZERO']), after=True)
-                    else:
-                        hc.header.insert(izero - 1, ('BZERO', h.header['BZERO'], h.header.comments['BZERO']), after=True)
-                        hc.header.insert(izero, ('BSCALE', h.header['BSCALE'], h.header.comments['BSCALE']), after=True)
-            new_hdus.append(hc)
-    new_hdulist = fits.HDUList(new_hdus)
-    new_hdulist._open_kwargs = kwargs
-    log.debug(new_hdulist._open_kwargs)
     try:
         ext = int(extension)
     except ValueError:
         ext = extension
-    try:
-        hdu = new_hdulist[ext]
-    except (IndexError, KeyError):
-        raise
+    if not units and not comments:
+        raise ValueError("No input units or comments specified!")
+    with fits.open(filename, mode='readonly') as hdulist:
+        new_hdulist = hdulist.copy()
+        try:
+            hdu = new_hdulist[ext]
+        except (IndexError, KeyError):
+            raise
+        if isinstance(hdu, fits.BinTableHDU):
+            for i in range(1, 1000):
+                ttype = f"TTYPE{i:d}"
+                if ttype not in hdu.header:
+                    break
+                colname = hdu.header[ttype]
+                if comments and colname in comments and comments[colname].strip():
+                    if hdu.header.comments[ttype].strip():
+                        log.warning("Overriding comment on column '%s': '%s' -> '%s'.", colname, hdu.header.comments[ttype].strip(), comments[colname].strip())
+                    hdu.header[ttype] = (colname, comments[colname].strip())
+                if units and colname in units and units[colname].strip():
+                    tunit = f"TUNIT{i:d}"
+                    if tunit in hdu.header and hdu.header[tunit].strip():
+                        log.warning("Overriding units for column '%s': '%s' -> '%s'.", colname, hdu.header[tunit].strip(), units[colname].strip())
+                    hdu.header.insert(f"TFORM{i:d}", (tunit, units[colname].strip(), colname+' units'), after=True)
+        else:
+            raise TypeError("Adding units to objects other than fits.BinTableHDU is not supported!")
+        hdu.add_checksum()
+        new_hdulist.writeto(output, output_verify='warn', overwrite=overwrite, checksum=False)
     return new_hdulist
 
 
@@ -404,7 +408,6 @@ def main():
             comments = dict()
     log.debug("units = %s", units)
     log.debug("comments = %s", comments)
-    hdulist = annotate(options.fits, options.extension, units, comments)
     if options.overwrite and options.output:
         output = options.output
     elif options.overwrite:
@@ -415,7 +418,7 @@ def main():
         log.error("--overwrite not specified and no output file specified!")
         return 1
     try:
-        hdulist.writeto(output, output_verify='warn', overwrite=options.overwrite, checksum=False)
+        hdulist = annotate(options.fits, options.extension, output, units, comments, overwrite=options.overwrite)
     except OSError as e:
         if 'overwrite' in e.args[0]:
             log.error("Output file exists and --overwrite was not specified!")

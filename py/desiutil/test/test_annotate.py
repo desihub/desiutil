@@ -3,12 +3,14 @@
 """Test desiutil.annotate.
 """
 import os
+import hashlib
 import unittest
 from tempfile import TemporaryDirectory
 from unittest.mock import patch, call
 import numpy as np
+from astropy.io import fits
 from astropy.table import Table, QTable
-from ..annotate import annotate_table, find_column_name, find_key_name, validate_unit, load_csv_units, load_yml_units, _options
+from ..annotate import annotate, annotate_table, find_column_name, find_key_name, validate_unit, load_csv_units, load_yml_units, _options
 
 
 class TestAnnotate(unittest.TestCase):
@@ -19,6 +21,30 @@ class TestAnnotate(unittest.TestCase):
     def setUpClass(cls):
         cls.tmp = TemporaryDirectory()
         cls.maxDiff = None
+        rng = np.random.default_rng(seed=85719)
+        hdu0 = fits.PrimaryHDU()
+        hdu0.header.append(('EXTNAME', 'PRIMARY', 'extension name'))
+        hdu0.add_checksum()
+        image = rng.integers(0, 2**32, (500, 500), dtype=np.uint32)
+        hdu1 = fits.ImageHDU(image, name='UNSIGNED')
+        hdu1.add_checksum()
+        targetid = rng.integers(0, 2**64, (20, ), dtype=np.uint64)
+        ra = 360.0 * rng.random((20, ), dtype=np.float64)
+        dec = 180.0 * rng.random((20, ), dtype=np.float64) - 90.0
+        columns = fits.ColDefs([fits.Column(name='TARGETID', format='K', bzero=2**63, array=targetid),
+                                fits.Column(name='RA', format='D', array=ra),
+                                fits.Column(name='DEC', format='D', array=dec)])
+        hdu2 = fits.BinTableHDU.from_columns(columns, name='BINTABLE', uint=True)
+        hdu2.header.comments['TTYPE1'] = 'Target ID'
+        hdu2.header.comments['TTYPE2'] = 'Right Ascension [J2000]'
+        hdu2.header.comments['TTYPE3'] = 'Declination [J2000]'
+        hdu2.add_checksum()
+        hdulist = fits.HDUList([hdu0, hdu1, hdu2])
+        cls.fits_file = os.path.join(cls.tmp.name, 'test_annotate.fits')
+        hdulist.writeto(cls.fits_file, overwrite=True)
+        with open(cls.fits_file, 'rb') as ff:
+            data = ff.read()
+        cls.fits_file_sha = hashlib.sha256(data).hexdigest()
 
     @classmethod
     def tearDownClass(cls):
@@ -293,3 +319,61 @@ Comments:
                                            call("Column '%s' not present in table.", 'e')])
         mock_log().info.assert_not_called()
         mock_log().error.assert_has_calls([call("Cannot add or replace unit '%s' to column '%s'!", 'A', 'a')])
+
+    def test_identical_copy(self):
+        """Test hdulist.copy().
+        """
+        # new_hdulist_name = os.path.join(self.tmp.name, 'test_annotate_copy.fits')
+        new_hdulist_name = os.path.join(os.environ['HOME'], 'Downloads', 'test_annotate_copy.fits')
+        with fits.open(self.fits_file, mode='readonly') as hdulist:
+            new_hdulist = hdulist.copy()
+            new_hdulist.writeto(new_hdulist_name, overwrite=True)
+        with open(new_hdulist_name, 'rb') as ff:
+            data = ff.read()
+        new_sha = hashlib.sha256(data).hexdigest()
+        self.assertEqual(self.fits_file_sha, new_sha)
+
+    def test_annotate(self):
+        """Test adding units to a binary table.
+        """
+        # new_hdulist_name = os.path.join(self.tmp.name, 'test_annotate_update.fits')
+        new_hdulist_name = os.path.join(os.environ['HOME'], 'Downloads', 'test_annotate_update.fits')
+        new_hdulist = annotate(self.fits_file, 2, new_hdulist_name, units={'RA': 'deg', 'DEC': 'deg'}, overwrite=True)
+        self.assertIn('TUNIT2', new_hdulist[2].header)
+        self.assertIn('TUNIT3', new_hdulist[2].header)
+        self.assertEqual(new_hdulist[2].header['TUNIT2'], 'deg')
+        self.assertEqual(new_hdulist[2].header['TUNIT3'], 'deg')
+
+    def test_annotate_comments(self):
+        """Test adding comments to a binary table.
+        """
+        # new_hdulist_name = os.path.join(self.tmp.name, 'test_annotate_update_comments.fits')
+        new_hdulist_name = os.path.join(os.environ['HOME'], 'Downloads', 'test_annotate_update_comments.fits')
+        new_hdulist = annotate(self.fits_file, 2, new_hdulist_name, comments={'RA': 'RA', 'DEC': 'DEC'}, overwrite=True)
+        self.assertEqual(new_hdulist[2].header.comments['TTYPE2'], 'RA')
+        self.assertEqual(new_hdulist[2].header.comments['TTYPE3'], 'DEC')
+
+    def test_annotate_image(self):
+        """Test adding units to an image.
+        """
+        new_hdulist_name = os.path.join(self.tmp.name, 'test_annotate_update.fits')
+        with self.assertRaises(TypeError) as e:
+            annotate(self.fits_file, 1, new_hdulist_name, units={'RA': 'deg', 'DEC': 'deg'})
+        self.assertEqual(str(e.exception), "Adding units to objects other than fits.BinTableHDU is not supported!")
+        with self.assertRaises(TypeError) as e:
+            annotate(self.fits_file, 'UNSIGNED', new_hdulist_name, units={'RA': 'deg', 'DEC': 'deg'})
+        self.assertEqual(str(e.exception), "Adding units to objects other than fits.BinTableHDU is not supported!")
+
+    def test_annotate_missing(self):
+        """Test adding units to a missing HDU.
+        """
+        new_hdulist_name = os.path.join(self.tmp.name, 'test_annotate_update.fits')
+        with self.assertRaises(ValueError) as e:
+            annotate(self.fits_file, 2, new_hdulist_name)
+        self.assertEqual(str(e.exception), "No input units or comments specified!")
+        with self.assertRaises(IndexError) as e:
+            annotate(self.fits_file, 3, new_hdulist_name, units={'RA': 'deg', 'DEC': 'deg'})
+        self.assertEqual(str(e.exception), "list index out of range")
+        with self.assertRaises(KeyError) as e:
+            annotate(self.fits_file, 'MISSING', new_hdulist_name, units={'RA': 'deg', 'DEC': 'deg'})
+        self.assertEqual(str(e.exception), '"Extension \'MISSING\' not found."')
