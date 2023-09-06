@@ -356,13 +356,17 @@ Comments:
     def test_annotate_image(self):
         """Test adding units to an image.
         """
-        new_hdulist_name = os.path.join(self.tmp.name, 'test_annotate_update.fits')
-        with self.assertRaises(TypeError) as e:
-            annotate(self.fits_file, 1, new_hdulist_name, units={'RA': 'deg', 'DEC': 'deg'})
-        self.assertEqual(str(e.exception), "Adding units to objects other than fits.BinTableHDU is not supported!")
-        with self.assertRaises(TypeError) as e:
-            annotate(self.fits_file, 'UNSIGNED', new_hdulist_name, units={'RA': 'deg', 'DEC': 'deg'})
-        self.assertEqual(str(e.exception), "Adding units to objects other than fits.BinTableHDU is not supported!")
+        # new_hdulist_name = os.path.join(self.tmp.name, 'test_annotate_image.fits')
+        new_hdulist_name = os.path.join(os.environ['HOME'], 'Downloads', 'test_annotate_image.fits')
+        new_hdulist = annotate(self.fits_file, 1, new_hdulist_name, units={'bunit': 'ADU'})
+        self.assertEqual(new_hdulist[1].header['BUNIT'], 'ADU')
+        self.assertEqual(new_hdulist[1].header.comments['BUNIT'], 'image units')
+        # with self.assertRaises(TypeError) as e:
+        #     annotate(self.fits_file, 1, new_hdulist_name, units={'bunit': 'ADU'})
+        # self.assertEqual(str(e.exception), "Adding units to objects other than fits.BinTableHDU is not supported!")
+        # with self.assertRaises(TypeError) as e:
+        #     annotate(self.fits_file, 'UNSIGNED', new_hdulist_name, units={'RA': 'deg', 'DEC': 'deg'})
+        # self.assertEqual(str(e.exception), "Adding units to objects other than fits.BinTableHDU is not supported!")
 
     def test_annotate_missing(self):
         """Test adding units to a missing HDU.

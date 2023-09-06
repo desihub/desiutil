@@ -342,6 +342,17 @@ def annotate(filename, extension, output, units=None, comments=None, overwrite=F
                     if tunit in hdu.header and hdu.header[tunit].strip():
                         log.warning("Overriding units for column '%s': '%s' -> '%s'.", colname, hdu.header[tunit].strip(), units[colname].strip())
                     hdu.header.insert(f"TFORM{i:d}", (tunit, units[colname].strip(), colname+' units'), after=True)
+        elif isinstance(hdu, (fits.ImageHDU, fits.PrimaryHDU)):
+            if units:
+                if 'bunit' in units:
+                    u = units['bunit'].strip()
+                elif 'BUNIT' in units:
+                    u = units['BUNIT'].strip()
+                else:
+                    raise KeyError("No unit keyword matching 'BUNIT'!")
+            if 'BUINT' in hdu.header and hdu.header['BUNIT'].strip():
+                log.warning("Overriding BUNIT keyword: '%s' -> '%s'.", hdu.header['BUNIT'].strip(), u)
+            hdu.header.append(('BUNIT', u, 'image units'))
         else:
             raise TypeError("Adding units to objects other than fits.BinTableHDU is not supported!")
         hdu.add_checksum()
