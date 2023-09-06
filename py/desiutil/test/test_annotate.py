@@ -323,8 +323,8 @@ Comments:
     def test_identical_copy(self):
         """Test hdulist.copy().
         """
-        # new_hdulist_name = os.path.join(self.tmp.name, 'test_annotate_copy.fits')
-        new_hdulist_name = os.path.join(os.environ['HOME'], 'Downloads', 'test_annotate_copy.fits')
+        new_hdulist_name = os.path.join(self.tmp.name, 'test_annotate_copy.fits')
+        # new_hdulist_name = os.path.join(os.environ['HOME'], 'Downloads', 'test_annotate_copy.fits')
         with fits.open(self.fits_file, mode='readonly') as hdulist:
             new_hdulist = hdulist.copy()
             new_hdulist.writeto(new_hdulist_name, overwrite=True)
@@ -336,8 +336,8 @@ Comments:
     def test_annotate(self):
         """Test adding units to a binary table.
         """
-        # new_hdulist_name = os.path.join(self.tmp.name, 'test_annotate_update.fits')
-        new_hdulist_name = os.path.join(os.environ['HOME'], 'Downloads', 'test_annotate_update.fits')
+        new_hdulist_name = os.path.join(self.tmp.name, 'test_annotate_update.fits')
+        # new_hdulist_name = os.path.join(os.environ['HOME'], 'Downloads', 'test_annotate_update.fits')
         new_hdulist = annotate(self.fits_file, 2, new_hdulist_name, units={'RA': 'deg', 'DEC': 'deg'}, overwrite=True)
         self.assertIn('TUNIT2', new_hdulist[2].header)
         self.assertIn('TUNIT3', new_hdulist[2].header)
@@ -347,8 +347,8 @@ Comments:
     def test_annotate_comments(self):
         """Test adding comments to a binary table.
         """
-        # new_hdulist_name = os.path.join(self.tmp.name, 'test_annotate_update_comments.fits')
-        new_hdulist_name = os.path.join(os.environ['HOME'], 'Downloads', 'test_annotate_update_comments.fits')
+        new_hdulist_name = os.path.join(self.tmp.name, 'test_annotate_update_comments.fits')
+        # new_hdulist_name = os.path.join(os.environ['HOME'], 'Downloads', 'test_annotate_update_comments.fits')
         new_hdulist = annotate(self.fits_file, 2, new_hdulist_name, comments={'RA': 'RA', 'DEC': 'DEC'}, overwrite=True)
         self.assertEqual(new_hdulist[2].header.comments['TTYPE2'], 'RA')
         self.assertEqual(new_hdulist[2].header.comments['TTYPE3'], 'DEC')
