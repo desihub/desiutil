@@ -356,8 +356,8 @@ Comments:
     def test_annotate_image(self):
         """Test adding units to an image.
         """
-        # new_hdulist_name = os.path.join(self.tmp.name, 'test_annotate_image.fits')
-        new_hdulist_name = os.path.join(os.environ['HOME'], 'Downloads', 'test_annotate_image.fits')
+        new_hdulist_name = os.path.join(self.tmp.name, 'test_annotate_image.fits')
+        # new_hdulist_name = os.path.join(os.environ['HOME'], 'Downloads', 'test_annotate_image.fits')
         new_hdulist = annotate(self.fits_file, 1, new_hdulist_name, units={'bunit': 'ADU'})
         self.assertEqual(new_hdulist[1].header['BUNIT'], 'ADU')
         self.assertEqual(new_hdulist[1].header.comments['BUNIT'], 'image units')
