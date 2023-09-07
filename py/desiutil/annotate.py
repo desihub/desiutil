@@ -273,8 +273,8 @@ def annotate_table(table, units, inplace=False):
     return t
 
 
-def annotate(filename, extension, output, units=None, comments=None, overwrite=False):
-    """Add annotations to `filename`.
+def annotate_fits(filename, extension, output, units=None, comments=None, overwrite=False):
+    """Add annotations to FITS file `filename`.
 
     If `units` or `comments` is an empty dictionary, it will be ignored.
 
@@ -296,7 +296,7 @@ def annotate(filename, extension, output, units=None, comments=None, overwrite=F
     Returns
     -------
     :class:`astropy.io.fits.HDUList`
-        An updated version of the file.
+        An updated version of the file, equivalent to the data in `output`.
 
     Raises
     ------
@@ -312,7 +312,8 @@ def annotate(filename, extension, output, units=None, comments=None, overwrite=F
     Notes
     -----
     Due to the way :func:`astropy.io.fits.open` manages memory, changes
-    have to be written out, hence the mandatory `output` argument.
+    have to be written out while `filename` is still open,
+    hence the mandatory `output` argument.
     """
     log = get_logger()
     try:
@@ -328,6 +329,9 @@ def annotate(filename, extension, output, units=None, comments=None, overwrite=F
         except (IndexError, KeyError):
             raise
         if isinstance(hdu, fits.BinTableHDU):
+            #
+            # Gotcha: fits.CompImageHDU is a subclass of fits.BinTableHDU.
+            #
             for i in range(1, 1000):
                 ttype = f"TTYPE{i:d}"
                 if ttype not in hdu.header:
@@ -429,7 +433,8 @@ def main():
         log.error("--overwrite not specified and no output file specified!")
         return 1
     try:
-        hdulist = annotate(options.fits, options.extension, output, units, comments, overwrite=options.overwrite)
+        hdulist = annotate_fits(options.fits, options.extension, output,
+                                units, comments, overwrite=options.overwrite)
     except OSError as e:
         if 'overwrite' in e.args[0]:
             log.error("Output file exists and --overwrite was not specified!")
