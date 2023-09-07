@@ -354,9 +354,12 @@ def annotate_fits(filename, extension, output, units=None, comments=None, overwr
                     u = units['BUNIT'].strip()
                 else:
                     raise KeyError("No unit keyword matching 'BUNIT'!")
-            if 'BUINT' in hdu.header and hdu.header['BUNIT'].strip():
-                log.warning("Overriding BUNIT keyword: '%s' -> '%s'.", hdu.header['BUNIT'].strip(), u)
-            hdu.header.append(('BUNIT', u, 'image units'))
+            if 'BUNIT' in hdu.header:
+                if hdu.header['BUNIT'].strip():
+                    log.warning("Overriding BUNIT keyword: '%s' -> '%s'.", hdu.header['BUNIT'].strip(), u)
+                hdu.header['BUNIT'] = (u, 'image units')
+            else:
+                hdu.header.append(('BUNIT', u, 'image units'))
         else:
             raise TypeError("Adding units to objects other than fits.BinTableHDU is not supported!")
         hdu.add_checksum()

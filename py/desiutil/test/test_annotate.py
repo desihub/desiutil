@@ -47,7 +47,7 @@ class TestAnnotate(unittest.TestCase):
         hdu2.add_checksum()
         image2 = rng.random((500, 500), dtype=np.float32)
         hdu3 = fits.ImageHDU(image, name='FLOAT')
-        hdu3.header['BUNIT'] = ('maggy', 'image unit')
+        hdu3.header.append(('BUNIT', 'maggy', 'image unit'))
         hdu3.add_checksum()
         hdulist = fits.HDUList([hdu0, hdu1, hdu2, hdu3])
         cls.fits_file = os.path.join(cls.TMP, 'test_annotate.fits')
@@ -398,6 +398,16 @@ Comments:
             new_hdulist = annotate_fits(self.fits_file, 1, new_hdulist_name, units={'some_unit': 'ADU'}, overwrite=True)
         self.assertEqual(e.exception.args[0], "No unit keyword matching 'BUNIT'!")
 
+    @patch('desiutil.annotate.get_logger')
+    def test_annotate_image_update(self, mock_log):
+        """Test updating units on an image.
+        """
+        new_hdulist_name = os.path.join(self.TMP, 'test_annotate_update_image1.fits')
+        new_hdulist = annotate_fits(self.fits_file, 'FLOAT', new_hdulist_name, units={'bunit': 'mag'}, overwrite=True)
+        self.assertEqual(new_hdulist[3].header['BUNIT'], 'mag')
+        self.assertEqual(new_hdulist[3].header.comments['BUNIT'], 'image units')
+        mock_log().warning.assert_called_once_with("Overriding BUNIT keyword: '%s' -> '%s'.", 'maggy', 'mag')
+
     def test_annotate_missing(self):
         """Test adding units to a missing HDU.
         """
@@ -406,7 +416,7 @@ Comments:
             annotate_fits(self.fits_file, 2, new_hdulist_name)
         self.assertEqual(str(e.exception), "No input units or comments specified!")
         with self.assertRaises(IndexError) as e:
-            annotate_fits(self.fits_file, 3, new_hdulist_name, units={'RA': 'deg', 'DEC': 'deg'})
+            annotate_fits(self.fits_file, 9, new_hdulist_name, units={'RA': 'deg', 'DEC': 'deg'})
         self.assertEqual(str(e.exception), "list index out of range")
         with self.assertRaises(KeyError) as e:
             annotate_fits(self.fits_file, 'MISSING', new_hdulist_name, units={'RA': 'deg', 'DEC': 'deg'})
