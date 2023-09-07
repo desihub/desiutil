@@ -22,8 +22,7 @@ class TestAnnotate(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.tmp = TemporaryDirectory()
-        # cls.TMP = cls.tmp.name  # Override this to write to a non-temporary directory.
-        cls.TMP = os.path.join(os.environ['HOME'], 'Downloads')
+        cls.TMP = cls.tmp.name  # Override this to write to a non-temporary directory.
         cls.maxDiff = None  # Show more verbose differences on errors.
         rng = np.random.default_rng(seed=85719)
         hdu0 = fits.PrimaryHDU()
