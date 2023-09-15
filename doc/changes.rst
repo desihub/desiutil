@@ -9,6 +9,14 @@ Change Log
 
 * Remove deprecated commands in :mod:`desiutil.setup`.
 * Remove deprecated module :mod:`desiutil.census`.
+* Remove deprecated top-level ``setup.py``.
+
+3.4.1 (unreleased)
+------------------
+
+* Fully support adding units and comments to FITS table columns (PR `#201`).
+
+.. _`#201`: https://github.com/desihub/desiutil/pull/201
 
 3.4.0 (2023-09-14)
 ------------------
