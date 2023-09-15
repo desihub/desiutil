@@ -53,8 +53,8 @@ desiutil API
 .. automodule:: desiutil.redirect
     :members:
 
-.. .. automodule:: desiutil.setup
-..     :members:
+.. automodule:: desiutil.setup
+    :members:
 
 .. automodule:: desiutil.sklearn
     :members:
