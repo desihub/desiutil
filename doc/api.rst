@@ -8,8 +8,8 @@ desiutil API
 .. automodule:: desiutil.annotate
     :members:
 
-.. .. automodule:: desiutil.api
-..     :members:
+.. automodule:: desiutil.api
+    :members:
 
 .. automodule:: desiutil.bitmask
     :members:
