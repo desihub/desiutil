@@ -305,9 +305,9 @@ def annotate_fits(filename, extension, output, units=None, comments=None, overwr
     KeyError
         If the HDU specified (as an ``EXTNAME``) by `extension` does not exist.
     TypeError
-        If the HDU specified does not support units.
+        If the HDU specified is not supported by this function.
     ValueError
-        If no input units or comments are specified.
+        If neither `units` nor `comments` are specified.
 
     Notes
     -----
