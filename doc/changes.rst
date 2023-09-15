@@ -10,7 +10,7 @@ Change Log
 * Remove deprecated commands in :mod:`desiutil.setup`.
 * Remove deprecated module :mod:`desiutil.census`.
 
-3.4.0 (unreleased)
+3.4.0 (2023-09-14)
 ------------------
 
 * Add tools for adding units to table columns: FITS and :class:`~astropy.table.Table` (PR `#199`_).

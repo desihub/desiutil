@@ -41,7 +41,7 @@ VERSION_HELP = """
 Note: Generating version strings is no longer done using 'python setup.py version'. Instead
 you will need to run:
 
-    desi_set_version
+    desi_update_version [-t TAG] desiutil
 
 which is part of the desiutil package. If you don't already have desiutil installed, you can install it with:
 
