@@ -328,9 +328,9 @@ def annotate_fits(filename, extension, output, units=None, comments=None, overwr
             hdu = new_hdulist[ext]
         except (IndexError, KeyError):
             raise
-        if isinstance(hdu, fits.BinTableHDU):
+        if isinstance(hdu, fits.BinTableHDU) and not isinstance(hdu, fits.CompImageHDU):
             #
-            # Gotcha: fits.CompImageHDU is a subclass of fits.BinTableHDU.
+            # fits.CompImageHDU is a subclass of fits.BinTableHDU.
             #
             for i in range(1, 1000):
                 ttype = f"TTYPE{i:d}"
@@ -347,6 +347,10 @@ def annotate_fits(filename, extension, output, units=None, comments=None, overwr
                         log.warning("Overriding units for column '%s': '%s' -> '%s'.", colname, hdu.header[tunit].strip(), units[colname].strip())
                     hdu.header.insert(f"TFORM{i:d}", (tunit, units[colname].strip(), colname+' units'), after=True)
         elif isinstance(hdu, (fits.ImageHDU, fits.PrimaryHDU)):
+            #
+            # Do we want to support this at all? Images are so much simpler, do
+            # they need this extra functionality?
+            #
             if units:
                 if 'bunit' in units:
                     u = units['bunit'].strip()
@@ -362,7 +366,7 @@ def annotate_fits(filename, extension, output, units=None, comments=None, overwr
                 hdu.header.append(('BUNIT', u, 'image units'))
         else:
             raise TypeError("Adding units to objects other than fits.BinTableHDU is not supported!")
-        hdu.add_checksum()
+        hdu.add_checksum()  # Always add checksum, or only if it's already there?
         new_hdulist.writeto(output, output_verify='warn', overwrite=overwrite, checksum=False)
     return new_hdulist
 
