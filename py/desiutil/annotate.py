@@ -318,9 +318,11 @@ def annotate_fits(filename, extension, output, units=None, comments=None, overwr
 
     Notes
     -----
-    Due to the way :func:`astropy.io.fits.open` manages memory, changes
-    have to be written out while `filename` is still open,
-    hence the mandatory `output` argument.
+    * Due to the way :func:`astropy.io.fits.open` manages memory, changes
+      have to be written out while `filename` is still open,
+      hence the mandatory `output` argument.
+    * A FITS HDU checksum will always be added to the output, even if it
+      was not already present.
     """
     log = get_logger()
     try:
@@ -371,6 +373,8 @@ def _options():
                         help="COMMENTS should have the form COLUMN='comment':COLUMN='comment'.")
     parser.add_argument('-C', '--csv', action='store', dest='csv', metavar='CSV',
                         help="Read annotations from CSV file.")
+    parser.add_argument('-D', '--disable-comments', action='store_true', dest='disable_comments',
+                        help='Do not add comments, even if they are defined in one of the inputs.')
     parser.add_argument('-e', '--extension', dest='extension', action='store', metavar='EXT', default='1',
                         help="Update FITS extension EXT, which can be a number or an EXTNAME. If not specified, HDU 1 will be updated, which is standard for simple binary tables.")
     parser.add_argument('-o', '--overwrite', dest='overwrite', action='store_true',
@@ -419,8 +423,17 @@ def main():
         else:
             log.debug("No comments have been specified.")
             comments = dict()
-    log.debug("units = %s", units)
-    log.debug("comments = %s", comments)
+    if options.disable_comments:
+        log.info("Comments are disabled by user request.")
+        comments = dict()
+    if units:
+        log.debug("Input Units")
+        for k, v in units.items():
+            log.debug("'%s': '%s'", k, v)
+    if comments:
+        log.debug("Input Comments")
+        for k, v in comments.items():
+            log.debug("'%s': '%s'", k, v)
     if options.overwrite and options.output:
         output = options.output
     elif options.overwrite:
