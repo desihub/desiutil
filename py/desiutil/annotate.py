@@ -347,7 +347,9 @@ def annotate_fits(filename, extension, output, units=None, comments=None, overwr
                     tunit = f"TUNIT{i:d}"
                     if tunit in hdu.header and hdu.header[tunit].strip():
                         log.warning("Overriding units for column '%s': '%s' -> '%s'.", colname, hdu.header[tunit].strip(), units[colname].strip())
-                    hdu.header.insert(f"TFORM{i:d}", (tunit, units[colname].strip(), colname+' units'), after=True)
+                        hdu.header[tunit] = (units[colname].strip(), colname+' units')
+                    else:
+                        hdu.header.insert(f"TFORM{i:d}", (tunit, units[colname].strip(), colname+' units'), after=True)
         else:
             raise TypeError("Adding units to objects other than fits.BinTableHDU is not supported!")
         hdu.add_checksum()
