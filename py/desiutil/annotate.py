@@ -11,12 +11,19 @@ import csv
 import os
 import sys
 from argparse import ArgumentParser
+from warnings import warn
 import yaml
 from astropy.io import fits
 from astropy.table import Table, QTable
 from astropy.units import Unit, UnitConversionError
 from . import __version__ as desiutilVersion
 from .log import get_logger, DEBUG
+
+
+class FITSUnitWarning(UserWarning):
+    """Warnings related to invalid FITS units.
+    """
+    pass
 
 
 def find_column_name(columns, prefix=('unit', )):
@@ -95,11 +102,10 @@ def validate_unit(unit, error=False):
     Raises
     ------
     :exc:`ValueError`
-        If `error` is set and the unit can't be parsed.
+        If `error` is set and `unit` can't be parsed.
     """
     if unit is None:
         return None
-    log = get_logger()
     acceptable_units = ('maggie', 'maggy', 'mgy',
                         'electron/Angstrom',
                         'log(Angstrom)')
@@ -112,10 +118,9 @@ def validate_unit(unit, error=False):
             return bad_unit
         else:
             if error:
-                log.critical(str(e))
                 raise
             else:
-                log.warning(str(e))
+                warn(m, FITSUnitWarning)
     return None
 
 

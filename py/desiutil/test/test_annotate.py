@@ -10,7 +10,7 @@ from unittest.mock import patch, call
 import numpy as np
 from astropy.io import fits
 from astropy.table import Table, QTable
-from ..annotate import (annotate_fits, annotate_table, find_column_name,
+from ..annotate import (FITSUnitWarning, annotate_fits, annotate_table, find_column_name,
                         find_key_name, validate_unit, load_csv_units,
                         load_yml_units, _options)
 
@@ -97,8 +97,7 @@ class TestAnnotate(unittest.TestCase):
             k = find_key_name({'RA': 'deg', 'DEC': 'deg', 'COLUMN': None}, prefix=('comment', 'description'))
         self.assertEqual(e.exception.args[0], "No key matching 'comment' found!")
 
-    @patch('desiutil.annotate.get_logger')
-    def test_validate_unit(self, mock_log):
+    def test_validate_unit(self):
         """Test function to validate units.
         """
         m = "'ergs' did not parse as fits unit: At col 0, Unit 'ergs' not supported by the FITS standard. Did you mean erg?"
@@ -109,9 +108,13 @@ class TestAnnotate(unittest.TestCase):
         self.assertIsNone(c)
         c = validate_unit('erg')
         self.assertIsNone(c)
-        c = validate_unit('ergs', error=False)
+        with self.assertWarns(FITSUnitWarning) as w:
+            c = validate_unit('ergs', error=False)
+        self.assertEqual(str(w.warning), m + l)
         self.assertIsNone(c)
-        c = validate_unit('1/deg^2')
+        with self.assertWarns(FITSUnitWarning) as w:
+            c = validate_unit('1/deg^2')
+        self.assertEqual(str(w.warning), d + l)
         self.assertIsNone(c)
         c = validate_unit('nanomaggies', error=True)
         self.assertEqual(c, "'nanomaggies'")
@@ -121,8 +124,6 @@ class TestAnnotate(unittest.TestCase):
         with self.assertRaises(ValueError) as e:
             c = validate_unit('1/nanomaggy^2', error=True)
         self.assertEqual(str(e.exception), f + l)
-        mock_log().warning.assert_has_calls([call(m + l), call(d + l)])
-        mock_log().critical.assert_has_calls([call(m + l), call(f + l)])
 
     @patch('desiutil.annotate.get_logger')
     def test_load_csv_units(self, mock_log):
