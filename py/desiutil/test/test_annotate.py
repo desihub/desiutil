@@ -355,7 +355,7 @@ Comments:
         self.assertEqual(self.fits_file_sha, new_sha)
 
     @patch('desiutil.annotate.get_logger')
-    def test_annotate(self, mock_log):
+    def test_annotate_fits(self, mock_log):
         """Test adding units to a binary table.
         """
         new_hdulist_name = os.path.join(self.TMP, 'test_annotate_update1.fits')
@@ -371,7 +371,7 @@ Comments:
         mock_log().warning.assert_called_once_with("Overriding units for column '%s': '%s' -> '%s'.", 'MAG', 'mag', 'flux')
 
     @patch('desiutil.annotate.get_logger')
-    def test_annotate_comments(self, mock_log):
+    def test_annotate_fits_comments(self, mock_log):
         """Test adding comments to a binary table.
         """
         new_hdulist_name = os.path.join(self.TMP, 'test_annotate_update_comments.fits')
@@ -381,33 +381,15 @@ Comments:
         mock_log().warning.assert_has_calls([call("Overriding comment on column '%s': '%s' -> '%s'.", 'RA', 'Right Ascension [J2000]', 'RA'),
                                              call("Overriding comment on column '%s': '%s' -> '%s'.", 'DEC', 'Declination [J2000]', 'DEC')])
 
-    def test_annotate_image(self):
+    def test_annotate_fits_image(self):
         """Test adding units to an image.
         """
         new_hdulist_name = os.path.join(self.TMP, 'test_annotate_image1.fits')
-        new_hdulist = annotate_fits(self.fits_file, 1, new_hdulist_name, units={'bunit': 'ADU'}, overwrite=True)
-        self.assertEqual(new_hdulist[1].header['BUNIT'], 'ADU')
-        self.assertEqual(new_hdulist[1].header.comments['BUNIT'], 'image units')
-        new_hdulist_name = os.path.join(self.TMP, 'test_annotate_image2.fits')
-        new_hdulist = annotate_fits(self.fits_file, 1, new_hdulist_name, units={'BUNIT': 'counts'}, overwrite=True)
-        self.assertEqual(new_hdulist[1].header['BUNIT'], 'counts')
-        self.assertEqual(new_hdulist[1].header.comments['BUNIT'], 'image units')
-        new_hdulist_name = os.path.join(self.TMP, 'test_annotate_image3.fits')
-        with self.assertRaises(KeyError) as e:
-            new_hdulist = annotate_fits(self.fits_file, 1, new_hdulist_name, units={'some_unit': 'ADU'}, overwrite=True)
-        self.assertEqual(e.exception.args[0], "No unit keyword matching 'BUNIT'!")
+        with self.assertRaises(TypeError) as e:
+            new_hdulist = annotate_fits(self.fits_file, 1, new_hdulist_name, units={'bunit': 'ADU'}, overwrite=True)
+        self.assertEqual(e.exception.args[0], "Adding units to objects other than fits.BinTableHDU is not supported!")
 
-    @patch('desiutil.annotate.get_logger')
-    def test_annotate_image_update(self, mock_log):
-        """Test updating units on an image.
-        """
-        new_hdulist_name = os.path.join(self.TMP, 'test_annotate_update_image1.fits')
-        new_hdulist = annotate_fits(self.fits_file, 'FLOAT', new_hdulist_name, units={'bunit': 'mag'}, overwrite=True)
-        self.assertEqual(new_hdulist[3].header['BUNIT'], 'mag')
-        self.assertEqual(new_hdulist[3].header.comments['BUNIT'], 'image units')
-        mock_log().warning.assert_called_once_with("Overriding BUNIT keyword: '%s' -> '%s'.", 'maggy', 'mag')
-
-    def test_annotate_missing(self):
+    def test_annotate_fits_missing(self):
         """Test adding units to a missing HDU.
         """
         new_hdulist_name = os.path.join(self.TMP, 'test_annotate_update.fits')

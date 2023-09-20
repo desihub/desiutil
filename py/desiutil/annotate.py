@@ -274,7 +274,9 @@ def annotate_table(table, units, inplace=False):
 
 
 def annotate_fits(filename, extension, output, units=None, comments=None, overwrite=False):
-    """Add annotations to FITS file `filename`.
+    """Add annotations to HDU `extension` in FITS file `filename`.
+
+    HDU `extension` must be a :class:`astropy.io.fits.BinTableHDU`.
 
     If `units` or `comments` is an empty dictionary, it will be ignored.
 
@@ -346,27 +348,9 @@ def annotate_fits(filename, extension, output, units=None, comments=None, overwr
                     if tunit in hdu.header and hdu.header[tunit].strip():
                         log.warning("Overriding units for column '%s': '%s' -> '%s'.", colname, hdu.header[tunit].strip(), units[colname].strip())
                     hdu.header.insert(f"TFORM{i:d}", (tunit, units[colname].strip(), colname+' units'), after=True)
-        elif isinstance(hdu, (fits.ImageHDU, fits.PrimaryHDU)):
-            #
-            # Do we want to support this at all? Images are so much simpler, do
-            # they need this extra functionality?
-            #
-            if units:
-                if 'bunit' in units:
-                    u = units['bunit'].strip()
-                elif 'BUNIT' in units:
-                    u = units['BUNIT'].strip()
-                else:
-                    raise KeyError("No unit keyword matching 'BUNIT'!")
-            if 'BUNIT' in hdu.header:
-                if hdu.header['BUNIT'].strip():
-                    log.warning("Overriding BUNIT keyword: '%s' -> '%s'.", hdu.header['BUNIT'].strip(), u)
-                hdu.header['BUNIT'] = (u, 'image units')
-            else:
-                hdu.header.append(('BUNIT', u, 'image units'))
         else:
             raise TypeError("Adding units to objects other than fits.BinTableHDU is not supported!")
-        hdu.add_checksum()  # Always add checksum, or only if it's already there?
+        hdu.add_checksum()
         new_hdulist.writeto(output, output_verify='warn', overwrite=overwrite, checksum=False)
     return new_hdulist
 
