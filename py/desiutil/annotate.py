@@ -319,7 +319,8 @@ def annotate_table(table, units, inplace=False):
     return t
 
 
-def annotate_fits(filename, extension, output, units=None, comments=None, overwrite=False):
+def annotate_fits(filename, extension, output, units=None, comments=None,
+                  truncate=False, overwrite=False):
     """Add annotations to HDU `extension` in FITS file `filename`.
 
     HDU `extension` must be a :class:`astropy.io.fits.BinTableHDU`.
@@ -338,8 +339,12 @@ def annotate_fits(filename, extension, output, units=None, comments=None, overwr
         Mapping of table columns to units.
     comments : :class:`dict`, optional
         Mapping of table columns to comments.
+    truncate : :class:`bool`, optional
+        Allow long comments to be truncated when written out. The default
+        is to raise an error if a comment is too long.
     overwrite : :class:`bool`, optional
         Pass this keyword to :meth:`astropy.io.fits.HDUList.writeto`.
+
 
     Returns
     -------
@@ -372,6 +377,8 @@ def annotate_fits(filename, extension, output, units=None, comments=None, overwr
         ext = extension
     if not units and not comments:
         raise ValueError("No input units or comments specified!")
+    if comments:
+        n_long = check_comment_length(comments, error=(not truncate))
     with fits.open(filename, mode='readonly') as hdulist:
         new_hdulist = hdulist.copy()
         try:
@@ -420,8 +427,8 @@ def _options():
                         help="Update FITS extension EXT, which can be a number or an EXTNAME. If not specified, HDU 1 will be updated, which is standard for simple binary tables.")
     parser.add_argument('-o', '--overwrite', dest='overwrite', action='store_true',
                         help='Overwrite the input FITS file.')
-    parser.add_argument('-t', '--test', dest='test', action='store_true',
-                        help='Test mode; show what would be done but do not change any files.')
+    parser.add_argument('-T', '--truncate-comments', dest='truncate', action='store_true',
+                        help='Allow any long comments to be truncated when written out.')
     parser.add_argument('-u', '--units', action='store', dest='units', metavar='UNITS',
                         help="UNITS should have the form COLUMN='unit':COLUMN='unit'.")
     parser.add_argument('-v', '--verbose', dest='verbose', action='store_true',
@@ -445,7 +452,7 @@ def main():
         An integer suitable for passing to :func:`sys.exit`.
     """
     options = _options()
-    if options.test or options.verbose:
+    if options.verbose:
         log = get_logger(DEBUG)
     else:
         log = get_logger()
@@ -486,11 +493,17 @@ def main():
         return 1
     try:
         hdulist = annotate_fits(options.fits, options.extension, output,
-                                units, comments, overwrite=options.overwrite)
+                                units, comments, truncate=options.truncate,
+                                overwrite=options.overwrite)
     except OSError as e:
         if 'overwrite' in e.args[0]:
             log.error("Output file exists and --overwrite was not specified!")
         else:
             log.error(e.args[0])
+        return 1
+    except (KeyError, TypeError, ValueError) as e:
+        #
+        # In these cases an error message should have been printed already.
+        #
         return 1
     return 0
