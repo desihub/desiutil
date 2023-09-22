@@ -256,6 +256,7 @@ def removedep(header, name):
     else:
         raise ValueError(f'{name} not found in header DEPNAMnn keywords')
 
+
 def add_dependencies(header, module_names=None, long_python=False,
                      envvar_names=None):
     '''Adds ``DEPNAMnn``, ``DEPVERnn`` keywords to header for imported modules.
@@ -337,6 +338,7 @@ def remove_dependencies(header):
     # now remove all keys
     for name in keys:
         removedep(header, name)
+
 
 class Dependencies(object):
     """Dictionary-like object to track dependencies.
