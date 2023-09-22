@@ -156,7 +156,7 @@ def check_comment_length(comments, error=True):
         if len(comments[key]) > too_long:
             n_long += 1
             if error:
-                log.error("Long comment detected for '%s'!", key)
+                log.error("'%s' comment too long: '%s'", key, comments[key])
             else:
                 log.warning("Long comment detected for '%s', will be truncated to '%s'!",
                             key, comments[key][:too_long])
@@ -320,7 +320,7 @@ def annotate_table(table, units, inplace=False):
 
 
 def annotate_fits(filename, extension, output, units=None, comments=None,
-                  truncate=False, overwrite=False):
+                  truncate=False, overwrite=False, verbose=False):
     """Add annotations to HDU `extension` in FITS file `filename`.
 
     HDU `extension` must be a :class:`astropy.io.fits.BinTableHDU`.
@@ -344,7 +344,8 @@ def annotate_fits(filename, extension, output, units=None, comments=None,
         is to raise an error if a comment is too long.
     overwrite : :class:`bool`, optional
         Pass this keyword to :meth:`astropy.io.fits.HDUList.writeto`.
-
+    verbose : :class:`bool`, optional
+        Include debug-level logging
 
     Returns
     -------
@@ -370,7 +371,11 @@ def annotate_fits(filename, extension, output, units=None, comments=None,
     * A FITS HDU checksum will always be added to the output, even if it
       was not already present.
     """
-    log = get_logger()
+    if verbose:
+        log = get_logger(DEBUG)
+    else:
+        log = get_logger()
+
     try:
         ext = int(extension)
     except ValueError:
@@ -398,6 +403,7 @@ def annotate_fits(filename, extension, output, units=None, comments=None,
                     if hdu.header.comments[ttype].strip():
                         log.warning("Overriding comment on column '%s': '%s' -> '%s'.", colname, hdu.header.comments[ttype].strip(), comments[colname].strip())
                     hdu.header[ttype] = (colname, comments[colname].strip())
+                    log.debug('Set %s comment to "%s"', colname, comments[colname].strip())
                 if units and colname in units and units[colname].strip():
                     tunit = f"TUNIT{i:d}"
                     if tunit in hdu.header and hdu.header[tunit].strip():
@@ -405,10 +411,12 @@ def annotate_fits(filename, extension, output, units=None, comments=None,
                         hdu.header[tunit] = (units[colname].strip(), colname+' units')
                     else:
                         hdu.header.insert(f"TFORM{i:d}", (tunit, units[colname].strip(), colname+' units'), after=True)
+                        log.debug('Set %s units to "%s"', colname, units[colname].strip())
         else:
             raise TypeError("Adding units to objects other than fits.BinTableHDU is not supported!")
         hdu.add_checksum()
         new_hdulist.writeto(output, output_verify='warn', overwrite=overwrite, checksum=False)
+        log.info('Wrote %s', output)
     return new_hdulist
 
 
@@ -494,7 +502,7 @@ def main():
     try:
         hdulist = annotate_fits(options.fits, options.extension, output,
                                 units, comments, truncate=options.truncate,
-                                overwrite=options.overwrite)
+                                overwrite=options.overwrite, verbose=options.verbose)
     except OSError as e:
         if 'overwrite' in e.args[0]:
             log.critical("Output file exists and --overwrite was not specified!")
@@ -503,5 +511,6 @@ def main():
         return 1
     except (IndexError, KeyError, TypeError, ValueError) as e:
         log.critical(str(e))
+        log.critical("Exiting without writing output.")
         return 1
     return 0
