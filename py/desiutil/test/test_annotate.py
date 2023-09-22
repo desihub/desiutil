@@ -134,8 +134,8 @@ class TestAnnotate(unittest.TestCase):
         with self.assertRaises(ValueError) as e:
             n_long = check_comment_length(comments)
         self.assertEqual(str(e.exception), "2 long comments detected!")
-        mock_log().error.assert_has_calls([call("Long comment detected for '%s'!", 'COLUMN3'),
-                                           call("Long comment detected for '%s'!", 'COLUMN4')])
+        mock_log().error.assert_has_calls([call("'%s' comment too long: '%s'!", 'COLUMN3', comments['COLUMN3']),
+                                           call("'%s' comment too long: '%s'!", 'COLUMN4', comments['COLUMN4'])])
         n_long = check_comment_length(comments, error=False)
         self.assertEqual(n_long, 2)
         mock_log().warning.assert_has_calls([call("Long comment detected for '%s', will be truncated to '%s'!",

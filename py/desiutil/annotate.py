@@ -156,7 +156,7 @@ def check_comment_length(comments, error=True):
         if len(comments[key]) > too_long:
             n_long += 1
             if error:
-                log.error("'%s' comment too long: '%s'", key, comments[key])
+                log.error("'%s' comment too long: '%s'!", key, comments[key])
             else:
                 log.warning("Long comment detected for '%s', will be truncated to '%s'!",
                             key, comments[key][:too_long])
