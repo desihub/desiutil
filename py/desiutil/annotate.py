@@ -124,6 +124,47 @@ def validate_unit(unit, error=False):
     return None
 
 
+def check_comment_length(comments, error=True):
+    """Ensure keyword comments are short enough that they will not be truncated.
+
+    By experiment, :mod:`astropy.io.fits` will truncate comments longer than
+    46 characters, however the warning it emits when it does so is not very
+    informative.
+
+    Parameters
+    ----------
+    comments : :class:`dict`
+        Mapping of table columns to comments.
+    error : :class:`bool`, optional
+        If ``False`` just warn about long comments instead of raising an exception.
+
+    Returns
+    -------
+    :class:`int`
+        The number of long comments detected, although the value is only relevant
+        if `error` is ``False``.
+
+    Raises
+    ------
+    ValueError
+        If any comment is too long.
+    """
+    log = get_logger()
+    too_long = 46
+    n_long = 0
+    for key in comments:
+        if len(comments[key]) > too_long:
+            n_long += 1
+            if error:
+                log.error("Long comment detected for '%s'!", key)
+            else:
+                log.warning("Long comment detected for '%s', will be truncated to '%s'!",
+                            key, comments[key][:too_long])
+    if n_long > 0 and error:
+        raise ValueError(f"{n_long:d} long comments detected!")
+    return n_long
+
+
 def load_csv_units(filename):
     """Parse a CSV file that contains column names and units and optionally comments.
 

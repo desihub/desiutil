@@ -11,7 +11,7 @@ import numpy as np
 from astropy.io import fits
 from astropy.table import Table, QTable
 from ..annotate import (FITSUnitWarning, annotate_fits, annotate_table, find_column_name,
-                        find_key_name, validate_unit, load_csv_units,
+                        find_key_name, validate_unit, check_comment_length, load_csv_units,
                         load_yml_units, _options)
 
 
@@ -124,6 +124,24 @@ class TestAnnotate(unittest.TestCase):
         with self.assertRaises(ValueError) as e:
             c = validate_unit('1/nanomaggy^2', error=True)
         self.assertEqual(str(e.exception), f + l)
+
+    @patch('desiutil.annotate.get_logger')
+    def test_check_comment_length(self, mock_log):
+        comments = {'COLUMN1': 'x'*45,
+                    'COLUMN2': 'y'*46,
+                    'COLUMN3': 'z'*47,
+                    'COLUMN4': 'w'*49}
+        with self.assertRaises(ValueError) as e:
+            n_long = check_comment_length(comments)
+        self.assertEqual(str(e.exception), "2 long comments detected!")
+        mock_log().error.assert_has_calls([call("Long comment detected for '%s'!", 'COLUMN3'),
+                                           call("Long comment detected for '%s'!", 'COLUMN4')])
+        n_long = check_comment_length(comments, error=False)
+        self.assertEqual(n_long, 2)
+        mock_log().warning.assert_has_calls([call("Long comment detected for '%s', will be truncated to '%s'!",
+                                                  'COLUMN3', 'z'*46),
+                                             call("Long comment detected for '%s', will be truncated to '%s'!",
+                                                  'COLUMN4', 'w'*46)])
 
     @patch('desiutil.annotate.get_logger')
     def test_load_csv_units(self, mock_log):
