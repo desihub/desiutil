@@ -489,7 +489,7 @@ def main():
     elif options.output:
         output = options.output
     else:
-        log.error("--overwrite not specified and no output file specified!")
+        log.critical("--overwrite not specified and no output file specified!")
         return 1
     try:
         hdulist = annotate_fits(options.fits, options.extension, output,
@@ -497,13 +497,11 @@ def main():
                                 overwrite=options.overwrite)
     except OSError as e:
         if 'overwrite' in e.args[0]:
-            log.error("Output file exists and --overwrite was not specified!")
+            log.critical("Output file exists and --overwrite was not specified!")
         else:
-            log.error(e.args[0])
+            log.critical(e.args[0])
         return 1
-    except (KeyError, TypeError, ValueError) as e:
-        #
-        # In these cases an error message should have been printed already.
-        #
+    except (IndexError, KeyError, TypeError, ValueError) as e:
+        log.critical(str(e))
         return 1
     return 0
