@@ -10,6 +10,14 @@ Change Log
 * Remove deprecated commands in :mod:`desiutil.setup`.
 * Remove deprecated module :mod:`desiutil.census`.
 
+3.4.1 (unreleased)
+------------------
+
+* Added functions to :mod:`desiutil.depend` to support removing dependencies
+  from headers (PR `#202`_).
+
+.. _`#202`: https://github.com/desihub/desiutil/pull/202
+
 3.4.0 (2023-09-14)
 ------------------
 
