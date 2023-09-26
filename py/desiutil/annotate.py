@@ -262,7 +262,7 @@ def load_yml_units(filename):
     return (units, comments)
 
 
-def annotate_table(table, units, inplace=False):
+def annotate_table(table, units, inplace=False, validate=True):
     """Add annotations to `table`.
 
     Parameters
@@ -273,11 +273,18 @@ def annotate_table(table, units, inplace=False):
         Mapping of table columns to units.
     inplace : :class:`bool`, optional
         If ``True``, modify `table` directly instead of returning a copy.
+    validate : :class:`bool`, optional
+        If ``True`` raise an error if any unit does not follow the FITS standard.
 
     Returns
     -------
     :class:`astropy.table.Table`
         An updated version of `table`.
+
+    Raises
+    ------
+    ValueError
+        If `validate` is ``True`` and an invalid unit is detected.
 
     Notes
     -----
@@ -300,6 +307,7 @@ def annotate_table(table, units, inplace=False):
     for column in units:
         if column in t.colnames:
             if len(units[column]) > 0:
+                bad_unit = validate_unit(units[column], error=validate)
                 try:
                     log.debug("t['%s'].unit = '%s'", column, units[column])
                     t[column].unit = units[column]
@@ -320,7 +328,7 @@ def annotate_table(table, units, inplace=False):
 
 
 def annotate_fits(filename, extension, output, units=None, comments=None,
-                  truncate=False, overwrite=False, verbose=False):
+                  validate=True, truncate=False, overwrite=False, verbose=False):
     """Add annotations to HDU `extension` in FITS file `filename`.
 
     HDU `extension` must be a :class:`astropy.io.fits.BinTableHDU`.
@@ -339,6 +347,10 @@ def annotate_fits(filename, extension, output, units=None, comments=None,
         Mapping of table columns to units.
     comments : :class:`dict`, optional
         Mapping of table columns to comments.
+    validate : :class:`bool`, optional
+        By default, units will be checked for compliance with the FITS
+        standard. Setting this to ``False`` disables errors, although
+        warnings will still be printed.
     truncate : :class:`bool`, optional
         Allow long comments to be truncated when written out. The default
         is to raise an error if a comment is too long.
@@ -382,8 +394,6 @@ def annotate_fits(filename, extension, output, units=None, comments=None,
         ext = extension
     if not units and not comments:
         raise ValueError("No input units or comments specified!")
-    if comments:
-        n_long = check_comment_length(comments, error=(not truncate))
     with fits.open(filename, mode='readonly') as hdulist:
         new_hdulist = hdulist.copy()
         try:
@@ -394,24 +404,43 @@ def annotate_fits(filename, extension, output, units=None, comments=None,
             #
             # fits.CompImageHDU is a subclass of fits.BinTableHDU.
             #
+            # First loop through the actual columns in the file; verify the
+            # units and columns on the actual columns.
+            #
+            column_comments = dict()
+            column_units = dict()
+            column_index = dict()
             for i in range(1, 1000):
                 ttype = f"TTYPE{i:d}"
                 if ttype not in hdu.header:
                     break
                 colname = hdu.header[ttype]
+                column_index[colname] = i
                 if comments and colname in comments and comments[colname].strip():
-                    if hdu.header.comments[ttype].strip():
-                        log.warning("Overriding comment on column '%s': '%s' -> '%s'.", colname, hdu.header.comments[ttype].strip(), comments[colname].strip())
-                    hdu.header[ttype] = (colname, comments[colname].strip())
-                    log.debug('Set %s comment to "%s"', colname, comments[colname].strip())
+                    column_comments[colname] = comments[colname].strip()
                 if units and colname in units and units[colname].strip():
-                    tunit = f"TUNIT{i:d}"
-                    if tunit in hdu.header and hdu.header[tunit].strip():
-                        log.warning("Overriding units for column '%s': '%s' -> '%s'.", colname, hdu.header[tunit].strip(), units[colname].strip())
-                        hdu.header[tunit] = (units[colname].strip(), colname+' units')
-                    else:
-                        hdu.header.insert(f"TFORM{i:d}", (tunit, units[colname].strip(), colname+' units'), after=True)
-                        log.debug('Set %s units to "%s"', colname, units[colname].strip())
+                    column_units[colname] = units[colname].strip()
+            for colname in column_units:
+                unit_name = validate_unit(column_units[colname], error=validate)
+            n_long = check_comment_length(column_comments, error=(not truncate))
+            for colname in column_index:
+                ttype = f"TTYPE{column_index[colname]:d}"
+                if hdu.header.comments[ttype].strip():
+                    log.warning("Overriding comment on column '%s': '%s' -> '%s'.",
+                                colname, hdu.header.comments[ttype].strip(), column_comments[colname])
+                hdu.header[ttype] = (colname, column_comments[colname])
+                log.debug('Set %s comment to "%s"', colname, column_comments[colname])
+                tunit = f"TUNIT{column_index[colname]:d}"
+                if tunit in hdu.header and hdu.header[tunit].strip():
+                    log.warning("Overriding units for column '%s': '%s' -> '%s'.",
+                                colname, hdu.header[tunit].strip(), column_units[colname])
+                    hdu.header[tunit] = (column_units[colname], colname+' units')
+                else:
+                    hdu.header.insert(f"TFORM{column_index[colname]:d}",
+                                      (tunit, column_units[colname], colname+' units'),
+                                      after=True)
+                    log.debug('Set %s units to "%s"',
+                              colname, column_units[colname])
         else:
             raise TypeError("Adding units to objects other than fits.BinTableHDU is not supported!")
         hdu.add_checksum()
