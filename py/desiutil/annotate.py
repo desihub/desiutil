@@ -439,10 +439,10 @@ def annotate_fits(filename, extension, output, units=None, comments=None,
                         hdu.header[tunit] = (column_units[colname], colname+' units')
                     else:
                         hdu.header.insert(f"TFORM{column_index[colname]:d}",
-                                        (tunit, column_units[colname], colname+' units'),
-                                        after=True)
+                                          (tunit, column_units[colname], colname+' units'),
+                                          after=True)
                         log.debug('Set %s units to "%s"',
-                                colname, column_units[colname])
+                                  colname, column_units[colname])
         else:
             raise TypeError("Adding units to objects other than fits.BinTableHDU is not supported!")
         hdu.add_checksum()
