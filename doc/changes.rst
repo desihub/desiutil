@@ -11,7 +11,7 @@ Change Log
 * Remove deprecated module :mod:`desiutil.census`.
 * Remove deprecated top-level ``setup.py``.
 
-3.4.1 (unreleased)
+3.4.2 (unreleased)
 ------------------
 
 * Fully support adding units and comments to FITS table columns (PR `#201`).
