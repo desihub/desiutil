@@ -6,8 +6,8 @@ import unittest
 import sys
 import os
 from collections import OrderedDict
-from ..depend import (setdep, getdep, hasdep, iterdep, mergedep, Dependencies,
-                      add_dependencies)
+from ..depend import (setdep, getdep, hasdep, iterdep, mergedep, removedep,
+                      Dependencies, add_dependencies, remove_dependencies)
 from .. import __version__ as desiutil_version
 
 try:
@@ -281,3 +281,44 @@ class TestDepend(unittest.TestCase):
         hdr = OrderedDict()
         add_dependencies(hdr)
         self.assertTrue(getdep(hdr, 'DESI_ROOT'), 'NOT_SET')
+
+    def test_remove_dependencies(self):
+        """test removedep and remove_dependencies"""
+
+        # add and remove a single dependency
+        hdr = dict(HELLO='not a DEPNAMnn/DEPVERnn keyword')
+        setdep(hdr, 'blat', 'foo')
+        self.assertTrue(hasdep(hdr, 'blat'))
+        self.assertTrue('HELLO' in hdr)
+        removedep(hdr, 'blat')
+        self.assertFalse(hasdep(hdr, 'blat'))
+        self.assertTrue('HELLO' in hdr)
+
+        # remove a single dependency in the middle while preserving others
+        setdep(hdr, 'blat', 'foo')
+        setdep(hdr, 'biz', 'bat')
+        setdep(hdr, 'kum', 'quat')
+        removedep(hdr, 'biz')
+        self.assertTrue(hasdep(hdr, 'blat'))
+        self.assertFalse(hasdep(hdr, 'biz'))
+        self.assertTrue(hasdep(hdr, 'kum'))
+        self.assertTrue('HELLO' in hdr)
+
+        # Add another dependency doesn't trip on the one that was removed
+        setdep(hdr, 'abc', 'xyz')
+        self.assertTrue(hasdep(hdr, 'blat'))
+        self.assertTrue(hasdep(hdr, 'kum'))
+        self.assertTrue(hasdep(hdr, 'abc'))
+        self.assertTrue('HELLO' in hdr)
+
+        # remove all dependencies
+        remove_dependencies(hdr)
+        self.assertFalse(hasdep(hdr, 'blat'))
+        self.assertFalse(hasdep(hdr, 'biz'))
+        self.assertFalse(hasdep(hdr, 'kum'))
+        self.assertTrue('HELLO' in hdr)
+        for key in hdr:
+            self.assertFalse(key.startswith('DEP'))
+
+        with self.assertRaises(ValueError):
+            removedep(hdr, 'not_there')

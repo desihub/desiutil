@@ -131,13 +131,11 @@ def getdep(header, name):
     for i in range(100):
         namekey = 'DEPNAM{:02d}'.format(i)
         verkey = 'DEPVER{:02d}'.format(i)
-        if namekey in header:
-            if header[namekey] == name:
-                return header[verkey]
-        elif i == 0:
-            continue  # ok if DEPNAM00 is missing; continue to DEPNAME01
-        else:
-            raise KeyError('{} version not found'.format(name))
+        if namekey in header and header[namekey] == name:
+            return header[verkey]
+
+    # if we exited the loop, the name wasn't found in any DEPNAMnn
+    raise KeyError('{} version not found'.format(name))
 
 
 def hasdep(header, name):
@@ -173,12 +171,11 @@ def iterdep(header):
     for i in range(100):
         namekey = 'DEPNAM{:02d}'.format(i)
         verkey = 'DEPVER{:02d}'.format(i)
-        if namekey not in header and i == 0:
-            continue
         if namekey in header:
             yield (header[namekey], header[verkey])
         else:
-            return
+            continue  # ok if some DEPNAMnn are missing
+
     return
 
 
@@ -227,6 +224,37 @@ def mergedep(srchdr, dsthdr, conflict='src'):
                 raise ValueError(f'Version conflict for {name}: {version} != {v2}')
         else:
             setdep(dsthdr, name, version)
+
+
+def removedep(header, name):
+    """
+    Removed dependency ``name`` from ``header``.
+
+    Parameters
+    ----------
+    header : dict-like
+        header object with DEPNAMnn/DEPVERnn keywords
+    name : str
+        name of dependency to remove
+
+    Notes
+    -----
+    Modifies header in-place
+
+    Raises
+    ------
+    ValueError
+        If ``name`` is not present in any of the DEPNAMnn keys
+    """
+    for i in range(100):
+        namekey = 'DEPNAM{:02d}'.format(i)
+        verkey = 'DEPVER{:02d}'.format(i)
+        if (namekey in header) and (header[namekey] == name):
+            del header[namekey]
+            del header[verkey]
+            break
+    else:
+        raise ValueError(f'{name} not found in header DEPNAMnn keywords')
 
 
 def add_dependencies(header, module_names=None, long_python=False,
@@ -287,6 +315,29 @@ def add_dependencies(header, module_names=None, long_python=False,
             setdep(header, envvar, os.environ[envvar])
         else:
             setdep(header, envvar, 'NOT_SET')
+
+
+def remove_dependencies(header):
+    """
+    Remove all DEPNAMnn/DEPVERnn dependencies from a header
+
+    Parameters
+    ----------
+    header : dict-like
+        header with DEPNAMnn/DEPVERnn keywords to remove
+
+    Notes
+    -----
+    Updates header in-place
+    """
+    # Assemble version keys first to avoid removing while iterating
+    keys = list()
+    for name, version in iterdep(header):
+        keys.append(name)
+
+    # now remove all keys
+    for name in keys:
+        removedep(header, name)
 
 
 class Dependencies(object):

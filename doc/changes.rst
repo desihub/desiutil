@@ -18,10 +18,18 @@ Change Log
 
 .. _`#201`: https://github.com/desihub/desiutil/pull/201
 
+3.4.1 (2023-09-25)
+------------------
+
+* Added functions to :mod:`desiutil.depend` to support removing dependencies
+  from headers (PR `#202`_).
+
+.. _`#202`: https://github.com/desihub/desiutil/pull/202
+
 3.4.0 (2023-09-14)
 ------------------
 
-* Add tools for adding units to table columns: FITS and :class:`~astropy.table.Table` (PR `#199`_).
+* Add tools for adding units to :class:`~astropy.table.Table` columns (PR `#199`_).
 
 .. _`#199`: https://github.com/desihub/desiutil/pull/199
 
