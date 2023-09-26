@@ -425,22 +425,24 @@ def annotate_fits(filename, extension, output, units=None, comments=None,
             n_long = check_comment_length(column_comments, error=(not truncate))
             for colname in column_index:
                 ttype = f"TTYPE{column_index[colname]:d}"
-                if hdu.header.comments[ttype].strip():
-                    log.warning("Overriding comment on column '%s': '%s' -> '%s'.",
-                                colname, hdu.header.comments[ttype].strip(), column_comments[colname])
-                hdu.header[ttype] = (colname, column_comments[colname])
-                log.debug('Set %s comment to "%s"', colname, column_comments[colname])
-                tunit = f"TUNIT{column_index[colname]:d}"
-                if tunit in hdu.header and hdu.header[tunit].strip():
-                    log.warning("Overriding units for column '%s': '%s' -> '%s'.",
-                                colname, hdu.header[tunit].strip(), column_units[colname])
-                    hdu.header[tunit] = (column_units[colname], colname+' units')
-                else:
-                    hdu.header.insert(f"TFORM{column_index[colname]:d}",
-                                      (tunit, column_units[colname], colname+' units'),
-                                      after=True)
-                    log.debug('Set %s units to "%s"',
-                              colname, column_units[colname])
+                if colname in column_comments:
+                    if hdu.header.comments[ttype].strip():
+                        log.warning("Overriding comment on column '%s': '%s' -> '%s'.",
+                                    colname, hdu.header.comments[ttype].strip(), column_comments[colname])
+                    hdu.header[ttype] = (colname, column_comments[colname])
+                    log.debug('Set %s comment to "%s"', colname, column_comments[colname])
+                if colname in column_units:
+                    tunit = f"TUNIT{column_index[colname]:d}"
+                    if tunit in hdu.header and hdu.header[tunit].strip():
+                        log.warning("Overriding units for column '%s': '%s' -> '%s'.",
+                                    colname, hdu.header[tunit].strip(), column_units[colname])
+                        hdu.header[tunit] = (column_units[colname], colname+' units')
+                    else:
+                        hdu.header.insert(f"TFORM{column_index[colname]:d}",
+                                        (tunit, column_units[colname], colname+' units'),
+                                        after=True)
+                        log.debug('Set %s units to "%s"',
+                                colname, column_units[colname])
         else:
             raise TypeError("Adding units to objects other than fits.BinTableHDU is not supported!")
         hdu.add_checksum()

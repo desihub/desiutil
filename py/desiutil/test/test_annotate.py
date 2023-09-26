@@ -384,21 +384,23 @@ Comments:
         self.assertEqual(new_hdulist[2].header['TUNIT2'], 'deg')
         self.assertEqual(new_hdulist[2].header['TUNIT3'], 'deg')
         new_hdulist_name = os.path.join(self.TMP, 'test_annotate_update2.fits')
-        new_hdulist = annotate_fits(self.fits_file, 2, new_hdulist_name, units={'MAG': 'flux'}, overwrite=True)
+        new_hdulist = annotate_fits(self.fits_file, 2, new_hdulist_name, units={'MAG': 'nJy'}, overwrite=True)
         self.assertIn('TUNIT4', new_hdulist[2].header)
-        self.assertEqual(new_hdulist[2].header['TUNIT4'], 'flux')
-        mock_log().warning.assert_called_once_with("Overriding units for column '%s': '%s' -> '%s'.", 'MAG', 'mag', 'flux')
+        self.assertEqual(new_hdulist[2].header['TUNIT4'], 'nJy')
+        mock_log().warning.assert_called_once_with("Overriding units for column '%s': '%s' -> '%s'.", 'MAG', 'mag', 'nJy')
 
     @patch('desiutil.annotate.get_logger')
     def test_annotate_fits_comments(self, mock_log):
         """Test adding comments to a binary table.
         """
         new_hdulist_name = os.path.join(self.TMP, 'test_annotate_update_comments.fits')
-        new_hdulist = annotate_fits(self.fits_file, 2, new_hdulist_name, comments={'RA': 'RA', 'DEC': 'DEC'}, overwrite=True)
+        new_hdulist = annotate_fits(self.fits_file, 2, new_hdulist_name, comments={'RA': 'RA', 'DEC': 'DEC'}, overwrite=True, verbose=True)
         self.assertEqual(new_hdulist[2].header.comments['TTYPE2'], 'RA')
         self.assertEqual(new_hdulist[2].header.comments['TTYPE3'], 'DEC')
         mock_log().warning.assert_has_calls([call("Overriding comment on column '%s': '%s' -> '%s'.", 'RA', 'Right Ascension [J2000]', 'RA'),
                                              call("Overriding comment on column '%s': '%s' -> '%s'.", 'DEC', 'Declination [J2000]', 'DEC')])
+        mock_log().debug.assert_has_calls([call('Set %s comment to "%s"', 'RA', 'RA'),
+                                           call('Set %s comment to "%s"', 'DEC', 'DEC')])
 
     def test_annotate_fits_image(self):
         """Test adding units to an image.
