@@ -456,6 +456,8 @@ def _options():
     """
     parser = ArgumentParser(description="Add units or comments to a FITS file.",
                             prog=os.path.basename(sys.argv[0]))
+    parser.add_argument('-A', '--allow-invalid-units', action='store_false', dest='validate',
+                        help='Allow units that do not follow the FITS standard (not recommended).')
     parser.add_argument('-c', '--comments', action='store', dest='comments', metavar='COMMENTS',
                         help="COMMENTS should have the form COLUMN='comment':COLUMN='comment'.")
     parser.add_argument('-C', '--csv', action='store', dest='csv', metavar='CSV',
@@ -467,7 +469,7 @@ def _options():
     parser.add_argument('-o', '--overwrite', dest='overwrite', action='store_true',
                         help='Overwrite the input FITS file.')
     parser.add_argument('-T', '--truncate-comments', dest='truncate', action='store_true',
-                        help='Allow any long comments to be truncated when written out.')
+                        help='Allow any long comments to be truncated when written out. Without this option, long comments will raise an error.')
     parser.add_argument('-u', '--units', action='store', dest='units', metavar='UNITS',
                         help="UNITS should have the form COLUMN='unit':COLUMN='unit'.")
     parser.add_argument('-v', '--verbose', dest='verbose', action='store_true',
@@ -532,8 +534,11 @@ def main():
         return 1
     try:
         hdulist = annotate_fits(options.fits, options.extension, output,
-                                units, comments, truncate=options.truncate,
-                                overwrite=options.overwrite, verbose=options.verbose)
+                                units, comments,
+                                validate=options.validate,
+                                truncate=options.truncate,
+                                overwrite=options.overwrite,
+                                verbose=options.verbose)
     except OSError as e:
         if 'overwrite' in e.args[0]:
             log.critical("Output file exists and --overwrite was not specified!")
