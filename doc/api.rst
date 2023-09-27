@@ -8,8 +8,8 @@ desiutil API
 .. automodule:: desiutil.annotate
     :members:
 
-.. .. automodule:: desiutil.api
-..     :members:
+.. automodule:: desiutil.api
+    :members:
 
 .. automodule:: desiutil.bitmask
     :members:
@@ -53,8 +53,8 @@ desiutil API
 .. automodule:: desiutil.redirect
     :members:
 
-.. .. automodule:: desiutil.setup
-..     :members:
+.. automodule:: desiutil.setup
+    :members:
 
 .. automodule:: desiutil.sklearn
     :members:

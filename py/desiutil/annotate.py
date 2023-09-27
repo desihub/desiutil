@@ -11,12 +11,19 @@ import csv
 import os
 import sys
 from argparse import ArgumentParser
+from warnings import warn
 import yaml
 from astropy.io import fits
 from astropy.table import Table, QTable
-from astropy.units import UnitConversionError
+from astropy.units import Unit, UnitConversionError
 from . import __version__ as desiutilVersion
 from .log import get_logger, DEBUG
+
+
+class FITSUnitWarning(UserWarning):
+    """Warnings related to invalid FITS units.
+    """
+    pass
 
 
 def find_column_name(columns, prefix=('unit', )):
@@ -72,6 +79,90 @@ def find_key_name(data, prefix=('unit', )):
             if s in key.lower():
                 return key
     raise KeyError(f"No key matching '{prefix[0]}' found!")
+
+
+def validate_unit(unit, error=False):
+    """Check units for consistency with FITS standard, while allowing
+    some special exceptions.
+
+    Parameters
+    ----------
+    unit : :class:`str`
+        The unit to parse.
+    error : :class:`bool`, optional
+        If ``True``, failure to interpret the unit raises an
+        exception.
+
+    Returns
+    -------
+    :class:`str`
+        If a special exception is detected, the name of the unit
+        is returned.  Otherwise, ``None``.
+
+    Raises
+    ------
+    :exc:`ValueError`
+        If `error` is set and `unit` can't be parsed.
+    """
+    if unit is None:
+        return None
+    acceptable_units = ('maggie', 'maggy', 'mgy',
+                        'electron/Angstrom',
+                        'log(Angstrom)')
+    try:
+        au = Unit(unit, format='fits')
+    except ValueError as e:
+        m = str(e)
+        bad_unit = m.split()[0]
+        if any([u in bad_unit for u in acceptable_units]) and 'Numeric factor' not in m:
+            return bad_unit
+        else:
+            if error:
+                raise
+            else:
+                warn(m, FITSUnitWarning)
+    return None
+
+
+def check_comment_length(comments, error=True):
+    """Ensure keyword comments are short enough that they will not be truncated.
+
+    By experiment, :mod:`astropy.io.fits` will truncate comments longer than
+    46 characters, however the warning it emits when it does so is not very
+    informative.
+
+    Parameters
+    ----------
+    comments : :class:`dict`
+        Mapping of table columns to comments.
+    error : :class:`bool`, optional
+        If ``False`` just warn about long comments instead of raising an exception.
+
+    Returns
+    -------
+    :class:`int`
+        The number of long comments detected, although the value is only relevant
+        if `error` is ``False``.
+
+    Raises
+    ------
+    ValueError
+        If any comment is too long.
+    """
+    log = get_logger()
+    too_long = 46
+    n_long = 0
+    for key in comments:
+        if len(comments[key]) > too_long:
+            n_long += 1
+            if error:
+                log.error("'%s' comment too long: '%s'!", key, comments[key])
+            else:
+                log.warning("Long comment detected for '%s', will be truncated to '%s'!",
+                            key, comments[key][:too_long])
+    if n_long > 0 and error:
+        raise ValueError(f"{n_long:d} long comments detected!")
+    return n_long
 
 
 def load_csv_units(filename):
@@ -171,7 +262,7 @@ def load_yml_units(filename):
     return (units, comments)
 
 
-def annotate_table(table, units, inplace=False):
+def annotate_table(table, units, inplace=False, validate=True):
     """Add annotations to `table`.
 
     Parameters
@@ -182,11 +273,18 @@ def annotate_table(table, units, inplace=False):
         Mapping of table columns to units.
     inplace : :class:`bool`, optional
         If ``True``, modify `table` directly instead of returning a copy.
+    validate : :class:`bool`, optional
+        If ``True`` raise an error if any unit does not follow the FITS standard.
 
     Returns
     -------
     :class:`astropy.table.Table`
         An updated version of `table`.
+
+    Raises
+    ------
+    ValueError
+        If `validate` is ``True`` and an invalid unit is detected.
 
     Notes
     -----
@@ -209,6 +307,7 @@ def annotate_table(table, units, inplace=False):
     for column in units:
         if column in t.colnames:
             if len(units[column]) > 0:
+                bad_unit = validate_unit(units[column], error=validate)
                 try:
                     log.debug("t['%s'].unit = '%s'", column, units[column])
                     t[column].unit = units[column]
@@ -228,8 +327,11 @@ def annotate_table(table, units, inplace=False):
     return t
 
 
-def annotate(filename, extension, units=None, comments=None):
-    """Add annotations to `filename`.
+def annotate_fits(filename, extension, output, units=None, comments=None,
+                  validate=True, truncate=False, overwrite=False, verbose=False):
+    """Add annotations to HDU `extension` in FITS file `filename`.
+
+    HDU `extension` must be a :class:`astropy.io.fits.BinTableHDU`.
 
     If `units` or `comments` is an empty dictionary, it will be ignored.
 
@@ -239,64 +341,113 @@ def annotate(filename, extension, units=None, comments=None):
         Name of FITS file.
     extension : :class:`str` or :class:`int`
         Name or number of extension in `filename`.
+    output : :class:`str`
+        Name of file to write to.
     units : :class:`dict`, optional
         Mapping of table columns to units.
     comments : :class:`dict`, optional
         Mapping of table columns to comments.
+    validate : :class:`bool`, optional
+        By default, units will be checked for compliance with the FITS
+        standard. Setting this to ``False`` disables errors, although
+        warnings will still be printed.
+    truncate : :class:`bool`, optional
+        Allow long comments to be truncated when written out. The default
+        is to raise an error if a comment is too long.
+    overwrite : :class:`bool`, optional
+        Pass this keyword to :meth:`astropy.io.fits.HDUList.writeto`.
+    verbose : :class:`bool`, optional
+        Include debug-level logging
 
     Returns
     -------
     :class:`astropy.io.fits.HDUList`
-        An updated version of the file.
+        An updated version of the file, equivalent to the data in `output`.
+
+    Raises
+    ------
+    IndexError
+        If the HDU specified (numerically) by `extension` does not exist.
+    KeyError
+        If the HDU specified (as an ``EXTNAME``) by `extension` does not exist.
+    TypeError
+        If the HDU specified is not supported by this function.
+    ValueError
+        If neither `units` nor `comments` are specified.
+
+    Notes
+    -----
+    * Due to the way :func:`astropy.io.fits.open` manages memory, changes
+      have to be written out while `filename` is still open,
+      hence the mandatory `output` argument.
+    * A FITS HDU checksum will always be added to the output, even if it
+      was not already present.
     """
-    log = get_logger()
-    new_hdus = list()
-    with fits.open(filename, mode='readonly', memmap=False, lazy_load_hdus=False, uint=False, disable_image_compression=True, do_not_scale_image_data=True, character_as_bytes=True, scale_back=True) as hdulist:
-        log.debug(hdulist._open_kwargs)
-        kwargs = hdulist._open_kwargs.copy()
-        for h in hdulist:
-            hc = h.copy()
-            if hasattr(h, '_do_not_scale_image_data'):
-                hc._do_not_scale_image_data = h._do_not_scale_image_data
-            if hasattr(h, '_bzero'):
-                hc._bzero = h._bzero
-            if hasattr(h, '_bscale'):
-                hc._bzero = h._bscale
-            if hasattr(h, '_scale_back'):
-                hc._scale_back = h._scale_back
-            if hasattr(h, '_uint'):
-                hc._uint = h._uint
-            #
-            # Work around header comments not copied for BinTableHDU.
-            #
-            if isinstance(h, fits.BinTableHDU):
-                for key in h.header.keys():
-                    hc.header.comments[key] = h.header.comments[key]
-            #
-            # Work around disappearing BZERO and BSCALE keywords.
-            #
-            if isinstance(h, fits.ImageHDU) and 'BZERO' in h.header and 'BSCALE' in h.header:
-                if 'BZERO' not in hc.header or 'BSCALE' not in hc.header:
-                    iscale = h.header.index('BSCALE')
-                    izero = h.header.index('BZERO')
-                    if izero > iscale:
-                        hc.header.insert(iscale - 1, ('BSCALE', h.header['BSCALE'], h.header.comments['BSCALE']), after=True)
-                        hc.header.insert(iscale, ('BZERO', h.header['BZERO'], h.header.comments['BZERO']), after=True)
-                    else:
-                        hc.header.insert(izero - 1, ('BZERO', h.header['BZERO'], h.header.comments['BZERO']), after=True)
-                        hc.header.insert(izero, ('BSCALE', h.header['BSCALE'], h.header.comments['BSCALE']), after=True)
-            new_hdus.append(hc)
-    new_hdulist = fits.HDUList(new_hdus)
-    new_hdulist._open_kwargs = kwargs
-    log.debug(new_hdulist._open_kwargs)
+    if verbose:
+        log = get_logger(DEBUG)
+    else:
+        log = get_logger()
+
     try:
         ext = int(extension)
     except ValueError:
         ext = extension
-    try:
-        hdu = new_hdulist[ext]
-    except (IndexError, KeyError):
-        raise
+    if not units and not comments:
+        raise ValueError("No input units or comments specified!")
+    with fits.open(filename, mode='readonly') as hdulist:
+        new_hdulist = hdulist.copy()
+        try:
+            hdu = new_hdulist[ext]
+        except (IndexError, KeyError):
+            raise
+        if isinstance(hdu, fits.BinTableHDU) and not isinstance(hdu, fits.CompImageHDU):
+            #
+            # fits.CompImageHDU is a subclass of fits.BinTableHDU.
+            #
+            # First loop through the actual columns in the file; verify the
+            # units and columns on the actual columns.
+            #
+            column_comments = dict()
+            column_units = dict()
+            column_index = dict()
+            for i in range(1, 1000):
+                ttype = f"TTYPE{i:d}"
+                if ttype not in hdu.header:
+                    break
+                colname = hdu.header[ttype]
+                column_index[colname] = i
+                if comments and colname in comments and comments[colname].strip():
+                    column_comments[colname] = comments[colname].strip()
+                if units and colname in units and units[colname].strip():
+                    column_units[colname] = units[colname].strip()
+            for colname in column_units:
+                unit_name = validate_unit(column_units[colname], error=validate)
+            n_long = check_comment_length(column_comments, error=(not truncate))
+            for colname in column_index:
+                ttype = f"TTYPE{column_index[colname]:d}"
+                if colname in column_comments:
+                    if hdu.header.comments[ttype].strip():
+                        log.warning("Overriding comment on column '%s': '%s' -> '%s'.",
+                                    colname, hdu.header.comments[ttype].strip(), column_comments[colname])
+                    hdu.header[ttype] = (colname, column_comments[colname])
+                    log.debug('Set %s comment to "%s"', colname, column_comments[colname])
+                if colname in column_units:
+                    tunit = f"TUNIT{column_index[colname]:d}"
+                    if tunit in hdu.header and hdu.header[tunit].strip():
+                        log.warning("Overriding units for column '%s': '%s' -> '%s'.",
+                                    colname, hdu.header[tunit].strip(), column_units[colname])
+                        hdu.header[tunit] = (column_units[colname], colname+' units')
+                    else:
+                        hdu.header.insert(f"TFORM{column_index[colname]:d}",
+                                          (tunit, column_units[colname], colname+' units'),
+                                          after=True)
+                        log.debug('Set %s units to "%s"',
+                                  colname, column_units[colname])
+        else:
+            raise TypeError("Adding units to objects other than fits.BinTableHDU is not supported!")
+        hdu.add_checksum()
+        new_hdulist.writeto(output, output_verify='warn', overwrite=overwrite, checksum=False)
+        log.info('Wrote %s', output)
     return new_hdulist
 
 
@@ -305,16 +456,20 @@ def _options():
     """
     parser = ArgumentParser(description="Add units or comments to a FITS file.",
                             prog=os.path.basename(sys.argv[0]))
+    parser.add_argument('-A', '--allow-invalid-units', action='store_false', dest='validate',
+                        help='Allow units that do not follow the FITS standard (not recommended).')
     parser.add_argument('-c', '--comments', action='store', dest='comments', metavar='COMMENTS',
                         help="COMMENTS should have the form COLUMN='comment':COLUMN='comment'.")
     parser.add_argument('-C', '--csv', action='store', dest='csv', metavar='CSV',
                         help="Read annotations from CSV file.")
+    parser.add_argument('-D', '--disable-comments', action='store_true', dest='disable_comments',
+                        help='Do not add comments, even if they are defined in one of the inputs.')
     parser.add_argument('-e', '--extension', dest='extension', action='store', metavar='EXT', default='1',
                         help="Update FITS extension EXT, which can be a number or an EXTNAME. If not specified, HDU 1 will be updated, which is standard for simple binary tables.")
     parser.add_argument('-o', '--overwrite', dest='overwrite', action='store_true',
                         help='Overwrite the input FITS file.')
-    parser.add_argument('-t', '--test', dest='test', action='store_true',
-                        help='Test mode; show what would be done but do not change any files.')
+    parser.add_argument('-T', '--truncate-comments', dest='truncate', action='store_true',
+                        help='Allow any long comments to be truncated when written out. Without this option, long comments will raise an error.')
     parser.add_argument('-u', '--units', action='store', dest='units', metavar='UNITS',
                         help="UNITS should have the form COLUMN='unit':COLUMN='unit'.")
     parser.add_argument('-v', '--verbose', dest='verbose', action='store_true',
@@ -338,7 +493,7 @@ def main():
         An integer suitable for passing to :func:`sys.exit`.
     """
     options = _options()
-    if options.test or options.verbose:
+    if options.verbose:
         log = get_logger(DEBUG)
     else:
         log = get_logger()
@@ -357,9 +512,17 @@ def main():
         else:
             log.debug("No comments have been specified.")
             comments = dict()
-    log.debug("units = %s", units)
-    log.debug("comments = %s", comments)
-    hdulist = annotate(options.fits, options.extension, units, comments)
+    if options.disable_comments:
+        log.info("Comments are disabled by user request.")
+        comments = dict()
+    if units:
+        log.debug("Input Units")
+        for k, v in units.items():
+            log.debug("'%s': '%s'", k, v)
+    if comments:
+        log.debug("Input Comments")
+        for k, v in comments.items():
+            log.debug("'%s': '%s'", k, v)
     if options.overwrite and options.output:
         output = options.output
     elif options.overwrite:
@@ -367,14 +530,23 @@ def main():
     elif options.output:
         output = options.output
     else:
-        log.error("--overwrite not specified and no output file specified!")
+        log.critical("--overwrite not specified and no output file specified!")
         return 1
     try:
-        hdulist.writeto(output, output_verify='warn', overwrite=options.overwrite, checksum=False)
+        hdulist = annotate_fits(options.fits, options.extension, output,
+                                units, comments,
+                                validate=options.validate,
+                                truncate=options.truncate,
+                                overwrite=options.overwrite,
+                                verbose=options.verbose)
     except OSError as e:
         if 'overwrite' in e.args[0]:
-            log.error("Output file exists and --overwrite was not specified!")
+            log.critical("Output file exists and --overwrite was not specified!")
         else:
-            log.error(e.args[0])
+            log.critical(e.args[0])
+        return 1
+    except (IndexError, KeyError, TypeError, ValueError) as e:
+        log.critical(str(e))
+        log.critical("Exiting without writing output.")
         return 1
     return 0
