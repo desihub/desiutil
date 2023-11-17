@@ -10,6 +10,7 @@ or decoding those names
 """
 import numpy as np
 
+
 def radec_to_desiname(target_ra, target_dec):
     """Convert the right ascension and declination of a DESI target
     into the corresponding "DESI name" for reference in publications.
