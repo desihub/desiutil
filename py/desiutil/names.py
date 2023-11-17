@@ -11,8 +11,7 @@ or decoding those names
 import numpy as np
 
 def radec_to_desiname(target_ra, target_dec):
-    """
-    Convert the right ascension and declination of a DESI target
+    """Convert the right ascension and declination of a DESI target
     into the corresponding "DESI name" for reference in publications.
     Length of target_ra and target_dec must be the same if providing an
     array or list.
@@ -28,7 +27,7 @@ def radec_to_desiname(target_ra, target_dec):
 
     Returns
     -------
-    desinames: array of :class:`string`
+    array of :class:`str`
         The DESI names referring to the input target RA and DEC's. Array is
         the same length as the input arrays.
 
