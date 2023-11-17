@@ -5,6 +5,7 @@
 import unittest
 import numpy as np
 
+
 class TestNames(unittest.TestCase):
     """Test desiutil.names
     """
@@ -22,9 +23,9 @@ class TestNames(unittest.TestCase):
         """
         from ..names import radec_to_desiname
         ras = [6.2457354547234, 23.914121939862518, 36.23454570972834,
-              235.25235223446, 99.9999999999999]
+               235.25235223446, 99.9999999999999]
         decs = [29.974787585945496, -42.945872347904356, -0.9968423456,
-               8.45677345352345, 89.234958294953]
+                8.45677345352345, 89.234958294953]
         correct_names = np.array(['DESI J006.2457+29.9747',
                                   'DESI J023.9141-42.9458',
                                   'DESI J036.2345-00.9968',
@@ -43,5 +44,3 @@ class TestNames(unittest.TestCase):
         outnames = radec_to_desiname(np.array(ras),
                                      np.array(decs))
         self.assertTrue(np.alltrue(outnames == correct_names))
-
-
