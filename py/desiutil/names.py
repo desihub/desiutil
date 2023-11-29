@@ -13,7 +13,7 @@ import numpy as np
 
 def radec_to_desiname(target_ra, target_dec):
     """Convert the right ascension and declination of a DESI target
-    into the corresponding "DESI name" for reference in publications.
+    into the corresponding "DESINAME" for reference in publications.
     Length of target_ra and target_dec must be the same if providing an
     array or list. Note that these names are not unique for roughly
     one percent of DESI targets, so also including TARGETID in
