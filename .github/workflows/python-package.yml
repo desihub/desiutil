@@ -93,6 +93,31 @@ jobs:
             - name: Test the documentation
               run: sphinx-build -W --keep-going -b html doc doc/_build/html
 
+    api:
+        name: API doc completeness test
+        runs-on: ${{ matrix.os }}
+        strategy:
+            fail-fast: false
+            matrix:
+                os: [ubuntu-latest]
+                python-version: ['3.10']
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v3
+              with:
+                  fetch-depth: 0
+            - name: Set up Python ${{ matrix.python-version }}
+              uses: actions/setup-python@v4
+              with:
+                  python-version: ${{ matrix.python-version }}
+            - name: Set PYTHONPATH to checkout directory
+              run: echo PYTHONPATH=$(pwd)/py/desiutil >> ${GITHUB_ENV}
+            - name: Generate api.rst
+              run: ./bin/desi_api_file --api ./api.rst desiutil
+            - name: Compare generated api.rst to checked-in version
+              run: diff --ignore-space-change --ignore-blank-lines ./api.rst ./doc/api.rst
+
     style:
         name: Style check
         runs-on: ${{ matrix.os }}
