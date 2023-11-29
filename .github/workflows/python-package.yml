@@ -17,9 +17,9 @@ jobs:
             fail-fast: true
             matrix:
                 os: [ubuntu-latest]
-                python-version: ['3.8', '3.9', '3.10']  # , '3.11'] Astropy 5.0 may be incompatible with Python 3.11
+                python-version: ['3.9', '3.10']  #, '3.11'] There are still issues with Numpy <1.23 and 3.11.
                 numpy-version: ['<1.23']
-                astropy-version: ['==5.0', '<5.1', '<6.0']
+                astropy-version: ['<5.1', '<6.0', '<7.0']
 
         steps:
             - name: Checkout code
@@ -92,6 +92,33 @@ jobs:
               run: python -m pip install --upgrade pip setuptools wheel Sphinx\<7 sphinx-rtd-theme
             - name: Test the documentation
               run: sphinx-build -W --keep-going -b html doc doc/_build/html
+
+    api:
+        name: API doc completeness test
+        runs-on: ${{ matrix.os }}
+        strategy:
+            fail-fast: false
+            matrix:
+                os: [ubuntu-latest]
+                python-version: ['3.10']
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v3
+              with:
+                  fetch-depth: 0
+            - name: Set up Python ${{ matrix.python-version }}
+              uses: actions/setup-python@v4
+              with:
+                  python-version: ${{ matrix.python-version }}
+            - name: Install Python dependencies
+              run: |
+                python -m pip install --upgrade pip setuptools wheel
+                python -m pip install --editable .
+            - name: Generate api.rst
+              run: ./bin/desi_api_file --api ./api.rst desiutil
+            - name: Compare generated api.rst to checked-in version
+              run: diff --ignore-space-change --ignore-blank-lines ./api.rst ./doc/api.rst
 
     style:
         name: Style check

@@ -47,6 +47,9 @@ desiutil API
 .. automodule:: desiutil.modules
     :members:
 
+.. automodule:: desiutil.names
+    :members:
+
 .. automodule:: desiutil.plots
     :members:
 
