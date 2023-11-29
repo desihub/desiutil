@@ -14,9 +14,13 @@ Change Log
 3.4.2 (unreleased)
 ------------------
 
-* Fully support adding units and comments to FITS table columns (PR `#201`).
+* Fully support adding units and comments to FITS table columns (PR `#201`_).
+* Created :mod:`desiutil.names` and added a function to it that takes an RA
+  and DEC and produces a DESINAME that can be used to refer to a DESI
+  object at that sky location (PR `#203`_).
 
 .. _`#201`: https://github.com/desihub/desiutil/pull/201
+.. _`#203`: https://github.com/desihub/desiutil/pull/203
 
 3.4.1 (2023-09-25)
 ------------------

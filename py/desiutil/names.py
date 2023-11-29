@@ -1,12 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
 """
-============
+==============
 desiutil.names
-============
+==============
 
 This package contains functions for naming 'things' in DESI
-or decoding those names
+or decoding those names.
 """
 import numpy as np
 
@@ -15,7 +15,9 @@ def radec_to_desiname(target_ra, target_dec):
     """Convert the right ascension and declination of a DESI target
     into the corresponding "DESI name" for reference in publications.
     Length of target_ra and target_dec must be the same if providing an
-    array or list.
+    array or list. Note that these names are not unique for roughly
+    one percent of DESI targets, so also including TARGETID in
+    publications is highly recommended for uniqueness.
 
     Parameters
     ----------
