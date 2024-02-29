@@ -17,9 +17,9 @@ jobs:
             fail-fast: true
             matrix:
                 os: [ubuntu-latest]
-                python-version: ['3.9', '3.10', '3.11']  # There are still issues with Numpy <1.23 and 3.11.
+                python-version: ['3.9', '3.10']  #, '3.11']  # There are still issues with Numpy <1.23 and 3.11.
                 numpy-version: ['<1.23', '<1.24', '<2.0']
-                astropy-version: ['==5.0', '<5.1', '<6.0', '<7.0']
+                astropy-version: ['<5.1', '<6.0', '<7.0']
 
         steps:
             - name: Checkout code
