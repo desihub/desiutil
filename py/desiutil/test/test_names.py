@@ -56,3 +56,8 @@ class TestNames(unittest.TestCase):
         with self.assertRaises(ValueError) as e:
             outnames = radec_to_desiname(ras, decs)
         self.assertEqual(str(e.exception), "NaN values detected in target_ra!")
+
+        ras[2] = np.inf
+        with self.assertRaises(ValueError) as e:
+            outnames = radec_to_desiname(ras, decs)
+        self.assertEqual(str(e.exception), "Infinite values detected in target_ra!")
