@@ -52,12 +52,27 @@ class TestNames(unittest.TestCase):
                235.25235223446, 99.9999999999999]
         decs = [29.974787585945496, -42.945872347904356, -0.9968423456,
                 8.45677345352345, 89.234958294953]
-        ras[2] = np.nan
-        with self.assertRaises(ValueError) as e:
-            outnames = radec_to_desiname(ras, decs)
-        self.assertEqual(str(e.exception), "NaN values detected in target_ra!")
 
-        ras[2] = np.inf
-        with self.assertRaises(ValueError) as e:
-            outnames = radec_to_desiname(ras, decs)
-        self.assertEqual(str(e.exception), "Infinite values detected in target_ra!")
+        original_ra = ras[2]
+        for message, value in [("NaN values detected in target_ra!", np.nan),
+                               ("Infinite values detected in target_ra!", np.inf),
+                               ("RA not in range [0, 360) detected in target_ra!", -23.914121939862518),
+                               ("RA not in range [0, 360) detected in target_ra!", 360.23454570972834)]:
+            ras[2] = value
+            with self.assertRaises(ValueError) as e:
+                outnames = radec_to_desiname(ras, decs)
+            self.assertEqual(str(e.exception), message)
+
+        ras[2] = original_ra
+
+        original_dec = decs[2]
+        for message, value in [("NaN values detected in target_dec!", np.nan),
+                               ("Infinite values detected in target_dec!", np.inf),
+                               ("Dec not in range [-90, 90] detected in target_dec!", -90.9968423456),
+                               ("Dec not in range [-90, 90] detected in target_dec!", 90.9968423456)]:
+            decs[2] = value
+            with self.assertRaises(ValueError) as e:
+                outnames = radec_to_desiname(ras, decs)
+            self.assertEqual(str(e.exception), message)
+
+        decs[2] = original_dec

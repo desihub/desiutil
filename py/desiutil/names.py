@@ -42,15 +42,16 @@ def radec_to_desiname(target_ra, target_dec):
     # Convert to numpy array in case inputs are scalars or lists
     target_ra, target_dec = np.atleast_1d(target_ra), np.atleast_1d(target_dec)
 
-    inputs = {'target_ra': target_ra, 'target_dec': target_dec}
-    tests = (('NaN values', np.isnan),
-             ('Infinite values', np.isinf),
-             ('RA not in range [0, 360)', lambda x: (x < 0) | (x >= 360)),
-             ('Dec not in range [-90, 90]', lambda x: (x < -90) | (x > 90)))
+    base_tests = [('NaN values', np.isnan),
+                  ('Infinite values', np.isinf),]
+    inputs = {'target_ra': {'data': target_ra,
+                            'tests': base_tests + [('RA not in range [0, 360)', lambda x: (x < 0) | (x >= 360))]},
+              'target_dec': {'data': target_dec,
+                             'tests': base_tests + [('Dec not in range [-90, 90]', lambda x: (x < -90) | (x > 90))]}}
     for i in inputs:
-        for key, check in tests:
-            if (check(inputs[i])).any():
-                raise ValueError(f"{key} detected in {i}!")
+        for message, check in inputs[i]['tests']:
+            if check(inputs[i]['data']).any():
+                raise ValueError(f"{message} detected in {i}!")
 
     # Number of decimal places in final naming convention
     precision = 4
