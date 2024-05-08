@@ -48,10 +48,10 @@ def radec_to_desiname(target_ra, target_dec):
                             'tests': base_tests + [('RA not in range [0, 360)', lambda x: (x < 0) | (x >= 360))]},
               'target_dec': {'data': target_dec,
                              'tests': base_tests + [('Dec not in range [-90, 90]', lambda x: (x < -90) | (x > 90))]}}
-    for i in inputs:
-        for message, check in inputs[i]['tests']:
-            if check(inputs[i]['data']).any():
-                raise ValueError(f"{message} detected in {i}!")
+    for coord in inputs:
+        for message, check in inputs[coord]['tests']:
+            if check(inputs[coord]['data']).any():
+                raise ValueError(f"{message} detected in {coord}!")
 
     # Number of decimal places in final naming convention
     precision = 4
