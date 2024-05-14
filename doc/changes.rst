@@ -14,7 +14,9 @@ Change Log
 3.4.3 (unreleased)
 ------------------
 
-* No changes yet.
+* Check input bounds in :func:`~desiutil.names.radec_to_desiname` (PR `#207`_).
+
+.. _`#207`: https://github.com/desihub/desiutil/pull/207
 
 3.4.2 (2023-11-29)
 ------------------
