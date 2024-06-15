@@ -295,9 +295,9 @@ def get_version(productname):
         update_version(productname)
     with open(version_file, "r") as f:
         for line in f.readlines():
-            mo = re.match("__version__ = '(.*)'", line)
+            mo = re.match("__version__ = ('|\")(.*)('|\")", line)
             if mo:
-                ver = mo.group(1)
+                ver = mo.group(2)
     return ver
 
 
