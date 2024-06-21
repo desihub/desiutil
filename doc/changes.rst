@@ -15,8 +15,12 @@ Change Log
 ------------------
 
 * Check input bounds in :func:`~desiutil.names.radec_to_desiname` (PR `#207`_).
+* Allow for a greater diversity of version strings in
+  :func:`~desiutil.setup.get_version` (PR `#208`_, `#209`_).
 
 .. _`#207`: https://github.com/desihub/desiutil/pull/207
+.. _`#208`: https://github.com/desihub/desiutil/pull/208
+.. _`#209`: https://github.com/desihub/desiutil/pull/209
 
 3.4.2 (2023-11-29)
 ------------------

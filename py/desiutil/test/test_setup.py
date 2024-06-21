@@ -154,6 +154,31 @@ setup(name="{0.fake_name}",
         v = get_version('desiutil')
         self.assertEqual(v, desiutil_version)
 
+    def test_get_version_corner_cases(self):
+        """Test parsing a _version.py file with 'by-hand' formatting.
+        """
+        corner_cases = ("__version__ = '1.2.3'\n",  # default format
+                        '__version__ = "1.2.3"\n',  # alternate quotes
+                        '__version__="1.2.3"\n',  # no whitespace
+                        '__version__\t=\t"1.2.3"\n',  # alternate whitespace
+                        "__version__= \t\t '1.2.3'\n",  # really alternate whitespace
+                        """__version__ = "1.2.3'\n""")  # mismatched quotes, should fail.
+        p = os.path.join(self.setup_dir, self.fake_name)
+        os.makedirs(p)
+        os.chdir(self.setup_dir)
+        version_file = os.path.join(p, '_version.py')
+        for case in corner_cases:
+            with open(version_file, 'w') as v:
+                v.write(case)
+            version = get_version(self.fake_name)
+            if case == """__version__ = "1.2.3'\n""":
+                self.assertEqual(version, 'unknown')
+            else:
+                self.assertEqual(version, '1.2.3')
+        os.remove(os.path.join(p, '_version.py'))
+        os.rmdir(p)
+        os.chdir(self.original_dir)
+
     def test_update_version(self):
         """Test creating and updating a _version.py file.
         """

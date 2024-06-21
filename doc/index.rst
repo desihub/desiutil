@@ -32,6 +32,11 @@ need:
 * `matplotlib <https://matplotlib.org/>`_
 * `healpy <https://healpy.readthedocs.io/en/latest/>`_
 
+If you want to work with the dust utilities in :mod:`desiutil.dust`, you will
+need:
+
+* `SciPy <https://scipy.org>`
+
 Contents
 ========
 
