@@ -28,6 +28,12 @@ from .git import version as git_version
 from .modules import configure_module, process_module, default_module
 
 
+_match_version_line = re.compile(r"""__version__\s*=\s*  # opening part of the line, allow any amount of whitespace including none
+                                     (?P<oq>['"])        # match any opening quote and give it the label oq = opening quote
+                                     (?P<v>[^'"]+)       # any character not a quote, one or more times, label v = version
+                                     (?P=oq)             # match the same opening quote""", re.VERBOSE)
+
+
 class DesiAPI(Command):
     """Generate an api.rst file.
     """
@@ -295,9 +301,9 @@ def get_version(productname):
         update_version(productname)
     with open(version_file, "r") as f:
         for line in f.readlines():
-            mo = re.match("__version__ = ('|\")(.*)('|\")", line)
+            mo = _match_version_line.match(line)
             if mo:
-                ver = mo.group(2)
+                ver = mo.group('v')
     return ver
 
 
