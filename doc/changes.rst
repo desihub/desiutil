@@ -11,7 +11,7 @@ Change Log
 * Remove deprecated module :mod:`desiutil.census`.
 * Remove deprecated top-level ``setup.py``.
 
-3.4.3 (unreleased)
+3.4.3 (2024-08-15)
 ------------------
 
 * Check input bounds in :func:`~desiutil.names.radec_to_desiname` (PR `#207`_).
