@@ -38,12 +38,12 @@ class TestNames(unittest.TestCase):
 
         # Test list conversion
         outnames = radec_to_desiname(ras, decs)
-        self.assertTrue(np.alltrue(outnames == correct_names))
+        self.assertTrue((outnames == correct_names).all())
 
         # Test array conversion
         outnames = radec_to_desiname(np.array(ras),
                                      np.array(decs))
-        self.assertTrue(np.alltrue(outnames == correct_names))
+        self.assertTrue((outnames == correct_names).all())
 
     def test_radec_to_desiname_bad_values(self):
         """Test exceptions when running radec_to_desiname with bad values.
