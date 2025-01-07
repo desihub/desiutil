@@ -121,9 +121,15 @@ def freeze_iers(name='iers_frozen.ecsv', ignore_warnings=True):
     else:
         astropy.utils.iers.conf.iers_degraded_accuracy = 'warn'
     # Sanity check.
-    auto_class = astropy.utils.iers.IERS_Auto.open()
-    if auto_class is not iers:
-        raise RuntimeError('Frozen IERS is not installed as the default ({0} v. {1}).'.format(auto_class.__class__, iers.__class__))
+    # In Astropy 7 this appears to be broken due to the iers_frozen.ecsv being out of date.
+    # The *format* of that file no longer matches what is expected by astropy.util.iers.
+    try:
+        auto_class = astropy.utils.iers.IERS_Auto.open()
+        if auto_class is not iers:
+            raise RuntimeError('Frozen IERS is not installed as the default ({0} v. {1}).'.format(auto_class.__class__, iers.__class__))
+    except KeyError:
+        # Temporary Astropy 7/IERS workaround.
+        warnings.warn("Temporarily skipping IERS integrity check.", UserWarning)
 
     if ignore_warnings:
         try:
