@@ -125,6 +125,7 @@ class TestIO(unittest.TestCase):
                  'num2': np.int64(4), 'bool': np.bool_(True),
                  'lst': ['tst2', np.int16(2)],
                  'tup': (1, 3), 'dct': {'a': 'tst3', 'b': np.float32(6.)},
+                 'npstring' : np.str_('abcd'),
                  'array': np.zeros(10)}
         self.assertIsInstance(fdict['name'], str)
         # Run
