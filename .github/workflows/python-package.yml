@@ -9,6 +9,12 @@ on:
             - '*'
     pull_request:
 
+
+# 2025-01-07
+# NERSC has Python 3.10, Numpy 1.22.4, Scipy 1.8.1, matplotlib 3.8.4, astropy 6.0.1, healpy 1.16.6, PyYAML 6.0.1
+# PyPI has Python 3.13, Numpy 2.2.1, Scipy 1.15.0, matplotlib 3.10.0, astropy 7.0.0, healpy 1.18.0, PyYAML 6.0.2
+# Numpy 1.26.4 was the last pre-2.0 Numpy.
+#
 jobs:
     tests:
         name: Unit tests
@@ -17,9 +23,90 @@ jobs:
             fail-fast: true
             matrix:
                 os: [ubuntu-latest]
-                python-version: ['3.10']  # There are still issues with Numpy <1.23 and 3.11.
-                numpy-version: ['<1.23', '<1.24', '<2.0']
-                astropy-version: ['<6.0', '<6.1', '<7.0']
+                python-version: ['3.10', '3.11', '3.12', '3.13']
+                numpy-version: ['<1.23', '<1.24', '<2.0', '<2.1', '<2.2', '<3']
+                astropy-version: ['<6.1', '<7.0', '<7.1']
+                exclude:
+                    - os: ubuntu-latest
+                      python-version: '3.10'
+                      numpy-version: '<1.24'
+                      astropy-version: '<7.0'
+                    - os: ubuntu-latest
+                      python-version: '3.10'
+                      numpy-version: '<2.0'
+                      astropy-version: '<7.0'
+                    - os: ubuntu-latest
+                      python-version: '3.10'
+                      numpy-version: '<2.1'
+                      astropy-version: '<7.0'
+                    - os: ubuntu-latest
+                      python-version: '3.10'
+                      numpy-version: '<2.2'
+                      astropy-version: '<7.0'
+                    - os: ubuntu-latest
+                      python-version: '3.10'
+                      numpy-version: '<3'
+                      astropy-version: '<7.0'
+                    - os: ubuntu-latest
+                      python-version: '3.10'
+                      numpy-version: '<1.24'
+                      astropy-version: '<7.1'
+                    - os: ubuntu-latest
+                      python-version: '3.10'
+                      numpy-version: '<2.0'
+                      astropy-version: '<7.1'
+                    - os: ubuntu-latest
+                      python-version: '3.10'
+                      numpy-version: '<2.1'
+                      astropy-version: '<7.1'
+                    - os: ubuntu-latest
+                      python-version: '3.10'
+                      numpy-version: '<2.2'
+                      astropy-version: '<7.1'
+                    - os: ubuntu-latest
+                      python-version: '3.10'
+                      numpy-version: '<3'
+                      astropy-version: '<7.1'
+                    - os: ubuntu-latest
+                      python-version: '3.13'
+                      numpy-version: '<1.23'
+                      astropy-version: '<6.1'
+                    - os: ubuntu-latest
+                      python-version: '3.13'
+                      numpy-version: '<1.24'
+                      astropy-version: '<6.1'
+                    - os: ubuntu-latest
+                      python-version: '3.13'
+                      numpy-version: '<2.0'
+                      astropy-version: '<6.1'
+                    - os: ubuntu-latest
+                      python-version: '3.13'
+                      numpy-version: '<2.1'
+                      astropy-version: '<6.1'
+                    - os: ubuntu-latest
+                      python-version: '3.13'
+                      numpy-version: '<2.2'
+                      astropy-version: '<6.1'
+                    - os: ubuntu-latest
+                      python-version: '3.13'
+                      numpy-version: '<1.23'
+                      astropy-version: '<7.0'
+                    - os: ubuntu-latest
+                      python-version: '3.13'
+                      numpy-version: '<1.24'
+                      astropy-version: '<7.0'
+                    - os: ubuntu-latest
+                      python-version: '3.13'
+                      numpy-version: '<2.0'
+                      astropy-version: '<7.0'
+                    - os: ubuntu-latest
+                      python-version: '3.13'
+                      numpy-version: '<2.1'
+                      astropy-version: '<7.0'
+                    - os: ubuntu-latest
+                      python-version: '3.13'
+                      numpy-version: '<2.2'
+                      astropy-version: '<7.0'
 
         steps:
             - name: Checkout code
@@ -119,6 +206,29 @@ jobs:
               run: ./bin/desi_api_file --api ./api.rst desiutil
             - name: Compare generated api.rst to checked-in version
               run: diff --ignore-space-change --ignore-blank-lines ./api.rst ./doc/api.rst
+
+    scripts:
+        name: Script definition completeness test
+        runs-on: ${{ matrix.os }}
+        strategy:
+            fail-fast: false
+            matrix:
+                os:
+                    - ubuntu-latest
+                python-version:
+                    - '3.13'
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+            - name: Set up Python ${{ matrix.python-version }}
+              uses: actions/setup-python@v5
+              with:
+                  python-version: ${{ matrix.python-version }}
+            - name: Compare contents of bin/ to options.scripts in setup.cfg
+              run: python -c 'import os; import sys; from configparser import ConfigParser; conf = ConfigParser(); foo = conf.read(["setup.cfg"]); scripts = [os.path.basename(s) for s in conf["options"]["scripts"].strip().split("\n")]; sys.exit(int(set(os.listdir("bin")) != set(scripts)))'
 
     style:
         name: Style check
