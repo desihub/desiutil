@@ -96,7 +96,7 @@ class TestIERS(unittest.TestCase):
         self.assertTrue(os.path.exists(save_name))
         with open(save_name) as s:
             data = s.readlines()
-        if self.ap2 < 3:
+        if self.ap2 < 3 or self.ap2 > 6:
             self.assertIn('# - {data_url: frozen}\n', data)
         else:
             self.assertIn('#   data_url: frozen\n', data)
