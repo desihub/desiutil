@@ -86,11 +86,11 @@ def get_options(test_args=None):
     from sys import argv
     from os.path import basename
     from argparse import ArgumentParser
-    from pkg_resources import resource_filename
+    from importlib_resources import files
     parser = ArgumentParser(description="Count number and size of DESI data files.",
                             prog=basename(argv[0]))
     parser.add_argument('-c', '--config-file', action='store', dest='config',
-                        metavar='FILE', default=resource_filename('desiutil', 'data/census.yaml'),
+                        metavar='FILE', default=str(files('desiutil') / 'data' / 'census.yaml'),
                         help="Read configuration from FILE (default %(default)s).")
     parser.add_argument('-o', '--output', action='store', metavar='FILE',
                         default='desi_data_census.csv',

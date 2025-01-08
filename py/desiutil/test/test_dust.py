@@ -12,7 +12,7 @@ import os
 import numpy as np
 from .. import dust
 # import desiutil.dust as dust
-from pkg_resources import resource_filename
+from importlib_resources import files
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 
@@ -22,7 +22,7 @@ class TestDust(unittest.TestCase):
     """
 
     def setUp(self):
-        self.mapdir = resource_filename('desiutil.test', 't')
+        self.mapdir = str(files('desiutil.test') / 't')
         # ADM these RAs/DECs are set to be in the 0-10 pixel column
         # ADM in the dust map files to correspond to
         # ADM the test data made by make_testmaps.py

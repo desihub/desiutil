@@ -8,7 +8,7 @@ import os
 import shutil
 import tempfile
 from unittest.mock import call, patch, MagicMock
-from pkg_resources import resource_filename
+from importlib_resources import files
 from astropy import __version__ as AstropyVersion
 import astropy.units as u
 import astropy.utils.iers
@@ -71,7 +71,7 @@ class TestIERS(unittest.TestCase):
         """Check the existing frozen file for correctness.
         """
         # save_name = os.path.join(self.tmpdir, 'iers.ecsv')
-        save_name = resource_filename('desiutil', 'data/iers_frozen.ecsv')
+        save_name = str(files('desiutil') / 'data' / 'iers_frozen.ecsv')
         # i.update_iers(save_name)
         self.assertTrue(os.path.exists(save_name))
         with open(save_name) as s:
@@ -85,7 +85,7 @@ class TestIERS(unittest.TestCase):
     def test_update_iers(self, mock_logger, mock_iers, mock_time):
         """Test updating the IERS table.
         """
-        real_name = resource_filename('desiutil', 'data/iers_frozen.ecsv')
+        real_name = str(files('desiutil'), 'data' / 'iers_frozen.ecsv')
         t = QTable.read(real_name, format='ascii.ecsv')
         mock_iers.return_value = t
         d = MagicMock()

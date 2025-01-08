@@ -16,7 +16,7 @@ from argparse import ArgumentParser
 from shutil import which
 from stat import S_IRUSR, S_IRGRP, S_IROTH
 from configparser import ConfigParser
-from pkg_resources import resource_filename
+from importlib_resources import files
 from . import __version__ as desiutilVersion
 from .io import unlock_file
 from .log import log
@@ -345,7 +345,7 @@ def main():
 
     if not os.path.exists(module_file):
         log.warning("Could not find Module file: %s; using default.", module_file)
-        module_file = resource_filename('desiutil', 'data/desiutil.module')
+        module_file = str(files('desiutil') / 'data' / 'desiutil.module')
 
     process_module(module_file, module_keywords, options.modules)
 

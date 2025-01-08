@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 """Update the iers_frozen file.
 """
-from pkg_resources import resource_filename
+from importlib_resources import files
 from desiutil.iers import update_iers
 
-frozen = resource_filename('desiutil', 'data/iers_frozen.ecsv')
-print("Updating {0}".format(frozen))
+frozen = str(files('desiutil') / 'data' / 'iers_frozen.ecsv')
+print(f"Updating {frozen}.")
 update_iers(frozen)

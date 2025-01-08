@@ -11,7 +11,7 @@ from shutil import rmtree
 from argparse import Namespace
 from tempfile import mkdtemp
 from logging import getLogger
-from pkg_resources import resource_filename
+from importlib_resources import files
 from ..log import DEBUG
 from ..install import DesiInstall, DesiInstallException, dependencies
 from .test_log import NullMemoryHandler
@@ -76,8 +76,7 @@ class TestInstall(unittest.TestCase):
         self.assertEqual(str(cm.exception),
                          "Modulefile foo/bar/baz.module does not exist!")
         # Standard dependencies.
-        deps = dependencies(resource_filename('desiutil.test',
-                                              't/generic_dependencies.txt'))
+        deps = dependencies(str(files('desiutil.test') / 't' / 'generic_dependencies.txt'))
         self.assertEqual(set(deps), set(['astropy', 'desiutil/1.0.0']))
 
     def test_get_options(self):

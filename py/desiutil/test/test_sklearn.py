@@ -4,7 +4,7 @@
 """
 import unittest
 from tempfile import NamedTemporaryFile
-from pkg_resources import resource_filename
+from importlib_resources import files
 import numpy as np
 from astropy.io import fits
 from ..sklearn import GaussianMixtureModel as GMM
@@ -16,7 +16,7 @@ class TestSKLearn(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.data = resource_filename('desiutil.test', 't/qso_gmm.fits')
+        cls.data = str(files('desiutil.test') / 't' / 'qso_gmm.fits')
         cls.weights = np.array([0.09399423, 0.02817785, 0.16842868,
                                 0.25130015, 0.18764636, 0.22785686,
                                 0.01427254, 0.02832333])
