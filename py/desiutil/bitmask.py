@@ -236,6 +236,13 @@ class BitMask(object):
             for bitnum in sorted(bitnums):
                 names.append(self._bits[bitnum].name)
         else:
+            # The line below throws a lot of warnings:
+            # DeprecationWarning: Conversion of an array with ndim > 0 to a scalar is deprecated,
+            # and will error in future. Ensure you extract a single element from your array
+            # before performing this operation. (Deprecated NumPy 1.25.)
+            # It's not obvious where this is coming from though, since `mask`
+            # clearly should not be an array.
+            # https://github.com/numpy/numpy/issues/2955 was likely fixed in 2022.
             mask = int(mask)  # workaround numpy issue #2955 for uint64
             bitnum = 0
             while 2**bitnum <= mask:

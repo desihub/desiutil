@@ -12,7 +12,7 @@ import os
 import numpy as np
 from .. import dust
 # import desiutil.dust as dust
-from importlib_resources import files
+from importlib.resources import files
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 

@@ -86,7 +86,7 @@ def get_options(test_args=None):
     from sys import argv
     from os.path import basename
     from argparse import ArgumentParser
-    from importlib_resources import files
+    from importlib.resources import files
     parser = ArgumentParser(description="Count number and size of DESI data files.",
                             prog=basename(argv[0]))
     parser.add_argument('-c', '--config-file', action='store', dest='config',

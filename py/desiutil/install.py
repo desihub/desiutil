@@ -16,7 +16,7 @@ import requests
 from io import BytesIO
 from subprocess import Popen, PIPE
 from types import MethodType
-from importlib_resources import files
+from importlib.resources import files
 from .git import last_tag
 from .log import get_logger, DEBUG, INFO
 from .modules import (init_modules, configure_module,

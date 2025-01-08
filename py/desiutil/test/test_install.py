@@ -11,7 +11,7 @@ from shutil import rmtree
 from argparse import Namespace
 from tempfile import mkdtemp
 from logging import getLogger
-from importlib_resources import files
+from importlib.resources import files
 from ..log import DEBUG
 from ..install import DesiInstall, DesiInstallException, dependencies
 from .test_log import NullMemoryHandler

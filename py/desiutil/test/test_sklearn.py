@@ -4,7 +4,7 @@
 """
 import unittest
 from tempfile import NamedTemporaryFile
-from importlib_resources import files
+from importlib.resources import files
 import numpy as np
 from astropy.io import fits
 from ..sklearn import GaussianMixtureModel as GMM

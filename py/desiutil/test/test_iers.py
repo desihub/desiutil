@@ -8,7 +8,7 @@ import os
 import shutil
 import tempfile
 from unittest.mock import call, patch, MagicMock
-from importlib_resources import files
+from importlib.resources import files
 from astropy import __version__ as AstropyVersion
 import astropy.units as u
 import astropy.utils.iers
@@ -85,7 +85,7 @@ class TestIERS(unittest.TestCase):
     def test_update_iers(self, mock_logger, mock_iers, mock_time):
         """Test updating the IERS table.
         """
-        real_name = str(files('desiutil'), 'data' / 'iers_frozen.ecsv')
+        real_name = str(files('desiutil') / 'data' / 'iers_frozen.ecsv')
         t = QTable.read(real_name, format='ascii.ecsv')
         mock_iers.return_value = t
         d = MagicMock()

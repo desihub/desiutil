@@ -16,7 +16,7 @@ from argparse import ArgumentParser
 from shutil import which
 from stat import S_IRUSR, S_IRGRP, S_IROTH
 from configparser import ConfigParser
-from importlib_resources import files
+from importlib.resources import files
 from . import __version__ as desiutilVersion
 from .io import unlock_file
 from .log import log

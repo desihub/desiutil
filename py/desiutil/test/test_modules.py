@@ -10,7 +10,7 @@ from os.path import exists, isdir, join
 from sys import version_info
 from shutil import rmtree
 from tempfile import mkdtemp
-from importlib_resources import files
+from importlib.resources import files
 from ..modules import (init_modules, configure_module, process_module,
                        default_module, _write_module_data)
 
