@@ -162,18 +162,16 @@ class TestModules(unittest.TestCase):
         """Test detection of directories for module configuration.
         """
         test_dirs = ('bin', 'lib', 'pro', 'py')
-        results = {
-            'name': 'foo',
-            'version': 'bar',
-            'product_root': '/my/product/root',
-            'needs_bin': '',
-            'needs_python': '',
-            'needs_trunk_py': '# ',
-            'trunk_py_dir': '/py',
-            'needs_ld_lib': '',
-            'needs_idl': '',
-            'pyversion': "python{0:d}.{1:d}".format(*version_info)
-            }
+        results = {'name': 'foo',
+                   'version': 'bar',
+                   'product_root': '/my/product/root',
+                   'needs_bin': '',
+                   'needs_python': '',
+                   'needs_trunk_py': '# ',
+                   'trunk_py_dir': '/py',
+                   'needs_ld_lib': '',
+                   'needs_idl': '',
+                   'pyversion': "python{0:d}.{1:d}".format(*version_info)}
         for t in test_dirs:
             mkdir(join(self.data_dir, t))
         conf = configure_module('foo', 'bar', '/my/product/root',

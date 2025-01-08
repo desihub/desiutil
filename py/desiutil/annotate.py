@@ -465,11 +465,13 @@ def _options():
     parser.add_argument('-D', '--disable-comments', action='store_true', dest='disable_comments',
                         help='Do not add comments, even if they are defined in one of the inputs.')
     parser.add_argument('-e', '--extension', dest='extension', action='store', metavar='EXT', default='1',
-                        help="Update FITS extension EXT, which can be a number or an EXTNAME. If not specified, HDU 1 will be updated, which is standard for simple binary tables.")
+                        help=("Update FITS extension EXT, which can be a number or an EXTNAME. " +
+                              "If not specified, HDU 1 will be updated, which is standard for simple binary tables."))
     parser.add_argument('-o', '--overwrite', dest='overwrite', action='store_true',
                         help='Overwrite the input FITS file.')
     parser.add_argument('-T', '--truncate-comments', dest='truncate', action='store_true',
-                        help='Allow any long comments to be truncated when written out. Without this option, long comments will raise an error.')
+                        help=('Allow any long comments to be truncated when written out. ' +
+                              'Without this option, long comments will raise an error.'))
     parser.add_argument('-u', '--units', action='store', dest='units', metavar='UNITS',
                         help="UNITS should have the form COLUMN='unit':COLUMN='unit'.")
     parser.add_argument('-v', '--verbose', dest='verbose', action='store_true',

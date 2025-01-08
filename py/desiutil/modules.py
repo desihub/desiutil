@@ -183,18 +183,16 @@ def configure_module(product, version, product_root, working_dir=None, dev=False
     """
     if working_dir is None:
         working_dir = os.getcwd()
-    module_keywords = {
-        'name': product,
-        'version': version,
-        'product_root': product_root,
-        'needs_bin': '# ',
-        'needs_python': '# ',
-        'needs_trunk_py': '# ',
-        'trunk_py_dir': '/py',
-        'needs_ld_lib': '# ',
-        'needs_idl': '# ',
-        'pyversion': "python{0:d}.{1:d}".format(*sys.version_info)
-        }
+    module_keywords = {'name': product,
+                       'version': version,
+                       'product_root': product_root,
+                       'needs_bin': '# ',
+                       'needs_python': '# ',
+                       'needs_trunk_py': '# ',
+                       'trunk_py_dir': '/py',
+                       'needs_ld_lib': '# ',
+                       'needs_idl': '# ',
+                       'pyversion': "python{0:d}.{1:d}".format(*sys.version_info)}
     if os.path.isdir(os.path.join(working_dir, 'bin')):
         module_keywords['needs_bin'] = ''
     if os.path.isdir(os.path.join(working_dir, 'lib')):

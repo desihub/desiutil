@@ -36,6 +36,7 @@ If you want to work with the dust utilities in :mod:`desiutil.dust`, you will
 need:
 
 * `SciPy <https://scipy.org>`_
+* `speclite <https://speclite.readthedocs.io/en/latest/>`_
 
 Contents
 ========

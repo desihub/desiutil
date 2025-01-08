@@ -100,30 +100,32 @@ class TestAnnotate(unittest.TestCase):
     def test_validate_unit(self):
         """Test function to validate units.
         """
-        m = "'ergs' did not parse as fits unit: At col 0, Unit 'ergs' not supported by the FITS standard. Did you mean erg?"
-        d = "'1/deg^2' did not parse as fits unit: Numeric factor not supported by FITS"
-        f = "'1/nanomaggy^2' did not parse as fits unit: Numeric factor not supported by FITS"
-        l = " If this is meant to be a custom unit, define it with 'u.def_unit'. To have it recognized inside a file reader or other code, enable it with 'u.add_enabled_units'. For details, see https://docs.astropy.org/en/latest/units/combining_and_defining.html"
+        erg = "'ergs' did not parse as fits unit: At col 0, Unit 'ergs' not supported by the FITS standard. Did you mean erg?"
+        deg = "'1/deg^2' did not parse as fits unit: Numeric factor not supported by FITS"
+        mag = "'1/nanomaggy^2' did not parse as fits unit: Numeric factor not supported by FITS"
+        cust_unit = (" If this is meant to be a custom unit, define it with 'u.def_unit'. " +
+                     "To have it recognized inside a file reader or other code, enable it with " +
+                     "'u.add_enabled_units'. For details, see https://docs.astropy.org/en/latest/units/combining_and_defining.html")
         c = validate_unit(None)
         self.assertIsNone(c)
         c = validate_unit('erg')
         self.assertIsNone(c)
         with self.assertWarns(FITSUnitWarning) as w:
             c = validate_unit('ergs', error=False)
-        self.assertEqual(str(w.warning), m + l)
+        self.assertEqual(str(w.warning), erg + cust_unit)
         self.assertIsNone(c)
         with self.assertWarns(FITSUnitWarning) as w:
             c = validate_unit('1/deg^2')
-        self.assertEqual(str(w.warning), d + l)
+        self.assertEqual(str(w.warning), deg + cust_unit)
         self.assertIsNone(c)
         c = validate_unit('nanomaggies', error=True)
         self.assertEqual(c, "'nanomaggies'")
         with self.assertRaises(ValueError) as e:
             c = validate_unit('ergs', error=True)
-        self.assertEqual(str(e.exception), m + l)
+        self.assertEqual(str(e.exception), erg + cust_unit)
         with self.assertRaises(ValueError) as e:
             c = validate_unit('1/nanomaggy^2', error=True)
-        self.assertEqual(str(e.exception), f + l)
+        self.assertEqual(str(e.exception), mag + cust_unit)
 
     @patch('desiutil.annotate.get_logger')
     def test_check_comment_length(self, mock_log):

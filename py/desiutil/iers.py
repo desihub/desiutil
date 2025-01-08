@@ -105,7 +105,8 @@ def freeze_iers(name='iers_frozen.ecsv', ignore_warnings=True):
     # to prevent any IERSRangeError being raised.
     class IERS_Frozen(astropy.utils.iers.IERS_B):
         def _check_interpolate_indices(self, indices_orig, indices_clipped,
-                                       max_input_mjd): pass
+                                       max_input_mjd):
+            pass
 
     # Create and register an instance of this class from the table.
     iers = IERS_Frozen(table)

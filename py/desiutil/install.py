@@ -70,9 +70,7 @@ known_products = {
     'tilepicker': 'https://github.com/desihub/tilepicker',
     'timedomain': 'https://github.com/desihub/timedomain',
     'plate_layout': 'https://desi.lbl.gov/svn/code/focalplane/plate_layout',
-    'positioner_control':
-        'https://desi.lbl.gov/svn/code/focalplane/positioner_control',
-    }
+    'positioner_control': 'https://desi.lbl.gov/svn/code/focalplane/positioner_control'}
 
 
 #
@@ -109,8 +107,8 @@ def dependencies(modulefile):
         raise ValueError("Modulefile {0} does not exist!".format(modulefile))
     with open(modulefile) as m:
         lines = m.readlines()
-    return [l.strip().split()[2] for l in lines if
-            l.strip().startswith('module load')]
+    return [ln.strip().split()[2] for ln in lines if
+            ln.strip().startswith('module load')]
 
 
 class DesiInstallException(Exception):
@@ -605,8 +603,7 @@ class DesiInstall(object):
         if self.options.root is None and self.nersc is not None:
             self.options.root = self.default_nersc_dir()
 
-        if ((self.options.root is None or not os.path.isdir(self.options.root))
-                and not self.options.test):
+        if ((self.options.root is None or not os.path.isdir(self.options.root)) and not self.options.test):
             message = "Root install directory is missing or not set."
             self.log.critical(message)
             raise DesiInstallException(message)
