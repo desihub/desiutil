@@ -65,17 +65,17 @@ def radec_to_desiname(target_ra, target_dec):
     #   IAU compliant term
     desinames = []
     for ra, dec in zip(ratrunc, dectrunc):
-        zra = ra.zfill(7)
+        zra = ra.zfill(3 + precision)  # RA always has 3 leading digits.
         desiname = 'DESI J' + zra[:-precision] + '.' + zra[-precision:]
         # Positive numbers need an explicit "+" while negative numbers
         #   already have a "-".
-        # zfill works properly with '-' but counts it in number of characters
-        #   so need one more
+        # zfill works properly with '-' but counts it in the number of characters
+        #   so need one extra character is needed.
         if dec.startswith('-'):
-            zdec = dec.zfill(7)
+            zdec = dec.zfill(3 + precision)  # 2 leading digits plus space for '-'.
             desiname += zdec[:-precision] + '.' + zdec[-precision:]
         else:
-            zdec = dec.zfill(6)
+            zdec = dec.zfill(2 + precision)  # 2 leading digits and the '+' is added explicitly.
             desiname += '+' + zdec[:-precision] + '.' + zdec[-precision:]
         desinames.append(desiname)
 
