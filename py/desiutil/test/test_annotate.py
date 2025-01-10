@@ -386,6 +386,16 @@ Comments:
         self.assertEqual(new_hdulist[2].header['TUNIT2'], 'deg')
         self.assertEqual(new_hdulist[2].header['TUNIT3'], 'deg')
         new_hdulist_name = os.path.join(self.TMP, 'test_annotate_update2.fits')
+        #
+        # Changing the unit to the same unit should not raise a warning.
+        #
+        new_hdulist = annotate_fits(self.fits_file, 2, new_hdulist_name, units={'MAG': 'mag'}, overwrite=True)
+        self.assertIn('TUNIT4', new_hdulist[2].header)
+        self.assertEqual(new_hdulist[2].header['TUNIT4'], 'mag')
+        mock_log().warning.assert_not_called()
+        #
+        # Actually change the units.
+        #
         new_hdulist = annotate_fits(self.fits_file, 2, new_hdulist_name, units={'MAG': 'nJy'}, overwrite=True)
         self.assertIn('TUNIT4', new_hdulist[2].header)
         self.assertEqual(new_hdulist[2].header['TUNIT4'], 'nJy')
