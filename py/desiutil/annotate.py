@@ -426,16 +426,19 @@ def annotate_fits(filename, extension, output, units=None, comments=None,
             for colname in column_index:
                 ttype = f"TTYPE{column_index[colname]:d}"
                 if colname in column_comments:
-                    if hdu.header.comments[ttype].strip() and column_comments[colname] != hdu.header.comments[ttype].strip():
+                    current_comment = hdu.header.comments[ttype].strip()
+                    if current_comment and column_comments[colname] != current_comment:
                         log.warning("Overriding comment on column '%s': '%s' -> '%s'.",
-                                    colname, hdu.header.comments[ttype].strip(), column_comments[colname])
+                                    colname, current_comment, column_comments[colname])
                     hdu.header[ttype] = (colname, column_comments[colname])
                     log.debug('Set %s comment to "%s"', colname, column_comments[colname])
                 if colname in column_units:
                     tunit = f"TUNIT{column_index[colname]:d}"
-                    if tunit in hdu.header and hdu.header[tunit].strip() and column_units[colname] != hdu.header[tunit].strip():
-                        log.warning("Overriding units for column '%s': '%s' -> '%s'.",
-                                    colname, hdu.header[tunit].strip(), column_units[colname])
+                    if tunit in hdu.header:
+                        current_unit = hdu.header[tunit].strip()
+                        if current_unit and column_units[colname] != current_unit:
+                            log.warning("Overriding units for column '%s': '%s' -> '%s'.",
+                                        colname, current_unit, column_units[colname])
                         hdu.header[tunit] = (column_units[colname], colname+' units')
                     else:
                         hdu.header.insert(f"TFORM{column_index[colname]:d}",
