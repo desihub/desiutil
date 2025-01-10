@@ -71,9 +71,11 @@ def radec_to_desiname(target_ra, target_dec):
         # zfill works properly with '-' but counts it in number of characters
         #   so need one more
         if dec.startswith('-'):
-            desiname += dec[:-precision].zfill(3) + '.' + dec[-precision:]
+            zdec = dec.zfill(7)
+            desiname += zdec[:-precision] + '.' + zdec[-precision:]
         else:
-            desiname += '+' + dec[:-precision].zfill(2) + '.' + dec[-precision:]
+            zdec = dec.zfill(6)
+            desiname += '+' + dec[:-precision] + '.' + dec[-precision:]
         desinames.append(desiname)
 
     return np.array(desinames)
