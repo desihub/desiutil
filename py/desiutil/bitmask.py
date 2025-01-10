@@ -246,6 +246,9 @@ class BitMask(object):
                 raise ValueError('Unknown type or invalid shape for mask!')
             if mask < 0:
                 mask = np.int64(mask).astype(np.uint64)
+            # For Numpy < 2, the operation (int & np.uint64) was not defined.
+            # For Numpy >= 2, this operation should be harmless.
+            mask = int(mask)
             bitnum = 0
             while 2**bitnum <= mask:
                 if (2**bitnum & mask):
