@@ -78,7 +78,7 @@ class TestBitMask(unittest.TestCase):
         self.assertEqual(self.ccdmask.HOT.mask, 2)
         self.assertEqual(self.ccdmask.HOT, 2)
         self.assertEqual(self.ccdmask.HOT.comment, "Hot pixel")
-        self.ccdmask.names()
+        self.assertListEqual(self.ccdmask.names(), ['BAD', 'HOT', 'DEAD', 'SATURATED', 'COSMIC'])
 
     def test_badname(self):
         """Test raising AttributeError for bad names.
@@ -97,7 +97,7 @@ class TestBitMask(unittest.TestCase):
     def test_str(self):
         """Verify yaml-ness of string representation"""
         bitmask = BitMask('ccdmask', yaml.safe_load(str(self.ccdmask)))
-        self.assertEqual(bitmask.names(), self.ccdmask.names())
+        self.assertListEqual(bitmask.names(), self.ccdmask.names())
         for name in bitmask.names():
             self.assertEqual(bitmask[name].mask, self.ccdmask[name].mask)
             self.assertEqual(bitmask[name].comment, self.ccdmask[name].comment)
@@ -120,29 +120,44 @@ class TestBitMask(unittest.TestCase):
         _bitdefs['ccdmask'].append(['BIG31', 31, "blat31..."])
         _bitdefs['ccdmask'].append(['BIGGER32', 32, "blat32..."])
         _bitdefs['ccdmask'].append(['WOW62', 62, "blat62..."])
-        # _bitdefs['ccdmask'].append(['BIGGEST63', 63, "blat63..."])
+        _bitdefs['ccdmask'].append(['BIGGEST63', 63, "blat63..."])
 
+        num2name = dict([(m[1], m[0]) for m in _bitdefs['ccdmask']])
         mask = BitMask('ccdmask', _bitdefs)
 
-        self.assertEqual(mask.names(1), ['BAD'])
-        self.assertEqual(mask.names(2), ['HOT'])
-        self.assertEqual(mask.names(3), ['BAD', 'HOT'])
-        self.assertEqual(mask.names(4), ['UNKNOWN2'])
-        self.assertEqual(mask.names(8), ['UNKNOWN3'])
-        self.assertEqual(mask.names(2**16), ['TEST'])
-        self.assertEqual(mask.names(2**31), ['BIG31'])
-        self.assertEqual(mask.names(2**32), ['BIGGER32'])
-        self.assertEqual(mask.names(2**62), ['WOW62'])
-        # self.assertEqual(mask.names(2**63), ['BIGGEST63'])
+        allmasks = 2**63 | 2**62 | 2**32 | 2**31 | 2**16 | 2**1 | 2**0
+
+        self.assertListEqual(mask.names(allmasks),
+                             ['BAD', 'HOT', 'TEST', 'BIG31', 'BIGGER32', 'WOW62', 'BIGGEST63'])
+        self.assertListEqual(mask.names(np.uint64(allmasks)),
+                             ['BAD', 'HOT', 'TEST', 'BIG31', 'BIGGER32', 'WOW62', 'BIGGEST63'])
+        self.assertListEqual(mask.names(np.uint64(allmasks).astype(np.int64)),
+                             ['BAD', 'HOT', 'TEST', 'BIG31', 'BIGGER32', 'WOW62', 'BIGGEST63'])
 
         for i in range(64):
+            if i in num2name:
+                n = [num2name[i]]
+            else:
+                n = ['UNKNOWN' + str(i)]
             names = mask.names(2**i)
-            # names = mask.names(int(2**i))
+            self.assertListEqual(names, n)
             names = mask.names(np.uint64(2**i))
-            # Also happens to work with length-1 arrays; maybe it shouldn't
+            self.assertListEqual(names, n)
+            # Allow testing of negative numbers while avoiding overflow errors.
+            names = mask.names(np.uint64(2**i).astype(np.int64))
+            self.assertListEqual(names, n)
+            # Test with length 1 arrays.
             names = mask.names(np.array([2**i], dtype=np.uint64))
-            if i < 63:
-                names = mask.names(np.array([2**i], dtype=np.int64))
+            self.assertListEqual(names, n)
+            names = mask.names(np.array([2**i], dtype=np.uint64).astype(np.int64))
+            self.assertListEqual(names, n)
+
+        # Arrays of more than one element should throw ValueError.
+        with self.assertRaises(ValueError):
+            names = mask.names(np.array([2**10, 2**20], dtype=np.uint64))
+        # Try with an unexpected type
+        with self.assertRaises(ValueError):
+            names = mask.names(float(2**32))
 
     def test_print(self):
         """Test string representations.
@@ -165,4 +180,4 @@ class TestBitMask(unittest.TestCase):
         self.assertEqual(blat, _bitdefyaml)
         for i, name in enumerate(self.ccdmask.names()):
             self.assertEqual(str(self.ccdmask[name]), bit_str[i])
-            self.assertEqual(repr(self.ccdmask[name]), bit_repr[i])
+            self.assertEqual(repr(self.ccdmask[name]), bit_repr[i])#

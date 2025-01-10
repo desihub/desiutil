@@ -59,6 +59,7 @@ Users would then access this mask with:
 
 .. _desispec: https://desispec.readthedocs.io/en/latest/
 """
+import numpy as np
 
 
 class _MaskBit(int):
@@ -222,7 +223,8 @@ class BitMask(object):
         ----------
         mask : :class:`int`, optional
             The mask integer to convert to names. If not supplied,
-            return names of all known bits.
+            return names of all known bits. `mask` can also be a numpy scalar
+            or a numpy array of length 1.
 
         Returns
         -------
@@ -236,14 +238,14 @@ class BitMask(object):
             for bitnum in sorted(bitnums):
                 names.append(self._bits[bitnum].name)
         else:
-            # The line below throws a lot of warnings:
-            # DeprecationWarning: Conversion of an array with ndim > 0 to a scalar is deprecated,
-            # and will error in future. Ensure you extract a single element from your array
-            # before performing this operation. (Deprecated NumPy 1.25.)
-            # It's not obvious where this is coming from though, since `mask`
-            # clearly should not be an array.
-            # https://github.com/numpy/numpy/issues/2955 was likely fixed in 2022.
-            mask = int(mask)  # workaround numpy issue #2955 for uint64
+            if isinstance(mask, int) or isinstance(mask, np.integer):
+                pass
+            elif isinstance(mask, np.ndarray) and mask.shape == (1, ):
+                mask = mask[0]
+            else:
+                raise ValueError('Unknown type or invalid shape for mask!')
+            if mask < 0:
+                mask = np.int64(mask).astype(np.uint64)
             bitnum = 0
             while 2**bitnum <= mask:
                 if (2**bitnum & mask):
