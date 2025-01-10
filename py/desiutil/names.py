@@ -65,7 +65,8 @@ def radec_to_desiname(target_ra, target_dec):
     #   IAU compliant term
     desinames = []
     for ra, dec in zip(ratrunc, dectrunc):
-        desiname = 'DESI J' + ra[:-precision].zfill(3) + '.' + ra[-precision:]
+        zra = ra.zfill(7)
+        desiname = 'DESI J' + zra[:-precision] + '.' + zra[-precision:]
         # Positive numbers need an explicit "+" while negative numbers
         #   already have a "-".
         # zfill works properly with '-' but counts it in number of characters
@@ -75,7 +76,7 @@ def radec_to_desiname(target_ra, target_dec):
             desiname += zdec[:-precision] + '.' + zdec[-precision:]
         else:
             zdec = dec.zfill(6)
-            desiname += '+' + dec[:-precision] + '.' + dec[-precision:]
+            desiname += '+' + zdec[:-precision] + '.' + zdec[-precision:]
         desinames.append(desiname)
 
     return np.array(desinames)
