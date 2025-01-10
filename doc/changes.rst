@@ -11,10 +11,16 @@ Change Log
 * Remove deprecated module :mod:`desiutil.census`.
 * Remove deprecated top-level ``setup.py``.
 
-3.4.4 (unreleased)
+3.5.0 (unreleased)
 ------------------
 
-* No changes yet.
+* Fix bug in :func:`~desiutil.names.radec_to_desiname` for values very close to zero;
+  don't issue warnings in :func:`~desiutil.annotate.annotate_fits` if the units
+  are not actually changing; general package clean-up in preparation for
+  deployment to PyPI_ (PR `#212`_).
+
+.. _PyPI: https://pypi.org
+.. _`#212`: https://github.com/desihub/desiutil/pull/212
 
 3.4.3 (2024-08-15)
 ------------------
