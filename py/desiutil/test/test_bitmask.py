@@ -180,4 +180,4 @@ class TestBitMask(unittest.TestCase):
         self.assertEqual(blat, _bitdefyaml)
         for i, name in enumerate(self.ccdmask.names()):
             self.assertEqual(str(self.ccdmask[name]), bit_str[i])
-            self.assertEqual(repr(self.ccdmask[name]), bit_repr[i])#
+            self.assertEqual(repr(self.ccdmask[name]), bit_repr[i])
