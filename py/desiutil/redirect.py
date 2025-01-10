@@ -58,8 +58,8 @@ def stdouterr_redirected(to=None, comm=None):
 
     The general technique is based on:
 
-    http://stackoverflow.com/questions/5081657
-    http://eli.thegreenplace.net/2015/redirecting-all-kinds-of-stdout-in-python/
+    https://stackoverflow.com/questions/5081657/how-do-i-prevent-a-c-shared-library-to-print-on-stdout-in-python
+    https://eli.thegreenplace.net/2015/redirecting-all-kinds-of-stdout-in-python/
 
     If the optional communicator is specified, then each process redirects to
     a different temporary file.  Upon exit from the context the rank zero

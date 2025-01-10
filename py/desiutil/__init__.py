@@ -7,7 +7,7 @@ desiutil
 
 This package provides low-level utilities for general use by DESI_.
 
-.. _DESI: http://desi.lbl.gov
+.. _DESI: https://www.desi.lbl.gov
 """
 #
 # Set version string.

@@ -403,7 +403,7 @@ remains compatible with 2.x.x
 * Fix :command:`desiInstall` on cori.
 * Add :mod:`desiutil.census` to calculate DESI disk space use.
 
-.. _basemap: http://matplotlib.org/basemap/
+.. _basemap: https://matplotlib.org/basemap/stable/
 .. _`#61`: https://github.com/desihub/desiutil/pull/61
 .. _`#63`: https://github.com/desihub/desiutil/pull/63
 .. _`#70`: https://github.com/desihub/desiutil/pull/70
@@ -575,7 +575,7 @@ remains compatible with 2.x.x
 * Update the list of NERSC hosts, including cori.
 * Code is now `PEP 8`_ compliant.
 
-.. _`PEP 8`: http://legacy.python.org/dev/peps/pep-0008/
+.. _`PEP 8`: https://legacy.python.org/dev/peps/pep-0008/
 
 1.1.0 (2015-11-06)
 ------------------
@@ -605,7 +605,7 @@ remains compatible with 2.x.x
 * fix_permissions.sh won't clobber executable bits.
 
 .. _`Travis build support`: https://travis-ci.org/desihub/desiutil
-.. _`Read the Docs support`: http://desiutil.readthedocs.org/en/latest/
+.. _`Read the Docs support`: https://desiutil.readthedocs.io/en/latest/
 
 0.6.0 (2015-10-13)
 ------------------

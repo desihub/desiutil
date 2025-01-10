@@ -7,7 +7,7 @@ desiutil.dust
 
 Get :math:`E(B-V)` values from the `Schlegel, Finkbeiner & Davis (1998; SFD98)`_ dust map.
 
-.. _`Schlegel, Finkbeiner & Davis (1998; SFD98)`: http://adsabs.harvard.edu/abs/1998ApJ...500..525S.
+.. _`Schlegel, Finkbeiner & Davis (1998; SFD98)`: https://ui.adsabs.harvard.edu/abs/1998ApJ...500..525S/abstract
 """
 import os
 import numpy as np
@@ -388,7 +388,7 @@ def ext_fitzpatrick(wave, R_V=3.1, avglmc=False, lmc2=False,
 
 
 #
-# based on the work from https://ui.adsabs.harvard.edu/abs/2011ApJ...737..103S
+# based on the work from https://ui.adsabs.harvard.edu/abs/2011ApJ...737..103S/abstract
 # note from Eddie: I recommend applying the SF11 calibration in the following way:
 # A(lambda, F99) = A(lambda, F99, rv)/A(1 micron, F99, rv) * SFD_EBV * 1.029.
 # That's a definition that only uses monochromatic extinctions,
@@ -584,7 +584,7 @@ class SFDMap(object):
     scaling : :class:`float`, optional, defaults to 1
         Scale all E(B-V) map values by this multiplicative factor.
         Pass scaling=0.86 for the recalibration from
-        `Schlafly & Finkbeiner (2011) <http://adsabs.harvard.edu/abs/2011ApJ...737..103S)>`_.
+        `Schlafly & Finkbeiner (2011) <https://ui.adsabs.harvard.edu/abs/2011ApJ...737..103S/abstract>`_.
 
     Notes
     -----
@@ -769,7 +769,7 @@ def _get_ext_coeff(temp, photsys, band, ebv_sfd, rv=3.1):
     wave = np.linspace(2900, 11000, 4000)
     sed = 1. / (wave/6000)**5 / (np.exp(143877687. / wave / temp) - 1)
     # code to use Munari library
-    # http://cdsarc.u-strasbg.fr/ftp/J/A+A/442/1127/disp10A/fluxed_spectra/T_07000/
+    # https://cdsarc.u-strasbg.fr/ftp/J/A+A/442/1127/disp10A/fluxed_spectra/T_07000/
     # wave = np.loadtxt('LAMBDA_D10.DAT.txt')
     # wave = np.r_[wave, 10999]
     # sed = np.loadtxt('T07000G40M10V000K2SNWNVD10F.ASC')

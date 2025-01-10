@@ -7,7 +7,7 @@ desiutil.modules
 
 This package contains code for processing and installing `Module files`_.
 
-.. _`Module files`: http://modules.sourceforge.net
+.. _`Module files`: https://modules.readthedocs.io/en/latest/
 """
 import os
 import re

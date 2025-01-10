@@ -52,7 +52,7 @@ def freeze_iers(name='iers_frozen.ecsv', ignore_warnings=True):
     :meth:`astropy.utils.iers.IERS._check_interpolate_indices` to prevent
     any IERSRangeError being raised.
 
-    See http://docs.astropy.org/en/stable/utils/iers.html for details.
+    See https://docs.astropy.org/en/stable/utils/iers.html for details.
 
     This function returns immediately after the first time it is called,
     so it it safe to insert anywhere that consistent IERS models are
