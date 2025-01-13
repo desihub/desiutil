@@ -11,6 +11,11 @@ Change Log
 * Remove deprecated module :mod:`desiutil.census`.
 * Remove deprecated top-level ``setup.py``.
 
+3.5.1 (unreleased)
+------------------
+
+* No changes yet.
+
 3.5.0 (2025-01-13)
 ------------------
 
