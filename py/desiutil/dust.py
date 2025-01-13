@@ -526,12 +526,12 @@ class _Hemisphere(object):
         self.lam_scal = header['LAM_SCAL']
         self.sign = header['LAM_NSGP']  # north = 1, south = -1
 
-    def ebv(self, gal_l, gal_b, interpolate):
+    def ebv(self, l, b, interpolate):
         """Project Galactic longitude/latitude to lambert pixels (See SFD98).
 
         Parameters
         ----------
-        gal_l, gal_b : :class:`numpy.ndarray`
+        l, b : :class:`numpy.ndarray`
             Galactic longitude and latitude.
         interpolate : :class:`bool`
             If ``True`` use bilinear interpolation to obtain values.
@@ -542,11 +542,11 @@ class _Hemisphere(object):
             Reddening values.
         """
         x = (self.crpix1 - 1.0 +
-             self.lam_scal * np.cos(gal_l) *
-             np.sqrt(1.0 - self.sign * np.sin(gal_b)))
+             self.lam_scal * np.cos(l) *
+             np.sqrt(1.0 - self.sign * np.sin(b)))
         y = (self.crpix2 - 1.0 -
-             self.sign * self.lam_scal * np.sin(gal_l) *
-             np.sqrt(1.0 - self.sign * np.sin(gal_b)))
+             self.sign * self.lam_scal * np.sin(l) *
+             np.sqrt(1.0 - self.sign * np.sin(b)))
 
         # Get map values at these pixel coordinates.
         if interpolate:
