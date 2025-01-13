@@ -11,7 +11,7 @@ Change Log
 * Remove deprecated module :mod:`desiutil.census`.
 * Remove deprecated top-level ``setup.py``.
 
-3.5.0 (unreleased)
+3.5.0 (2025-01-13)
 ------------------
 
 * Fix bug in :func:`~desiutil.names.radec_to_desiname` for values very close to zero;
