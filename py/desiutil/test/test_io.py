@@ -74,7 +74,8 @@ class TestIO(unittest.TestCase):
         with self.assertRaises(UnicodeEncodeError):
             tx = encode_table(data, encoding='ascii')
         with self.assertRaises(UnicodeDecodeError):
-            with self.assertWarnsRegex(UserWarning, r"(?m)data\.metadata\['ENCODING'\]=='utf-8' does not match option 'ascii';\nuse encoding=None to use data\.metadata\['ENCODING'\] instead") as uw:
+            with self.assertWarnsRegex(UserWarning, (r"(?m)data\.metadata\['ENCODING'\]=='utf-8' does not match option 'ascii';\n" +
+                                                     r"use encoding=None to use data\.metadata\['ENCODING'\] instead")) as uw:
                 tx = decode_table(t1, encoding='ascii', native=False)
 
         # Table can specify encoding if option encoding=None
@@ -86,10 +87,12 @@ class TestIO(unittest.TestCase):
         self.assertEqual(t2.meta['ENCODING'], 'utf-8')
 
         # conflicting encodings print warning but still proceed
-        with self.assertWarnsRegex(UserWarning, r"(?m)data\.metadata\['ENCODING'\]=='utf-8' does not match option 'ascii';\nuse encoding=None to use data\.metadata\['ENCODING'\] instead") as uw:
+        with self.assertWarnsRegex(UserWarning, (r"(?m)data\.metadata\['ENCODING'\]=='utf-8' does not match option 'ascii';\n" +
+                                                 r"use encoding=None to use data\.metadata\['ENCODING'\] instead")) as uw:
             t1 = encode_table(data, encoding='ascii')
         self.assertEqual(t1.meta['ENCODING'], 'ascii')
-        with self.assertWarnsRegex(UserWarning, r"(?m)data\.metadata\['ENCODING'\]=='ascii' does not match option 'utf-8';\nuse encoding=None to use data\.metadata\['ENCODING'\] instead") as uw:
+        with self.assertWarnsRegex(UserWarning, (r"(?m)data\.metadata\['ENCODING'\]=='ascii' does not match option 'utf-8';\n" +
+                                                 r"use encoding=None to use data\.metadata\['ENCODING'\] instead")) as uw:
             t2 = decode_table(t1, encoding='utf-8', native=False)
         self.assertEqual(t2.meta['ENCODING'], 'utf-8')
 
@@ -125,6 +128,7 @@ class TestIO(unittest.TestCase):
                  'num2': np.int64(4), 'bool': np.bool_(True),
                  'lst': ['tst2', np.int16(2)],
                  'tup': (1, 3), 'dct': {'a': 'tst3', 'b': np.float32(6.)},
+                 'npstring': np.str_('abcd'),
                  'array': np.zeros(10)}
         self.assertIsInstance(fdict['name'], str)
         # Run

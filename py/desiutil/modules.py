@@ -7,7 +7,7 @@ desiutil.modules
 
 This package contains code for processing and installing `Module files`_.
 
-.. _`Module files`: http://modules.sourceforge.net
+.. _`Module files`: https://modules.readthedocs.io/en/latest/
 """
 import os
 import re
@@ -16,7 +16,7 @@ from argparse import ArgumentParser
 from shutil import which
 from stat import S_IRUSR, S_IRGRP, S_IROTH
 from configparser import ConfigParser
-from pkg_resources import resource_filename
+from importlib.resources import files
 from . import __version__ as desiutilVersion
 from .io import unlock_file
 from .log import log
@@ -183,18 +183,16 @@ def configure_module(product, version, product_root, working_dir=None, dev=False
     """
     if working_dir is None:
         working_dir = os.getcwd()
-    module_keywords = {
-        'name': product,
-        'version': version,
-        'product_root': product_root,
-        'needs_bin': '# ',
-        'needs_python': '# ',
-        'needs_trunk_py': '# ',
-        'trunk_py_dir': '/py',
-        'needs_ld_lib': '# ',
-        'needs_idl': '# ',
-        'pyversion': "python{0:d}.{1:d}".format(*sys.version_info)
-        }
+    module_keywords = {'name': product,
+                       'version': version,
+                       'product_root': product_root,
+                       'needs_bin': '# ',
+                       'needs_python': '# ',
+                       'needs_trunk_py': '# ',
+                       'trunk_py_dir': '/py',
+                       'needs_ld_lib': '# ',
+                       'needs_idl': '# ',
+                       'pyversion': "python{0:d}.{1:d}".format(*sys.version_info)}
     if os.path.isdir(os.path.join(working_dir, 'bin')):
         module_keywords['needs_bin'] = ''
     if os.path.isdir(os.path.join(working_dir, 'lib')):
@@ -347,7 +345,7 @@ def main():
 
     if not os.path.exists(module_file):
         log.warning("Could not find Module file: %s; using default.", module_file)
-        module_file = resource_filename('desiutil', 'data/desiutil.module')
+        module_file = str(files('desiutil') / 'data' / 'desiutil.module')
 
     process_module(module_file, module_keywords, options.modules)
 

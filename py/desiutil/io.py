@@ -82,7 +82,7 @@ def yamlify(obj, debug=False):
         obj = int(obj)
     elif isinstance(obj, np.bool_):
         obj = bool(obj)
-    elif isinstance(obj, (np.string_, str)):
+    elif isinstance(obj, (np.str_, str)):
         obj = str(obj)
     # elif isinstance(obj, Quantity):
     #     obj = dict(value=obj.value, unit=obj.unit.to_string())

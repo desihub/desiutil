@@ -11,7 +11,7 @@ from shutil import rmtree
 from argparse import Namespace
 from tempfile import mkdtemp
 from logging import getLogger
-from pkg_resources import resource_filename
+from importlib.resources import files
 from ..log import DEBUG
 from ..install import DesiInstall, DesiInstallException, dependencies
 from .test_log import NullMemoryHandler
@@ -35,7 +35,8 @@ class TestInstall(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        pass
+        cls.pyver = f"python{sys.version_info.major:d}.{sys.version_info.minor:d}"
+        cls.cext = f"cpython-{sys.version_info.major:d}.{sys.version_info.minor:d}.pyc"
 
     @classmethod
     def tearDownClass(cls):
@@ -76,8 +77,7 @@ class TestInstall(unittest.TestCase):
         self.assertEqual(str(cm.exception),
                          "Modulefile foo/bar/baz.module does not exist!")
         # Standard dependencies.
-        deps = dependencies(resource_filename('desiutil.test',
-                                              't/generic_dependencies.txt'))
+        deps = dependencies(str(files('desiutil.test') / 't' / 'generic_dependencies.txt'))
         self.assertEqual(set(deps), set(['astropy', 'desiutil/1.0.0']))
 
     def test_get_options(self):
@@ -624,28 +624,41 @@ exit(main())
         self.desiInstall.install_dir = join(self.data_dir, 'desiutil')
         self.desiInstall.is_branch = False
         mock_walk.return_value = iter([(join(self.desiInstall.install_dir, 'bin'), [], ['executable', 'README.txt']),
-                                       (join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil-1.2.3.dist-info'), [], ['METADATA', 'LICENSE.rst']),
-                                       (join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', '__pycache__'), [], ['__init__.cpython-3.10.pyc', 'module.cpython-3.10.pyc']),
-                                       (join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil'), ['__pycache__'], ['__init__.py', 'module.py']),
-                                       (join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages'), ['desiutil-1.2.3.dist-info', 'desiutil'], []),
-                                       (join(self.desiInstall.install_dir, 'lib', 'python3.10'), ['site-packages'], []),
-                                       (join(self.desiInstall.install_dir, 'lib'), ['python3.10'], []),
+                                       (join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                             'desiutil-1.2.3.dist-info'), [], ['METADATA', 'LICENSE.rst']),
+                                       (join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                             'desiutil', '__pycache__'), [], [f"__init__.{self.cext}", f"module.{self.cext}"]),
+                                       (join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                             'desiutil'), ['__pycache__'], ['__init__.py', 'module.py']),
+                                       (join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages'),
+                                        ['desiutil-1.2.3.dist-info', 'desiutil'], []),
+                                       (join(self.desiInstall.install_dir, 'lib', self.pyver), ['site-packages'], []),
+                                       (join(self.desiInstall.install_dir, 'lib'), [self.pyver], []),
                                        (self.desiInstall.install_dir, ['bin', 'lib'], [])])
         self.desiInstall.permissions()
         mock_walk.assert_called_once_with(self.desiInstall.install_dir, topdown=False)
         mock_chmod.assert_has_calls([call(join(self.desiInstall.install_dir, 'bin', 'executable'), 0o555),
                                      call(join(self.desiInstall.install_dir, 'bin', 'README.txt'), 0o444),
-                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil-1.2.3.dist-info', 'METADATA'), 0o444),
-                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil-1.2.3.dist-info', 'LICENSE.rst'), 0o444),
-                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', '__pycache__', '__init__.cpython-3.10.pyc'), 0o444),
-                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', '__pycache__', 'module.cpython-3.10.pyc'), 0o444),
-                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', '__init__.py'), 0o444),
-                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', 'module.py'), 0o444),
-                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', '__pycache__'), 0o2555),
-                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil-1.2.3.dist-info'), 0o2555),
-                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil'), 0o2555),
-                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages'), 0o2555),
-                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10'), 0o2555),
+                                     call(join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                               'desiutil-1.2.3.dist-info', 'METADATA'), 0o444),
+                                     call(join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                               'desiutil-1.2.3.dist-info', 'LICENSE.rst'), 0o444),
+                                     call(join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                               'desiutil', '__pycache__', f"__init__.{self.cext}"), 0o444),
+                                     call(join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                               'desiutil', '__pycache__', f"module.{self.cext}"), 0o444),
+                                     call(join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                               'desiutil', '__init__.py'), 0o444),
+                                     call(join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                               'desiutil', 'module.py'), 0o444),
+                                     call(join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                               'desiutil', '__pycache__'), 0o2555),
+                                     call(join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                               'desiutil-1.2.3.dist-info'), 0o2555),
+                                     call(join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                               'desiutil'), 0o2555),
+                                     call(join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages'), 0o2555),
+                                     call(join(self.desiInstall.install_dir, 'lib', self.pyver), 0o2555),
                                      call(join(self.desiInstall.install_dir, 'bin'), 0o2555),
                                      call(join(self.desiInstall.install_dir, 'lib'), 0o2555),
                                      call(self.desiInstall.install_dir, 0o2555)])
@@ -663,28 +676,41 @@ exit(main())
         self.desiInstall.install_dir = join(self.data_dir, 'desiutil')
         self.desiInstall.is_branch = True
         mock_walk.return_value = iter([(join(self.desiInstall.install_dir, 'bin'), [], ['executable', 'README.txt']),
-                                       (join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil-1.2.3.dist-info'), [], ['METADATA', 'LICENSE.rst']),
-                                       (join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', '__pycache__'), [], ['__init__.cpython-3.10.pyc', 'module.cpython-3.10.pyc']),
-                                       (join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil'), ['__pycache__'], ['__init__.py', 'module.py']),
-                                       (join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages'), ['desiutil-1.2.3.dist-info', 'desiutil'], []),
-                                       (join(self.desiInstall.install_dir, 'lib', 'python3.10'), ['site-packages'], []),
-                                       (join(self.desiInstall.install_dir, 'lib'), ['python3.10'], []),
+                                       (join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                             'desiutil-1.2.3.dist-info'), [], ['METADATA', 'LICENSE.rst']),
+                                       (join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                             'desiutil', '__pycache__'), [], [f"__init__.{self.cext}", f"module.{self.cext}"]),
+                                       (join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                             'desiutil'), ['__pycache__'], ['__init__.py', 'module.py']),
+                                       (join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages'),
+                                        ['desiutil-1.2.3.dist-info', 'desiutil'], []),
+                                       (join(self.desiInstall.install_dir, 'lib', self.pyver), ['site-packages'], []),
+                                       (join(self.desiInstall.install_dir, 'lib'), [self.pyver], []),
                                        (self.desiInstall.install_dir, ['bin', 'lib'], [])])
         self.desiInstall.permissions()
         mock_walk.assert_called_once_with(self.desiInstall.install_dir, topdown=False)
         mock_chmod.assert_has_calls([call(join(self.desiInstall.install_dir, 'bin', 'executable'), 0o755),
                                      call(join(self.desiInstall.install_dir, 'bin', 'README.txt'), 0o644),
-                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil-1.2.3.dist-info', 'METADATA'), 0o644),
-                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil-1.2.3.dist-info', 'LICENSE.rst'), 0o644),
-                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', '__pycache__', '__init__.cpython-3.10.pyc'), 0o644),
-                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', '__pycache__', 'module.cpython-3.10.pyc'), 0o644),
-                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', '__init__.py'), 0o644),
-                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', 'module.py'), 0o644),
-                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', '__pycache__'), 0o2755),
-                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil-1.2.3.dist-info'), 0o2755),
-                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil'), 0o2755),
-                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages'), 0o2755),
-                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10'), 0o2755),
+                                     call(join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                               'desiutil-1.2.3.dist-info', 'METADATA'), 0o644),
+                                     call(join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                               'desiutil-1.2.3.dist-info', 'LICENSE.rst'), 0o644),
+                                     call(join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                               'desiutil', '__pycache__', f"__init__.{self.cext}"), 0o644),
+                                     call(join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                               'desiutil', '__pycache__', f"module.{self.cext}"), 0o644),
+                                     call(join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                               'desiutil', '__init__.py'), 0o644),
+                                     call(join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                               'desiutil', 'module.py'), 0o644),
+                                     call(join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                               'desiutil', '__pycache__'), 0o2755),
+                                     call(join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                               'desiutil-1.2.3.dist-info'), 0o2755),
+                                     call(join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                               'desiutil'), 0o2755),
+                                     call(join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages'), 0o2755),
+                                     call(join(self.desiInstall.install_dir, 'lib', self.pyver), 0o2755),
                                      call(join(self.desiInstall.install_dir, 'bin'), 0o2755),
                                      call(join(self.desiInstall.install_dir, 'lib'), 0o2755),
                                      call(self.desiInstall.install_dir, 0o2755)])
@@ -702,28 +728,40 @@ exit(main())
         self.desiInstall.install_dir = join(self.data_dir, 'desiutil')
         self.desiInstall.is_branch = False
         mock_walk.return_value = iter([(join(self.desiInstall.install_dir, 'bin'), [], ['executable', 'README.txt']),
-                                       (join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil-1.2.3.dist-info'), [], ['METADATA', 'LICENSE.rst']),
-                                       (join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', '__pycache__'), [], ['__init__.cpython-3.10.pyc', 'module.cpython-3.10.pyc']),
-                                       (join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil'), ['__pycache__'], ['__init__.py', 'module.py']),
-                                       (join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages'), ['desiutil-1.2.3.dist-info', 'desiutil'], []),
-                                       (join(self.desiInstall.install_dir, 'lib', 'python3.10'), ['site-packages'], []),
-                                       (join(self.desiInstall.install_dir, 'lib'), ['python3.10'], []),
+                                       (join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                             'desiutil-1.2.3.dist-info'), [], ['METADATA', 'LICENSE.rst']),
+                                       (join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                             'desiutil', '__pycache__'), [], [f"__init__.{self.cext}", f"module.{self.cext}"]),
+                                       (join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                             'desiutil'), ['__pycache__'], ['__init__.py', 'module.py']),
+                                       (join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages'), ['desiutil-1.2.3.dist-info', 'desiutil'], []),
+                                       (join(self.desiInstall.install_dir, 'lib', self.pyver), ['site-packages'], []),
+                                       (join(self.desiInstall.install_dir, 'lib'), [self.pyver], []),
                                        (self.desiInstall.install_dir, ['bin', 'lib'], [])])
         self.desiInstall.permissions()
         mock_walk.assert_called_once_with(self.desiInstall.install_dir, topdown=False)
         mock_chmod.assert_has_calls([call(join(self.desiInstall.install_dir, 'bin', 'executable'), 0o550),
                                      call(join(self.desiInstall.install_dir, 'bin', 'README.txt'), 0o440),
-                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil-1.2.3.dist-info', 'METADATA'), 0o440),
-                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil-1.2.3.dist-info', 'LICENSE.rst'), 0o440),
-                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', '__pycache__', '__init__.cpython-3.10.pyc'), 0o440),
-                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', '__pycache__', 'module.cpython-3.10.pyc'), 0o440),
-                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', '__init__.py'), 0o440),
-                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', 'module.py'), 0o440),
-                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', '__pycache__'), 0o2550),
-                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil-1.2.3.dist-info'), 0o2550),
-                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil'), 0o2550),
-                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages'), 0o2550),
-                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10'), 0o2550),
+                                     call(join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                               'desiutil-1.2.3.dist-info', 'METADATA'), 0o440),
+                                     call(join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                               'desiutil-1.2.3.dist-info', 'LICENSE.rst'), 0o440),
+                                     call(join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                               'desiutil', '__pycache__', f"__init__.{self.cext}"), 0o440),
+                                     call(join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                               'desiutil', '__pycache__', f"module.{self.cext}"), 0o440),
+                                     call(join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                               'desiutil', '__init__.py'), 0o440),
+                                     call(join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                               'desiutil', 'module.py'), 0o440),
+                                     call(join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                               'desiutil', '__pycache__'), 0o2550),
+                                     call(join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                               'desiutil-1.2.3.dist-info'), 0o2550),
+                                     call(join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                               'desiutil'), 0o2550),
+                                     call(join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages'), 0o2550),
+                                     call(join(self.desiInstall.install_dir, 'lib', self.pyver), 0o2550),
                                      call(join(self.desiInstall.install_dir, 'bin'), 0o2550),
                                      call(join(self.desiInstall.install_dir, 'lib'), 0o2550),
                                      call(self.desiInstall.install_dir, 0o2550)])
@@ -741,28 +779,40 @@ exit(main())
         self.desiInstall.install_dir = join(self.data_dir, 'desiutil')
         self.desiInstall.is_branch = True
         mock_walk.return_value = iter([(join(self.desiInstall.install_dir, 'bin'), [], ['executable', 'README.txt']),
-                                       (join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil-1.2.3.dist-info'), [], ['METADATA', 'LICENSE.rst']),
-                                       (join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', '__pycache__'), [], ['__init__.cpython-3.10.pyc', 'module.cpython-3.10.pyc']),
-                                       (join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil'), ['__pycache__'], ['__init__.py', 'module.py']),
-                                       (join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages'), ['desiutil-1.2.3.dist-info', 'desiutil'], []),
-                                       (join(self.desiInstall.install_dir, 'lib', 'python3.10'), ['site-packages'], []),
-                                       (join(self.desiInstall.install_dir, 'lib'), ['python3.10'], []),
+                                       (join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                             'desiutil-1.2.3.dist-info'), [], ['METADATA', 'LICENSE.rst']),
+                                       (join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                             'desiutil', '__pycache__'), [], [f"__init__.{self.cext}", f"module.{self.cext}"]),
+                                       (join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                             'desiutil'), ['__pycache__'], ['__init__.py', 'module.py']),
+                                       (join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages'), ['desiutil-1.2.3.dist-info', 'desiutil'], []),
+                                       (join(self.desiInstall.install_dir, 'lib', self.pyver), ['site-packages'], []),
+                                       (join(self.desiInstall.install_dir, 'lib'), [self.pyver], []),
                                        (self.desiInstall.install_dir, ['bin', 'lib'], [])])
         self.desiInstall.permissions()
         mock_walk.assert_called_once_with(self.desiInstall.install_dir, topdown=False)
         mock_chmod.assert_has_calls([call(join(self.desiInstall.install_dir, 'bin', 'executable'), 0o750),
                                      call(join(self.desiInstall.install_dir, 'bin', 'README.txt'), 0o640),
-                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil-1.2.3.dist-info', 'METADATA'), 0o640),
-                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil-1.2.3.dist-info', 'LICENSE.rst'), 0o640),
-                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', '__pycache__', '__init__.cpython-3.10.pyc'), 0o640),
-                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', '__pycache__', 'module.cpython-3.10.pyc'), 0o640),
-                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', '__init__.py'), 0o640),
-                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', 'module.py'), 0o640),
-                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil', '__pycache__'), 0o2750),
-                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil-1.2.3.dist-info'), 0o2750),
-                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages', 'desiutil'), 0o2750),
-                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10', 'site-packages'), 0o2750),
-                                     call(join(self.desiInstall.install_dir, 'lib', 'python3.10'), 0o2750),
+                                     call(join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                               'desiutil-1.2.3.dist-info', 'METADATA'), 0o640),
+                                     call(join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                               'desiutil-1.2.3.dist-info', 'LICENSE.rst'), 0o640),
+                                     call(join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                               'desiutil', '__pycache__', f"__init__.{self.cext}"), 0o640),
+                                     call(join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                               'desiutil', '__pycache__', f"module.{self.cext}"), 0o640),
+                                     call(join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                               'desiutil', '__init__.py'), 0o640),
+                                     call(join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                               'desiutil', 'module.py'), 0o640),
+                                     call(join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                               'desiutil', '__pycache__'), 0o2750),
+                                     call(join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                               'desiutil-1.2.3.dist-info'), 0o2750),
+                                     call(join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages',
+                                               'desiutil'), 0o2750),
+                                     call(join(self.desiInstall.install_dir, 'lib', self.pyver, 'site-packages'), 0o2750),
+                                     call(join(self.desiInstall.install_dir, 'lib', self.pyver), 0o2750),
                                      call(join(self.desiInstall.install_dir, 'bin'), 0o2750),
                                      call(join(self.desiInstall.install_dir, 'lib'), 0o2750),
                                      call(self.desiInstall.install_dir, 0o2750)])

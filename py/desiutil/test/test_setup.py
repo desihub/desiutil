@@ -8,9 +8,7 @@ import shutil
 import unittest
 from unittest.mock import call, patch
 from tempfile import mkdtemp
-from packaging import version
-from distutils.log import DEBUG, INFO, WARN, ERROR
-from setuptools import __version__ as setuptools_version
+from distutils.log import INFO, WARN
 from setuptools import sandbox
 from ..setup import find_version_directory, get_version, update_version
 from .. import __version__ as desiutil_version
@@ -69,7 +67,7 @@ class TestSetup(unittest.TestCase):
         os.mkdir(os.path.join(package_dir, '.git'))
         setup = """#!/usr/bin/env python
 from setuptools import setup
-from desiutil.setup import DesiModule, DesiTest, DesiVersion, get_version
+from desiutil.setup import DesiModule, DesiVersion, get_version
 CMDCLASS = {{'version': DesiVersion}}
 VERSION = get_version("{0.fake_name}")
 setup(name="{0.fake_name}",

@@ -10,7 +10,7 @@ from os.path import exists, isdir, join
 from sys import version_info
 from shutil import rmtree
 from tempfile import mkdtemp
-from pkg_resources import resource_filename
+from importlib.resources import files
 from ..modules import (init_modules, configure_module, process_module,
                        default_module, _write_module_data)
 
@@ -162,18 +162,16 @@ class TestModules(unittest.TestCase):
         """Test detection of directories for module configuration.
         """
         test_dirs = ('bin', 'lib', 'pro', 'py')
-        results = {
-            'name': 'foo',
-            'version': 'bar',
-            'product_root': '/my/product/root',
-            'needs_bin': '',
-            'needs_python': '',
-            'needs_trunk_py': '# ',
-            'trunk_py_dir': '/py',
-            'needs_ld_lib': '',
-            'needs_idl': '',
-            'pyversion': "python{0:d}.{1:d}".format(*version_info)
-            }
+        results = {'name': 'foo',
+                   'version': 'bar',
+                   'product_root': '/my/product/root',
+                   'needs_bin': '',
+                   'needs_python': '',
+                   'needs_trunk_py': '# ',
+                   'trunk_py_dir': '/py',
+                   'needs_ld_lib': '',
+                   'needs_idl': '',
+                   'pyversion': "python{0:d}.{1:d}".format(*version_info)}
         for t in test_dirs:
             mkdir(join(self.data_dir, t))
         conf = configure_module('foo', 'bar', '/my/product/root',
@@ -254,7 +252,7 @@ class TestModules(unittest.TestCase):
     def test_process_module(self):
         """Test processing of module file templates.
         """
-        module_file = resource_filename('desiutil.test', 't/test.module')
+        module_file = str(files('desiutil.test') / 't' / 'test.module')
         module_keywords = {'name': 'foo', 'version': 'bar'}
         process_module(module_file, module_keywords, self.data_dir)
         self.assertTrue(isdir(join(self.data_dir, 'foo')))

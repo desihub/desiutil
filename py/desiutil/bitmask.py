@@ -57,8 +57,9 @@ Users would then access this mask with:
 'Cosmic ray'
 
 
-.. _desispec: http://desispec.readthedocs.io
+.. _desispec: https://desispec.readthedocs.io/en/latest/
 """
+import numpy as np
 
 
 class _MaskBit(int):
@@ -222,7 +223,8 @@ class BitMask(object):
         ----------
         mask : :class:`int`, optional
             The mask integer to convert to names. If not supplied,
-            return names of all known bits.
+            return names of all known bits. `mask` can also be a numpy scalar
+            or a numpy array of length 1.
 
         Returns
         -------
@@ -236,7 +238,17 @@ class BitMask(object):
             for bitnum in sorted(bitnums):
                 names.append(self._bits[bitnum].name)
         else:
-            mask = int(mask)  # workaround numpy issue #2955 for uint64
+            if isinstance(mask, int) or isinstance(mask, np.integer):
+                pass
+            elif isinstance(mask, np.ndarray) and mask.shape == (1, ):
+                mask = mask[0]
+            else:
+                raise ValueError('Unknown type or invalid shape for mask!')
+            if mask < 0:
+                mask = np.int64(mask).astype(np.uint64)
+            # For Numpy < 2, the operation (int & np.uint64) was not defined.
+            # For Numpy >= 2, this operation should be harmless.
+            mask = int(mask)
             bitnum = 0
             while 2**bitnum <= mask:
                 if (2**bitnum & mask):

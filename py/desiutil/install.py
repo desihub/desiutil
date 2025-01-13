@@ -16,7 +16,7 @@ import requests
 from io import BytesIO
 from subprocess import Popen, PIPE
 from types import MethodType
-from pkg_resources import resource_filename
+from importlib.resources import files
 from .git import last_tag
 from .log import get_logger, DEBUG, INFO
 from .modules import (init_modules, configure_module,
@@ -70,9 +70,7 @@ known_products = {
     'tilepicker': 'https://github.com/desihub/tilepicker',
     'timedomain': 'https://github.com/desihub/timedomain',
     'plate_layout': 'https://desi.lbl.gov/svn/code/focalplane/plate_layout',
-    'positioner_control':
-        'https://desi.lbl.gov/svn/code/focalplane/positioner_control',
-    }
+    'positioner_control': 'https://desi.lbl.gov/svn/code/focalplane/positioner_control'}
 
 
 #
@@ -109,8 +107,8 @@ def dependencies(modulefile):
         raise ValueError("Modulefile {0} does not exist!".format(modulefile))
     with open(modulefile) as m:
         lines = m.readlines()
-    return [l.strip().split()[2] for l in lines if
-            l.strip().startswith('module load')]
+    return [ln.strip().split()[2] for ln in lines if
+            ln.strip().startswith('module load')]
 
 
 class DesiInstallException(Exception):
@@ -314,8 +312,7 @@ class DesiInstall(object):
         try:
             self.fullproduct = known_products[self.baseproduct]
         except KeyError:
-            self.fullproduct = 'https://github.com/desihub/{}'.format(
-                    self.baseproduct)
+            self.fullproduct = f'https://github.com/desihub/{self.baseproduct}'
             self.log.warning('Guessing %s is at %s.',
                              self.baseproduct, self.fullproduct)
             self.log.warning('Add location to desiutil.install.known_products ' +
@@ -428,9 +425,7 @@ class DesiInstall(object):
                                                   self.baseversion))
                     r.raise_for_status()
                 except requests.exceptions.HTTPError:
-                    message = ("Branch {0} does not appear to exist. " +
-                               "HTTP response was {1:d}.").format(
-                               self.baseversion, r.status_code)
+                    message = f"Branch {self.baseversion} does not appear to exist. HTTP response was {r.status_code:d}."
                     self.log.critical(message)
                     raise DesiInstallException(message)
                 command = ['git', 'clone', '-q', '-b', self.baseversion,
@@ -480,9 +475,7 @@ class DesiInstall(object):
                         r = requests.get(self.product_url)
                         r.raise_for_status()
                     except requests.exceptions.HTTPError:
-                        message = ("Error while downloading {0}, " +
-                                   "HTTP response was {1:d}.").format(
-                                   self.product_url, r.status_code)
+                        message = f"Error while downloading {self.product_url}, HTTP response was {r.status_code:d}."
                         self.log.critical(message)
                         raise DesiInstallException(message)
                     try:
@@ -605,8 +598,7 @@ class DesiInstall(object):
         if self.options.root is None and self.nersc is not None:
             self.options.root = self.default_nersc_dir()
 
-        if ((self.options.root is None or not os.path.isdir(self.options.root))
-                and not self.options.test):
+        if ((self.options.root is None or not os.path.isdir(self.options.root)) and not self.options.test):
             message = "Root install directory is missing or not set."
             self.log.critical(message)
             raise DesiInstallException(message)
@@ -659,8 +651,7 @@ class DesiInstall(object):
         self.module_file = os.path.join(self.working_dir, 'etc',
                                         self.baseproduct + '.module')
         if not os.path.exists(self.module_file):
-            self.module_file = resource_filename('desiutil',
-                                                 'data/desiutil.module')
+            self.module_file = str(files('desiutil') / 'data' / 'desiutil.module')
         if self.options.test:
             self.log.debug('Test Mode. Skipping loading of dependencies.')
             self.deps = list()

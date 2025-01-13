@@ -92,7 +92,9 @@ def plot_slices(x, y, x_lo, x_hi, y_cut, num_slices=5, min_count=100, axis=None,
         axis.scatter(x, y, s=15, marker='.', lw=0, color='b', alpha=0.5, zorder=1)
 
     # Plot quantiles in slices with enough fits.
-    stepify = lambda y: np.vstack([y, y]).transpose().flatten()
+    def stepify(y):
+        return np.vstack([y, y]).transpose().flatten()
+
     y_m2 = stepify(limits[:, 0])
     y_m1 = stepify(limits[:, 1])
     y_med = stepify(limits[:, 2])
@@ -437,7 +439,7 @@ def init_sky(projection='mollweide', ra_center=120,
     #
     base_tick_labels = np.array([150, 120, 90, 60, 30, 0, 330, 300, 270, 240, 210])
     base_tick_labels = np.remainder(base_tick_labels+360+ra_center, 360)
-    tick_labels = np.array(['{0}°'.format(l) for l in base_tick_labels])
+    tick_labels = np.array(['{0}°'.format(lab) for lab in base_tick_labels])
     #
     # Galactic plane.
     #
@@ -475,8 +477,8 @@ def init_sky(projection='mollweide', ra_center=120,
     # Set RA labels.
     #
     labels = ax.get_xticklabels()
-    for l, item in enumerate(labels):
-        item.set_text(tick_labels[l])
+    for i, item in enumerate(labels):
+        item.set_text(tick_labels[i])
     ax.set_xticklabels(labels)
     #
     # Set axis labels.

@@ -61,18 +61,14 @@ import importlib
 #
 # default possible dependencies to check in add_dependencies()
 #
-possible_dependencies = [
-    'numpy', 'scipy', 'astropy', 'yaml', 'matplotlib',
-    'requests', 'fitsio', 'h5py', 'mpi4py', 'psycopg2', 'healpy',
-    'desiutil', 'desispec', 'desitarget', 'desimodel', 'desisim', 'desisurvey',
-    'specter', 'speclite', 'specsim', 'surveysim', 'redrock', 'desimeter',
-    'fiberassign', 'gpu_specter',
-    ]
-possible_envvars = [
-    'DESI_ROOT', 'DESI_SPECTRO_DATA', 'DESI_SPECTRO_REDUX', 'SPECPROD',
-    'DESI_SPECTRO_CALIB', 'DESI_BASIS_TEMPLATES',
-    'DESI_TARGET', 'DESIMODEL',
-    ]
+possible_dependencies = ['numpy', 'scipy', 'astropy', 'yaml', 'matplotlib',
+                         'requests', 'fitsio', 'h5py', 'mpi4py', 'psycopg2', 'healpy',
+                         'desiutil', 'desispec', 'desitarget', 'desimodel', 'desisim', 'desisurvey',
+                         'specter', 'speclite', 'specsim', 'surveysim', 'redrock', 'desimeter',
+                         'fiberassign', 'gpu_specter',]
+possible_envvars = ['DESI_ROOT', 'DESI_SPECTRO_DATA', 'DESI_SPECTRO_REDUX', 'SPECPROD',
+                    'DESI_SPECTRO_CALIB', 'DESI_BASIS_TEMPLATES',
+                    'DESI_TARGET', 'DESIMODEL',]
 
 
 def setdep(header, name, version):

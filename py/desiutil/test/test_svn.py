@@ -4,7 +4,6 @@
 """
 import unittest
 from unittest.mock import call, DEFAULT, patch, Mock, PropertyMock
-# from pkg_resources import resource_filename
 from ..svn import last_revision, last_tag, version
 
 

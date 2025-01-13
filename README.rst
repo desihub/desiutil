@@ -19,13 +19,14 @@ desiutil
 Introduction
 ============
 
-This is the place for general purpose tools for use by
-everyone.
+`desiutil` contains general purpose tools for use by any and all other `DESI packages`_.
+
+.. _`DESI packages`: https://github.com/desihub
 
 Full Documentation
 ==================
 
-Please visit `desiutil on Read the Docs`_
+Please visit `desiutil on Read the Docs`_.
 
 .. _`desiutil on Read the Docs`: https://desiutil.readthedocs.io/en/latest/
 
