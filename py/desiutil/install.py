@@ -531,6 +531,9 @@ class DesiInstall(object):
                 out, err = proc.communicate()
             self.log.debug(out)
             if len(err) > 0:
+                if self.desigeneral:
+                    if err.startswith(f"Cloning into '{self.working_dir}'"):
+                        return
                 vctype = 'git' if self.desigeneral else 'svn'
                 message = (f"{vctype} error while downloading product " +
                            "code: {0}".format(err))
