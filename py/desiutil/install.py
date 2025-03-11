@@ -134,6 +134,8 @@ class DesiInstall(object):
         "https://github.com/desihub/desiutil".
     github : :class:`bool`
         ``True`` if the selected product lives on GitHub.
+    desigeneral : :class:`bool`
+        ``True`` if the selected product is fetched to desi-general at KPNO.
     is_branch : :class:`bool`
         ``True`` if a branch has been selected.
     log : :class:`logging.Logger`
@@ -322,6 +324,10 @@ class DesiInstall(object):
         if 'github.com' in self.fullproduct:
             self.github = True
             self.log.debug("Detected GitHub install.")
+        self.desigeneral = False
+        if 'git@desi-general' in self.fullproduct:
+            self.desigeneral = True
+            self.log.debug('Package installed from desi-general (KPNO)')
         return (self.fullproduct, self.baseproduct, self.baseversion)
 
     def identify_branch(self):
@@ -338,6 +344,8 @@ class DesiInstall(object):
         if self.is_branch:
             if self.github:
                 self.product_url = self.fullproduct + '.git'
+            elif self.desigeneral:
+                self.product_url = self.fullproduct
             else:
                 if self.options.product_version == 'branches/trunk':
                     self.product_url = os.path.join(self.fullproduct, 'trunk')
@@ -384,16 +392,20 @@ class DesiInstall(object):
                 self.log.critical(message)
                 raise DesiInstallException(message)
         else:
-            command = [svn, '--non-interactive', '--username',
-                       self.options.username, 'ls', self.product_url]
+            if self.desigeneral:
+                command = ['ssh', 'git@desi-general', 'git', '-C',
+                           self.baseproduct, 'fetch']
+            else:
+                command = [svn, '--non-interactive', '--username',
+                           self.options.username, 'ls', self.product_url]
             self.log.debug(' '.join(command))
             proc = Popen(command, universal_newlines=True,
                          stdout=PIPE, stderr=PIPE)
             out, err = proc.communicate()
             self.log.debug(out)
             if len(err) > 0:
-                message = ("svn error while testing product URL: " +
-                           "{0}.").format(err)
+                vctype = 'git' if self.desigeneral else 'svn'
+                message = (f"{vctype} error while testing product URL: {err}")
                 self.log.critical(message)
                 raise DesiInstallException(message)
         return True
@@ -498,13 +510,18 @@ class DesiInstall(object):
                         self.log.critical(message)
                         raise DesiInstallException(message)
         else:
-            if self.is_branch:
-                get_svn = 'checkout'
+            # Git clone from desi-general
+            if self.desigeneral:
+                command = ['git', 'clone', f'git@desi-general:{self.baseproduct}', self.working_dir]
+            # Download from SVN repo
             else:
-                get_svn = 'export'
-            command = ['svn', '--non-interactive', '--username',
-                       self.options.username, get_svn, self.product_url,
-                       self.working_dir]
+                if self.is_branch:
+                    get_svn = 'checkout'
+                else:
+                    get_svn = 'export'
+                command = ['svn', '--non-interactive', '--username',
+                           self.options.username, get_svn, self.product_url,
+                           self.working_dir]
             self.log.debug(' '.join(command))
             if self.options.test:
                 out, err = 'Test Mode.', ''
@@ -514,7 +531,8 @@ class DesiInstall(object):
                 out, err = proc.communicate()
             self.log.debug(out)
             if len(err) > 0:
-                message = ("svn error while downloading product " +
+                vctype = 'git' if self.desigeneral else 'svn'
+                message = (f"{vctype} error while downloading product " +
                            "code: {0}".format(err))
                 self.log.critical(message)
                 raise DesiInstallException(message)
