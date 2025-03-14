@@ -512,7 +512,17 @@ class DesiInstall(object):
         else:
             # Git clone from desi-general
             if self.desigeneral:
-                command = ['git', 'clone', f'git@desi-general:{self.baseproduct}', self.working_dir]
+                if 'tags' in self.product_url:
+                    tag = os.path.basename(self.product_url)
+                    command = ['git', 'clone',
+                               f'git@desi-general:{self.baseproduct}',
+                               '-c', 'advice.detachedHead=false',
+                               f'--branch={tag}',
+                               self.working_dir]
+                else:
+                    command = ['git', 'clone',
+                               f'git@desi-general:{self.baseproduct}',
+                               self.working_dir]
             # Download from SVN repo
             else:
                 if self.is_branch:
