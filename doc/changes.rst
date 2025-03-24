@@ -19,10 +19,14 @@ Change Log
 3.5.0 (2025-01-13)
 ------------------
 
-* Fix bug in :func:`~desiutil.names.radec_to_desiname` for values very close to zero;
-  don't issue warnings in :func:`~desiutil.annotate.annotate_fits` if the units
-  are not actually changing; general package clean-up in preparation for
-  deployment to PyPI_ (PR `#212`_).
+Multiple updates bundled in PR `#212`_:
+
+* Fix bug in :func:`~desiutil.names.radec_to_desiname` for values very close to zero.
+* Don't issue warnings in :func:`~desiutil.annotate.annotate_fits` if the units
+  are not actually changing.
+* General package clean-up in preparation for deployment to PyPI_, including
+  removing ``desiutil.setup.DesiTest``.  Impacted packages should remove that
+  import from their ``setup.py`` and use ``pytest`` instead of ``python setup.py test``.
 
 .. _PyPI: https://pypi.org
 .. _`#212`: https://github.com/desihub/desiutil/pull/212
