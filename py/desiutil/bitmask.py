@@ -100,6 +100,60 @@ class _MaskBit(int):
     # def __repr__(self):
     #     return "_MaskBit(name='{0.name}', bitnum={0.bitnum:d}, comment='{0.comment}')".format(self)
 
+    def __array_ufunc__(self, ufunc, method, *inputs, out=None, **kwargs):
+        """When working with Numpy functions and objects, replace the input
+        ``_MaskBit`` object with its ``.mask`` attribute.
+        """
+        #
+        # Filter inputs and replace any _MaskBit with a Python int.
+        #
+        args = []
+        for input_ in inputs:
+            if isinstance(input_, _MaskBit):
+                args.append(input_.mask)
+            else:
+                args.append(input_)
+
+        #
+        # This is boilerplate designed to capture ``out`` keywords.
+        #
+        outputs = out
+        if outputs:
+            out_args = []
+            for output in outputs:
+                if isinstance(output, _MaskBit):
+                    out_args.append(output.view(np.ndarray))
+                else:
+                    out_args.append(output)
+            kwargs['out'] = tuple(out_args)
+        else:
+            outputs = (None,) * ufunc.nout
+
+        #
+        # Identify another argument that we can pass the computation to.
+        #
+        sup = None
+        for arg in args:
+            if hasattr(arg, '__array_ufunc__'):
+                sup = arg
+
+        if sup is None:
+            return NotImplemented
+
+        results = sup.__array_ufunc__(ufunc, method, *args, **kwargs)
+        if results is NotImplemented:
+            return NotImplemented
+        #
+        # Deal with multiple outputs.
+        #
+        if ufunc.nout == 1:
+            results = (results,)
+
+        results = tuple((np.asarray(result) if output is None else output)
+                        for result, output in zip(results, outputs))
+
+        return results[0] if len(results) == 1 else results
+
 
 #  Class to provide mask bit utility functions
 class BitMask(object):

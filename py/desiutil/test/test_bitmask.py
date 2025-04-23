@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """Test desiutil.bitmask.
 """
-import sys
 import unittest
 from ..bitmask import BitMask, _MaskBit
 import yaml
@@ -181,3 +180,19 @@ class TestBitMask(unittest.TestCase):
         for i, name in enumerate(self.ccdmask.names()):
             self.assertEqual(str(self.ccdmask[name]), bit_str[i])
             self.assertEqual(repr(self.ccdmask[name]), bit_repr[i])
+
+    def test_numpy_compat(self):
+        """Test compatibility with Numpy 1 and Numpy 2.
+        """
+        signed_array_16 = np.zeros((10,), dtype=np.int16)
+        signed_array_32 = np.zeros((10,), dtype=np.int32)
+        signed_array_64 = np.zeros((10,), dtype=np.int64)
+        unsigned_array_16 = np.zeros((10,), dtype=np.uint16)
+        unsigned_array_32 = np.zeros((10,), dtype=np.uint32)
+        unsigned_array_64 = np.zeros((10,), dtype=np.uint64)
+        for array in (signed_array_16, signed_array_32, signed_array_64,
+                      unsigned_array_16, unsigned_array_32, unsigned_array_64):
+            new_array = array.copy()
+            new_array |= self.ccdmask.COSMIC
+            new_array &= self.ccdmask.HOT
+            self.assertTrue((new_array == (array + 18)).all())
