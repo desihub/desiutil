@@ -200,5 +200,7 @@ class TestBitMask(unittest.TestCase):
             out_array = array.copy()
             np.bitwise_xor(new_array, self.ccdmask.BAD, out=out_array)
             self.assertTrue((out_array == (array + 19)).all())
-            result = np.bitwise_or(0, self.ccdmask.COSMIC)
-            self.assertIs(result, NotImplemented)
+            with self.assertRaises(TypeError):
+                result = np.bitwise_or(0, self.ccdmask.COSMIC)
+            with self.assertRaises(TypeError):
+                result = np.bitwise_or(self.ccdmask.COSMIC, 0)
