@@ -197,6 +197,7 @@ class TestBitMask(unittest.TestCase):
             new_array |= self.ccdmask.HOT
             self.assertTrue((new_array == (array + 18)).all())
             self.assertTrue((np.bitwise_and(new_array, self.ccdmask.HOT) != 0).all())
+            self.assertTrue((np.bitwise_and(self.ccdmask.HOT, new_array) != 0).all())
             out_array = array.copy()
             np.bitwise_xor(new_array, self.ccdmask.BAD, out=out_array)
             self.assertTrue((out_array == (array + 19)).all())
