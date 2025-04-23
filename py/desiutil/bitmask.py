@@ -100,7 +100,7 @@ class _MaskBit(int):
     # def __repr__(self):
     #     return "_MaskBit(name='{0.name}', bitnum={0.bitnum:d}, comment='{0.comment}')".format(self)
 
-    def __array_ufunc__(self, ufunc, method, *inputs, out=None, **kwargs):
+    def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
         """When working with Numpy functions and objects, replace the input
         ``_MaskBit`` object with its ``.mask`` attribute.
         """
@@ -113,22 +113,13 @@ class _MaskBit(int):
                 args.append(input_.mask)
             else:
                 args.append(input_)
-
         #
         # This is boilerplate designed to capture ``out`` keywords.
         #
-        outputs = out
-        if outputs:
-            out_args = []
-            for output in outputs:
-                if isinstance(output, _MaskBit):
-                    out_args.append(output.view(np.ndarray))
-                else:
-                    out_args.append(output)
-            kwargs['out'] = tuple(out_args)
-        else:
+        try:
+            outputs = kwargs['out']
+        except KeyError:
             outputs = (None,) * ufunc.nout
-
         #
         # Identify another argument that we can pass the computation to.
         #
