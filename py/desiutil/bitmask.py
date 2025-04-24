@@ -101,8 +101,38 @@ class _MaskBit(int):
     #     return "_MaskBit(name='{0.name}', bitnum={0.bitnum:d}, comment='{0.comment}')".format(self)
 
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
-        """When working with Numpy functions and objects, replace the input
-        ``_MaskBit`` object with its ``.mask`` attribute.
+        """This function makes :class:`~desiutil.bitmask._MaskBit` objects "NumPy-aware",
+        so that they can be handled by NumPy `ufunc <https://numpy.org/doc/stable/glossary.html#term-ufunc>`_ methods.
+
+        Parameters
+        ----------
+        ufunc : :class:`numpy.ufunc`
+            The NumPy function, *e.g.* :func:`~numpy.bitwise_or`.
+        method : :class:`str`
+            How `ufunc` was called. This is meant to be passed to another operand.
+        inputs : :class:`list`
+            The positional arguments.
+        kwargs : :class:`dict`
+            The keyword arguments.
+
+        Returns
+        -------
+        array-like
+            This function passes the actual computation to another entry in `inputs`.
+
+        Notes
+        -----
+        * In NumPy 1.x, subclasses of :class:`int` could be used exactly as if the
+          object was a plain Python :class:`int`.
+        * In Numpy 2.x, that is no longer the case, so we must explicitly use the
+          array API to tell NumPy how to handle the subclass.
+        * The solution is to modify the inputs so that a :class:`~desiutil.bitmask._MaskBit`
+          object is replaced by its ``.mask`` attribute, which is a plain Python :class:`int`.
+        * See GitHub issue `#218`_ for examples and discussion.
+        * This method is based on `this discussion`_.
+
+        .. _`#218`: https://github.com/desihub/desiutil/issues/218
+        .. _`this discussion`: https://numpy.org/doc/stable/user/basics.subclassing.html#array-ufunc-for-ufuncs
         """
         #
         # Filter inputs and replace any _MaskBit with a Python int.
