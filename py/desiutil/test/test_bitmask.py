@@ -193,14 +193,28 @@ class TestBitMask(unittest.TestCase):
         for array in (signed_array_16, signed_array_32, signed_array_64,
                       unsigned_array_16, unsigned_array_32, unsigned_array_64):
             new_array = array.copy()
+            # Test a simple bitwise OR.
             new_array |= self.ccdmask.COSMIC
             new_array |= self.ccdmask.HOT
             self.assertTrue((new_array == (array + 18)).all())
+            # Test unaugmented operator
+            result = new_array & self.ccdmask.COSMIC
+            self.assertTrue((result != 0).all())
+            # Test an explicit function call, and ensure the order of the arguments doesn't matter.
             self.assertTrue((np.bitwise_and(new_array, self.ccdmask.HOT) != 0).all())
             self.assertTrue((np.bitwise_and(self.ccdmask.HOT, new_array) != 0).all())
+            # Test a ufunc call with an out keyword.
             out_array = array.copy()
             np.bitwise_xor(new_array, self.ccdmask.BAD, out=out_array)
             self.assertTrue((out_array == (array + 19)).all())
+            # Test other combinations of mask bits.
+            new_array = array.copy()
+            new_array |= self.ccdmask.mask('DEAD|SATURATED')
+            self.assertTrue((new_array == (array + 12)).all())
+            new_array = array.copy()
+            new_array |= (self.ccdmask.DEAD | self.ccdmask.SATURATED)
+            self.assertTrue((new_array == (array + 12)).all())
+            # Test expected behavior when neither argument is a Numpy object.
             with self.assertRaises(TypeError):
                 result = np.bitwise_or(0, self.ccdmask.COSMIC)
             with self.assertRaises(TypeError):

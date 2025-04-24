@@ -114,13 +114,6 @@ class _MaskBit(int):
             else:
                 args.append(input_)
         #
-        # This is boilerplate designed to capture ``out`` keywords.
-        #
-        # try:
-        #     outputs = kwargs['out']
-        # except KeyError:
-        #     outputs = (None,) * ufunc.nout
-        #
         # Identify another argument that we can pass the computation to.
         #
         sup = None
@@ -132,19 +125,6 @@ class _MaskBit(int):
             return NotImplemented
 
         return sup.__array_ufunc__(ufunc, method, *args, **kwargs)
-        # results = sup.__array_ufunc__(ufunc, method, *args, **kwargs)
-        # if results is NotImplemented:
-        #     return NotImplemented
-        #
-        # Deal with multiple outputs.
-        #
-        # if ufunc.nout == 1:
-        #     results = (results,)
-
-        # results = tuple((np.asarray(result) if output is None else output)
-        #                 for result, output in zip(results, outputs))
-
-        # return results[0] if len(results) == 1 else results
 
 
 #  Class to provide mask bit utility functions
