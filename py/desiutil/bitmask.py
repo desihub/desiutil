@@ -97,8 +97,7 @@ class _MaskBit(int):
         return ('{0.name:16s} bit {0.bitnum} mask 0x{0.mask:X} - ' +
                 '{0.comment}').format(self)
 
-    # def __repr__(self):
-    #     return "_MaskBit(name='{0.name}', bitnum={0.bitnum:d}, comment='{0.comment}')".format(self)
+    # We do not define __repr__(self) since the superclass has an arguably more useful __repr__().
 
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
         """This function makes :class:`~desiutil.bitmask._MaskBit` objects "NumPy-aware",

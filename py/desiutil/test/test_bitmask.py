@@ -219,3 +219,8 @@ class TestBitMask(unittest.TestCase):
                 result = np.bitwise_or(0, self.ccdmask.COSMIC)
             with self.assertRaises(TypeError):
                 result = np.bitwise_or(self.ccdmask.COSMIC, 0)
+
+    def test_int_behavior(self):
+        """Test behavior of _MaskBit when explicitly casting to int.
+        """
+        self.assertEqual(self.ccdmask.HOT.mask, int(self.ccdmask.HOT))
