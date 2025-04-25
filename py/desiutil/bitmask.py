@@ -97,8 +97,63 @@ class _MaskBit(int):
         return ('{0.name:16s} bit {0.bitnum} mask 0x{0.mask:X} - ' +
                 '{0.comment}').format(self)
 
-    # def __repr__(self):
-    #     return "_MaskBit(name='{0.name}', bitnum={0.bitnum:d}, comment='{0.comment}')".format(self)
+    # We do not define __repr__(self) since the superclass has an arguably more useful __repr__().
+
+    def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
+        """This function makes :class:`~desiutil.bitmask._MaskBit` objects "NumPy-aware",
+        so that they can be handled by NumPy `ufunc <https://numpy.org/doc/stable/glossary.html#term-ufunc>`_ methods.
+
+        Parameters
+        ----------
+        ufunc : :class:`numpy.ufunc`
+            The NumPy function, *e.g.* :func:`~numpy.bitwise_or`.
+        method : :class:`str`
+            How `ufunc` was called. This is meant to be passed to another operand.
+        inputs : :class:`list`
+            The positional arguments.
+        kwargs : :class:`dict`
+            The keyword arguments.
+
+        Returns
+        -------
+        array-like
+            This function passes the actual computation to another entry in `inputs`.
+
+        Notes
+        -----
+        * In NumPy 1.x, subclasses of :class:`int` could be used exactly as if the
+          object was a plain Python :class:`int`.
+        * In Numpy 2.x, that is no longer the case, so we must explicitly use the
+          array API to tell NumPy how to handle the subclass.
+        * The solution is to modify the inputs so that a :class:`~desiutil.bitmask._MaskBit`
+          object is replaced by its ``.mask`` attribute, which is a plain Python :class:`int`.
+        * See GitHub issue `#218`_ for examples and discussion.
+        * This method is based on `this discussion`_.
+
+        .. _`#218`: https://github.com/desihub/desiutil/issues/218
+        .. _`this discussion`: https://numpy.org/doc/stable/user/basics.subclassing.html#array-ufunc-for-ufuncs
+        """
+        #
+        # Filter inputs and replace any _MaskBit with a Python int.
+        #
+        args = []
+        for input_ in inputs:
+            if isinstance(input_, _MaskBit):
+                args.append(input_.mask)
+            else:
+                args.append(input_)
+        #
+        # Identify another argument that we can pass the computation to.
+        #
+        sup = None
+        for arg in args:
+            if hasattr(arg, '__array_ufunc__'):
+                sup = arg
+
+        if sup is None:
+            return NotImplemented
+
+        return sup.__array_ufunc__(ufunc, method, *args, **kwargs)
 
 
 #  Class to provide mask bit utility functions

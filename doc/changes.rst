@@ -11,10 +11,13 @@ Change Log
 * Remove deprecated module :mod:`desiutil.census`.
 * Remove deprecated top-level ``setup.py``.
 
-3.5.1 (unreleased)
+3.5.1 (2025-04-25)
 ------------------
 
-* No changes yet.
+* Fix NumPy 2 support for :class:`desiutil.bitmask._MaskBit`;
+  clean up package metadata to avoid warnings while building PyPI packages (PR `#219`_).
+
+.. _`#219`: https://github.com/desihub/desiutil/pull/219
 
 3.5.0 (2025-01-13)
 ------------------
