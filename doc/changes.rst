@@ -11,18 +11,30 @@ Change Log
 * Remove deprecated module :mod:`desiutil.census`.
 * Remove deprecated top-level ``setup.py``.
 
-3.5.1 (unreleased)
+3.5.2 (unreleased)
 ------------------
 
 * No changes yet.
 
+3.5.1 (2025-04-25)
+------------------
+
+* Fix NumPy 2 support for :class:`desiutil.bitmask._MaskBit`;
+  clean up package metadata to avoid warnings while building PyPI packages (PR `#219`_).
+
+.. _`#219`: https://github.com/desihub/desiutil/pull/219
+
 3.5.0 (2025-01-13)
 ------------------
 
-* Fix bug in :func:`~desiutil.names.radec_to_desiname` for values very close to zero;
-  don't issue warnings in :func:`~desiutil.annotate.annotate_fits` if the units
-  are not actually changing; general package clean-up in preparation for
-  deployment to PyPI_ (PR `#212`_).
+Multiple updates bundled in PR `#212`_:
+
+* Fix bug in :func:`~desiutil.names.radec_to_desiname` for values very close to zero.
+* Don't issue warnings in :func:`~desiutil.annotate.annotate_fits` if the units
+  are not actually changing.
+* General package clean-up in preparation for deployment to PyPI_, including
+  removing ``desiutil.setup.DesiTest``.  Impacted packages should remove that
+  import from their ``setup.py`` and use ``pytest`` instead of ``python setup.py test``.
 
 .. _PyPI: https://pypi.org
 .. _`#212`: https://github.com/desihub/desiutil/pull/212
