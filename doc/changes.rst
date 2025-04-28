@@ -14,7 +14,12 @@ Change Log
 3.5.2 (unreleased)
 ------------------
 
-* No changes yet.
+* Fix operations involving :class:`desiutil.bitmask._MaskBit` and `NumPy scalars`_;
+  remove long-deprecated import of ``setuptools.sandbox`` and associated test code
+  (PR `#221`_).
+
+.. _`#221`: https://github.com/desihub/desiutil/pull/221
+.. _`NumPy scalars`: https://numpy.org/doc/stable/reference/arrays.scalars.html
 
 3.5.1 (2025-04-25)
 ------------------
