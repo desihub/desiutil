@@ -135,11 +135,14 @@ class _MaskBit(int):
         """
         #
         # Filter inputs and replace any _MaskBit with a Python int.
+        # np.generic is the superclass of all NumPy scalars.
         #
         args = []
         for input_ in inputs:
             if isinstance(input_, _MaskBit):
                 args.append(input_.mask)
+            elif isinstance(input_, np.generic):
+                args.append(np.asarray(input_))
             else:
                 args.append(input_)
         #

@@ -224,3 +224,15 @@ class TestBitMask(unittest.TestCase):
         """Test behavior of _MaskBit when explicitly casting to int.
         """
         self.assertEqual(self.ccdmask.HOT.mask, int(self.ccdmask.HOT))
+
+    def test_numpy_scalar(self):
+        """Test behavior of _MaskBit when other operand is a numpy scalar.
+        """
+        for b in (False, True):
+            for t in (np.bool_, np.int16, np.int32, np.int64, np.uint16, np.uint32, np.uint64):
+                result = t(b) * self.ccdmask.COSMIC
+                self.assertEqual(result, int(b) * self.ccdmask.COSMIC)
+                if t is np.bool_:
+                    self.assertIs(type(result), np.int64)
+                else:
+                    self.assertIs(type(result), t)
