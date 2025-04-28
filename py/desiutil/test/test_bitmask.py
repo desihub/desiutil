@@ -6,6 +6,7 @@ import unittest
 from ..bitmask import BitMask, _MaskBit
 import yaml
 import numpy as np
+import warnings
 
 _bitdefyaml = """\
 ccdmask:
@@ -234,5 +235,10 @@ class TestBitMask(unittest.TestCase):
                 self.assertEqual(result, int(b) * self.ccdmask.COSMIC)
                 if t is np.bool_:
                     self.assertIs(type(result), np.int64)
+                elif np.__version__[0] == '1':
+                    if t is np.uint64:
+                        self.assertIs(type(result), np.float64)
+                    else:
+                        self.assertIs(type(result), np.int64)
                 else:
                     self.assertIs(type(result), t)
