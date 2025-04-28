@@ -9,7 +9,6 @@ import unittest
 from unittest.mock import call, patch
 from tempfile import mkdtemp
 from distutils.log import INFO, WARN
-from setuptools import sandbox
 from ..setup import find_version_directory, get_version, update_version
 from .. import __version__ as desiutil_version
 
@@ -22,9 +21,6 @@ class TestSetup(unittest.TestCase):
     def setUpClass(cls):
         cls.fake_name = 'frobulate'
         cls.original_dir = os.getcwd()
-        # Workaround for https://github.com/astropy/astropy-helpers/issues/124
-        if hasattr(sandbox, 'hide_setuptools'):
-            sandbox.hide_setuptools = lambda: None
 
     @classmethod
     def tearDownClass(cls):
@@ -44,17 +40,6 @@ class TestSetup(unittest.TestCase):
     def tearDown(self):
         os.chdir(self.original_dir)
         shutil.rmtree(self.setup_dir, ignore_errors=True)
-
-    def run_setup(self, *args, **kwargs):
-        """In Python 3, on MacOS X, the import cache has to be invalidated
-        otherwise new extensions built with ``run_setup`` do not always get
-        picked up.
-        """
-        try:
-            return sandbox.run_setup(*args, **kwargs)
-        finally:
-            import importlib
-            importlib.invalidate_caches()
 
     def test_version(self):
         """Test python setup.py version.
