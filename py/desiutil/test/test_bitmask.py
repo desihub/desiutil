@@ -6,7 +6,7 @@ import unittest
 from ..bitmask import BitMask, _MaskBit
 import yaml
 import numpy as np
-import warnings
+
 
 _bitdefyaml = """\
 ccdmask:
