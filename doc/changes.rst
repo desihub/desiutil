@@ -11,7 +11,7 @@ Change Log
 * Remove deprecated module :mod:`desiutil.census`.
 * Remove deprecated top-level ``setup.py``.
 
-3.5.2 (unreleased)
+3.5.2 (2025-04-29)
 ------------------
 
 * Fix operations involving :class:`desiutil.bitmask._MaskBit` and `NumPy scalars`_;
