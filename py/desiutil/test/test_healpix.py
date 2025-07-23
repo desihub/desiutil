@@ -119,4 +119,3 @@ class TestHealpix(unittest.TestCase):
         self.assertEqual(single_upix, upix2[0])
         upix3 = find_upix(ra, dec, available_upix)
         self.assertTrue(np.all(upix3 == upix))
-

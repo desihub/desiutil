@@ -129,7 +129,7 @@ def is_in_sorted_array(a, b):
 
     # Check if the elements at these indices match the elements of a
     # while avoiding overflow
-    return (indices < len(b)) & (b[indices%len(b)] == a)
+    return (indices < len(b)) & (b[indices % len(b)] == a)
 
 
 def find_upix(ra, dec, available_upix):
