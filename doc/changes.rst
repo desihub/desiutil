@@ -14,7 +14,9 @@ Change Log
 3.5.3 (unreleased)
 ------------------
 
-* No changes yet.
+* Add :mod:`desiutil.healpix` module for working with healpixels (PR `#223`_).
+
+.. _`#223`: https://github.com/desihub/desiutil/pull/223
 
 3.5.2 (2025-04-29)
 ------------------
