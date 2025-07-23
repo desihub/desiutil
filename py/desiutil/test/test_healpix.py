@@ -17,15 +17,15 @@ class TestHealpix(unittest.TestCase):
         """Test radec2hpix"""
 
         # vector input
-        ra = np.arange(0,361,60)
-        dec = np.arange(-90,91,30)
+        ra = np.arange(0, 361, 60)
+        dec = np.arange(-90, 91, 30)
         assert len(ra) == len(dec)
         hpix64 = radec2hpix(64, ra, dec)
         hpix128 = radec2hpix(128, ra, dec)
 
         self.assertListEqual(
-                list(hpix64),
-                [32768, 33255, 39769, 26282,  9382, 15896,  4095])
+            list(hpix64),
+            [32768, 33255, 39769, 26282,  9382, 15896,  4095])
         self.assertListEqual(list(hpix128//4), list(hpix64))
 
         # scalar input
@@ -36,8 +36,8 @@ class TestHealpix(unittest.TestCase):
         """Test radec2upix"""
 
         # vector input
-        ra = np.arange(0,361,60)
-        dec = np.arange(-90,91,30)
+        ra = np.arange(0, 361, 60)
+        dec = np.arange(-90, 91, 30)
         assert len(ra) == len(dec)
         hpix128 = radec2hpix(128, ra, dec)
         upix128 = hpix128 + 4*128**2
@@ -68,15 +68,15 @@ class TestHealpix(unittest.TestCase):
 
     def test_is_in_sorted_array(self):
         """Test is_in_sorted_array"""
-        self.assertEqual(is_in_sorted_array(0, [1,2,5]), False)
-        self.assertEqual(is_in_sorted_array(1, [1,2,5]), True)
-        self.assertEqual(is_in_sorted_array(2, [1,2,5]), True)
-        self.assertEqual(is_in_sorted_array(3, [1,2,5]), False)
-        self.assertEqual(is_in_sorted_array(4, [1,2,5]), False)
-        self.assertEqual(is_in_sorted_array(5, [1,2,5]), True)
-        self.assertEqual(is_in_sorted_array(6, [1,2,5]), False)
-        self.assertListEqual(list(is_in_sorted_array([10,5,0,2,3], [1,2,5])),
-                             [False,True,False,True,False])
+        self.assertEqual(is_in_sorted_array(0, [1, 2, 5]), False)
+        self.assertEqual(is_in_sorted_array(1, [1, 2, 5]), True)
+        self.assertEqual(is_in_sorted_array(2, [1, 2, 5]), True)
+        self.assertEqual(is_in_sorted_array(3, [1, 2, 5]), False)
+        self.assertEqual(is_in_sorted_array(4, [1, 2, 5]), False)
+        self.assertEqual(is_in_sorted_array(5, [1, 2, 5]), True)
+        self.assertEqual(is_in_sorted_array(6, [1, 2, 5]), False)
+        self.assertListEqual(list(is_in_sorted_array([10, 5, 0, 2, 3], [1, 2, 5])),
+                             [False, True, False, True, False])
 
     def test_partition_radec(self):
         """test partition_radec and find_upix"""

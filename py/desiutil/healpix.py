@@ -14,9 +14,11 @@ for further information about the unique pixel identifier scheme.
 DESI uses nested healpixels (not ring), with coordinates ra,dec in degrees.
 """
 
-import os, sys
+import os
+import sys
 import numpy as np
 import healpy
+
 
 def radec2hpix(nside, ra, dec):
     """Convert nside, ra, dec in degrees to nested healpixel number
@@ -30,6 +32,7 @@ def radec2hpix(nside, ra, dec):
         healpixel number(s)
     """
     return healpy.ang2pix(nside, ra, dec, lonlat=True, nest=True)
+
 
 def radec2upix(nside, ra, dec):
     """Convert nside, ra, dec in degrees to nested unique pixel number
@@ -45,6 +48,7 @@ def radec2upix(nside, ra, dec):
     hpix = radec2hpix(nside, ra, dec)
     return hpix2upix(nside, hpix)
 
+
 def hpix2upix(nside, hpix):
     """Convert nside,healpix into unique pixel
 
@@ -57,6 +61,7 @@ def hpix2upix(nside, hpix):
     """
     return hpix + 4*nside**2
 
+
 def upix2hpix(upix):
     """Decode unique pixel upix into nside and healpixel
 
@@ -65,10 +70,11 @@ def upix2hpix(upix):
 
     Returns (nsides, healpixels)
     """
-    nside = 2**( (np.log2(upix//4)/2).astype(int) )
+    nside = 2**((np.log2(upix//4)/2).astype(int))
     hpix = upix - 4 * nside**2
 
     return nside, hpix
+
 
 def partition_radec(ra, dec, nmax):
     """Partition `ra,dec` arrays into nested unique pixels with at most `nmax` elements each
@@ -87,15 +93,15 @@ def partition_radec(ra, dec, nmax):
     Returns corresponding (nside,healpix) encoded into unique pixels.
     """
 
-    #- First calculate upix at nside=1
+    # First calculate upix at nside=1
     order = 0
     nside = 2**order
     hpix = radec2hpix(nside, ra, dec)
     upix = hpix2upix(nside, hpix)
 
-    #- then iteratively split large pixels into higher nside (smaller pixels)
-    #- until all pixels have fewer than nmax entries.
-    for order in range(1,12):
+    # then iteratively split large pixels into higher nside (smaller pixels)
+    # until all pixels have fewer than nmax entries.
+    for order in range(1, 12):
         upix_values, target_per_upix = np.unique(upix, return_counts=True)
         too_many = (target_per_upix > nmax)
         if np.any(too_many):
@@ -108,6 +114,7 @@ def partition_radec(ra, dec, nmax):
             break
 
     return upix
+
 
 def is_in_sorted_array(a, b):
     """
@@ -123,6 +130,7 @@ def is_in_sorted_array(a, b):
     # Check if the elements at these indices match the elements of a
     # while avoiding overflow
     return (indices < len(b)) & (b[indices%len(b)] == a)
+
 
 def find_upix(ra, dec, available_upix):
     """find which nested unique pixels cover input ra,dec values
@@ -141,48 +149,46 @@ def find_upix(ra, dec, available_upix):
     each ra,dec.
     """
 
-    #- Handle scalar or vector input
+    # Handle scalar or vector input
     scalar_input = np.isscalar(ra)
     ra = np.atleast_1d(ra)
     dec = np.atleast_1d(dec)
     assert len(ra) == len(dec)
 
-    #- Confirm that available_upix is sorted and unique
+    # Confirm that available_upix is sorted and unique
     if not np.all(np.diff(available_upix) > 0):
         available_upix = np.unique(available_upix)
 
-    #- Output array to fill
+    # Output array to fill
     result_upix = np.zeros(len(ra), dtype=int)
     not_found = np.ones(len(ra), dtype=bool)
 
-    #- Loop over possible nsides, testing if ra,dec values are in
-    #- available_upix at that nside.  Do this in descending order
-    #- so that radec2hpix is only calculated once (slow).
+    # Loop over possible nsides, testing if ra,dec values are in
+    # available_upix at that nside.  Do this in descending order
+    # so that radec2hpix is only calculated once (slow).
 
-    available_nside = np.unique( upix2hpix(available_upix)[0] )
+    available_nside = np.unique(upix2hpix(available_upix)[0])
     assert available_nside[0] >= 1
     nside = available_nside[-1]  # max nside
     hpix = radec2hpix(nside, ra, dec)
     while nside >= available_nside[0]:
         if nside in available_nside:
-            #- Calculate uniq pixels only for targets not yet found
+            # Calculate uniq pixels only for targets not yet found
             upix = hpix2upix(nside, hpix[not_found])
 
-            #- keep if this upix is indeed in the input upix
+            # keep if this upix is indeed in the input upix
             keep = is_in_sorted_array(upix, available_upix)
 
-            #- Update output array for whether this has been found
-            result_upix[not_found] = upix * keep  #- keep=False elements remain 0
-            not_found[not_found] = ~keep          #- not_found elements are now found
+            # Update output array for whether this has been found
+            result_upix[not_found] = upix * keep  # keep=False elements remain 0
+            not_found[not_found] = ~keep          # not_found elements are now found
 
-        #- done with this nside, move to next smaller nside
+        # done with this nside, move to next smaller nside
         nside = nside//2
-        hpix = hpix//4    #- much faster than recalculating radec2hpix
+        hpix = hpix//4    # much faster than recalculating radec2hpix
 
-    #- Return scalar or vector output depending upon ra/dec input
+    # Return scalar or vector output depending upon ra/dec input
     if scalar_input:
         return result_upix[0]
     else:
         return result_upix
-
-
