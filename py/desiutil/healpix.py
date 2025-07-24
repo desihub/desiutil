@@ -1,3 +1,5 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+# -*- coding: utf-8 -*-
 """
 ================
 desiutil.healpix
@@ -17,7 +19,7 @@ DESI uses nested healpixels (not ring), with coordinates ra,dec in degrees.
 :mod:`desiutil.healpix` is standalone and doesn't depend upon other desiutil code.
 If you wish to use these functions without a full desiutil installation,
 you may copy this module (or selected functions) into your code as long
-as you follow the 3-clause BSD license requiremetns in LICENSE.rst.
+as you follow the 3-clause BSD license requirements in LICENSE.rst.
 """
 
 import os
