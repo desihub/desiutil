@@ -113,9 +113,23 @@ class TestHealpix(unittest.TestCase):
         single_upix = find_upix(ra[0], dec[0], available_upix)
         self.assertEqual(single_upix, upix2[0])
 
-        # And even if available_upix isn't properly sorted
+        # But ra,dec must have same length
+        with self.assertRaises(ValueError):
+            oops = find_upix(ra, dec[0], available_upix)
+
+        with self.assertRaises(ValueError):
+            oops = find_upix(ra[0], dec, available_upix)
+
+        with self.assertRaises(ValueError):
+            oops = find_upix(ra[0:5], dec[0:10], available_upix)
+
+        # Also works if available_upix isn't properly sorted
         rand.shuffle(available_upix)
         single_upix = find_upix(ra[0], dec[0], available_upix)
         self.assertEqual(single_upix, upix2[0])
         upix3 = find_upix(ra, dec, available_upix)
         self.assertTrue(np.all(upix3 == upix))
+
+        # Pedantic: make sure that verbose=True has same results
+        upix_verbose = partition_radec(ra, dec, nmax_per_healpix, verbose=True)
+        self.assertTrue(np.all(upix_verbose == upix))

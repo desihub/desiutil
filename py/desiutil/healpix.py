@@ -4,14 +4,20 @@ desiutil.healpix
 ================
 
 Utilities for working with healpix tiling, including unique pixel
-encoding both nside,healpix into a single integer:
+encoding both nside,healpix into a single integer::
 
     uniqpix = healpix + 4*nside**2
 
+This also includes functions for decoding nside and healpix from uniqpix.
 See Section 3.2 of the `HEALpix Primer <https://healpix.sourceforge.io/pdf/intro.pdf>`_
 for further information about the unique pixel identifier scheme.
 
 DESI uses nested healpixels (not ring), with coordinates ra,dec in degrees.
+
+:mod:`desiutil.healpix` is standalone and doesn't depend upon other desiutil code.
+If you wish to use these functions without a full desiutil installation,
+you may copy this module (or selected functions) into your code as long
+as you follow the 3-clause BSD license requiremetns in LICENSE.rst.
 """
 
 import os
@@ -68,7 +74,8 @@ def upix2hpix(upix):
     Args:
         upix (int or array of int): encoded unique pixel(s)
 
-    Returns (nsides, healpixels)
+    Returns:
+        tuple of (nsides, healpixels)
     """
     nside = 2**((np.log2(upix//4)/2).astype(int))
     hpix = upix - 4 * nside**2
@@ -76,13 +83,14 @@ def upix2hpix(upix):
     return nside, hpix
 
 
-def partition_radec(ra, dec, nmax):
+def partition_radec(ra, dec, nmax, verbose=False):
     """Partition `ra,dec` arrays into nested unique pixels with at most `nmax` elements each
 
     Args:
         ra (array of float): Right Ascension (degrees)
         dec (array of float): Declination (degrees)
         nmax (int): maximum entries per unique pixel
+        verbose (bool, optional): if True, print progress on splitting healpix
 
     Returns:
         uniqpixels (array of same length as `ra` and `dec`)
@@ -107,7 +115,8 @@ def partition_radec(ra, dec, nmax):
         if np.any(too_many):
             ii = np.isin(upix, upix_values[too_many])
             nside = 2**order
-            print(f'{np.sum(too_many)}/{len(too_many)} upix with {np.sum(ii)} targets are too dense; splitting those from nside={nside//2} to {nside}')
+            if verbose:
+                print(f'{np.sum(too_many)}/{len(too_many)} upix with {np.sum(ii)} targets are too dense; splitting those from nside={nside//2} to {nside}')
             hpix = radec2hpix(nside, ra[ii], dec[ii])
             upix[ii] = hpix2upix(nside, hpix)
         else:
@@ -153,7 +162,8 @@ def find_upix(ra, dec, available_upix):
     scalar_input = np.isscalar(ra)
     ra = np.atleast_1d(ra)
     dec = np.atleast_1d(dec)
-    assert len(ra) == len(dec)
+    if len(ra) != len(dec):
+        raise ValueError(f'{len(ra)=} must match {len(dec)=}')
 
     # Confirm that available_upix is sorted and unique
     if not np.all(np.diff(available_upix) > 0):
