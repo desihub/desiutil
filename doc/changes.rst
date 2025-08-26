@@ -11,10 +11,22 @@ Change Log
 * Remove deprecated module :mod:`desiutil.census`.
 * Remove deprecated top-level ``setup.py``.
 
-3.5.2 (unreleased)
+3.5.3 (unreleased)
 ------------------
 
-* No changes yet.
+* Add :mod:`desiutil.healpix` module for working with healpixels (PR `#223`_).
+
+.. _`#223`: https://github.com/desihub/desiutil/pull/223
+
+3.5.2 (2025-04-29)
+------------------
+
+* Fix operations involving :class:`desiutil.bitmask._MaskBit` and `NumPy scalars`_;
+  remove long-deprecated import of ``setuptools.sandbox`` and associated test code
+  (PR `#221`_).
+
+.. _`#221`: https://github.com/desihub/desiutil/pull/221
+.. _`NumPy scalars`: https://numpy.org/doc/stable/reference/arrays.scalars.html
 
 3.5.1 (2025-04-25)
 ------------------

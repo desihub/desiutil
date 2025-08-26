@@ -32,6 +32,9 @@ desiutil API
 .. automodule:: desiutil.git
     :members:
 
+.. automodule:: desiutil.healpix
+    :members:
+
 .. automodule:: desiutil.iers
     :members:
 
