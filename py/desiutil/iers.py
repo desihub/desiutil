@@ -12,6 +12,8 @@ high performance computing environment.
 import os
 import warnings
 import numpy as np
+from packaging.version import Version
+from astropy import __version__ as _AstropyVersion
 from astropy.table import Table
 from astropy.time import Time
 import astropy.utils.iers
@@ -20,6 +22,10 @@ try:
 except ImportError:
     # Astropy < 4.3
     from astropy.utils.data import _find_pkg_data_path as get_pkg_data_path
+try:
+    from astropy_iers_data import __version__ as _AstropyIERSVersion
+except ImportError:
+    _AstropyIERSVersion = '0.0'
 from .log import get_logger
 
 
@@ -33,6 +39,23 @@ _iers_is_frozen = False
 # astropy.utils.iers.Conf.iers_auto_url.set('ftp://cddis.gsfc.nasa.gov/pub/products/iers/finals2000A.all')
 astropy.utils.iers.conf.iers_auto_url = 'ftp://cddis.gsfc.nasa.gov/pub/products/iers/finals2000A.all'
 astropy.utils.iers.conf.auto_download = False
+
+
+def _need_frozen_table(minimum_astropy_version='7.0'):
+    """Determine whether a frozen IERS table is needed.
+
+    Parameters
+    ----------
+    minimum_astropy_version : :class:`str`, optional
+        A frozen table is needed for Astropy versions older than this.
+
+    Returns
+    -------
+    :class:`bool`
+        ``True`` if the IERS table needs to be frozen.
+    """
+    return (Version(_AstropyVersion) < Version(minimum_astropy_version) or
+            _AstropyIERSVersion == '0.0')
 
 
 def freeze_iers(name='iers_frozen.ecsv', ignore_warnings=True):
@@ -73,6 +96,13 @@ def freeze_iers(name='iers_frozen.ecsv', ignore_warnings=True):
         astropy time and coordinates functions. Specifically, ERFA warnings
         containing the string "dubious year" are filtered out, as well
         as AstropyWarnings related to IERS table extrapolation.
+
+    Notes
+    -----
+    If Astropy >= 7.0 is detected in the environment, this function will
+    assume that `astropy-iers-data` is installed, and will only disable the
+    automatic download configuration. It will not attempt to subsititue the
+    frozen IERS table from this package.
     """
     global _iers_is_frozen
     log = get_logger()
@@ -81,37 +111,41 @@ def freeze_iers(name='iers_frozen.ecsv', ignore_warnings=True):
         return
     log.info('Freezing IERS table used by astropy time, coordinates.')
 
-    # Validate the save_name extension.
-    _, ext = os.path.splitext(name)
-    if ext != '.ecsv':
-        raise ValueError('Expected .ecsv extension for {0}.'.format(name))
+    # Determine whether we need to freeze the table in addition to the
+    # configuration.
+    if _need_frozen_table():
+        # Validate the save_name extension.
+        _, ext = os.path.splitext(name)
+        if ext != '.ecsv':
+            raise ValueError('Expected .ecsv extension for {0}.'.format(name))
 
-    # Locate the file in our package data/ directory.
-    if not os.path.isabs(name):
-        name = get_pkg_data_path(os.path.join('data', name))
-    if not os.path.exists(name):
-        raise ValueError('No such IERS file: {0}.'.format(name))
+        # Locate the file in our package data/ directory.
+        if not os.path.isabs(name):
+            name = get_pkg_data_path(os.path.join('data', name))
+        if not os.path.exists(name):
+            raise ValueError('No such IERS file: {0}.'.format(name))
 
-    # Clear any current IERS table.
-    astropy.utils.iers.IERS.close()
-    # Initialize the global IERS table. We load the table by
-    # hand since the IERS open() method hardcodes format='cds'.
-    try:
-        table = Table.read(name, format='ascii.ecsv').filled()
-    except IOError:
-        raise RuntimeError('Unable to load IERS table from {0}.'.format(name))
+        # Clear any current IERS table.
+        astropy.utils.iers.IERS.close()
+        # Initialize the global IERS table. We load the table by
+        # hand since the IERS open() method hardcodes format='cds'.
+        try:
+            table = Table.read(name, format='ascii.ecsv').filled()
+        except IOError:
+            raise RuntimeError('Unable to load IERS table from {0}.'.format(name))
 
-    # Define a subclass of IERS_B that overrides _check_interpolate_indices
-    # to prevent any IERSRangeError being raised.
-    class IERS_Frozen(astropy.utils.iers.IERS_B):
-        def _check_interpolate_indices(self, indices_orig, indices_clipped,
-                                       max_input_mjd):
-            pass
+        # Define a subclass of IERS_B that overrides _check_interpolate_indices
+        # to prevent any IERSRangeError being raised.
+        class IERS_Frozen(astropy.utils.iers.IERS_B):
+            def _check_interpolate_indices(self, indices_orig, indices_clipped,
+                                        max_input_mjd):
+                pass
 
-    # Create and register an instance of this class from the table.
-    iers = IERS_Frozen(table)
-    astropy.utils.iers.IERS.iers_table = iers
-    astropy.utils.iers.IERS_B.iers_table = iers
+        # Create and register an instance of this class from the table.
+        iers = IERS_Frozen(table)
+        astropy.utils.iers.IERS.iers_table = iers
+        astropy.utils.iers.IERS_B.iers_table = iers
+
     # Prevent any attempts to automatically download updated IERS-A tables.
     astropy.utils.iers.conf.auto_download = False
     astropy.utils.iers.conf.auto_max_age = None
@@ -121,16 +155,12 @@ def freeze_iers(name='iers_frozen.ecsv', ignore_warnings=True):
         astropy.utils.iers.conf.iers_degraded_accuracy = 'ignore'
     else:
         astropy.utils.iers.conf.iers_degraded_accuracy = 'warn'
+
     # Sanity check.
-    # In Astropy 7 this appears to be broken due to the iers_frozen.ecsv being out of date.
-    # The *format* of that file no longer matches what is expected by astropy.util.iers.
-    try:
+    if _need_frozen_table():
         auto_class = astropy.utils.iers.IERS_Auto.open()
         if auto_class is not iers:
             raise RuntimeError('Frozen IERS is not installed as the default ({0} v. {1}).'.format(auto_class.__class__, iers.__class__))
-    except KeyError:
-        # Temporary Astropy 7/IERS workaround.
-        warnings.warn("Temporarily skipping IERS integrity check.", UserWarning)
 
     if ignore_warnings:
         try:
@@ -183,6 +213,11 @@ def update_iers(save_name='iers_frozen.ecsv', num_avg=1000):
         beyond the table.
     """
     log = get_logger()
+    # Do we need to do this?
+    if not _need_frozen_table():
+        log.error("A frozen IERS table is not needed in this environment.")
+        return
+
     # Validate the save_name extension.
     _, ext = os.path.splitext(save_name)
     if ext != '.ecsv':

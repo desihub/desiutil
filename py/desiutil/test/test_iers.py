@@ -9,6 +9,7 @@ import shutil
 import tempfile
 from unittest.mock import call, patch, MagicMock
 from importlib.resources import files
+from packaging.version import Version
 from astropy import __version__ as AstropyVersion
 import astropy.units as u
 import astropy.utils.iers
@@ -27,6 +28,7 @@ class TestIERS(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        cls.astropy_version = Version(AstropyVersion)
         # Create a temporary directory.
         cls.tmpdir = tempfile.mkdtemp()
         cls.ap2 = int(AstropyVersion.split('.')[0])
