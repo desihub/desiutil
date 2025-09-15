@@ -111,6 +111,16 @@ def freeze_iers(name='iers_frozen.ecsv', ignore_warnings=True):
         return
     log.info('Freezing IERS table used by astropy time, coordinates.')
 
+    # Prevent any attempts to automatically download updated IERS-A tables.
+    astropy.utils.iers.conf.auto_download = False
+    astropy.utils.iers.conf.auto_max_age = None
+    astropy.utils.iers.conf.iers_auto_url = 'frozen'
+    astropy.utils.iers.conf.iers_auto_url_mirror = 'frozen'
+    if ignore_warnings:
+        astropy.utils.iers.conf.iers_degraded_accuracy = 'ignore'
+    else:
+        astropy.utils.iers.conf.iers_degraded_accuracy = 'warn'
+
     # Determine whether we need to freeze the table in addition to the
     # configuration.
     if _need_frozen_table():
@@ -138,7 +148,7 @@ def freeze_iers(name='iers_frozen.ecsv', ignore_warnings=True):
         # to prevent any IERSRangeError being raised.
         class IERS_Frozen(astropy.utils.iers.IERS_B):
             def _check_interpolate_indices(self, indices_orig, indices_clipped,
-                                        max_input_mjd):
+                                           max_input_mjd):
                 pass
 
         # Create and register an instance of this class from the table.
@@ -146,18 +156,7 @@ def freeze_iers(name='iers_frozen.ecsv', ignore_warnings=True):
         astropy.utils.iers.IERS.iers_table = iers
         astropy.utils.iers.IERS_B.iers_table = iers
 
-    # Prevent any attempts to automatically download updated IERS-A tables.
-    astropy.utils.iers.conf.auto_download = False
-    astropy.utils.iers.conf.auto_max_age = None
-    astropy.utils.iers.conf.iers_auto_url = 'frozen'
-    astropy.utils.iers.conf.iers_auto_url_mirror = 'frozen'
-    if ignore_warnings:
-        astropy.utils.iers.conf.iers_degraded_accuracy = 'ignore'
-    else:
-        astropy.utils.iers.conf.iers_degraded_accuracy = 'warn'
-
-    # Sanity check.
-    if _need_frozen_table():
+        # Sanity check.
         auto_class = astropy.utils.iers.IERS_Auto.open()
         if auto_class is not iers:
             raise RuntimeError('Frozen IERS is not installed as the default ({0} v. {1}).'.format(auto_class.__class__, iers.__class__))
