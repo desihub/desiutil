@@ -25,7 +25,7 @@ jobs:
                 os: [ubuntu-latest]
                 python-version: ['3.11', '3.12']
                 numpy-version: ['<2.0', '<2.1', '<2.2', '<3']
-                astropy-version: ['<6.1', '<7.0']  # , '<7.1'] 7 has an IERS issue
+                astropy-version: ['<6.1', '<7.0', '<7.1', '<8']
                 include:
                     # Close to current NERSC configuration.
                     - os: ubuntu-latest
@@ -41,8 +41,6 @@ jobs:
         steps:
             - name: Checkout code
               uses: actions/checkout@v4
-              with:
-                fetch-depth: 0
             - name: Set up Python ${{ matrix.python-version }}
               uses: actions/setup-python@v5
               with:
@@ -70,8 +68,6 @@ jobs:
         steps:
             - name: Checkout code
               uses: actions/checkout@v4
-              with:
-                fetch-depth: 0
             - name: Set up Python ${{ matrix.python-version }}
               uses: actions/setup-python@v5
               with:
@@ -104,8 +100,6 @@ jobs:
         steps:
             - name: Checkout code
               uses: actions/checkout@v4
-              with:
-                fetch-depth: 0
             - name: Set up Python ${{ matrix.python-version }}
               uses: actions/setup-python@v5
               with:
@@ -131,8 +125,6 @@ jobs:
         steps:
             - name: Checkout code
               uses: actions/checkout@v4
-              with:
-                  fetch-depth: 0
             - name: Set up Python ${{ matrix.python-version }}
               uses: actions/setup-python@v5
               with:
@@ -160,8 +152,6 @@ jobs:
         steps:
             - name: Checkout code
               uses: actions/checkout@v4
-              with:
-                  fetch-depth: 0
             - name: Set up Python ${{ matrix.python-version }}
               uses: actions/setup-python@v5
               with:
@@ -183,8 +173,6 @@ jobs:
         steps:
             - name: Checkout code
               uses: actions/checkout@v4
-              with:
-                fetch-depth: 0
             - name: Set up Python ${{ matrix.python-version }}
               uses: actions/setup-python@v5
               with:
