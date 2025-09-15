@@ -48,12 +48,29 @@ class TestIERS(unittest.TestCase):
         i._iers_is_frozen = False
         # iers_conf.reset()
 
+    def test_need_frozen_table(self):
+        """Verify checks for whether a frozen table is needed.
+        """
+        orig_astropy_version = i._AstropyVersion
+        orig_iers_version = i._AstropyIERSVersion
+        i._AstropyVersion = '6.0'
+        i._AstropyIERSVersion = '0.0'
+        self.assertTrue(i._need_frozen_table())
+        i._AstropyVersion = '7.1'
+        i._AstropyIERSVersion = 'v0.2025.4.28.0.37.27'
+        self.assertFalse(i._need_frozen_table())
+        i._AstropyVersion = '7.1'
+        i._AstropyIERSVersion = '0.0'
+        self.assertTrue(i._need_frozen_table())
+        i._AstropyVersion = orig_astropy_version
+        i._AstropyIERSVersion = orig_iers_version
+
     @patch('desiutil.iers.get_logger')
     def test_update_iers_not_necessary(self, mock_logger):
         """Test early exit if freezing a IERS table is unnecessary.
         """
         if self.ap2 >= 7:
-            i.freeze_iers()
+            i.update_iers()
             mock_logger().error.assert_called_once_with("A frozen IERS table is not needed in this environment.")
 
     @patch('desiutil.iers._need_frozen_table')

@@ -118,11 +118,28 @@ def freeze_iers(name='iers_frozen.ecsv', ignore_warnings=True):
     astropy.utils.iers.conf.iers_auto_url_mirror = 'frozen'
     if ignore_warnings:
         astropy.utils.iers.conf.iers_degraded_accuracy = 'ignore'
+        try:
+            warnings.filterwarnings('ignore',
+                                    category=astropy._erfa.core.ErfaWarning,
+                                    message=r'ERFA function \"[a-z0-9_]+\" yielded [0-9]+ of \"dubious year')
+        except AttributeError:
+            # Astropy >= 4.2
+            from erfa import ErfaWarning
+            warnings.filterwarnings('ignore',
+                                    category=ErfaWarning,
+                                    message=r'ERFA function \"[a-z0-9_]+\" yielded [0-9]+ of \"dubious year')
+
+        warnings.filterwarnings('ignore',
+                                category=astropy.utils.exceptions.AstropyWarning,
+                                message=r'Tried to get polar motions for times after IERS data')
+        warnings.filterwarnings('ignore',
+                                category=astropy.utils.exceptions.AstropyWarning,
+                                message=r'\(some\) times are outside of range covered by IERS')
     else:
         astropy.utils.iers.conf.iers_degraded_accuracy = 'warn'
 
     # Determine whether we need to freeze the table in addition to the
-    # configuration.
+    # configuration modifications above.
     if _need_frozen_table():
         # Validate the save_name extension.
         _, ext = os.path.splitext(name)
@@ -160,25 +177,6 @@ def freeze_iers(name='iers_frozen.ecsv', ignore_warnings=True):
         auto_class = astropy.utils.iers.IERS_Auto.open()
         if auto_class is not iers:
             raise RuntimeError('Frozen IERS is not installed as the default ({0} v. {1}).'.format(auto_class.__class__, iers.__class__))
-
-    if ignore_warnings:
-        try:
-            warnings.filterwarnings('ignore',
-                                    category=astropy._erfa.core.ErfaWarning,
-                                    message=r'ERFA function \"[a-z0-9_]+\" yielded [0-9]+ of \"dubious year')
-        except AttributeError:
-            # Astropy >= 4.2
-            from erfa import ErfaWarning
-            warnings.filterwarnings('ignore',
-                                    category=ErfaWarning,
-                                    message=r'ERFA function \"[a-z0-9_]+\" yielded [0-9]+ of \"dubious year')
-
-        warnings.filterwarnings('ignore',
-                                category=astropy.utils.exceptions.AstropyWarning,
-                                message=r'Tried to get polar motions for times after IERS data')
-        warnings.filterwarnings('ignore',
-                                category=astropy.utils.exceptions.AstropyWarning,
-                                message=r'\(some\) times are outside of range covered by IERS')
 
     # Shortcircuit any subsequent calls to this function.
     _iers_is_frozen = True
