@@ -65,13 +65,14 @@ class TestIERS(unittest.TestCase):
         i._AstropyVersion = orig_astropy_version
         i._AstropyIERSVersion = orig_iers_version
 
+    @patch('desiutil.iers._need_frozen_table')
     @patch('desiutil.iers.get_logger')
-    def test_update_iers_not_necessary(self, mock_logger):
+    def test_update_iers_not_necessary(self, mock_logger, mock_need_table):
         """Test early exit if freezing a IERS table is unnecessary.
         """
-        if self.ap2 >= 7:
-            i.update_iers()
-            mock_logger().error.assert_called_once_with("A frozen IERS table is not needed in this environment.")
+        mock_need_table.return_value = False
+        i.update_iers()
+        mock_logger().error.assert_called_once_with("A frozen IERS table is not needed in this environment.")
 
     @patch('desiutil.iers.get_logger')
     def test_update_iers_frozen(self, mock_logger):
@@ -200,4 +201,16 @@ class TestIERS(unittest.TestCase):
         mock_need_table.return_value = True
         with self.assertRaises(ValueError):
             i.freeze_iers('census.yaml')
+        mock_logger().info.assert_has_calls([call('Freezing IERS table used by astropy time, coordinates.')])
+
+    @patch('desiutil.iers.Table')
+    @patch('desiutil.iers._need_frozen_table')
+    @patch('desiutil.iers.get_logger')
+    def test_freeze_iers_io_error(self, mock_logger, mock_need_table, mock_table):
+        """Test freezing from valid file with wrong format.
+        """
+        mock_need_table.return_value = True
+        mock_table.read.side_effect = IOError("mock error message")
+        with self.assertRaises(RuntimeError):
+            i.freeze_iers()
         mock_logger().info.assert_has_calls([call('Freezing IERS table used by astropy time, coordinates.')])
