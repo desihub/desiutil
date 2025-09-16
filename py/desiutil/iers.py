@@ -18,9 +18,11 @@ from astropy.table import Table
 from astropy.time import Time
 import astropy.utils.iers
 try:
+    # This could be replaced by importlib.resources.files.
     from astropy.utils.data import get_pkg_data_path
 except ImportError:
     # Astropy < 4.3
+    # Not sure this is necesary any longer.
     from astropy.utils.data import _find_pkg_data_path as get_pkg_data_path
 try:
     from astropy_iers_data import __version__ as _AstropyIERSVersion
@@ -173,7 +175,8 @@ def freeze_iers(name='iers_frozen.ecsv', ignore_warnings=True):
         astropy.utils.iers.IERS.iers_table = iers
         astropy.utils.iers.IERS_B.iers_table = iers
 
-        # Sanity check.
+        # Sanity check. This still works for Astropy < 7, but I think the
+        # API that permitted this test has now changed.
         auto_class = astropy.utils.iers.IERS_Auto.open()
         if auto_class is not iers:
             raise RuntimeError('Frozen IERS is not installed as the default ({0} v. {1}).'.format(auto_class.__class__, iers.__class__))
