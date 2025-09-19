@@ -39,8 +39,8 @@ _iers_is_frozen = False
 # Workaround for offline primary IERS server.
 #
 # astropy.utils.iers.Conf.iers_auto_url.set('ftp://cddis.gsfc.nasa.gov/pub/products/iers/finals2000A.all')
-astropy.utils.iers.conf.iers_auto_url = 'ftp://cddis.gsfc.nasa.gov/pub/products/iers/finals2000A.all'
-astropy.utils.iers.conf.auto_download = False
+# astropy.utils.iers.conf.iers_auto_url = 'ftp://cddis.gsfc.nasa.gov/pub/products/iers/finals2000A.all'
+# astropy.utils.iers.conf.auto_download = False
 
 
 def _need_frozen_table(minimum_astropy_version='7.0'):
