@@ -22,7 +22,7 @@ from matplotlib.patches import Ellipse
 from astropy.coordinates import SkyCoord, HeliocentricTrueEcliptic, ICRS, Longitude
 import astropy.units as u
 from astropy.time import Time
-from astropy.utils import iers
+from astropy.utils import iers as IERS
 from .iers import freeze_iers
 
 
@@ -1071,15 +1071,15 @@ def plot_iers(which='auto', num_points=500, save=None):
 
     # Load the specified IERS table.
     if which == 'auto':
-        iers = iers.IERS_Auto.open()
+        iers = IERS.IERS_Auto.open()
     elif which == 'B':
-        iers = iers.IERS_B.open()
+        iers = IERS.IERS_B.open()
     elif which == 'A':
         # This requires network access to download the latest file.
-        iers = iers.IERS_A.open(iers.conf.iers_auto_url)
+        iers = IERS.IERS_A.open(iers.conf.iers_auto_url)
     elif which == 'frozen':
         freeze_iers()
-        iers = iers.IERS_Auto.open()
+        iers = IERS.IERS_Auto.open()
     else:
         raise ValueError('Invalid which option.')
 
