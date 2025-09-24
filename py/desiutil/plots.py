@@ -1076,7 +1076,7 @@ def plot_iers(which='auto', num_points=500, save=None):
         iers = IERS.IERS_B.open()
     elif which == 'A':
         # This requires network access to download the latest file.
-        iers = IERS.IERS_A.open(iers.conf.iers_auto_url)
+        iers = IERS.IERS_A.open(IERS.conf.iers_auto_url)
     elif which == 'frozen':
         freeze_iers()
         iers = IERS.IERS_Auto.open()
