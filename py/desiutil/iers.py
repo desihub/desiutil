@@ -12,6 +12,7 @@ high performance computing environment.
 import os
 import warnings
 import numpy as np
+from importlib.resources import files
 from packaging.version import Version
 from astropy import __version__ as _AstropyVersion
 from astropy.table import Table
@@ -42,7 +43,10 @@ _iers_is_frozen = False
 # astropy.utils.iers.conf.iers_auto_url = 'ftp://cddis.gsfc.nasa.gov/pub/products/iers/finals2000A.all'
 # astropy.utils.iers.conf.auto_download = False
 
-
+#
+# TODO: This function might not be necessary, but it is temporarily retained
+# while testing the astropy-7 branch.
+#
 def _need_frozen_table(minimum_astropy_version='7.0'):
     """Determine whether a frozen IERS table is needed.
 
@@ -140,46 +144,49 @@ def freeze_iers(name='iers_frozen.ecsv', ignore_warnings=True):
     else:
         astropy.utils.iers.conf.iers_degraded_accuracy = 'warn'
 
-    # Determine whether we need to freeze the table in addition to the
-    # configuration modifications above.
-    if _need_frozen_table():
-        # Validate the save_name extension.
-        _, ext = os.path.splitext(name)
-        if ext != '.ecsv':
-            raise ValueError('Expected .ecsv extension for {0}.'.format(name))
+    #
+    # Redirect the table files to frozen copies internal to desiutil.
+    #
+    # Method 1: Simply replace the files in astropy-iers-data with our own files.
+    #
+    DATA = files('desiutil').joinpath('data')
 
-        # Locate the file in our package data/ directory.
-        if not os.path.isabs(name):
-            name = get_pkg_data_path(os.path.join('data', name))
-        if not os.path.exists(name):
-            raise ValueError('No such IERS file: {0}.'.format(name))
+    # IERS-A default file name, URL, and ReadMe with content description
+    astropy.utils.iers.IERS_A_FILE = str(DATA / "finals2000A.all")
+    astropy.utils.iers.IERS_A_URL = "frozen"
+    astropy.utils.iers.IERS_A_URL_MIRROR = "frozen"
+    astropy.utils.iers.IERS_A_README = str(DATA / "ReadMe.finals2000A")
 
-        # Clear any current IERS table.
-        astropy.utils.iers.IERS.close()
-        # Initialize the global IERS table. We load the table by
-        # hand since the IERS open() method hardcodes format='cds'.
-        try:
-            table = Table.read(name, format='ascii.ecsv').filled()
-        except IOError:
-            raise RuntimeError('Unable to load IERS table from {0}.'.format(name))
+    # IERS-B default file name, URL, and ReadMe with content description
+    astropy.utils.iers.IERS_B_FILE = str(DATA / "eopc04.1962-now")
+    astropy.utils.iers.IERS_B_URL = "frozen"
+    astropy.utils.iers.IERS_B_README = str(DATA / "ReadMe.eopc04")
 
-        # Define a subclass of IERS_B that overrides _check_interpolate_indices
-        # to prevent any IERSRangeError being raised.
-        class IERS_Frozen(astropy.utils.iers.IERS_B):
-            def _check_interpolate_indices(self, indices_orig, indices_clipped,
-                                           max_input_mjd):
-                pass
+    # LEAP SECONDS default file name, URL, and alternative format/URL
+    astropy.utils.iers.IERS_LEAP_SECOND_FILE = str(DATA / "Leap_Second.dat")
+    astropy.utils.iers.IERS_LEAP_SECOND_URL = "frozen"
+    astropy.utils.iers.IERS_LEAP_SECOND_URL_MIRROR = "frozen"
+    #
+    # Method 2: Leverage existing Astropy API for changing table files.
+    #
+    # IERS_A_FILE = str(DATA / "finals2000A.all")
+    # astropy.utils.iers.IERS_A_URL = "frozen"
+    # astropy.utils.iers.IERS_A_URL_MIRROR = "frozen"
+    # IERS_A_README = str(DATA / "ReadMe.finals2000A")
 
-        # Create and register an instance of this class from the table.
-        iers = IERS_Frozen(table)
-        astropy.utils.iers.IERS.iers_table = iers
-        astropy.utils.iers.IERS_B.iers_table = iers
+    # IERS-B default file name, URL, and ReadMe with content description
+    # IERS_B_FILE = str(DATA / "eopc04.1962-now")
+    # astropy.utils.iers.IERS_B_URL = "frozen"
+    # IERS_B_README = str(DATA / "ReadMe.eopc04")
 
-        # Sanity check. This still works for Astropy < 7, but I think the
-        # API that permitted this test has now changed.
-        auto_class = astropy.utils.iers.IERS_Auto.open()
-        if auto_class is not iers:
-            raise RuntimeError('Frozen IERS is not installed as the default ({0} v. {1}).'.format(auto_class.__class__, iers.__class__))
+    # LEAP SECONDS default file name, URL, and alternative format/URL
+    # astropy.utils.iers.IERS_LEAP_SECOND_FILE = str(DATA / "Leap_Second.dat")
+    # astropy.utils.iers.IERS_LEAP_SECOND_URL = "frozen"
+    # astropy.utils.iers.IERS_LEAP_SECOND_URL_MIRROR = "frozen"
+
+    # Question: cand you use earth_orientation_table to set both A and B?
+    # table = astropy.utils.iers.IERS_A.open(IERS_A_FILE, readme=IERS_A_README)
+    # astropy.utils.iers.earth_orientation_table.set(table)
 
     # Shortcircuit any subsequent calls to this function.
     _iers_is_frozen = True
