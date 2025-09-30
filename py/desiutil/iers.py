@@ -43,6 +43,7 @@ _iers_is_frozen = False
 # astropy.utils.iers.conf.iers_auto_url = 'ftp://cddis.gsfc.nasa.gov/pub/products/iers/finals2000A.all'
 # astropy.utils.iers.conf.auto_download = False
 
+
 #
 # TODO: This function might not be necessary, but it is temporarily retained
 # while testing the astropy-7 branch.
