@@ -15,8 +15,10 @@ Change Log
 ------------------
 
 * Add :mod:`desiutil.healpix` module for working with healpixels (PR `#223`_).
+* Add ``quiet`` option to :func:`~desiutil.redirect.stdouterr_redirected` (PR `#225`_).
 
 .. _`#223`: https://github.com/desihub/desiutil/pull/223
+.. _`#225`: https://github.com/desihub/desiutil/pull/225
 
 3.5.2 (2025-04-29)
 ------------------
