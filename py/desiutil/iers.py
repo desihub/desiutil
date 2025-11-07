@@ -14,7 +14,7 @@ the very first version, and thus closest in time to the start of the DESI survey
 
 If even older files are desired, they can be obtained from the IERS archive.
 
-.. `astropy-iers-data 0.2023.6.15.21.10.12`: https://pypi.org/project/astropy-iers-data/0.2023.6.15.21.10.12/
+.. _`astropy-iers-data 0.2023.6.15.21.10.12`: https://pypi.org/project/astropy-iers-data/0.2023.6.15.21.10.12/
 """
 import os
 import warnings

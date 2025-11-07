@@ -48,49 +48,20 @@ class TestIERS(unittest.TestCase):
         i._iers_is_frozen = False
         # iers_conf.reset()
 
-    def test_need_frozen_table(self):
-        """Verify checks for whether a frozen table is needed.
-        """
-        orig_astropy_version = i._AstropyVersion
-        orig_iers_version = i._AstropyIERSVersion
-        i._AstropyVersion = '6.0'
-        i._AstropyIERSVersion = '0.0'
-        self.assertTrue(i._need_frozen_table())
-        i._AstropyVersion = '7.1'
-        i._AstropyIERSVersion = 'v0.2025.4.28.0.37.27'
-        self.assertFalse(i._need_frozen_table())
-        i._AstropyVersion = '7.1'
-        i._AstropyIERSVersion = '0.0'
-        self.assertTrue(i._need_frozen_table())
-        i._AstropyVersion = orig_astropy_version
-        i._AstropyIERSVersion = orig_iers_version
-
-    @patch('desiutil.iers._need_frozen_table')
-    @patch('desiutil.iers.get_logger')
-    def test_update_iers_not_necessary(self, mock_logger, mock_need_table):
-        """Test early exit if freezing a IERS table is unnecessary.
-        """
-        mock_need_table.return_value = False
-        i.update_iers()
-        mock_logger().error.assert_called_once_with("A frozen IERS table is not needed in this environment.")
-
     @patch('desiutil.iers.get_logger')
     def test_update_iers_frozen(self, mock_logger):
         """Test attempt to update a frozen IERS table.
         """
-        if i._need_frozen_table():
-            save_name = os.path.join(self.tmpdir, 'iers.ecsv')
-            i.freeze_iers()
-            with self.assertRaises(ValueError):
-                i.update_iers(save_name)
-            mock_logger().info.assert_has_calls([call('Freezing IERS table used by astropy time, coordinates.')])
+        save_name = os.path.join(self.tmpdir, 'iers.ecsv')
+        i.freeze_iers()
+        with self.assertRaises(ValueError):
+            i.update_iers(save_name)
+        mock_logger().info.assert_has_calls([call('Freezing IERS table used by astropy time, coordinates.')])
 
-    @patch('desiutil.iers._need_frozen_table')
     @patch('desiutil.iers.get_logger')
-    def test_update_iers_bad_ext(self, mock_logger, mock_need_table):
+    def test_update_iers_bad_ext(self, mock_logger):
         """Test save_name extension check.
         """
-        mock_need_table.return_value = True
         save_name = os.path.join(self.tmpdir, 'iers.fits')
         with self.assertRaises(ValueError):
             i.update_iers(save_name)
@@ -108,14 +79,12 @@ class TestIERS(unittest.TestCase):
         self.assertIn('# - {data_url: frozen}\n', data)
         # mock_logger().info.assert_has_calls([call('Freezing IERS table used by astropy time, coordinates.')])
 
-    @patch('desiutil.iers._need_frozen_table')
     @patch('desiutil.iers.Time')
     @patch.object(astropy.utils.iers.IERS_A, 'open')
     @patch('desiutil.iers.get_logger')
-    def test_update_iers(self, mock_logger, mock_iers, mock_time, mock_need_table):
+    def test_update_iers(self, mock_logger, mock_iers, mock_time):
         """Test updating the IERS table.
         """
-        mock_need_table.return_value = True
         real_name = str(files('desiutil') / 'data' / 'iers_frozen.ecsv')
         t = QTable.read(real_name, format='ascii.ecsv')
         mock_iers.return_value = t
