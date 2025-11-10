@@ -14,10 +14,12 @@ Change Log
 3.5.3 (unreleased)
 ------------------
 
+* Update :mod:`desiutil.iers` to support Astropy 7.x (PR `#224`_).
 * Add :mod:`desiutil.healpix` module for working with healpixels (PR `#223`_).
 * Add ``quiet`` option to :func:`~desiutil.redirect.stdouterr_redirected` (PR `#225`_).
 
 .. _`#223`: https://github.com/desihub/desiutil/pull/223
+.. _`#224`: https://github.com/desihub/desiutil/pull/224
 .. _`#225`: https://github.com/desihub/desiutil/pull/225
 
 3.5.2 (2025-04-29)

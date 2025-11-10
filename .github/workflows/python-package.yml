@@ -20,31 +20,33 @@ jobs:
         name: Unit tests
         runs-on: ${{ matrix.os }}
         strategy:
-            fail-fast: true
+            fail-fast: false  # reset to true after Astropy 7 issues are resolved.
             matrix:
-                os: [ubuntu-latest]
-                python-version: ['3.11', '3.12']
-                numpy-version: ['<2.0', '<2.1', '<2.2', '<3']
-                astropy-version: ['<6.1', '<7.0']  # , '<7.1'] 7 has an IERS issue
                 include:
-                    # Close to current NERSC configuration.
-                    - os: ubuntu-latest
-                      python-version: '3.10'
-                      numpy-version: '<1.23'
-                      astropy-version: '<6.1'
                     # Stable, yet close to bleeding-edge.
                     - os: ubuntu-latest
                       python-version: '3.13'
-                      numpy-version: '<3'
-                      astropy-version: '<7.0'  # not <7.1 yet, see above
+                      numpy-version: '<3.0'
+                      astropy-version: '<8.0'
+                    - os: ubuntu-latest
+                      python-version: '3.12'
+                      numpy-version: '<2.2'
+                      astropy-version: '<7.1'
+                    - os: ubuntu-latest
+                      python-version: '3.11'
+                      numpy-version: '<2.1'
+                      astropy-version: '<7.1'
+                    # Coverage test below creates an environment similar to NERSC.
+                    - os: ubuntu-latest
+                      python-version: '3.10'
+                      numpy-version: '<2.0'
+                      astropy-version: '<7.0'
 
         steps:
             - name: Checkout code
-              uses: actions/checkout@v4
-              with:
-                fetch-depth: 0
+              uses: actions/checkout@v5
             - name: Set up Python ${{ matrix.python-version }}
-              uses: actions/setup-python@v5
+              uses: actions/setup-python@v6
               with:
                 python-version: ${{ matrix.python-version }}
             - name: Install Python dependencies
@@ -62,18 +64,20 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                os: [ubuntu-latest]
-                python-version: ['3.10']
-                numpy-version: ['<1.23']
-                astropy-version: ['<6.1']
+                os:
+                    - ubuntu-latest
+                python-version:
+                    - '3.10'
+                numpy-version:
+                    - '<1.23'
+                astropy-version:
+                    - '<6.1'
 
         steps:
             - name: Checkout code
-              uses: actions/checkout@v4
-              with:
-                fetch-depth: 0
+              uses: actions/checkout@v5
             - name: Set up Python ${{ matrix.python-version }}
-              uses: actions/setup-python@v5
+              uses: actions/setup-python@v6
               with:
                 python-version: ${{ matrix.python-version }}
             - name: Install Python dependencies
@@ -103,11 +107,9 @@ jobs:
 
         steps:
             - name: Checkout code
-              uses: actions/checkout@v4
-              with:
-                fetch-depth: 0
+              uses: actions/checkout@v5
             - name: Set up Python ${{ matrix.python-version }}
-              uses: actions/setup-python@v5
+              uses: actions/setup-python@v6
               with:
                 python-version: ${{ matrix.python-version }}
             - name: Install Python dependencies
@@ -130,11 +132,9 @@ jobs:
 
         steps:
             - name: Checkout code
-              uses: actions/checkout@v4
-              with:
-                  fetch-depth: 0
+              uses: actions/checkout@v5
             - name: Set up Python ${{ matrix.python-version }}
-              uses: actions/setup-python@v5
+              uses: actions/setup-python@v6
               with:
                   python-version: ${{ matrix.python-version }}
             - name: Install Python dependencies
@@ -159,11 +159,9 @@ jobs:
 
         steps:
             - name: Checkout code
-              uses: actions/checkout@v4
-              with:
-                  fetch-depth: 0
+              uses: actions/checkout@v5
             - name: Set up Python ${{ matrix.python-version }}
-              uses: actions/setup-python@v5
+              uses: actions/setup-python@v6
               with:
                   python-version: ${{ matrix.python-version }}
             - name: Compare contents of bin/ to options.scripts in setup.cfg
@@ -182,11 +180,9 @@ jobs:
 
         steps:
             - name: Checkout code
-              uses: actions/checkout@v4
-              with:
-                fetch-depth: 0
+              uses: actions/checkout@v5
             - name: Set up Python ${{ matrix.python-version }}
-              uses: actions/setup-python@v5
+              uses: actions/setup-python@v6
               with:
                 python-version: ${{ matrix.python-version }}
             - name: Install Python dependencies
