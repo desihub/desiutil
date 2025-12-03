@@ -11,7 +11,7 @@ Change Log
 * Remove deprecated module :mod:`desiutil.census`.
 * Remove deprecated top-level ``setup.py``.
 
-3.5.3 (unreleased)
+3.6.0 (2025-12-03)
 ------------------
 
 * Update :mod:`desiutil.iers` to support Astropy 7.x (PR `#224`_).
