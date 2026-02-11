@@ -5,7 +5,6 @@
 import unittest
 import pytest
 import numpy as np
-from warnings import catch_warnings
 from ..funcfits import func_fit, func_val, iter_fit, mk_fit_dict
 
 

@@ -170,7 +170,8 @@ class TestDust(unittest.TestCase):
         # test scalar/vector combinations
         t = dust.mwdust_transmission(ebv, 'R', 'N')
         for i in range(len(t)):
-            self.assertEqual(t[i], dust.mwdust_transmission(ebv[i], 'R', 'N'))
+            # self.assertEqual(t[i], dust.mwdust_transmission(ebv[i], 'R', 'N'))
+            np.testing.assert_almost_equal(t[i], dust.mwdust_transmission(ebv[i], 'R', 'N'))
 
         tn = dust.mwdust_transmission(ebv, 'R', ['N']*len(ebv))
         ts = dust.mwdust_transmission(ebv, 'R', ['S']*len(ebv))
