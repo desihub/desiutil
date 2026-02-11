@@ -1,0 +1,59 @@
+# Workflow to catch warnings.
+name: Check for warnings (cron)
+
+on:
+    # The push option can be enabled for testing the workflow itself.
+    push:
+        branches:
+            - '*'
+    schedule:
+        # Friday, 22:00 UTC
+        - cron: '0 22 * * 5'
+
+
+jobs:
+    tests:
+        name: Unit tests
+        runs-on: ${{ matrix.os }}
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    # Stable, yet close to bleeding-edge.
+                    - os: ubuntu-latest
+                      python-version: '3.13'
+                      numpy-version: '<3.0'
+                      astropy-version: '<8.0'
+                    - os: ubuntu-latest
+                      python-version: '3.12'
+                      numpy-version: '<2.2'
+                      astropy-version: '<7.1'
+                    - os: ubuntu-latest
+                      python-version: '3.11'
+                      numpy-version: '<2.1'
+                      astropy-version: '<7.1'
+                    - os: ubuntu-latest
+                      python-version: '3.10'
+                      numpy-version: '<2.0'
+                      astropy-version: '<7.0'
+                    # An environment similar to NERSC.
+                    - os: ubuntu-latest
+                      python-version: '3.10'
+                      numpy-version: '<1.23'
+                      astropy-version: '<6.1'
+
+        steps:
+          - name: Checkout code
+            uses: actions/checkout@v6
+          - name: Set up Python ${{ matrix.python-version }}
+            uses: actions/setup-python@v6
+            with:
+              python-version: ${{ matrix.python-version }}
+          - name: Install Python dependencies
+            run: |
+              python -m pip install --upgrade pip setuptools wheel
+              python -m pip install --upgrade --upgrade-strategy only-if-needed "numpy${{ matrix.numpy-version }}"
+              python -m pip install --upgrade --upgrade-strategy only-if-needed "astropy${{ matrix.astropy-version }}"
+              python -m pip install --editable .[test]
+          - name: Run the test, with warnings converted to errors
+            run: pytest -W error

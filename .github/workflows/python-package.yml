@@ -20,31 +20,40 @@ jobs:
         name: Unit tests
         runs-on: ${{ matrix.os }}
         strategy:
-            fail-fast: false  # reset to true after Astropy 7 issues are resolved.
+            fail-fast: true
             matrix:
                 include:
                     # Stable, yet close to bleeding-edge.
                     - os: ubuntu-latest
+                      coverage: false
                       python-version: '3.13'
                       numpy-version: '<3.0'
                       astropy-version: '<8.0'
                     - os: ubuntu-latest
+                      coverage: false
                       python-version: '3.12'
                       numpy-version: '<2.2'
                       astropy-version: '<7.1'
                     - os: ubuntu-latest
+                      coverage: false
                       python-version: '3.11'
                       numpy-version: '<2.1'
                       astropy-version: '<7.1'
-                    # Coverage test below creates an environment similar to NERSC.
                     - os: ubuntu-latest
+                      coverage: false
                       python-version: '3.10'
                       numpy-version: '<2.0'
                       astropy-version: '<7.0'
+                    # An environment similar to NERSC.
+                    - os: ubuntu-latest
+                      coverage: true
+                      python-version: '3.10'
+                      numpy-version: '<1.23'
+                      astropy-version: '<6.1'
 
         steps:
             - name: Checkout code
-              uses: actions/checkout@v5
+              uses: actions/checkout@v6
             - name: Set up Python ${{ matrix.python-version }}
               uses: actions/setup-python@v6
               with:
@@ -54,41 +63,20 @@ jobs:
                 python -m pip install --upgrade pip setuptools wheel
                 python -m pip install --upgrade --upgrade-strategy only-if-needed "numpy${{ matrix.numpy-version }}"
                 python -m pip install --upgrade --upgrade-strategy only-if-needed "astropy${{ matrix.astropy-version }}"
-                python -m pip install --editable .[test]
+            - name: Install the package itself
+              if: ${{ !fromJSON(matrix.coverage) }}
+              run: python -m pip install --editable .[test]
+            - name: Install the package itself, with coverage option
+              if: ${{ fromJSON(matrix.coverage) }}
+              run: python -m pip install --editable .[coverage]
             - name: Run the test
+              if: ${{ !fromJSON(matrix.coverage) }}
               run: pytest
-
-    coverage:
-        name: Test coverage
-        runs-on: ${{ matrix.os }}
-        strategy:
-            fail-fast: false
-            matrix:
-                os:
-                    - ubuntu-latest
-                python-version:
-                    - '3.10'
-                numpy-version:
-                    - '<1.23'
-                astropy-version:
-                    - '<6.1'
-
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v5
-            - name: Set up Python ${{ matrix.python-version }}
-              uses: actions/setup-python@v6
-              with:
-                python-version: ${{ matrix.python-version }}
-            - name: Install Python dependencies
-              run: |
-                python -m pip install --upgrade pip setuptools wheel
-                python -m pip install --upgrade --upgrade-strategy only-if-needed "numpy${{ matrix.numpy-version }}"
-                python -m pip install --upgrade --upgrade-strategy only-if-needed "astropy${{ matrix.astropy-version }}"
-                python -m pip install --editable .[coverage]
             - name: Run the test with coverage
+              if: ${{ fromJSON(matrix.coverage) }}
               run: pytest --cov
             - name: Coveralls
+              if: ${{ fromJSON(matrix.coverage) }}
               env:
                 GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                 COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
@@ -107,7 +95,7 @@ jobs:
 
         steps:
             - name: Checkout code
-              uses: actions/checkout@v5
+              uses: actions/checkout@v6
             - name: Set up Python ${{ matrix.python-version }}
               uses: actions/setup-python@v6
               with:
@@ -132,7 +120,7 @@ jobs:
 
         steps:
             - name: Checkout code
-              uses: actions/checkout@v5
+              uses: actions/checkout@v6
             - name: Set up Python ${{ matrix.python-version }}
               uses: actions/setup-python@v6
               with:
@@ -159,7 +147,7 @@ jobs:
 
         steps:
             - name: Checkout code
-              uses: actions/checkout@v5
+              uses: actions/checkout@v6
             - name: Set up Python ${{ matrix.python-version }}
               uses: actions/setup-python@v6
               with:
@@ -180,7 +168,7 @@ jobs:
 
         steps:
             - name: Checkout code
-              uses: actions/checkout@v5
+              uses: actions/checkout@v6
             - name: Set up Python ${{ matrix.python-version }}
               uses: actions/setup-python@v6
               with:
