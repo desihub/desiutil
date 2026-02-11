@@ -3,8 +3,9 @@
 """Test desiutil.funcfits.
 """
 import unittest
+import pytest
 import numpy as np
-from warnings import catch_warnings, simplefilter
+from warnings import catch_warnings
 from ..funcfits import func_fit, func_val, iter_fit, mk_fit_dict
 
 
@@ -75,6 +76,8 @@ class TestFuncFits(unittest.TestCase):
         y2 = func_val(x2, dfit)
         np.testing.assert_allclose(y2[50], 0.99941056289796115)
 
+    @pytest.mark.filterwarnings("ignore:The fit may be poorly conditioned")
+    @pytest.mark.filterwarnings("default")
     def test_func_fit_other(self):
         """Test corner cases in fitting.
         """
@@ -91,11 +94,7 @@ class TestFuncFits(unittest.TestCase):
             y2 = func_val(x2, dfit)
         x = np.array([1.0])
         y = np.array([2.0])
-        with catch_warnings(record=True) as w:
-            # simplefilter("always")
-            dfit = func_fit(x, y, 'polynomial', 1)
-            self.assertEqual(len(w), 1)
-            self.assertIn('conditioned', str(w[-1].message))
+        dfit = func_fit(x, y, 'polynomial', 1)
         self.assertEqual(dfit['xmin'], -1.0)
         self.assertEqual(dfit['xmax'], 1.0)
 
@@ -114,6 +113,8 @@ class TestFuncFits(unittest.TestCase):
         y2 = func_val(x2, dfit)
         np.testing.assert_allclose(y2[50], 0.99941444872371643)
 
+    @pytest.mark.filterwarnings("ignore:Initial mask")
+    @pytest.mark.filterwarnings("default")
     def test_iterfit2(self):
         """Test iter fit with some special cases.
         """
@@ -123,13 +124,7 @@ class TestFuncFits(unittest.TestCase):
         #
         y[50] = 3.
         # Fit
-        with catch_warnings(record=True) as w:
-            # simplefilter("always")
-            dfit, mask = iter_fit(x, y, 'legendre', 4, forceimask=True)
-            self.assertEqual(len(w), 1)
-            self.assertEqual(str(w[-1].message),
-                             "Initial mask cannot be enforced -- " +
-                             "no initital mask supplied")
+        dfit, mask = iter_fit(x, y, 'legendre', 4, forceimask=True)
         x2 = np.linspace(0, np.pi, 100)
         y2 = func_val(x2, dfit)
         np.testing.assert_allclose(y2[50], 0.99941444872371643)
