@@ -12,9 +12,12 @@ high performance computing environment.
 The frozen files come from `astropy-iers-data 0.2023.6.15.21.10.12`_, which is
 the very first version, and thus closest in time to the start of the DESI survey.
 
-If even older files are desired, they can be obtained from the IERS archive.
+If even older files are desired, in principle, they could be derived from files
+available in the `IERS archive`_. However, this could also require a considerable
+investment of time.
 
 .. _`astropy-iers-data 0.2023.6.15.21.10.12`: https://pypi.org/project/astropy-iers-data/0.2023.6.15.21.10.12/
+.. _`IERS archive`: https://www.iers.org/IERS/EN/DataProducts/EarthOrientationData/eop
 """
 import os
 import warnings
