@@ -3,9 +3,9 @@ name: Check for warnings (cron)
 
 on:
     # The push option can be enabled for testing the workflow itself.
-    push:
-        branches:
-            - '*'
+    # push:
+    #     branches:
+    #         - '*'
     schedule:
         # Friday, 22:00 UTC
         - cron: '0 22 * * 5'
