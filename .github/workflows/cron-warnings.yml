@@ -7,8 +7,8 @@ on:
     #     branches:
     #         - '*'
     schedule:
-        # Friday, 22:00 UTC
-        - cron: '0 22 * * 5'
+        # Monday, 12:00 UTC
+        - cron: '0 12 * * 1'
 
 
 jobs:
