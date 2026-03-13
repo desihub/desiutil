@@ -14,7 +14,10 @@ Change Log
 3.6.1 (unreleased)
 ------------------
 
-* No changes yet.
+* Merge coverage tests into the main test matrix; add cron tests for warnings
+  converted to errors (PR `#226`_).
+
+.. _`#226`: https://github.com/desihub/desiutil/pull/226
 
 3.6.0 (2025-12-03)
 ------------------
