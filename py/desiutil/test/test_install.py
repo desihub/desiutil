@@ -515,14 +515,16 @@ class TestInstall(unittest.TestCase):
             if product_name == 'specsim':
                 product_version = f"v{product_version}"
             env_product = product_name.upper().replace('-', '_')
-            with patch.dict('os.environ', {'NERSC_HOST': 'edison', 'DESICONDA': 'current'}):
+            with patch.dict('os.environ', {'NERSC_HOST': 'edison',
+                                           'DESICONDA': 'current',
+                                           'LOADEDMODULES': f"{product_name}/{product_version}"}):
                 options = self.desiInstall.get_options([product_name, product_version, '--test'])
                 self.desiInstall.get_product_version()
                 install_dir = self.desiInstall.set_install_dir()
                 self.desiInstall.working_dir = join(self.data_dir,
                                                     f"{product_name}-{product_version}")
                 self.assertEqual(install_dir, join(self.desiInstall.default_nersc_dir(),
-                                                'code', product_name, product_version))
+                                                   'code', product_name, product_version))
                 o_dir = self.desiInstall.prepare_environment()
                 self.assertEqual(environ[f'{env_product}_VERSION'], f'tags/{product_version}')
                 self.assertEqual(o_dir, self.desiInstall.original_dir)
