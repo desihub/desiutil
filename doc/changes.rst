@@ -17,10 +17,13 @@ Change Log
 3.6.1 (unreleased)
 ------------------
 
+* Support installing packages that use ``setuptools-scm`` to set version strings
+  (PR `#227`_)
 * Merge coverage tests into the main test matrix; add cron tests for warnings
   converted to errors (PR `#226`_).
 
 .. _`#226`: https://github.com/desihub/desiutil/pull/226
+.. _`#227`: https://github.com/desihub/desiutil/pull/227
 
 3.6.0 (2025-12-03)
 ------------------

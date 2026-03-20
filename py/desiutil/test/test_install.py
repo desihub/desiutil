@@ -434,9 +434,8 @@ class TestInstall(unittest.TestCase):
                              self.desiInstall.default_nersc_dir(), 'code',
                              'desiutil', test_code_version))
 
-    @unittest.skipUnless('MODULESHOME' in environ,
-                         'Skipping because MODULESHOME is not defined.')
-    def test_start_modules(self):
+    @patch('desiutil.modules.which')
+    def test_start_modules(self, mock_which):
         """Test the initialization of the Modules environment.
         """
         options = self.desiInstall.get_options(['-m',
@@ -447,10 +446,12 @@ class TestInstall(unittest.TestCase):
         self.assertEqual(str(cm.exception), ("Could not initialize Modules " +
                          "with MODULESHOME={0}!").format(
                          '/fake/modules/directory'))
-        options = self.desiInstall.get_options(['desiutil', 'branches/main'])
-        self.assertEqual(options.moduleshome, environ['MODULESHOME'])
-        status = self.desiInstall.start_modules()
-        self.assertTrue(callable(self.desiInstall.module))
+        mock_which.return_value = True
+        with patch.dict('os.environ', {'MODULESHOME': self.data_dir}):
+            options = self.desiInstall.get_options(['desiutil', 'branches/main'])
+            self.assertEqual(options.moduleshome, environ['MODULESHOME'])
+            status = self.desiInstall.start_modules()
+            self.assertTrue(callable(self.desiInstall.module))
 
     @patch('desiutil.install.dependencies')
     @patch('os.path.exists')
