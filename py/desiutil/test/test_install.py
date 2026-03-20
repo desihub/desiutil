@@ -529,8 +529,10 @@ class TestInstall(unittest.TestCase):
                 self.assertEqual(environ[f'{env_product}_VERSION'], f'tags/{product_version}')
                 self.assertEqual(o_dir, self.desiInstall.original_dir)
                 if product_name == 'specsim':
-                    self.assertEqual(environ['SETUPTOOLS_SCM_PRETEND_VERSION_FOR_SPECSIM'],
+                    self.assertEqual(environ[f'SETUPTOOLS_SCM_PRETEND_VERSION_FOR_{env_product}'],
                                      product_version[1:])
+                else:
+                    self.assertNotIn(f'SETUPTOOLS_SCM_PRETEND_VERSION_FOR_{env_product}', environ)
 
     def test_install(self):
         """Test the actuall installation process.

@@ -750,6 +750,7 @@ class DesiInstall(object):
         os.environ['WORKING_DIR'] = self.working_dir
         os.environ['INSTALL_DIR'] = self.install_dir
         if self.baseproduct == 'desiutil':
+            self.log.debug("os.environ['DESIUTIL'] = '%s'", self.install_dir)
             os.environ['DESIUTIL'] = self.install_dir
         else:
             if self.baseproduct in os.environ['LOADEDMODULES']:
@@ -765,6 +766,8 @@ class DesiInstall(object):
         # The current install script expects a version in the form of
         # branches/test-0.4 or tags/0.4.4 or trunk
         if env_version not in os.environ:
+            self.log.debug("os.environ['%s'] = 'tags/%s'",
+                           env_version, self.baseversion)
             os.environ[env_version] = 'tags/'+self.baseversion
         #
         # Set special env variable for setuptools-scm.
@@ -774,6 +777,7 @@ class DesiInstall(object):
             if self.baseversion.startswith('v'):
                 nov = self.baseversion[1:]
             scm_env = f"SETUPTOOLS_SCM_PRETEND_VERSION_FOR_{env_product}"
+            self.log.debug("os.environ['%s'] = '%s'", scm_env, nov)
             os.environ[scm_env] = nov
         self.original_dir = os.getcwd()
         return self.original_dir
