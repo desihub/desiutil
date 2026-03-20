@@ -976,7 +976,7 @@ except Exception:
 """.lstrip()
                 version_command = [sys.executable, '-m', 'setuptools_scm']
             proc = Popen(version_command, universal_newlines=True,
-                            stdout=PIPE, stderr=PIPE)
+                         stdout=PIPE, stderr=PIPE)
             out, err = proc.communicate()
             status = proc.returncode
             self.log.debug(out)
