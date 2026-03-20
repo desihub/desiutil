@@ -510,7 +510,25 @@ class TestInstall(unittest.TestCase):
     def test_prepare_environment(self):
         """Test set up of build environment.
         """
-        pass
+        for product_name in ('desiutil', 'specprod-db', 'specsim'):
+            product_version = '3.6.0'
+            if product_name == 'specsim':
+                product_version = f"v{product_version}"
+            env_product = product_name.upper().replace('-', '_')
+            with patch.dict('os.environ', {'NERSC_HOST': 'edison', 'DESICONDA': 'current'}):
+                options = self.desiInstall.get_options([product_name, product_version, '--test'])
+                self.desiInstall.get_product_version()
+                install_dir = self.desiInstall.set_install_dir()
+                self.desiInstall.working_dir = join(self.data_dir,
+                                                    f"{product_name}-{product_version}")
+                self.assertEqual(install_dir, join(self.desiInstall.default_nersc_dir(),
+                                                'code', product_name, product_version))
+                o_dir = self.desiInstall.prepare_environment()
+                self.assertEqual(environ[f'{env_product}_VERSION'], f'tags/{product_version}')
+                self.assertEqual(o_dir, self.desiInstall.original_dir)
+                if product_name == 'specsim':
+                    self.assertEqual(environ['SETUPTOOLS_SCM_PRETEND_VERSION_FOR_SPECSIM'],
+                                     product_version[1:])
 
     def test_install(self):
         """Test the actuall installation process.

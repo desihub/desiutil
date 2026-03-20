@@ -72,7 +72,10 @@ known_products = {
     'plate_layout': 'https://desi.lbl.gov/svn/code/focalplane/plate_layout',
     'positioner_control': 'https://desi.lbl.gov/svn/code/focalplane/positioner_control'}
 
-
+#
+# Packages that obtain their version strings dynamically via setuptools-scm.
+#
+setuptools_scm_products = ('speclite', 'specsim')
 #
 # Reserved for future use.
 #
@@ -627,7 +630,7 @@ class DesiInstall(object):
             ``True`` if the modules infrastructure was initialized
             successfully.
         """
-        initpy_found = False
+        # initpy_found = False
         module_method = init_modules(self.options.moduleshome, method=True)
         if module_method is None:
             message = ("Could not initialize Modules with MODULESHOME={0}!".format(
@@ -725,6 +728,7 @@ class DesiInstall(object):
                 outfile = os.path.join(module_directory,
                                        self.module_keywords['name'],
                                        self.module_keywords['version'])
+                # TODO: The snippet above doesn't do anything.
             except OSError as ose:
                 self.log.critical(ose.strerror)
                 raise DesiInstallException(ose.strerror)
@@ -733,7 +737,6 @@ class DesiInstall(object):
                                module_directory)
                 dot_version = default_module(self.module_keywords,
                                              module_directory)
-
         return mod
 
     def prepare_environment(self):
@@ -757,11 +760,21 @@ class DesiInstall(object):
                            self.baseproduct, self.baseversion)
             if not self.options.test:
                 self.module(m_command, self.baseproduct + '/' + self.baseversion)
-        env_version = self.baseproduct.upper() + '_VERSION'
+        env_product = self.baseproduct.upper().replace('-', '_')
+        env_version = env_product + '_VERSION'
         # The current install script expects a version in the form of
         # branches/test-0.4 or tags/0.4.4 or trunk
         if env_version not in os.environ:
             os.environ[env_version] = 'tags/'+self.baseversion
+        #
+        # Set special env variable for setuptools-scm.
+        #
+        if self.baseproduct in setuptools_scm_products:
+            nov = self.baseversion
+            if self.baseversion.startswith('v'):
+                nov = self.baseversion[1:]
+            scm_env = f"SETUPTOOLS_SCM_PRETEND_VERSION_FOR_{env_product}"
+            os.environ[scm_env] = nov
         self.original_dir = os.getcwd()
         return self.original_dir
 
