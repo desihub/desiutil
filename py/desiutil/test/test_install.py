@@ -6,7 +6,7 @@ import sys
 import unittest
 from unittest.mock import patch, call, MagicMock, mock_open
 from os import chdir, environ, getcwd, mkdir, remove, rmdir
-from os.path import abspath, basename, isdir, join
+from os.path import abspath, basename, isdir, isfile, join
 from shutil import rmtree
 from argparse import Namespace
 from tempfile import mkdtemp
@@ -604,6 +604,63 @@ class TestInstall(unittest.TestCase):
         message = "Error compiling code: err"
         self.assertLog(-1, message)
         self.assertEqual(str(cm.exception), message)
+
+    @patch('os.chdir')
+    @patch('os.path.exists')
+    @patch('desiutil.install.Popen')
+    def test_compile_version(self, mock_popen, mock_exists, mock_chdir):
+        """Test auto-generated version string.
+        """
+        current_dir = getcwd()
+        options = self.desiInstall.get_options(['specsim', 'branches/main'])
+        self.desiInstall.baseproduct = 'specsim'
+        self.desiInstall.is_branch = True
+        self.desiInstall.install_dir = join(self.data_dir, 'specsim')
+        if not isdir(self.desiInstall.install_dir):
+            mkdir(self.desiInstall.install_dir)
+            mkdir(join(self.data_dir, 'specsim', 'specsim'))
+        #
+        # Simulate a package that has setup.py.
+        #
+        mock_exists.return_value = True
+        mock_proc = mock_popen()
+        mock_proc.returncode = 0
+        mock_proc.communicate.return_value = ('1.0.1.dev6', 'err')
+        self.desiInstall.compile_version()
+        mock_exists.assert_has_calls([call(join(self.desiInstall.install_dir, 'setup.py'))])
+        mock_chdir.assert_has_calls([call(self.desiInstall.install_dir),
+                                     call(current_dir)])
+        mock_popen.assert_has_calls([call(),
+                                     call([sys.executable,
+                                           join(self.desiInstall.install_dir, 'setup.py'),
+                                           '--version'],
+                                          stderr=-1, stdout=-1, universal_newlines=True),
+                                     call().communicate()])
+        #
+        # Simulate a package that does not have setup.py
+        #
+        mock_exists.return_value = False
+        mock_proc = mock_popen()
+        mock_proc.returncode = 0
+        mock_proc.communicate.return_value = ('1.0.1.dev6+g329b1f2', 'err')
+        self.desiInstall.compile_version()
+        mock_exists.assert_has_calls([call(join(self.desiInstall.install_dir, 'setup.py'))])
+        mock_chdir.assert_has_calls([call(self.desiInstall.install_dir),
+                                     call(current_dir)])
+        mock_popen.assert_has_calls([call([sys.executable, '-m', 'setuptools_scm'],
+                                          stderr=-1, stdout=-1, universal_newlines=True)], any_order=True)
+        self.assertTrue(isfile(join(self.desiInstall.install_dir, 'specsim', 'version.py')))
+        #
+        # Simulate an error condition when attempting to set the version.
+        #
+        mock_exists.return_value = False
+        mock_proc = mock_popen()
+        mock_proc.returncode = 1
+        mock_proc.communicate.return_value = ('', 'err')
+        self.desiInstall.compile_version()
+        message = "Error compiling version: err"
+        self.assertLog(-3, message)
+        self.assertLog(-2, "Version string may need to be set manually!")
 
     def test_verify_bootstrap(self):
         """Test proper installation of the desiInstall executable.

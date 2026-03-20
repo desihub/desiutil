@@ -836,7 +836,7 @@ class DesiInstall(object):
                 #            '--prefix={0}'.format(self.install_dir)]
                 command = [sys.executable, '-m', 'pip', 'install', '--no-deps',
                            '--disable-pip-version-check', '--ignore-installed',
-                           '--no-warn-script-location',
+                           '--no-warn-script-location', '--no-build-isolation',
                            '--prefix={0}'.format(self.install_dir), '.']
                 self.log.debug(' '.join(command))
                 if self.options.test:
@@ -949,6 +949,48 @@ class DesiInstall(object):
                         message = "Error compiling code: {0}".format(err)
                         self.log.critical(message)
                         raise DesiInstallException(message)
+        return
+
+    def compile_version(self):
+        """Generate a version string for main/branch installs of packages
+        that set the version string dynamically, *i.e.* with ``setuptools-scm``.
+        """
+        if self.is_branch and self.baseproduct in setuptools_scm_products:
+            current_dir = os.getcwd()
+            self.log.debug("os.chdir('%s')", self.install_dir)
+            os.chdir(self.install_dir)
+            setup_py = os.path.join(self.install_dir, 'setup.py')
+            if os.path.exists(setup_py):
+                version_template = None
+                version_command = [sys.executable, setup_py, '--version']
+            else:
+                version_template = """
+# Note that we need to fall back to the hard-coded version if either
+# setuptools_scm can't be imported or setuptools_scm can't determine the
+# version, so we catch the generic 'Exception'.
+try:
+    from setuptools_scm import get_version
+    version = get_version(root='..', relative_to=__file__)
+except Exception:
+    version = '{version}'
+""".lstrip()
+                version_command = [sys.executable, '-m', 'setuptools_scm']
+            proc = Popen(version_command, universal_newlines=True,
+                            stdout=PIPE, stderr=PIPE)
+            out, err = proc.communicate()
+            status = proc.returncode
+            self.log.debug(out)
+            if status != 0 and len(err) > 0:
+                message = "Error compiling version: {0}".format(err)
+                self.log.error(message)
+                self.log.error("Version string may need to be set manually!")
+            else:
+                if version_template is not None:
+                    with open(os.path.join(self.install_dir, self.baseproduct, 'version.py'), 'w') as VERSION:
+                        VERSION.write(version_template.format(version=out.split('+')[0]))
+            self.log.debug("os.chdir('%s')", current_dir)
+            os.chdir(current_dir)
+
         return
 
     def verify_bootstrap(self):
