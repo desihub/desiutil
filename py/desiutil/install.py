@@ -1114,6 +1114,7 @@ except Exception:
             self.install()
             self.get_extra()
             self.compile_branch()
+            self.compile_version()
             self.verify_bootstrap()
             self.permissions()
         except DesiInstallException:
