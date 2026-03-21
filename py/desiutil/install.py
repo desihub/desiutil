@@ -773,7 +773,7 @@ class DesiInstall(object):
         #
         # Set special env variable for setuptools-scm.
         #
-        if self.baseproduct in setuptools_scm_products:
+        if self.baseproduct in setuptools_scm_products and not self.is_branch:
             nov = self.baseversion
             if self.baseversion.startswith('v'):
                 nov = self.baseversion[1:]
