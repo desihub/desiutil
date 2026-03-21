@@ -555,7 +555,6 @@ class TestInstall(unittest.TestCase):
                 else:
                     self.assertNotIn(f'SETUPTOOLS_SCM_PRETEND_VERSION_FOR_{env_product}', environ)
 
-
     def test_install(self):
         """Test the actuall installation process.
         """
