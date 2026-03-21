@@ -538,6 +538,7 @@ class TestInstall(unittest.TestCase):
                 options = self.desiInstall.get_options([product_name, product_version, '--test'])
                 self.desiInstall.get_product_version()
                 install_dir = self.desiInstall.set_install_dir()
+                self.desiInstall.is_branch = False
                 self.desiInstall.working_dir = join(self.data_dir,
                                                     f"{product_name}-{product_version}")
                 self.assertEqual(install_dir, join(self.desiInstall.default_nersc_dir(),
