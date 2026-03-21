@@ -725,10 +725,11 @@ class DesiInstall(object):
                 mod = process_module(self.module_file, self.module_keywords,
                                      module_directory)
                 # Remove write permission to avoid accidental changes
-                outfile = os.path.join(module_directory,
-                                       self.module_keywords['name'],
-                                       self.module_keywords['version'])
-                # TODO: The snippet above doesn't do anything.
+                # outfile = os.path.join(module_directory,
+                #                        self.module_keywords['name'],
+                #                        self.module_keywords['version'])
+                # Permissions are handled by process_module(), so this
+                # shouldn't be needed.
             except OSError as ose:
                 self.log.critical(ose.strerror)
                 raise DesiInstallException(ose.strerror)

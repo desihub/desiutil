@@ -503,10 +503,26 @@ class TestInstall(unittest.TestCase):
         self.assertEqual(self.desiInstall.nersc_module_dir,
                          '/global/cfs/cdirs/desi/test/modulefiles')
 
-    def test_install_module(self):
+    @patch('desiutil.install.configure_module')
+    def test_install_module(self, mock_configure):
         """Test installation of module files.
         """
-        pass
+        product_name = 'specsim'
+        product_version = 'v1.0.0'
+        with patch.dict('os.environ', {'NERSC_HOST': 'edison',
+                                       'DESICONDA': 'current',
+                                       'LOADEDMODULES': f"{product_name}/{product_version}"}):
+            options = self.desiInstall.get_options([product_name, product_version, '--test'])
+            self.desiInstall.get_product_version()
+            install_dir = self.desiInstall.set_install_dir()
+            self.desiInstall.working_dir = join(self.data_dir,
+                                                f"{product_name}-{product_version}")
+            mod = self.desiInstall.install_module()
+            mock_configure.assert_called_once_with('specsim',
+                                                   'v1.0.0',
+                                                   join(self.desiInstall.options.root, 'code'),
+                                                   working_dir=self.desiInstall.working_dir,
+                                                   dev=False)
 
     def test_prepare_environment(self):
         """Test set up of build environment.
@@ -532,8 +548,13 @@ class TestInstall(unittest.TestCase):
                 if product_name == 'specsim':
                     self.assertEqual(environ[f'SETUPTOOLS_SCM_PRETEND_VERSION_FOR_{env_product}'],
                                      product_version[1:])
+                    self.assertLog(-3, f"module('switch', '{product_name}/{product_version}')")
+                elif product_name == 'specprod-db':
+                    self.assertNotIn(f'SETUPTOOLS_SCM_PRETEND_VERSION_FOR_{env_product}', environ)
+                    self.assertLog(-2, f"module('switch', '{product_name}/{product_version}')")
                 else:
                     self.assertNotIn(f'SETUPTOOLS_SCM_PRETEND_VERSION_FOR_{env_product}', environ)
+
 
     def test_install(self):
         """Test the actuall installation process.
