@@ -965,6 +965,11 @@ class DesiInstall(object):
         can be used to generate a version string, which can then be written to
         a version file.
 
+        In the event that this particular use of ``setup.py`` is finally deprecated,
+        ``setuptools-scm`` can and should be moved to the ``pyproject.toml`` file.
+
+        When installing a *tagged* version, this function does nothing.
+
         For tagged installs, :meth:`~desiutil.install.DesiInstall.prepare_environment`
         sets :envvar:`SETUPTOOLS_SCM_PRETEND_VERSION_FOR_PACKAGE` with ``PACKAGE``
         replaced with the package name. This allows :command:`pip install` to
