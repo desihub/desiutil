@@ -976,6 +976,7 @@ except Exception:
     version = '{version}'
 """.lstrip()
                 version_command = [sys.executable, '-m', 'setuptools_scm']
+            self.log.debug(' '.join(version_command))
             proc = Popen(version_command, universal_newlines=True,
                          stdout=PIPE, stderr=PIPE)
             out, err = proc.communicate()
