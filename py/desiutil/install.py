@@ -955,6 +955,21 @@ class DesiInstall(object):
     def compile_version(self):
         """Generate a version string for main/branch installs of packages
         that set the version string dynamically, *i.e.* with ``setuptools-scm``.
+
+        As of Spring 2026, only two DESI packages, ``speclite`` and ``specsim``,
+        use this method, and the configuration for ``setuptools-scm`` is stored
+        their ``setup.py`` files. :command:`python setup.py --version` will
+        create the necessary version file.
+
+        However, if there is no ``setup.py`` file, :command:`python -m setuptools_scm`
+        can be used to generate a version string, which can then be written to
+        a version file.
+
+        For tagged installs, :meth:`~desiutil.install.DesiInstall.prepare_environment`
+        sets :envvar:`SETUPTOOLS_SCM_PRETEND_VERSION_FOR_PACKAGE` with ``PACKAGE``
+        replaced with the package name. This allows :command:`pip install` to
+        set the version, even though the GitHub tarballs do not contain
+        git metadata such as the last tag or commit ID.
         """
         if self.is_branch and self.baseproduct in setuptools_scm_products:
             current_dir = os.getcwd()
