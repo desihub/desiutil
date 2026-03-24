@@ -556,8 +556,18 @@ class TestInstall(unittest.TestCase):
                 else:
                     self.assertNotIn(f'SETUPTOOLS_SCM_PRETEND_VERSION_FOR_{env_product}', environ)
 
-    def test_install(self):
-        """Test the actuall installation process.
+    def test_install_plain(self):
+        """Test the installation process for plain or branch installs.
+        """
+        pass
+
+    def test_install_py(self):
+        """Test the installation process for build_type 'py'.
+        """
+        pass
+
+    def test_install_make(self):
+        """Test the installation process for build_type 'make'/'src'.
         """
         pass
 
