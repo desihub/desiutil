@@ -14,10 +14,11 @@ Change Log
 
 .. _`#213`: https://github.com/desihub/desiutil/issues/213
 
-3.6.1 (unreleased)
+3.6.1 (2026-03-24)
 ------------------
 
-* Support installing packages that use ``setuptools-scm`` to set version strings
+* Support installing packages that use ``setuptools-scm`` to set version strings;
+  also add ``--no-build-isolation`` to help with packages with older infrastructure
   (PR `#227`_)
 * Merge coverage tests into the main test matrix; add cron tests for warnings
   converted to errors (PR `#226`_).
