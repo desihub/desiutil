@@ -14,6 +14,11 @@ Change Log
 
 .. _`#213`: https://github.com/desihub/desiutil/issues/213
 
+3.6.2 (unreleased)
+------------------
+
+* No changes yet.
+
 3.6.1 (2026-03-24)
 ------------------
 
