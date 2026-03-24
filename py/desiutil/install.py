@@ -72,7 +72,10 @@ known_products = {
     'plate_layout': 'https://desi.lbl.gov/svn/code/focalplane/plate_layout',
     'positioner_control': 'https://desi.lbl.gov/svn/code/focalplane/positioner_control'}
 
-
+#
+# Packages that obtain their version strings dynamically via setuptools-scm.
+#
+setuptools_scm_products = ('speclite', 'specsim')
 #
 # Reserved for future use.
 #
@@ -627,7 +630,7 @@ class DesiInstall(object):
             ``True`` if the modules infrastructure was initialized
             successfully.
         """
-        initpy_found = False
+        # initpy_found = False
         module_method = init_modules(self.options.moduleshome, method=True)
         if module_method is None:
             message = ("Could not initialize Modules with MODULESHOME={0}!".format(
@@ -722,9 +725,11 @@ class DesiInstall(object):
                 mod = process_module(self.module_file, self.module_keywords,
                                      module_directory)
                 # Remove write permission to avoid accidental changes
-                outfile = os.path.join(module_directory,
-                                       self.module_keywords['name'],
-                                       self.module_keywords['version'])
+                # outfile = os.path.join(module_directory,
+                #                        self.module_keywords['name'],
+                #                        self.module_keywords['version'])
+                # Permissions are handled by process_module(), so this
+                # shouldn't be needed.
             except OSError as ose:
                 self.log.critical(ose.strerror)
                 raise DesiInstallException(ose.strerror)
@@ -733,7 +738,6 @@ class DesiInstall(object):
                                module_directory)
                 dot_version = default_module(self.module_keywords,
                                              module_directory)
-
         return mod
 
     def prepare_environment(self):
@@ -747,6 +751,7 @@ class DesiInstall(object):
         os.environ['WORKING_DIR'] = self.working_dir
         os.environ['INSTALL_DIR'] = self.install_dir
         if self.baseproduct == 'desiutil':
+            self.log.debug("os.environ['DESIUTIL'] = '%s'", self.install_dir)
             os.environ['DESIUTIL'] = self.install_dir
         else:
             if self.baseproduct in os.environ['LOADEDMODULES']:
@@ -757,11 +762,24 @@ class DesiInstall(object):
                            self.baseproduct, self.baseversion)
             if not self.options.test:
                 self.module(m_command, self.baseproduct + '/' + self.baseversion)
-        env_version = self.baseproduct.upper() + '_VERSION'
+        env_product = self.baseproduct.upper().replace('-', '_')
+        env_version = env_product + '_VERSION'
         # The current install script expects a version in the form of
         # branches/test-0.4 or tags/0.4.4 or trunk
         if env_version not in os.environ:
+            self.log.debug("os.environ['%s'] = 'tags/%s'",
+                           env_version, self.baseversion)
             os.environ[env_version] = 'tags/'+self.baseversion
+        #
+        # Set special env variable for setuptools-scm.
+        #
+        if self.baseproduct in setuptools_scm_products and not self.is_branch:
+            nov = self.baseversion
+            if self.baseversion.startswith('v'):
+                nov = self.baseversion[1:]
+            scm_env = f"SETUPTOOLS_SCM_PRETEND_VERSION_FOR_{env_product}"
+            self.log.debug("os.environ['%s'] = '%s'", scm_env, nov)
+            os.environ[scm_env] = nov
         self.original_dir = os.getcwd()
         return self.original_dir
 
@@ -819,7 +837,7 @@ class DesiInstall(object):
                 #            '--prefix={0}'.format(self.install_dir)]
                 command = [sys.executable, '-m', 'pip', 'install', '--no-deps',
                            '--disable-pip-version-check', '--ignore-installed',
-                           '--no-warn-script-location',
+                           '--no-warn-script-location', '--no-build-isolation',
                            '--prefix={0}'.format(self.install_dir), '.']
                 self.log.debug(' '.join(command))
                 if self.options.test:
@@ -932,6 +950,69 @@ class DesiInstall(object):
                         message = "Error compiling code: {0}".format(err)
                         self.log.critical(message)
                         raise DesiInstallException(message)
+        return
+
+    def compile_version(self):
+        """Generate a version string for main/branch installs of packages
+        that set the version string dynamically, *i.e.* with ``setuptools-scm``.
+
+        As of Spring 2026, only two DESI packages, ``speclite`` and ``specsim``,
+        use this method, and the configuration for ``setuptools-scm`` is stored
+        their ``setup.py`` files. :command:`python setup.py --version` will
+        create the necessary version file.
+
+        However, if there is no ``setup.py`` file, :command:`python -m setuptools_scm`
+        can be used to generate a version string, which can then be written to
+        a version file.
+
+        In the event that this particular use of ``setup.py`` is finally deprecated,
+        ``setuptools-scm`` can and should be moved to the ``pyproject.toml`` file.
+
+        When installing a *tagged* version, this function does nothing.
+
+        For tagged installs, :meth:`~desiutil.install.DesiInstall.prepare_environment`
+        sets :envvar:`SETUPTOOLS_SCM_PRETEND_VERSION_FOR_PACKAGE` with ``PACKAGE``
+        replaced with the package name. This allows :command:`pip install` to
+        set the version, even though the GitHub tarballs do not contain
+        git metadata such as the last tag or commit ID.
+        """
+        if self.is_branch and self.baseproduct in setuptools_scm_products:
+            current_dir = os.getcwd()
+            self.log.debug("os.chdir('%s')", self.install_dir)
+            os.chdir(self.install_dir)
+            setup_py = os.path.join(self.install_dir, 'setup.py')
+            if os.path.exists(setup_py):
+                version_template = None
+                version_command = [sys.executable, setup_py, '--version']
+            else:
+                version_template = """
+# Note that we need to fall back to the hard-coded version if either
+# setuptools_scm can't be imported or setuptools_scm can't determine the
+# version, so we catch the generic 'Exception'.
+try:
+    from setuptools_scm import get_version
+    version = get_version(root='..', relative_to=__file__)
+except Exception:
+    version = '{version}'
+""".lstrip()
+                version_command = [sys.executable, '-m', 'setuptools_scm']
+            self.log.debug(' '.join(version_command))
+            proc = Popen(version_command, universal_newlines=True,
+                         stdout=PIPE, stderr=PIPE)
+            out, err = proc.communicate()
+            status = proc.returncode
+            self.log.debug(out)
+            if status != 0 and len(err) > 0:
+                message = "Error compiling version: {0}".format(err)
+                self.log.error(message)
+                self.log.error("Version string may need to be set manually!")
+            else:
+                if version_template is not None:
+                    with open(os.path.join(self.install_dir, self.baseproduct, 'version.py'), 'w') as VERSION:
+                        VERSION.write(version_template.format(version=out.split('+')[0]))
+            self.log.debug("os.chdir('%s')", current_dir)
+            os.chdir(current_dir)
+
         return
 
     def verify_bootstrap(self):
@@ -1054,6 +1135,7 @@ class DesiInstall(object):
             self.install()
             self.get_extra()
             self.compile_branch()
+            self.compile_version()
             self.verify_bootstrap()
             self.permissions()
         except DesiInstallException:

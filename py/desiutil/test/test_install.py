@@ -6,7 +6,7 @@ import sys
 import unittest
 from unittest.mock import patch, call, MagicMock, mock_open
 from os import chdir, environ, getcwd, mkdir, remove, rmdir
-from os.path import abspath, basename, isdir, join
+from os.path import abspath, basename, isdir, isfile, join
 from shutil import rmtree
 from argparse import Namespace
 from tempfile import mkdtemp
@@ -434,9 +434,8 @@ class TestInstall(unittest.TestCase):
                              self.desiInstall.default_nersc_dir(), 'code',
                              'desiutil', test_code_version))
 
-    @unittest.skipUnless('MODULESHOME' in environ,
-                         'Skipping because MODULESHOME is not defined.')
-    def test_start_modules(self):
+    @patch('desiutil.modules.which')
+    def test_start_modules(self, mock_which):
         """Test the initialization of the Modules environment.
         """
         options = self.desiInstall.get_options(['-m',
@@ -447,10 +446,12 @@ class TestInstall(unittest.TestCase):
         self.assertEqual(str(cm.exception), ("Could not initialize Modules " +
                          "with MODULESHOME={0}!").format(
                          '/fake/modules/directory'))
-        options = self.desiInstall.get_options(['desiutil', 'branches/main'])
-        self.assertEqual(options.moduleshome, environ['MODULESHOME'])
-        status = self.desiInstall.start_modules()
-        self.assertTrue(callable(self.desiInstall.module))
+        mock_which.return_value = True
+        with patch.dict('os.environ', {'MODULESHOME': self.data_dir}):
+            options = self.desiInstall.get_options(['desiutil', 'branches/main'])
+            self.assertEqual(options.moduleshome, environ['MODULESHOME'])
+            status = self.desiInstall.start_modules()
+            self.assertTrue(callable(self.desiInstall.module))
 
     @patch('desiutil.install.dependencies')
     @patch('os.path.exists')
@@ -502,18 +503,71 @@ class TestInstall(unittest.TestCase):
         self.assertEqual(self.desiInstall.nersc_module_dir,
                          '/global/cfs/cdirs/desi/test/modulefiles')
 
-    def test_install_module(self):
+    @patch('desiutil.install.configure_module')
+    def test_install_module(self, mock_configure):
         """Test installation of module files.
         """
-        pass
+        product_name = 'specsim'
+        product_version = 'v1.0.0'
+        with patch.dict('os.environ', {'NERSC_HOST': 'edison',
+                                       'DESICONDA': 'current',
+                                       'LOADEDMODULES': f"{product_name}/{product_version}"}):
+            options = self.desiInstall.get_options([product_name, product_version, '--test'])
+            self.desiInstall.get_product_version()
+            install_dir = self.desiInstall.set_install_dir()
+            self.desiInstall.working_dir = join(self.data_dir,
+                                                f"{product_name}-{product_version}")
+            mod = self.desiInstall.install_module()
+            mock_configure.assert_called_once_with('specsim',
+                                                   'v1.0.0',
+                                                   join(self.desiInstall.options.root, 'code'),
+                                                   working_dir=self.desiInstall.working_dir,
+                                                   dev=False)
 
     def test_prepare_environment(self):
         """Test set up of build environment.
         """
+        for product_name in ('desiutil', 'specprod-db', 'specsim'):
+            product_version = '3.6.0'
+            if product_name == 'specsim':
+                product_version = f"v{product_version}"
+            env_product = product_name.upper().replace('-', '_')
+            with patch.dict('os.environ', {'NERSC_HOST': 'edison',
+                                           'DESICONDA': 'current',
+                                           'LOADEDMODULES': f"{product_name}/{product_version}"}):
+                options = self.desiInstall.get_options([product_name, product_version, '--test'])
+                self.desiInstall.get_product_version()
+                install_dir = self.desiInstall.set_install_dir()
+                self.desiInstall.is_branch = False
+                self.desiInstall.working_dir = join(self.data_dir,
+                                                    f"{product_name}-{product_version}")
+                self.assertEqual(install_dir, join(self.desiInstall.default_nersc_dir(),
+                                                   'code', product_name, product_version))
+                o_dir = self.desiInstall.prepare_environment()
+                self.assertEqual(environ[f'{env_product}_VERSION'], f'tags/{product_version}')
+                self.assertEqual(o_dir, self.desiInstall.original_dir)
+                if product_name == 'specsim':
+                    self.assertEqual(environ[f'SETUPTOOLS_SCM_PRETEND_VERSION_FOR_{env_product}'],
+                                     product_version[1:])
+                    self.assertLog(-3, f"module('switch', '{product_name}/{product_version}')")
+                elif product_name == 'specprod-db':
+                    self.assertNotIn(f'SETUPTOOLS_SCM_PRETEND_VERSION_FOR_{env_product}', environ)
+                    self.assertLog(-2, f"module('switch', '{product_name}/{product_version}')")
+                else:
+                    self.assertNotIn(f'SETUPTOOLS_SCM_PRETEND_VERSION_FOR_{env_product}', environ)
+
+    def test_install_plain(self):
+        """Test the installation process for plain or branch installs.
+        """
         pass
 
-    def test_install(self):
-        """Test the actuall installation process.
+    def test_install_py(self):
+        """Test the installation process for build_type 'py'.
+        """
+        pass
+
+    def test_install_make(self):
+        """Test the installation process for build_type 'make'/'src'.
         """
         pass
 
@@ -582,6 +636,63 @@ class TestInstall(unittest.TestCase):
         message = "Error compiling code: err"
         self.assertLog(-1, message)
         self.assertEqual(str(cm.exception), message)
+
+    @patch('os.chdir')
+    @patch('os.path.exists')
+    @patch('desiutil.install.Popen')
+    def test_compile_version(self, mock_popen, mock_exists, mock_chdir):
+        """Test auto-generated version string.
+        """
+        current_dir = getcwd()
+        options = self.desiInstall.get_options(['specsim', 'branches/main'])
+        self.desiInstall.baseproduct = 'specsim'
+        self.desiInstall.is_branch = True
+        self.desiInstall.install_dir = join(self.data_dir, 'specsim')
+        if not isdir(self.desiInstall.install_dir):
+            mkdir(self.desiInstall.install_dir)
+            mkdir(join(self.data_dir, 'specsim', 'specsim'))
+        #
+        # Simulate a package that has setup.py.
+        #
+        mock_exists.return_value = True
+        mock_proc = mock_popen()
+        mock_proc.returncode = 0
+        mock_proc.communicate.return_value = ('1.0.1.dev6', 'err')
+        self.desiInstall.compile_version()
+        mock_exists.assert_has_calls([call(join(self.desiInstall.install_dir, 'setup.py'))])
+        mock_chdir.assert_has_calls([call(self.desiInstall.install_dir),
+                                     call(current_dir)])
+        mock_popen.assert_has_calls([call(),
+                                     call([sys.executable,
+                                           join(self.desiInstall.install_dir, 'setup.py'),
+                                           '--version'],
+                                          stderr=-1, stdout=-1, universal_newlines=True),
+                                     call().communicate()])
+        #
+        # Simulate a package that does not have setup.py
+        #
+        mock_exists.return_value = False
+        mock_proc = mock_popen()
+        mock_proc.returncode = 0
+        mock_proc.communicate.return_value = ('1.0.1.dev6+g329b1f2', 'err')
+        self.desiInstall.compile_version()
+        mock_exists.assert_has_calls([call(join(self.desiInstall.install_dir, 'setup.py'))])
+        mock_chdir.assert_has_calls([call(self.desiInstall.install_dir),
+                                     call(current_dir)])
+        mock_popen.assert_has_calls([call([sys.executable, '-m', 'setuptools_scm'],
+                                          stderr=-1, stdout=-1, universal_newlines=True)], any_order=True)
+        self.assertTrue(isfile(join(self.desiInstall.install_dir, 'specsim', 'version.py')))
+        #
+        # Simulate an error condition when attempting to set the version.
+        #
+        mock_exists.return_value = False
+        mock_proc = mock_popen()
+        mock_proc.returncode = 1
+        mock_proc.communicate.return_value = ('', 'err')
+        self.desiInstall.compile_version()
+        message = "Error compiling version: err"
+        self.assertLog(-3, message)
+        self.assertLog(-2, "Version string may need to be set manually!")
 
     def test_verify_bootstrap(self):
         """Test proper installation of the desiInstall executable.
