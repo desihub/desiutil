@@ -7,8 +7,10 @@ Change Log
 
 *Planned*:
 
+* Remove :command:`update_iers_frozen` and associated code; we now just copy
+  files from ``astropy-iers-data`` instead of creating our own.
 * Remove deprecated commands in :mod:`desiutil.setup`.
-* Remove deprecated module :mod:`desiutil.census`.
+* Remove deprecated module ``desiutil.census``.
 * Remove deprecated top-level ``setup.py``.
 * Alter arguments of :meth:`desiutil.dust._Hemisphere.ebv` (Issue `#213`_).
 
@@ -454,7 +456,7 @@ remains compatible with 2.x.x
 * Increase test coverage in a few areas.
 * Make basemap_ an optional dependency (PR `#61`_).
 * Fix :command:`desiInstall` on cori.
-* Add :mod:`desiutil.census` to calculate DESI disk space use.
+* Add ``desiutil.census`` to calculate DESI disk space use.
 
 .. _basemap: https://matplotlib.org/basemap/stable/
 .. _`#61`: https://github.com/desihub/desiutil/pull/61
