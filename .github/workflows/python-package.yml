@@ -171,7 +171,7 @@ jobs:
               # This is equivalent to an allowed falure.
               # continue-on-error: true
               run: pycodestyle --statistics --count py/desiutil
-            - name: Test the style more rigorously with flake8
+            - name: Test the style and code use more rigorously with flake8
               # This is equivalent to an allowed falure.
               continue-on-error: true
               run: flake8 --statistics --count py/desiutil

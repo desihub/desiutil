@@ -134,13 +134,6 @@ class TestPlots(unittest.TestCase):
 
     @unittest.skipUnless(have_matplotlib,
                          'Skipping tests that require matplotlib.')
-    def test_plot_sky_binned(self):
-        """Test plot_sky_binned
-        """
-        from ..plots import plot_sky_binned
-
-    @unittest.skipUnless(have_matplotlib,
-                         'Skipping tests that require matplotlib.')
     def test_plot_sky_circles(self):
         """Test plot_sky_circles
         """
