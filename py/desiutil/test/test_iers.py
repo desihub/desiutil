@@ -79,4 +79,3 @@ class TestIERS(unittest.TestCase):
         i._iers_is_frozen = True
         i.freeze_iers()
         mock_logger().debug.assert_has_calls([call('IERS table already frozen.')])
-
