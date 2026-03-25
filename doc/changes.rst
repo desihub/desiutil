@@ -11,7 +11,7 @@ Change Log
   files from ``astropy-iers-data`` instead of creating our own.
 * Remove deprecated commands in :mod:`desiutil.setup`.
 * Remove deprecated module ``desiutil.census``.
-* Remove deprecated top-level ``setup.py``.
+* Remove deprecated top-level ``setup.py``; migrate most configuration to ``pyproject.toml``.
 * Alter arguments of :meth:`desiutil.dust._Hemisphere.ebv` (Issue `#213`_).
 
 .. _`#213`: https://github.com/desihub/desiutil/issues/213
