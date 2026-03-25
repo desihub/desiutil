@@ -5,11 +5,13 @@ Change Log
 4.0.0 (unreleased)
 ------------------
 
-*Planned*:
-
+* Add :command:`flake8` tests in "allowed failure" mode to find additional
+  code clean-up possibilities.
+* Remove :command:`update_iers_frozen` and associated code; we now just copy
+  files from ``astropy-iers-data`` instead of creating our own.
 * Remove deprecated commands in :mod:`desiutil.setup`.
-* Remove deprecated module :mod:`desiutil.census`.
-* Remove deprecated top-level ``setup.py``.
+* Remove deprecated module ``desiutil.census``.
+* Remove deprecated top-level ``setup.py``; migrate most configuration to ``pyproject.toml``.
 * Alter arguments of :meth:`desiutil.dust._Hemisphere.ebv` (Issue `#213`_).
 
 .. _`#213`: https://github.com/desihub/desiutil/issues/213
@@ -454,7 +456,7 @@ remains compatible with 2.x.x
 * Increase test coverage in a few areas.
 * Make basemap_ an optional dependency (PR `#61`_).
 * Fix :command:`desiInstall` on cori.
-* Add :mod:`desiutil.census` to calculate DESI disk space use.
+* Add ``desiutil.census`` to calculate DESI disk space use.
 
 .. _basemap: https://matplotlib.org/basemap/stable/
 .. _`#61`: https://github.com/desihub/desiutil/pull/61

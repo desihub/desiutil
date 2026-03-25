@@ -1,4 +1,97 @@
 [build-system]
-requires = ["setuptools",
-            "wheel"]
+# It is not necessary to add "wheel" to requires.
+requires = ["setuptools"]
 build-backend = 'setuptools.build_meta'
+
+[project]
+name = "desiutil"
+dynamic = ["version"]
+authors = [ { name = "DESI Collaboration", email = "desi-data@desi.lbl.gov" } ]
+license = "BSD-3-Clause"
+license-files = ["LICENSE.rst"]
+description = "DESI utilities package"
+readme = "README.rst"
+requires-python = ">=3.10"
+dependencies = ["requests", "pyyaml", "astropy"]
+keywords = ["DESI", "utilities"]
+classifiers = [ "Development Status :: 5 - Production/Stable",
+                "Environment :: Console",
+                "Intended Audience :: Science/Research",
+                "Operating System :: OS Independent",
+                "Programming Language :: Python :: 3",
+                "Topic :: Scientific/Engineering :: Astronomy",
+                "Topic :: System :: Software Distribution",
+                "Topic :: Utilities" ]
+
+[project.optional-dependencies]
+all = ["healpy", "matplotlib", "scipy", "speclite"]
+test = ["desiutil[all]", "pytest"]
+coverage = ["desiutil[all]", "pytest-cov", "coveralls"]
+doc = ["Sphinx", "sphinx-rtd-theme"]
+
+[project.urls]
+Documentation = "https://desiutil.readthedocs.io/en/latest/"
+Repository = "https://github.com/desihub/desiutil"
+Issues = "https://github.com/desihub/desiutil/issues"
+Changelog = "https://github.com/desihub/desiutil/blob/main/doc/changes.rst"
+
+# [project.scripts]
+# annotate_fits = "desiutil.annotate:main"
+# desiInstall = "desiutil.install:main"
+# desi_api_file = "desiutil.api:main"
+# desi_module_file = "desiutil.modules:main"
+# desi_update_version = "desiutil.setup:main"
+
+[tool.setuptools]
+package-dir = {"" = "py"}
+script-files = ["bin/annotate_fits",
+                "bin/desi_api_file",
+                "bin/desi_module_file",
+                "bin/desi_update_version",
+                "bin/desiBootstrap.sh",
+                "bin/desiInstall",
+                "bin/fix_permissions.sh"]
+# By default, include-package-data is true in pyproject.toml,
+# so you do NOT have to specify this line.
+# include-package-data = true
+
+[tool.setuptools.package-data]
+"desiutil" = ["data/*"]
+"desiutil.test" = ["t/*"]
+
+[tool.setuptools.packages.find]
+# scanning for namespace packages is true by default in pyproject.toml, so
+# you need NOT include this configuration.
+# namespaces = true
+where = ["py"]
+exclude = [".github/*"]
+
+[tool.setuptools.dynamic]
+version = {attr = "desiutil.__version__"}  # any module attribute compatible with ast.literal_eval
+
+[tool.coverage.run]
+relative_files = true
+source = ["py/desiutil"]
+omit = ["py/desiutil/_version.py",
+        "py/desiutil/conftest*",
+        "py/desiutil/test/.",
+        "*/desiutil/_version.py",
+        "*/desiutil/conftest*",
+        "*/desiutil/test/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+                # Have to re-enable the standard pragma
+                "pragma: no cover",
+                # Don't complain about packages we have installed
+                "except ImportError",
+                # Don't complain if tests don't hit assertions
+                "raise AssertionError",
+                "raise NotImplementedError",
+                # Don't complain about script hooks
+                "def main\\(.*\\):",
+                # Ignore branches that don't pertain to this version of Python
+                "pragma: py{ignore_python_version}",
+                # Don't complain about IPython completion helper
+                "def _ipython_key_completions_",
+                ]

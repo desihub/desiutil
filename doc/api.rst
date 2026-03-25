@@ -17,9 +17,6 @@ desiutil API
 .. automodule:: desiutil.brick
     :members:
 
-.. automodule:: desiutil.census
-    :members:
-
 .. automodule:: desiutil.depend
     :members:
 
