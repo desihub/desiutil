@@ -5,8 +5,8 @@ Change Log
 4.0.0 (unreleased)
 ------------------
 
-*Planned*:
-
+* Add :command:`flake8` tests in "allowed failure" mode to find additional
+  code clean-up possibilities.
 * Remove :command:`update_iers_frozen` and associated code; we now just copy
   files from ``astropy-iers-data`` instead of creating our own.
 * Remove deprecated commands in :mod:`desiutil.setup`.
