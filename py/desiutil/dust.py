@@ -526,13 +526,13 @@ class _Hemisphere(object):
         self.lam_scal = header['LAM_SCAL']
         self.sign = header['LAM_NSGP']  # north = 1, south = -1
 
-    def ebv(self, l, b, interpolate):
+    def ebv(self, gal_l, gal_b, interpolate):
         """Project Galactic longitude/latitude to lambert pixels (See SFD98).
 
         Parameters
         ----------
-        l, b : :class:`numpy.ndarray`
-            Galactic longitude and latitude.
+        gal_l, gal_b : :class:`numpy.ndarray`
+            Galactic longitude and latitude in *radians*.
         interpolate : :class:`bool`
             If ``True`` use bilinear interpolation to obtain values.
 
@@ -542,11 +542,11 @@ class _Hemisphere(object):
             Reddening values.
         """
         x = (self.crpix1 - 1.0 +
-             self.lam_scal * np.cos(l) *
-             np.sqrt(1.0 - self.sign * np.sin(b)))
+             self.lam_scal * np.cos(gal_l) *
+             np.sqrt(1.0 - self.sign * np.sin(gal_b)))
         y = (self.crpix2 - 1.0 -
-             self.sign * self.lam_scal * np.sin(l) *
-             np.sqrt(1.0 - self.sign * np.sin(b)))
+             self.sign * self.lam_scal * np.sin(gal_l) *
+             np.sqrt(1.0 - self.sign * np.sin(gal_b)))
 
         # Get map values at these pixel coordinates.
         if interpolate:
@@ -671,19 +671,19 @@ class SFDMap(object):
             raise ValueError("too many arguments")
 
         # ADM extract Galactic coordinates from astropy
-        l, b = c.galactic.l.radian, c.galactic.b.radian
+        gal_l, gal_b = c.galactic.l.radian, c.galactic.b.radian
 
         # Check if l, b are scalar. If so, convert to 1-d arrays.
         # ADM use numpy.atleast_1d. Store whether the
         # ADM passed values were scalars or not
-        return_scalar = not np.atleast_1d(l) is l
-        l, b = np.atleast_1d(l), np.atleast_1d(b)
+        return_scalar = not np.atleast_1d(gal_l) is gal_l
+        gal_l, gal_b = np.atleast_1d(gal_l), np.atleast_1d(gal_b)
 
         # Initialize return array
-        values = np.empty_like(l)
+        values = np.empty_like(gal_l)
 
         # Treat north (b>0) separately from south (b<0).
-        for pole, mask in (('north', b >= 0), ('south', b < 0)):
+        for pole, mask in (('north', gal_b >= 0), ('south', gal_b < 0)):
             if not np.any(mask):
                 continue
 
@@ -692,7 +692,7 @@ class SFDMap(object):
                 fname = os.path.join(self.mapdir, self.fnames[pole])
                 self.hemispheres[pole] = _Hemisphere(fname, self.scaling)
 
-            values[mask] = self.hemispheres[pole].ebv(l[mask], b[mask],
+            values[mask] = self.hemispheres[pole].ebv(gal_l[mask], gal_b[mask],
                                                       interpolate)
 
         if return_scalar:
