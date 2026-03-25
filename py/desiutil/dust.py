@@ -10,6 +10,7 @@ Get :math:`E(B-V)` values from the `Schlegel, Finkbeiner & Davis (1998; SFD98)`_
 .. _`Schlegel, Finkbeiner & Davis (1998; SFD98)`: https://ui.adsabs.harvard.edu/abs/1998ApJ...500..525S/abstract
 """
 import os
+import sys
 import numpy as np
 import itertools
 from astropy.io.fits import getdata
@@ -805,7 +806,14 @@ def _get_ext_coeff(temp, photsys, band, ebv_sfd, rv=3.1):
     return Rbis
 
 
-def _main():
+def main():
+    """Entry-point for command-line scripts.
+
+    Returns
+    -------
+    :class:`int`
+        An integer suitable for passing to :func:`sys.exit`.
+    """
     # Wrapper for development debugging of extinction coeffs
     import argparse
     import matplotlib.pyplot as plt
@@ -880,7 +888,8 @@ def _main():
     plt.ylabel("A(wavelength)/E(B-V)")
     plt.grid()
     plt.show()
+    return 0
 
 
 if __name__ == '__main__':
-    _main()
+    sys.exit(main())

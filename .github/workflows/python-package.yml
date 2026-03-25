@@ -144,7 +144,7 @@ jobs:
               uses: actions/setup-python@v6
               with:
                   python-version: ${{ matrix.python-version }}
-            - name: Compare contents of bin/ to options.scripts in setup.cfg
+            - name: Compare contents of bin/ to script-files in pyproject.toml
               run: python -c 'import os; import sys; import tomllib; PYPROJECT = open("pyproject.toml", "rb"); conf = tomllib.load(PYPROJECT); PYPROJECT.close(); scripts = [os.path.basename(s) for s in conf["tool"]["setuptools"]["script-files"]]; sys.exit(int(set(os.listdir("bin")) != set(scripts)))'
 
     style:
