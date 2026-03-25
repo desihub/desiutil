@@ -145,7 +145,7 @@ jobs:
               with:
                   python-version: ${{ matrix.python-version }}
             - name: Compare contents of bin/ to options.scripts in setup.cfg
-              run: python -c 'import os; import sys; from configparser import ConfigParser; conf = ConfigParser(); foo = conf.read(["setup.cfg"]); scripts = [os.path.basename(s) for s in conf["options"]["scripts"].strip().split("\n")]; sys.exit(int(set(os.listdir("bin")) != set(scripts)))'
+              run: python -c 'import os; import sys; import tomllib; PYPROJECT = open("pyproject.toml", "rb"); conf = tomllib.load(PYPROJECT); PYPROJECT.close(); scripts = [os.path.basename(s) for s in conf["tool"]["setuptools"]["script-files"]]; sys.exit(int(set(os.listdir("bin")) != set(scripts)))'
 
     style:
         name: Style check

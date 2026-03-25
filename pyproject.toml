@@ -50,8 +50,7 @@ script-files = ["bin/annotate_fits",
                 "bin/desi_update_version",
                 "bin/desiBootstrap.sh",
                 "bin/desiInstall",
-                "bin/fix_permissions.sh",
-                "bin/update_iers_frozen"]
+                "bin/fix_permissions.sh"]
 # By default, include-package-data is true in pyproject.toml,
 # so you do NOT have to specify this line.
 # include-package-data = true
