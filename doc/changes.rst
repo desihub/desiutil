@@ -17,7 +17,10 @@ Change Log
 3.6.2 (unreleased)
 ------------------
 
-* No changes yet.
+* Add ``fastspecfit`` to the list of packages which use
+  ``setuptools-scm`` to set version strings (PR `#230`_).
+
+.. _`#230`: https://github.com/desihub/desiutil/pull/230
 
 3.6.1 (2026-03-24)
 ------------------
