@@ -75,7 +75,7 @@ known_products = {
 #
 # Packages that obtain their version strings dynamically via setuptools-scm.
 #
-setuptools_scm_products = ('speclite', 'specsim')
+setuptools_scm_products = ('speclite', 'specsim', 'fastspecfit')
 #
 # Reserved for future use.
 #
@@ -956,9 +956,10 @@ class DesiInstall(object):
         """Generate a version string for main/branch installs of packages
         that set the version string dynamically, *i.e.* with ``setuptools-scm``.
 
-        As of Spring 2026, only two DESI packages, ``speclite`` and ``specsim``,
-        use this method, and the configuration for ``setuptools-scm`` is stored
-        their ``setup.py`` files. :command:`python setup.py --version` will
+        As of Spring 2026, only three DESI packages, ``speclite``,
+        ``specsim``, and ``fastspecfit`` use this method, and the
+        configuration for ``setuptools-scm`` is stored their
+        ``setup.py`` files. :command:`python setup.py --version` will
         create the necessary version file.
 
         However, if there is no ``setup.py`` file, :command:`python -m setuptools_scm`
@@ -975,6 +976,7 @@ class DesiInstall(object):
         replaced with the package name. This allows :command:`pip install` to
         set the version, even though the GitHub tarballs do not contain
         git metadata such as the last tag or commit ID.
+
         """
         if self.is_branch and self.baseproduct in setuptools_scm_products:
             current_dir = os.getcwd()
