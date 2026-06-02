@@ -74,7 +74,7 @@ relative_files = true
 source = ["py/desiutil"]
 omit = ["py/desiutil/_version.py",
         "py/desiutil/conftest*",
-        "py/desiutil/test/.",
+        "py/desiutil/test/*",
         "*/desiutil/_version.py",
         "*/desiutil/conftest*",
         "*/desiutil/test/*"]
