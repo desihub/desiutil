@@ -155,6 +155,8 @@ class TestInstall(unittest.TestCase):
             out = self.desiInstall.get_product_version()
             self.assertEqual(out, (u'https://github.com/desihub/desiutil',
                              'desiutil', '1.0.0'))
+            self.assertEqual(self.desiInstall.desigeneral, False)
+
             options = self.desiInstall.get_options(['desihub/desispec', '2.0.0'])
             out = self.desiInstall.get_product_version()
             self.assertEqual(out, (u'https://github.com/desihub/desispec',
@@ -166,6 +168,8 @@ class TestInstall(unittest.TestCase):
             out = self.desiInstall.get_product_version()
             self.assertEqual(out, (u'https://github.com/me/my_new_product',
                                    'my_new_product', '1.2.3'))
+            self.assertEqual(self.desiInstall.desigeneral, False)
+
             options = self.desiInstall.get_options(['-p',
                                                     'desiutil:https://github.com/me/desiutil',
                                                     'desiutil',
@@ -173,6 +177,30 @@ class TestInstall(unittest.TestCase):
             out = self.desiInstall.get_product_version()
             self.assertEqual(out, (u'https://github.com/me/desiutil',
                                    'desiutil', '1.2.3'))
+            self.assertEqual(self.desiInstall.desigeneral, False)
+
+            # Check setting/unsetting of desigeneral option
+            options = self.desiInstall.get_options(['-p',
+                                                    'desiutil:git@desi-general:desiutil',
+                                                    'desiutil',
+                                                    'branch/main'])
+            out = self.desiInstall.get_product_version()
+            self.assertEqual(out, (u'git@desi-general:desiutil', 'desiutil', 'main'))
+            self.assertEqual(self.desiInstall.desigeneral, True)
+
+            options = self.desiInstall.get_options(['-v', 'desispec', 'branch/main'])
+            out = self.desiInstall.get_product_version()
+            self.assertEqual(out, (u'https://github.com/desihub/desispec',
+                                   'desispec', 'main'))
+            self.assertEqual(self.desiInstall.desigeneral, False)
+
+            options = self.desiInstall.get_options(['-p',
+                                                    'desispec:git@desi-general:desispec',
+                                                    'desispec',
+                                                    'branch/main'])
+            out = self.desiInstall.get_product_version()
+            self.assertEqual(out, (u'git@desi-general:desispec', 'desispec', 'main'))
+            self.assertEqual(self.desiInstall.desigeneral, True)
 
     def test_identify_branch(self):
         """Test identification of branch installs.
