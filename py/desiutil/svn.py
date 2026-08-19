@@ -92,10 +92,10 @@ def version(productname, url=None):
     """
     from .install import known_products
     if productname in known_products:
-        myversion = (last_tag(known_products[productname]+'/tags') + '.dev' +
+        myversion = (last_tag(known_products[productname]+'/tags') + '.post' +
                      last_revision())
     elif url is not None:
-        myversion = (last_tag(url+'/tags') + '.dev' +
+        myversion = (last_tag(url+'/tags') + '.post' +
                      last_revision())
     else:
         myversion = '0.0.1.dev0'
