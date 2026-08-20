@@ -22,8 +22,12 @@ Change Log
   ``X.Y.Z.devN`` for commits after tag ``X.Y.Z``.
 * Add ``fastspecfit`` to the list of packages which use
   ``setuptools-scm`` to set version strings (PR `#230`_).
+* Update ``desi_update_version`` to use ``X.Y.Z.postN`` instead of ``X.Y.Z.devN``
+  for PEP-440 and `packaging.version.Version`_ compliance (PR `#232`_).
 
 .. _`#230`: https://github.com/desihub/desiutil/pull/230
+.. _`#232`: https://github.com/desihub/desiutil/pull/232
+.. _`packaging.version.Version`: https://packaging.pypa.io/en/latest/version.html#packaging.version.Version
 
 3.6.1 (2026-03-24)
 ------------------
