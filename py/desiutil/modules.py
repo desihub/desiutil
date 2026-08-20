@@ -335,6 +335,7 @@ def main():
                 return 1
 
     dev = ('dev' in options.product_version or
+           'post' in options.product_version or
            'main' in options.product_version or
            'master' in options.product_version or
            'branches' in options.product_version or

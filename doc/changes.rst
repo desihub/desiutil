@@ -17,6 +17,9 @@ Change Log
 3.6.2 (unreleased)
 ------------------
 
+* Fix :func:`desiutil.git.version` and :func:`desiutil.svn.version` to
+  generate :pep:`440`-compliant ``X.Y.Z.postN`` version strings instead of
+  ``X.Y.Z.devN`` for commits after tag ``X.Y.Z``.
 * Add ``fastspecfit`` to the list of packages which use
   ``setuptools-scm`` to set version strings (PR `#230`_).
 

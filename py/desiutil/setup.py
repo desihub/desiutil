@@ -131,7 +131,7 @@ class DesiModule(Command):
         meta = self.distribution.metadata
         name = meta.get_name()
         version = meta.get_version()
-        dev = 'dev' in version
+        dev = 'dev' in version or 'post' in version
         working_dir = os.path.abspath('.')
         product_root = os.path.join(os.path.dirname(self.modules), 'code')
         module_keywords = configure_module(name, version, product_root, dev=dev)
