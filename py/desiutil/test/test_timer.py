@@ -41,7 +41,7 @@ class TestTimer(unittest.TestCase):
         timing = json.loads(timing_report)
 
         for name in ['blat', 'blat.input', 'blat.algorithm', 'blat.output']:
-            self.assertIn(name, timing.keys(), f'Missing timing report for name')
+            self.assertIn(name, timing.keys(), f'Missing timing report for {name}')
             self.assertIn('start', timing[name].keys(), f'{name} missing start time')
             self.assertIn('stop', timing[name].keys(), f'{name} missing stop time')
             self.assertIn('duration', timing[name].keys(), f'{name} missing duration')

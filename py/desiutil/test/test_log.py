@@ -62,7 +62,8 @@ class TestLog(unittest.TestCase):
     def setUp(self):
         """Reset the cached logging object for each test.
         """
-        _desiutil_log_root = dict()
+        # This variable isn't explicitly used, but does need to be reset.
+        _desiutil_log_root = dict()  # noqa: F811
 
     def tearDown(self):
         pass
