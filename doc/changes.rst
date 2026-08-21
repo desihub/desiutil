@@ -5,21 +5,41 @@ Change Log
 4.0.0 (unreleased)
 ------------------
 
-* Add :command:`flake8` tests in "allowed failure" mode to find additional
-  code clean-up possibilities.
-* Remove :command:`update_iers_frozen` and associated code; we now just copy
-  files from ``astropy-iers-data`` instead of creating our own.
-* Remove deprecated commands in :mod:`desiutil.setup`.
-* Remove deprecated module ``desiutil.census``.
-* Remove deprecated top-level ``setup.py``; migrate most configuration to ``pyproject.toml``.
+* PR `#229`_:
+
+  -  Add :command:`flake8` tests in "allowed failure" mode to find additional
+     code clean-up possibilities.
+  - Remove :command:`update_iers_frozen` and associated code; we now just copy
+    files from ``astropy-iers-data`` instead of creating our own.
+  - Remove deprecated commands in :mod:`desiutil.setup`.
+  - Remove deprecated module ``desiutil.census``.
+  - Remove deprecated top-level ``setup.py``; migrate most configuration to ``pyproject.toml``.
+
 * Alter arguments of :meth:`desiutil.dust._Hemisphere.ebv` (Issue `#213`_).
 
 .. _`#213`: https://github.com/desihub/desiutil/issues/213
+.. _`#229`: https://github.com/desihub/desiutil/issues/229
 
-3.6.2 (unreleased)
+3.7.0 (unreleased)
 ------------------
 
-* No changes yet.
+* If necessary, backports will be applied to 3.7.x versions after desutil 4.0.0
+  is released.
+
+3.6.2 (2026-08-21)
+------------------
+
+* Fix :func:`desiutil.git.version` and :func:`desiutil.svn.version` to
+  generate :pep:`440`-compliant ``X.Y.Z.postN`` version strings instead of
+  ``X.Y.Z.devN`` for commits after tag ``X.Y.Z``.
+* Add ``fastspecfit`` to the list of packages which use
+  ``setuptools-scm`` to set version strings (PR `#230`_).
+* Update ``desi_update_version`` to use ``X.Y.Z.postN`` instead of ``X.Y.Z.devN``
+  for PEP-440 and `packaging.version.Version`_ compliance (PR `#232`_).
+
+.. _`#230`: https://github.com/desihub/desiutil/pull/230
+.. _`#232`: https://github.com/desihub/desiutil/pull/232
+.. _`packaging.version.Version`: https://packaging.pypa.io/en/latest/version.html#packaging.version.Version
 
 3.6.1 (2026-03-24)
 ------------------

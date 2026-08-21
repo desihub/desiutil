@@ -4,6 +4,7 @@
 """
 import unittest
 from unittest.mock import call, DEFAULT, patch, Mock, PropertyMock
+from packaging.version import Version
 from ..svn import last_revision, last_tag, version
 
 
@@ -103,8 +104,13 @@ class TestSvn(unittest.TestCase):
                 patches['last_revision'].return_value = '0'
                 patches['last_tag'].return_value = '1.2.3'
                 v = version('foo')
-                self.assertEqual(v, '1.2.3.dev0')
+                self.assertEqual(v, '1.2.3.post0')
+                #
+                # PEP 440: a .postN version must sort *after* the tag it
+                # follows, not before it (that would be .devN).
+                #
+                self.assertGreater(Version(v), Version('1.2.3'))
                 v = version('bar', url='baz')
-                self.assertEqual(v, '1.2.3.dev0')
+                self.assertEqual(v, '1.2.3.post0')
                 v = version('frobulate')
                 self.assertEqual(v, '0.0.1.dev0')
