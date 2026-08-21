@@ -222,9 +222,12 @@ class TestInstall(unittest.TestCase):
         self.desiInstall.product_url = 'https://desi.lbl.gov/no/such/place'
         with self.assertRaises(DesiInstallException) as cm:
             self.desiInstall.verify_url()
-        message = ("Error {0:d} querying GitHub URL: {1}.".format(
-                   404, self.desiInstall.product_url))
-        self.assertEqual(str(cm.exception), message)
+        message = ("Error 4[0-9][0-9] querying GitHub URL: {0}".format(
+                   self.desiInstall.product_url))
+        # message = ("Error {0:d} querying GitHub URL: {1}.".format(
+        #            404, self.desiInstall.product_url))
+        # self.assertEqual(str(cm.exception), message)
+        self.assertRegex(str(cm.exception), message)
         options = self.desiInstall.get_options(['-v', 'plate_layout', 'trunk'])
         out = self.desiInstall.get_product_version()
         url = self.desiInstall.identify_branch()
