@@ -5,14 +5,19 @@ Change Log
 4.0.0 (unreleased)
 ------------------
 
-*Planned*:
-
-* Remove deprecated commands in :mod:`desiutil.setup`.
-* Remove deprecated module :mod:`desiutil.census`.
-* Remove deprecated top-level ``setup.py``.
+* Remove deprecated commands in :mod:`desiutil.setup` (PR `#229`_).
+* Remove deprecated module :mod:`desiutil.census` (PR `#229`_).
+* Remove deprecated top-level ``setup.py`` (PR `#229`_).
 * Alter arguments of :meth:`desiutil.dust._Hemisphere.ebv` (Issue `#213`_).
 
 .. _`#213`: https://github.com/desihub/desiutil/issues/213
+.. _`#229`: https://github.com/desihub/desiutil/issues/229
+
+3.7.0 (unreleased)
+------------------
+
+* If necessary, backports will be applied to 3.7.x versions after desutil 4.0.0
+  is released.
 
 3.6.2 (2026-08-21)
 ------------------
