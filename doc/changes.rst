@@ -14,7 +14,7 @@ Change Log
 
 .. _`#213`: https://github.com/desihub/desiutil/issues/213
 
-3.6.2 (unreleased)
+3.6.2 (2026-08-21)
 ------------------
 
 * Fix :func:`desiutil.git.version` and :func:`desiutil.svn.version` to
