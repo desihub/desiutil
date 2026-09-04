@@ -344,7 +344,10 @@ class DesiInstall(object):
                              'if that is incorrect.')
         self.baseversion = os.path.basename(self.options.product_version)
         if self.options.moduleversion is not None:
-            self.moduleversion = self.options.moduleversion
+            mv = self.options.moduleversion
+            if os.path.basename(mv) != mv or mv in ('.', '..'):
+                raise DesiInstallException(f"Invalid module version name: {mv!r}")
+            self.moduleversion = mv
         else:
             self.moduleversion = self.baseversion
         self.github = False
