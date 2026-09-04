@@ -10,6 +10,9 @@ Change Log
 * Add ``-M``/``--moduleversion`` option to :command:`desiInstall` to override
   the name of the installed Module version, independent of the branch or tag
   being installed.
+* Fix detection of Python packages in :func:`~desiutil.modules.configure_module`
+  so that ``setup.cfg`` and ``pyproject.toml`` are recognized in addition to
+  ``setup.py``.
 
 4.0.0 (2026-08-24)
 ------------------
