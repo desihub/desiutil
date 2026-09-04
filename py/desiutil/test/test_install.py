@@ -143,15 +143,13 @@ class TestInstall(unittest.TestCase):
             self.assertEqual(str(cm.exception),
                              "You do not appear to have Modules set up.")
         with patch.dict('os.environ', {'MODULESHOME': self.data_dir}):
-            options = self.desiInstall.get_options(['-l', join(self.data_dir, 'no_such_dir'),
-                                                     'foo', 'bar'])
+            options = self.desiInstall.get_options(['-l', join(self.data_dir, 'no_such_dir'), 'foo', 'bar'])
             with self.assertRaises(DesiInstallException) as cm:
                 self.desiInstall.sanity_check()
             self.assertEqual(str(cm.exception),
                              "Local directory, {0}, does not exist!".format(
                              join(self.data_dir, 'no_such_dir')))
-            options = self.desiInstall.get_options(['-l', self.data_dir,
-                                                     'foo', 'bar'])
+            options = self.desiInstall.get_options(['-l', self.data_dir, 'foo', 'bar'])
             self.assertTrue(self.desiInstall.sanity_check())
 
     def test_get_product_version(self):
@@ -162,8 +160,7 @@ class TestInstall(unittest.TestCase):
                          'desispec': 'https://github.com/desihub/desispec'}):
             options = self.desiInstall.get_options(['foo', 'bar'])
             out = self.desiInstall.get_product_version()
-            self.assertEqual(out, (u'https://github.com/desihub/foo',
-                             'foo', 'bar'))
+            self.assertEqual(out, (u'https://github.com/desihub/foo', 'foo', 'bar'))
             options = self.desiInstall.get_options(['desiutil', '1.0.0'])
             out = self.desiInstall.get_product_version()
             self.assertEqual(out, (u'https://github.com/desihub/desiutil',
