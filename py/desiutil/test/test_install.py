@@ -593,8 +593,7 @@ class TestInstall(unittest.TestCase):
             #
             # Test the --moduleversion override.
             #
-            options = self.desiInstall.get_options([product_name, product_version,
-                                                     '-M', 'sjb', '--test'])
+            options = self.desiInstall.get_options([product_name, product_version, '-M', 'sjb', '--test'])
             self.desiInstall.get_product_version()
             install_dir = self.desiInstall.set_install_dir()
             self.desiInstall.working_dir = join(self.data_dir,
