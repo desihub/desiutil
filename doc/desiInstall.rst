@@ -182,6 +182,41 @@ command line::
 The ``-p`` option can be specified multiple times, though in practice, it only
 matters to the product actually being installed.
 
+Installing From a Local Checkout
+---------------------------------
+
+For debugging a product that is not yet fully :command:`desiInstall`-compatible,
+it can be useful to install directly from a local working copy rather than
+downloading from GitHub or Subversion. The ``-l``/``--local`` option
+specifies the path to such a directory::
+
+    desiInstall -l /path/to/my/checkout/LSS LSS mytest
+
+The ``product`` and ``product_version`` arguments are still required.
+``product_version`` is not looked up anywhere; it is only used to name the
+resulting install and Module file, *e.g.* ``LSS/mytest`` in the example
+above. No network access or version-control commands are used to verify or
+fetch the code; instead, the contents of the local directory (including any
+uncommitted changes) are copied to a temporary working directory, and the
+install proceeds normally from there, exactly as for a branch install. The
+original local directory is never modified or deleted.
+
+Overriding the Module Version Name
+-----------------------------------
+
+By default, the Module file and install directory are named after the
+branch or tag being installed. The ``-M``/``--moduleversion`` option
+overrides that name, while still fetching the code from the requested
+branch or tag::
+
+    desiInstall --moduleversion sjb --root $SCRATCH/desicode/ desispec main
+
+This installs a personal copy of the ``main`` branch of ``desispec``, but
+names it ``desispec/sjb`` for the purposes of the install directory and the
+Module file, *e.g.* :command:`module swap desispec/sjb`. This makes it
+possible to keep a personal build of a branch or tag separate from an
+already-installed copy of the same branch or tag.
+
 .. [#] In this document, "branch" refers to anything that is not a tagged version.
    This could include default branches such as "trunk" in Subversion repositories,
    or any default branch in a git repository.

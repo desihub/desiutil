@@ -5,7 +5,11 @@ Change Log
 4.0.1 (unreleased)
 ------------------
 
-* No changes yet.
+* Add ``-l``/``--local`` option to :command:`desiInstall` to install from a
+  local checkout instead of downloading from GitHub or Subversion.
+* Add ``-M``/``--moduleversion`` option to :command:`desiInstall` to override
+  the name of the installed Module version, independent of the branch or tag
+  being installed.
 
 4.0.0 (2026-08-24)
 ------------------
