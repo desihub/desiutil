@@ -4,6 +4,7 @@
 """
 import unittest
 from unittest.mock import call, patch, Mock, PropertyMock
+from packaging.version import Version
 from ..git import last_tag, version
 
 
@@ -54,7 +55,12 @@ class TestGit(unittest.TestCase):
                           universal_newlines=True, stdout=PIPE, stderr=PIPE),
                      call().communicate()]
             v = version()
-            self.assertEqual(v, '1.9.8.dev598')
+            self.assertEqual(v, '1.9.8.post598')
+            #
+            # PEP 440: a .postN version must sort *after* the tag it
+            # follows, not before it (that would be .devN).
+            #
+            self.assertGreater(Version(v), Version('1.9.8'))
             MockPopen.assert_has_calls(calls)
         #
         # Non-zero returncode

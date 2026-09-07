@@ -26,25 +26,25 @@ not_installed = bool(sp.call(['python', '-c', 'import desiutil.redirect']))
 test_serial_source = """
 import sys
 import os
+import argparse
 
 from desiutil.redirect import stdouterr_redirected
 
-def generate_output(error=False):
+def generate_output(error):
     if error:
         raise RuntimeError("Error!")
     else:
         for i in range(5):
             print("{}".format(i))
 
-filename = sys.argv[1]
-with_error = (sys.argv[2] == "1")
+parser = argparse.ArgumentParser()
+parser.add_argument('filename')
+parser.add_argument('--error', action='store_true')
+parser.add_argument('--quiet', action='store_true')
+args = parser.parse_args()
 
-with stdouterr_redirected(to=filename):
-    if with_error:
-        generate_output(error=True)
-    else:
-        generate_output()
-
+with stdouterr_redirected(to=args.filename, quiet=args.quiet):
+    generate_output(error=args.error)
 """
 
 test_mpi_source = """
@@ -125,7 +125,7 @@ class TestRedirect(unittest.TestCase):
     def test_serial(self):
         with patch.dict(os.environ, {'PYTHONPATH': self.python_path}):
             outfile = os.path.join(self.test_dir, "redirect_serial.log")
-            com = ["python", self.test_serial_script, outfile, "0"]
+            com = ["python", self.test_serial_script, outfile]
             out = sp.run(
                 com, check=True, universal_newlines=True, stdout=sp.PIPE, stderr=sp.STDOUT
             ).stdout
@@ -134,9 +134,51 @@ class TestRedirect(unittest.TestCase):
     def test_serial_error(self):
         with patch.dict(os.environ, {'PYTHONPATH': self.python_path}):
             outfile = os.path.join(self.test_dir, "redirect_serial_error.log")
-            com = ["python", self.test_serial_script, outfile, "1"]
+            com = ["python", self.test_serial_script, outfile, "--error"]
             with self.assertRaises(sp.CalledProcessError) as cm:
                 out = sp.run(com, check=True, universal_newlines=True, stdout=sp.PIPE, stderr=sp.STDOUT).stdout
+
+            # even when an error is raised, the traceback should be in the logfile
+            with open(outfile) as fp:
+                loglines = fp.readlines()
+
+            self.assertEqual(loglines[-1], '\n')
+            self.assertTrue(loglines[-2].startswith('RuntimeError: '))
+
+    def test_quiet_redirect(self):
+        with patch.dict(os.environ, {'PYTHONPATH': self.python_path}):
+
+            # non-quiet output should have 2 non-redirected log lines, beginning and ending the redirect
+            outfile = os.path.join(self.test_dir, "redirect_test.log")
+            com = ["python", self.test_serial_script, outfile]
+            out = sp.run(com, check=True, universal_newlines=True, stdout=sp.PIPE, stderr=sp.STDOUT).stdout
+
+            lines = out.strip().split('\n')  # strip final newline before splitting lines
+            self.assertEqual(len(lines), 2)
+            self.assertGreater(lines[0].count(f'Begin log redirection to {outfile}'), 0)
+            self.assertGreater(lines[1].count(f'End log redirection to {outfile}'), 0)
+            self.check_serial(outfile)
+
+            # quiet redirect should have no stdout (everything to redirected log)
+            outfile = os.path.join(self.test_dir, "redirect_test2.log")
+            com = ["python", self.test_serial_script, outfile, '--quiet']
+            out = sp.run(com, check=True, universal_newlines=True, stdout=sp.PIPE, stderr=sp.STDOUT).stdout
+            self.assertEqual(len(out), 0)
+            self.check_serial(outfile)
+
+            # but errors aren't quiet and go to both the log and original stdout
+            outfile = os.path.join(self.test_dir, "redirect_test3.log")
+            com = ["python", self.test_serial_script, outfile, '--quiet', '--error']
+            # Note: check=False to capture stdout here too
+            out = sp.run(com, check=False, universal_newlines=True, stdout=sp.PIPE, stderr=sp.STDOUT).stdout
+            lines = out.strip().split('\n')
+            self.assertGreater(len(out), 2)
+            self.assertTrue(lines[-1].startswith('RuntimeError:'))
+            # but traceback should also be in log
+            with open(outfile) as fp:
+                loglines = fp.readlines()
+            self.assertEqual(loglines[-1], '\n')
+            self.assertTrue(loglines[-2].startswith('RuntimeError: '))
 
     def test_mpi(self):
         if not self.have_mpi:

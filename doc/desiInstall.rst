@@ -16,7 +16,7 @@ Basic Invocation of desiInstall
 
 :command:`desiInstall` is invoked with the product and version to be installed::
 
-    desiInstall desiutil 3.0.3
+    desiInstall desiutil 3.6.1
 
 The version should correspond to a tag in the repository corresponding to
 the product.
@@ -287,6 +287,12 @@ the environment variables :envvar:`WORKING_DIR` and :envvar:`INSTALL_DIR` exist.
 It will also set :envvar:`PRODUCT_VERSION`, where ``PRODUCT`` will be replaced
 by the actual name of the package, *e.g.*, :envvar:`DESIMODEL_VERSION`.
 
+For a few packages (speclite_, specsim_) that use setuptools-scm_ to dynamically
+set the version, a special environment variable, *e.g.*
+:envvar:`SETUPTOOLS_SCM_PRETEND_VERSION_FOR_SPECLITE`, is set to work around
+the fact that tarballs downloaded from GitHub do not contain the
+git metadata needed to construct the version string.
+
 Create site-packages
 --------------------
 
@@ -340,6 +346,18 @@ The script itself is intended to be a thin wrapper on *e.g.*::
 
 .. _fiberassign: https://github.com/desihub/fiberassign
 .. _specex: https://github.com/desihub/specex
+
+Set Version in Branch Installs
+------------------------------
+
+In a few cases (speclite_, specsim_) the version is set dynamically via
+setuptools-scm_. For branch installs, the version string needs to be constructed.
+Since branch installs *do* have the necessary git metadata to construct the version,
+a simple script is all that is needed.
+
+.. _speclite: https://github.com/desihub/speclite
+.. _specsim: https://github.com/desihub/specsim
+.. _setuptools-scm: https://setuptools-scm.readthedocs.io/
 
 Set Permissions
 ---------------

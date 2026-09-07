@@ -54,7 +54,10 @@ def version(git='git'):
     :pep:`440`.
     """
     from subprocess import Popen, PIPE
+
+    # fallback version if no tag yet; purposefully .dev not .post
     myversion = '0.0.1.dev0'
+
     try:
         p = Popen([git, "describe", "--tags", "--dirty", "--always"],
                   universal_newlines=True, stdout=PIPE, stderr=PIPE)
@@ -63,7 +66,7 @@ def version(git='git'):
     out, err = p.communicate()
     if p.returncode != 0:
         return myversion
-    ver = out.rstrip().split('-')[0]+'.dev'
+    ver = out.rstrip().split('-')[0]+'.post'
     try:
         p = Popen([git, "rev-list", "--count", "HEAD"],
                   universal_newlines=True, stdout=PIPE, stderr=PIPE)

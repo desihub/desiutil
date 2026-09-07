@@ -53,7 +53,7 @@ def _get_libc():
 
 
 @contextmanager
-def stdouterr_redirected(to=None, comm=None):
+def stdouterr_redirected(to=None, comm=None, quiet=False):
     """Redirect stdout and stderr to a file.
 
     The general technique is based on:
@@ -71,7 +71,7 @@ def stdouterr_redirected(to=None, comm=None):
     Args:
         to (str): The output file name.
         comm (mpi4py.MPI.Comm): The optional MPI communicator.
-
+        quiet (bool): if True, don't log pre/post redirection messages
     """
     libc, c_stdout, c_stderr = _get_libc()
 
@@ -165,7 +165,7 @@ def stdouterr_redirected(to=None, comm=None):
     if to is None:
         to = "/dev/null"
 
-    if rank == 0:
+    if rank == 0 and not quiet:
         log = get_logger(timestamp=True)
         log.info("Begin log redirection to %s", to)
 
@@ -232,7 +232,7 @@ def stdouterr_redirected(to=None, comm=None):
                     os.remove(fname)
         comm.barrier()
 
-    if rank == 0:
+    if rank == 0 and not quiet:
         log = get_logger(timestamp=True)
         log.info("End log redirection to %s", to)
 

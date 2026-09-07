@@ -2,21 +2,72 @@
 Change Log
 ==========
 
-4.0.0 (unreleased)
+4.0.1 (unreleased)
 ------------------
 
-*Planned*:
+* No changes yet.
 
-* Remove deprecated commands in :mod:`desiutil.setup`.
-* Remove deprecated module :mod:`desiutil.census`.
-* Remove deprecated top-level ``setup.py``.
-
-3.5.3 (unreleased)
+4.0.0 (2026-08-24)
 ------------------
 
+* PR `#229`_:
+
+  -  Add :command:`flake8` tests in "allowed failure" mode to find additional
+     code clean-up possibilities.
+  - Remove :command:`update_iers_frozen` and associated code; we now just copy
+    files from ``astropy-iers-data`` instead of creating our own.
+  - Remove deprecated commands in :mod:`desiutil.setup`.
+  - Remove deprecated module ``desiutil.census``.
+  - Remove deprecated top-level ``setup.py``; migrate most configuration to ``pyproject.toml``.
+
+* Alter arguments of :meth:`desiutil.dust._Hemisphere.ebv` (Issue `#213`_).
+
+.. _`#213`: https://github.com/desihub/desiutil/issues/213
+.. _`#229`: https://github.com/desihub/desiutil/issues/229
+
+3.7.0 (unreleased)
+------------------
+
+* If necessary, backports will be applied to 3.7.x versions after desutil 4.0.0
+  is released.
+
+3.6.2 (2026-08-21)
+------------------
+
+* Fix :func:`desiutil.git.version` and :func:`desiutil.svn.version` to
+  generate :pep:`440`-compliant ``X.Y.Z.postN`` version strings instead of
+  ``X.Y.Z.devN`` for commits after tag ``X.Y.Z``.
+* Add ``fastspecfit`` to the list of packages which use
+  ``setuptools-scm`` to set version strings (PR `#230`_).
+* Update ``desi_update_version`` to use ``X.Y.Z.postN`` instead of ``X.Y.Z.devN``
+  for PEP-440 and `packaging.version.Version`_ compliance (PR `#232`_).
+
+.. _`#230`: https://github.com/desihub/desiutil/pull/230
+.. _`#232`: https://github.com/desihub/desiutil/pull/232
+.. _`packaging.version.Version`: https://packaging.pypa.io/en/latest/version.html#packaging.version.Version
+
+3.6.1 (2026-03-24)
+------------------
+
+* Support installing packages that use ``setuptools-scm`` to set version strings;
+  also add ``--no-build-isolation`` to help with packages with older infrastructure
+  (PR `#227`_)
+* Merge coverage tests into the main test matrix; add cron tests for warnings
+  converted to errors (PR `#226`_).
+
+.. _`#226`: https://github.com/desihub/desiutil/pull/226
+.. _`#227`: https://github.com/desihub/desiutil/pull/227
+
+3.6.0 (2025-12-03)
+------------------
+
+* Update :mod:`desiutil.iers` to support Astropy 7.x (PR `#224`_).
 * Add :mod:`desiutil.healpix` module for working with healpixels (PR `#223`_).
+* Add ``quiet`` option to :func:`~desiutil.redirect.stdouterr_redirected` (PR `#225`_).
 
 .. _`#223`: https://github.com/desihub/desiutil/pull/223
+.. _`#224`: https://github.com/desihub/desiutil/pull/224
+.. _`#225`: https://github.com/desihub/desiutil/pull/225
 
 3.5.2 (2025-04-29)
 ------------------
@@ -430,7 +481,7 @@ remains compatible with 2.x.x
 * Increase test coverage in a few areas.
 * Make basemap_ an optional dependency (PR `#61`_).
 * Fix :command:`desiInstall` on cori.
-* Add :mod:`desiutil.census` to calculate DESI disk space use.
+* Add ``desiutil.census`` to calculate DESI disk space use.
 
 .. _basemap: https://matplotlib.org/basemap/stable/
 .. _`#61`: https://github.com/desihub/desiutil/pull/61

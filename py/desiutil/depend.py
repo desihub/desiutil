@@ -30,12 +30,12 @@ Examples:
 >>> depend.setdep(hdr, 'desiutil', desiutil.__version__)
 >>> depend.setdep(hdr, 'astropy', astropy.__version__)
 >>> depend.getdep(hdr, 'desiutil')
-'1.4.1.dev316'
+'1.4.1.post316'
 >>> depend.hasdep(hdr, 'astropy')
 True
 >>> hdr
 DEPNAM00= 'desiutil'
-DEPVER00= '1.4.1.dev316'
+DEPVER00= '1.4.1.post316'
 DEPNAM01= 'astropy '
 DEPVER01= '1.1.1   '
 
@@ -49,7 +49,7 @@ so that it can be used in subsequent I/O
 >>> for codename, version in codever.items():
 ...     print(codename, version)
 ...
-('desiutil', '1.4.1.dev316')
+('desiutil', '1.4.1.post316')
 ('astropy', u'1.1.1')
 ('blat', '1.2')
 ('foo', '3.4')
