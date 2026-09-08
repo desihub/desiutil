@@ -39,6 +39,11 @@ Example::
     #- Print a json report of the timing
     print(t.report())
 
+    #- This context manager idiom won't break anything but is not useful
+    #- either; context_object is None
+    with t.time('do_something') as context_object:
+        do_something()
+
 This module has the philosophy that adding timing information should not
 crash your code, even if the timer is used incorrectly, e.g. starting or
 stopping a timer multiple times, stopping a timer that was never started,
@@ -212,8 +217,7 @@ class Timer(object):
         try:
             yield
         finally:
-            dt = self.stop(name)
-        return dt
+            self.stop(name)
 
     def timer_seconds2iso8601(self):
         """
