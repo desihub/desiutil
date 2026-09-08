@@ -25,16 +25,18 @@ class TestTimer(unittest.TestCase):
         t.start('blat')
 
         # Context manager is syntatic sugar for timing simple steps
-        with t.time('blat.input'):
+        with t.time('blat.input') as dt:
             time.sleep(0.1)
+        self.assertAlmostEqual(dt, 0.1, 1)
 
         # Or use full start/stop
         t.start('blat.algorithm')
         time.sleep(0.1)
         t.stop('blat.algorithm')
 
-        with t.time('blat.output'):
+        with t.time('blat.output') as dt:
             time.sleep(0.1)
+        self.assertAlmostEqual(dt, 0.1, 1)
 
         # Get timing report, which should be json parse-able
         timing_report = t.report()

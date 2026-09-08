@@ -212,7 +212,8 @@ class Timer(object):
         try:
             yield
         finally:
-            return self.stop(name)
+            dt = self.stop(name)
+        return dt
 
     def timer_seconds2iso8601(self):
         """
