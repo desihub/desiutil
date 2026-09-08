@@ -5,6 +5,7 @@ Change Log
 4.0.1 (unreleased)
 ------------------
 
+* Fix warning about ``return`` in a ``finally`` block (PR `#235`_).
 * Additional :command:`desiInstall` features (PR `#234`_):
 
   - Add ``-l``/``--local`` option to install from a local checkout
@@ -15,6 +16,7 @@ Change Log
     so that ``pyproject.toml`` is recognized in addition to ``setup.py``.
 
 .. _`#234`: https://github.com/desihub/desiutil/issues/234
+.. _`#235`: https://github.com/desihub/desiutil/issues/235
 
 4.0.0 (2026-08-24)
 ------------------
