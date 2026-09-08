@@ -199,7 +199,8 @@ def configure_module(product, version, product_root, working_dir=None, dev=False
         module_keywords['needs_ld_lib'] = ''
     if os.path.isdir(os.path.join(working_dir, 'pro')):
         module_keywords['needs_idl'] = ''
-    if (os.path.exists(os.path.join(working_dir, 'setup.py')) and
+    if ((os.path.exists(os.path.join(working_dir, 'pyproject.toml')) or
+         os.path.exists(os.path.join(working_dir, 'setup.py'))) and
         (os.path.isdir(os.path.join(working_dir, product)) or
          os.path.isdir(os.path.join(working_dir, product.lower())))):
         if dev:

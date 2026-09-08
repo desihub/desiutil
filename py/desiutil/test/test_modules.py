@@ -248,6 +248,46 @@ class TestModules(unittest.TestCase):
             rmdir(join(self.data_dir, t))
         for t in test_files:
             remove(join(self.data_dir, t))
+        #
+        # Test packages that rely on pyproject.toml instead of setup.py.
+        # setup.cfg by itself is *not* sufficient to be considered a
+        # valid Python package.
+        #
+        test_dirs = ('foo',)
+        for build_file, python_expected in (('pyproject.toml', True),
+                                            ('setup.cfg', False)):
+            try:
+                for t in test_dirs:
+                    mkdir(join(self.data_dir, t))
+                with open(join(self.data_dir, build_file), 'w') as s:
+                    s.write('# Placeholder.\n')
+                results = {'name': 'foo',
+                           'version': 'bar',
+                           'product_root': '/my/product/root',
+                           'needs_bin': '# ',
+                           'needs_python': '' if python_expected else '# ',
+                           'needs_trunk_py': '# ',
+                           'trunk_py_dir': '/py',
+                           'needs_ld_lib': '# ',
+                           'needs_idl': '# ',
+                           'pyversion': "python{0:d}.{1:d}".format(*version_info)}
+                conf = configure_module('foo', 'bar', '/my/product/root',
+                                        working_dir=self.data_dir)
+                for key in results:
+                    self.assertEqual(conf[key], results[key], key)
+                if python_expected:
+                    results['needs_python'] = '# '
+                    results['needs_trunk_py'] = ''
+                    results['trunk_py_dir'] = ''
+                conf = configure_module('foo', 'bar', '/my/product/root',
+                                        working_dir=self.data_dir,
+                                        dev=True)
+                for key in results:
+                    self.assertEqual(conf[key], results[key], key)
+            finally:
+                for t in test_dirs:
+                    rmdir(join(self.data_dir, t))
+                remove(join(self.data_dir, build_file))
 
     def test_process_module(self):
         """Test processing of module file templates.

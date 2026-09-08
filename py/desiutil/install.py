@@ -141,6 +141,11 @@ class DesiInstall(object):
         ``True`` if a branch has been selected.
     log : :class:`logging.Logger`
         Logging object.
+    moduleversion : :class:`str`
+        The version used to name the installed Module file and install
+        directory.  Normally identical to `baseversion`, but can be
+        overridden with the ``--moduleversion`` option, *e.g.* to install
+        a branch or tag under a different Module name.
     nersc : :class:`str`
         Holds the value of :envvar:`NERSC_HOST`, or ``None`` if not defined.
     options : :class:`argparse.Namespace`
@@ -211,11 +216,22 @@ class DesiInstall(object):
         parser.add_argument('-k', '--keep', action='store_true',
                             dest='keep',
                             help='Keep the exported build directory.')
+        parser.add_argument('-l', '--local', action='store',
+                            dest='local_dir',
+                            default=None, metavar='DIR',
+                            help=('Install from a local checkout at DIR ' +
+                                  'instead of downloading from GitHub or SVN.'))
         parser.add_argument('-m', '--module-home', action='store',
                             dest='moduleshome',
                             default=check_env['MODULESHOME'],
                             metavar='DIR',
                             help='Set or override the value of $MODULESHOME')
+        parser.add_argument('-M', '--moduleversion', action='store',
+                            dest='moduleversion',
+                            default=None, metavar='VERSION',
+                            help=('Install the Module file and install ' +
+                                  'directory under VERSION instead of the ' +
+                                  'branch or tag name.'))
         parser.add_argument('-p', '--additional-products', action='append',
                             dest='additional',
                             metavar='PRODUCT:URL',
@@ -289,6 +305,12 @@ class DesiInstall(object):
             message = "You do not appear to have Modules set up."
             self.log.critical(message)
             raise DesiInstallException(message)
+        if (self.options.local_dir is not None and
+                not os.path.isdir(self.options.local_dir)):
+            message = ("Local directory, {0}, does not exist!".format(
+                       self.options.local_dir))
+            self.log.critical(message)
+            raise DesiInstallException(message)
         return True
 
     def get_product_version(self):
@@ -321,6 +343,13 @@ class DesiInstall(object):
             self.log.warning('Add location to desiutil.install.known_products ' +
                              'if that is incorrect.')
         self.baseversion = os.path.basename(self.options.product_version)
+        if self.options.moduleversion is not None:
+            mv = self.options.moduleversion
+            if os.path.basename(mv) != mv or mv in ('.', '..'):
+                raise DesiInstallException(f"Invalid module version name: {mv!r}")
+            self.moduleversion = mv
+        else:
+            self.moduleversion = self.baseversion
         self.github = False
         if 'github.com' in self.fullproduct:
             self.github = True
@@ -335,6 +364,12 @@ class DesiInstall(object):
         :class:`str`
             The full path to the branch code.
         """
+        if self.options.local_dir is not None:
+            self.is_branch = True
+            self.product_url = self.options.local_dir
+            self.log.debug("Using local directory %s as the source of this product.",
+                           self.product_url)
+            return self.product_url
         self.is_branch = (self.options.product_version.startswith('branches') or
                           self.options.product_version == 'trunk' or
                           self.options.product_version == 'main')
@@ -377,6 +412,9 @@ class DesiInstall(object):
         DesiInstallException
             If the subversion URL could not be found.
         """
+        if self.options.local_dir is not None:
+            self.log.debug("Local directory install. Skipping URL verification.")
+            return True
         if self.github:
             try:
                 r = requests.head(self.product_url)
@@ -421,6 +459,18 @@ class DesiInstall(object):
             self.log.debug("shutil.rmtree('%s')", self.working_dir)
             if not self.options.test:
                 shutil.rmtree(self.working_dir)
+        if self.options.local_dir is not None:
+            self.log.debug("shutil.copytree('%s', '%s')",
+                           self.options.local_dir, self.working_dir)
+            if self.options.test:
+                self.log.debug("Test Mode. Skipping copy of %s.",
+                               self.options.local_dir)
+            else:
+                shutil.copytree(self.options.local_dir, self.working_dir,
+                                ignore=shutil.ignore_patterns('__pycache__',
+                                                              '*.egg-info',
+                                                              'build', '.tox'))
+            return
         if self.github:
             if self.is_branch:
                 try:
@@ -607,7 +657,7 @@ class DesiInstall(object):
             raise DesiInstallException(message)
 
         self.install_dir = os.path.join(self.options.root, 'code',
-                                        self.baseproduct, self.baseversion)
+                                        self.baseproduct, self.moduleversion)
         if os.path.isdir(self.install_dir) and not self.options.test:
             if self.options.force:
                 self.unlock_permissions()
@@ -700,10 +750,10 @@ class DesiInstall(object):
             if os.path.isdir(os.path.join(self.working_dir, 'py')):
                 dev = True
         self.log.debug("configure_module(%s, %s, working_dir=%s, dev=%s)",
-                       self.baseproduct, self.baseversion,
+                       self.baseproduct, self.moduleversion,
                        self.working_dir, dev)
         self.module_keywords = configure_module(self.baseproduct,
-                                                self.baseversion,
+                                                self.moduleversion,
                                                 os.path.join(self.options.root, 'code'),
                                                 working_dir=self.working_dir,
                                                 dev=dev)
@@ -759,9 +809,9 @@ class DesiInstall(object):
             else:
                 m_command = 'load'
             self.log.debug("module('%s', '%s/%s')", m_command,
-                           self.baseproduct, self.baseversion)
+                           self.baseproduct, self.moduleversion)
             if not self.options.test:
-                self.module(m_command, self.baseproduct + '/' + self.baseversion)
+                self.module(m_command, self.baseproduct + '/' + self.moduleversion)
         env_product = self.baseproduct.upper().replace('-', '_')
         env_version = env_product + '_VERSION'
         # The current install script expects a version in the form of

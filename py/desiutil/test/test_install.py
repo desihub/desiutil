@@ -4,7 +4,7 @@
 """
 import sys
 import unittest
-from unittest.mock import patch, call, MagicMock, mock_open
+from unittest.mock import patch, call, ANY, MagicMock, mock_open
 from os import chdir, environ, getcwd, mkdir, remove, rmdir
 from os.path import abspath, basename, isdir, isfile, join
 from shutil import rmtree
@@ -93,7 +93,9 @@ class TestInstall(unittest.TestCase):
                 force=False,
                 force_build_type=False,
                 keep=False,
+                local_dir=None,
                 moduleshome='/fake/module/directory',
+                moduleversion=None,
                 product=u'NO PACKAGE',
                 product_version=u'NO VERSION',
                 root=None,
@@ -140,6 +142,15 @@ class TestInstall(unittest.TestCase):
                 self.desiInstall.sanity_check()
             self.assertEqual(str(cm.exception),
                              "You do not appear to have Modules set up.")
+        with patch.dict('os.environ', {'MODULESHOME': self.data_dir}):
+            options = self.desiInstall.get_options(['-l', join(self.data_dir, 'no_such_dir'), 'foo', 'bar'])
+            with self.assertRaises(DesiInstallException) as cm:
+                self.desiInstall.sanity_check()
+            self.assertEqual(str(cm.exception),
+                             "Local directory, {0}, does not exist!".format(
+                             join(self.data_dir, 'no_such_dir')))
+            options = self.desiInstall.get_options(['-l', self.data_dir, 'foo', 'bar'])
+            self.assertTrue(self.desiInstall.sanity_check())
 
     def test_get_product_version(self):
         """Test resolution of product/version input.
@@ -149,8 +160,7 @@ class TestInstall(unittest.TestCase):
                          'desispec': 'https://github.com/desihub/desispec'}):
             options = self.desiInstall.get_options(['foo', 'bar'])
             out = self.desiInstall.get_product_version()
-            self.assertEqual(out, (u'https://github.com/desihub/foo',
-                             'foo', 'bar'))
+            self.assertEqual(out, (u'https://github.com/desihub/foo', 'foo', 'bar'))
             options = self.desiInstall.get_options(['desiutil', '1.0.0'])
             out = self.desiInstall.get_product_version()
             self.assertEqual(out, (u'https://github.com/desihub/desiutil',
@@ -173,6 +183,19 @@ class TestInstall(unittest.TestCase):
             out = self.desiInstall.get_product_version()
             self.assertEqual(out, (u'https://github.com/me/desiutil',
                                    'desiutil', '1.2.3'))
+            #
+            # moduleversion defaults to baseversion.
+            #
+            options = self.desiInstall.get_options(['desispec', 'main'])
+            out = self.desiInstall.get_product_version()
+            self.assertEqual(self.desiInstall.moduleversion, 'main')
+            #
+            # moduleversion can be overridden.
+            #
+            options = self.desiInstall.get_options(['-M', 'sjb', 'desispec', 'main'])
+            out = self.desiInstall.get_product_version()
+            self.assertEqual(self.desiInstall.baseversion, 'main')
+            self.assertEqual(self.desiInstall.moduleversion, 'sjb')
 
     def test_identify_branch(self):
         """Test identification of branch installs.
@@ -211,6 +234,12 @@ class TestInstall(unittest.TestCase):
         self.assertEqual(url,
                          ('https://desi.lbl.gov/svn/code/focalplane/plate_layout/' +
                           'branches/testing'))
+        options = self.desiInstall.get_options(['-l', self.data_dir,
+                                                'desiutil', 'mytest'])
+        out = self.desiInstall.get_product_version()
+        url = self.desiInstall.identify_branch()
+        self.assertEqual(url, self.data_dir)
+        self.assertTrue(self.desiInstall.is_branch)
 
     def test_verify_url(self):
         """Test the check for a valid svn URL.
@@ -238,6 +267,11 @@ class TestInstall(unittest.TestCase):
         self.assertLog(-1, message=message)
         with self.assertRaises(DesiInstallException):
             self.desiInstall.verify_url(svn='which')
+        options = self.desiInstall.get_options(['-l', self.data_dir,
+                                                'desiutil', 'mytest'])
+        out = self.desiInstall.get_product_version()
+        url = self.desiInstall.identify_branch()
+        self.assertTrue(self.desiInstall.verify_url())
 
     @patch('desiutil.install.Popen')
     @patch('shutil.rmtree')
@@ -320,6 +354,27 @@ class TestInstall(unittest.TestCase):
         self.assertEqual(self.desiInstall.working_dir, join(abspath('.'), 'plate_layout-0.1'))
         mock_isdir.assert_called_once_with(self.desiInstall.working_dir)
         self.assertLog(-1, 'Test Mode.')
+
+    @patch('shutil.copytree')
+    @patch('os.path.isdir')
+    def test_get_code_local_dir(self, mock_isdir, mock_copytree):
+        """Test copying code from a local checkout.
+        """
+        options = self.desiInstall.get_options(['-l', self.data_dir,
+                                                'desiutil', 'mytest'])
+        out = self.desiInstall.get_product_version()
+        url = self.desiInstall.identify_branch()
+        mock_isdir.return_value = False
+        self.desiInstall.get_code()
+        self.assertEqual(self.desiInstall.working_dir, join(abspath('.'), 'desiutil-mytest'))
+        mock_copytree.assert_called_once_with(self.data_dir,
+                                              self.desiInstall.working_dir,
+                                              ignore=ANY)
+        mock_copytree.reset_mock()
+        self.desiInstall.options.test = True
+        self.desiInstall.get_code()
+        mock_copytree.assert_not_called()
+        self.assertLog(-1, "Test Mode. Skipping copy of {0}.".format(self.data_dir))
 
     def test_build_type(self):
         """Test the determination of the build type.
@@ -404,6 +459,14 @@ class TestInstall(unittest.TestCase):
             install_dir = self.desiInstall.set_install_dir()
             self.assertEqual(install_dir, join(self.data_dir, 'code', 'desiutil',
                              '1.2.3'))
+            # Test the --moduleversion override.
+            options = self.desiInstall.get_options(['--root', self.data_dir,
+                                                    '-M', 'sjb',
+                                                    'desiutil', 'main'])
+            self.desiInstall.get_product_version()
+            install_dir = self.desiInstall.set_install_dir()
+            self.assertEqual(install_dir, join(self.data_dir, 'code', 'desiutil',
+                             'sjb'))
             # Test for presence of existing directory.
             tmpdir = join(self.data_dir, 'code')
             mkdir(tmpdir)
@@ -526,6 +589,21 @@ class TestInstall(unittest.TestCase):
                                                    join(self.desiInstall.options.root, 'code'),
                                                    working_dir=self.desiInstall.working_dir,
                                                    dev=False)
+            mock_configure.reset_mock()
+            #
+            # Test the --moduleversion override.
+            #
+            options = self.desiInstall.get_options([product_name, product_version, '-M', 'sjb', '--test'])
+            self.desiInstall.get_product_version()
+            install_dir = self.desiInstall.set_install_dir()
+            self.desiInstall.working_dir = join(self.data_dir,
+                                                f"{product_name}-{product_version}")
+            mod = self.desiInstall.install_module()
+            mock_configure.assert_called_once_with('specsim',
+                                                   'sjb',
+                                                   join(self.desiInstall.options.root, 'code'),
+                                                   working_dir=self.desiInstall.working_dir,
+                                                   dev=False)
 
     def test_prepare_environment(self):
         """Test set up of build environment.
@@ -558,6 +636,23 @@ class TestInstall(unittest.TestCase):
                     self.assertLog(-2, f"module('switch', '{product_name}/{product_version}')")
                 else:
                     self.assertNotIn(f'SETUPTOOLS_SCM_PRETEND_VERSION_FOR_{env_product}', environ)
+        #
+        # Test the --moduleversion override: the loaded module uses
+        # moduleversion, but the legacy _VERSION environment variable
+        # still reflects the actual source baseversion.
+        #
+        environ.pop('DESISPEC_VERSION', None)
+        with patch.dict('os.environ', {'NERSC_HOST': 'edison',
+                                       'DESICONDA': 'current',
+                                       'LOADEDMODULES': 'desispec/sjb'}):
+            options = self.desiInstall.get_options(['desispec', 'main', '-M', 'sjb', '--test'])
+            self.desiInstall.get_product_version()
+            install_dir = self.desiInstall.set_install_dir()
+            self.desiInstall.is_branch = True
+            self.desiInstall.working_dir = join(self.data_dir, 'desispec-main')
+            o_dir = self.desiInstall.prepare_environment()
+            self.assertEqual(environ['DESISPEC_VERSION'], 'tags/main')
+            self.assertLog(-2, "module('switch', 'desispec/sjb')")
 
     def test_install_plain(self):
         """Test the installation process for plain or branch installs.
