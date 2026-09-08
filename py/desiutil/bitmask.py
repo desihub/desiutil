@@ -79,14 +79,18 @@ class _MaskBit(int):
     comment : :class:`str`
         A comment explaining the meaning of the bit.
     """
-    def __new__(cls, name, bitnum, comment, extra=dict()):
+    def __new__(cls, name, bitnum, comment, extra=None):
         self = super(_MaskBit, cls).__new__(cls, 2**bitnum)
         self.name = name
         self.bitnum = bitnum
         self.mask = 2**bitnum
         self.comment = comment
-        self._extra = extra
-        for key, value in extra.items():
+        # Do not use a mutable object in a function definition.
+        if extra is None:
+            self._extra = dict()
+        else:
+            self._extra = extra
+        for key, value in self._extra.items():
             if hasattr(self, key):
                 raise AttributeError(
                     "Bit {0} extra key '{1}' is already in use by int objects.".format(name, key))
