@@ -5,14 +5,16 @@ Change Log
 4.0.1 (unreleased)
 ------------------
 
-* Add ``-l``/``--local`` option to :command:`desiInstall` to install from a
-  local checkout instead of downloading from GitHub or Subversion.
-* Add ``-M``/``--moduleversion`` option to :command:`desiInstall` to override
-  the name of the installed Module version, independent of the branch or tag
-  being installed.
-* Fix detection of Python packages in :func:`~desiutil.modules.configure_module`
-  so that ``setup.cfg`` and ``pyproject.toml`` are recognized in addition to
-  ``setup.py``.
+* Additional :command:`desiInstall` features (PR `#234`_):
+
+  - Add ``-l``/``--local`` option to install from a local checkout
+    instead of downloading from GitHub or Subversion.
+  - Add ``-M``/``--moduleversion`` option to override the name of the
+    installed Module version, independent of the branch or tag being installed.
+  - Fix detection of Python packages in :func:`~desiutil.modules.configure_module`
+    so that ``pyproject.toml`` is recognized in addition to ``setup.py``.
+
+.. _`#234`: https://github.com/desihub/desiutil/issues/234
 
 4.0.0 (2026-08-24)
 ------------------
