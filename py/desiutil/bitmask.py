@@ -90,7 +90,7 @@ class _MaskBit(int):
             self._extra = dict()
         else:
             self._extra = extra
-        for key, value in extra.items():
+        for key, value in self._extra.items():
             if hasattr(self, key):
                 raise AttributeError(
                     "Bit {0} extra key '{1}' is already in use by int objects.".format(name, key))
