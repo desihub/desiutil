@@ -2,7 +2,7 @@
 Change Log
 ==========
 
-4.0.1 (unreleased)
+4.0.1 (2026-09-11)
 ------------------
 
 * Fix warning about ``return`` in a ``finally`` block (PR `#235`_).
